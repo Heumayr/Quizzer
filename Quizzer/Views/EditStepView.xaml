@@ -1,0 +1,75 @@
+﻿<base:WindowBase x:Class="Quizzer.Views.EditStepView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Quizzer.Views"
+        xmlns:base="clr-namespace:Quizzer.Base"
+        xmlns:val="clr-namespace:Quizzer.Validators"
+        mc:Ignorable="d"
+        Title="EditStepView" Height="450" Width="800">
+    <base:WindowBase.DataContext>
+        <local:EditStepViewModel />
+    </base:WindowBase.DataContext>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Margin="5">
+            <Button Content="Close" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding CloseCommand}" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="1">
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Sequens Number:" VerticalAlignment="Center" />
+                <TextBox MinWidth="200" Margin="5,0,0,0">
+                    <TextBox.Text>
+                        <Binding Path="Step.SquenceNumber"
+                                 UpdateSourceTrigger="PropertyChanged"
+                                 ValidatesOnDataErrors="True"
+                                 ValidatesOnExceptions="True"
+                                 NotifyOnValidationError="True">
+                            <Binding.ValidationRules>
+                                <val:PositiveIntValidationRule />
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                </TextBox>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Is Result:" VerticalAlignment="Center" />
+                <CheckBox VerticalAlignment="Center" IsChecked="{Binding Path=Step.IsResult, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Text:" VerticalAlignment="Center" />
+                <TextBox Grid.Column="1"
+                    Text="{Binding Step.StepText, UpdateSourceTrigger=PropertyChanged}"
+                    Margin="5,0,0,0"
+                    AcceptsReturn="True"
+                    TextWrapping="Wrap"
+                    VerticalScrollBarVisibility="Auto"
+                    MinWidth="500"
+                    MinHeight="60"
+                    MaxHeight="200"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Top" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Resource Filename:" VerticalAlignment="Center" />
+                <TextBox Text="{Binding Path=Step.ResourceFileName, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" Margin="5,0,0,0" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120"  Content="Resource Typ:" VerticalAlignment="Center" />
+                <ComboBox ItemsSource="{Binding ResourceTyps}"
+                    SelectedItem="{Binding Step.ResourceTyp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    MinWidth="200" Margin="5,0,0,0" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</base:WindowBase>
