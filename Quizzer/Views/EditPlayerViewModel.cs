@@ -49,6 +49,11 @@ namespace Quizzer.Views
 
         private async Task SaveAsync(object? commandParameter)
         {
+            await VMSaveAsync();
+        }
+
+        public override async Task VMSaveAsync()
+        {
             if (Player == null)
             {
                 return;
@@ -86,7 +91,7 @@ namespace Quizzer.Views
                 return;
             }
 
-            var view = CollectionViewSource.GetDefaultView(Player.QuestionResults);
+            var view = CollectionViewSource.GetDefaultView(Player.CurrentQuestionResults);
             view.SortDescriptions.Clear();
             view.SortDescriptions.Add(
                 new System.ComponentModel.SortDescription(

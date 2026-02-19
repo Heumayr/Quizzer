@@ -60,6 +60,7 @@ namespace Quizzer.Base
         public static T? CloneAndClearOnSave<T>(this T source, JsonSerializerSettings? settings = null)
         {
             if (source is null) return default;
+            settings?.ReferenceLoopHandling = ReferenceLoopHandling.Ignore; // Verhindert Probleme bei zyklischen Referenzen
             var clone = source.DeepClone(settings);
             if (clone is null) return default;
             var properties = typeof(T).GetProperties();

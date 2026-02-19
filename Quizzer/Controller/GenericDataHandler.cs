@@ -3,6 +3,7 @@ using Quizzer.Base;
 using Quizzer.Controller.Helper;
 using Quizzer.Datamodels;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,7 +14,10 @@ namespace Quizzer.Controller
 {
     public class GenericDataHandler
     {
-        private static readonly string FileEnding = ".json";
+        private const string FileEnding = ".json";
+
+        // One lock per file path to prevent concurrent writes from multiple windows/VMs
+        private static readonly ConcurrentDictionary<string, SemaphoreSlim> FileLocks = new();
 
         public static JsonSerializerSettings JsonSettings { get; } = new JsonSerializerSettings
         {
@@ -23,18 +27,47 @@ namespace Quizzer.Controller
             SerializationBinder = new QuizzerTypeBinder()
         };
 
-        public async Task SaveToFileAsync<T>(
-            IEnumerable<T> data,
-            CancellationToken cancellationToken = default)
+        private static SemaphoreSlim GetLock(string filePath) =>
+            FileLocks.GetOrAdd(filePath, _ => new SemaphoreSlim(1, 1));
+
+        // Sharing/lock violations on Windows (file currently used)
+        private static bool IsSharingOrLockViolation(IOException ex)
+        {
+            int hr = ex.HResult;
+            return hr == unchecked((int)0x80070020) // ERROR_SHARING_VIOLATION
+                || hr == unchecked((int)0x80070021); // ERROR_LOCK_VIOLATION
+        }
+
+        private static string GetFilePath<T>() where T : ModelBase =>
+            Path.Combine(Settings.FilePathQuizzer, $"{typeof(T).Name}{FileEnding}");
+
+        private static void EnsureDirectory(string filePath)
+        {
+            var dir = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrWhiteSpace(dir))
+                Directory.CreateDirectory(dir);
+        }
+
+        public async Task SaveToFileAsync<T>(IEnumerable<T> data, CancellationToken cancellationToken = default)
             where T : ModelBase
         {
+            if (data == null) throw new ArgumentNullException(nameof(data));
+
+            var filePath = GetFilePath<T>();
+            EnsureDirectory(filePath);
+
+            var fileLock = GetLock(filePath);
+            await fileLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+            // Serialize outside lock? If 'data' can be modified concurrently, serialize inside the lock.
+            // Here we take a snapshot list first to avoid "collection modified" issues.
+            var sourceSnapshot = data.ToList();
+
             try
             {
-                var filePath = Path.Combine(Settings.FilePathQuizzer, $"{typeof(T).Name}{FileEnding}");
+                var datatosave = new List<T>(sourceSnapshot.Count);
 
-                var datatosave = new List<T>();
-
-                foreach (var item in data)
+                foreach (var item in sourceSnapshot)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -48,41 +81,93 @@ namespace Quizzer.Controller
 
                 var json = JsonConvert.SerializeObject(datatosave, JsonSettings);
 
-                // Ensure directory exists (optional but usually helpful)
-                var dir = Path.GetDirectoryName(filePath);
-                if (!string.IsNullOrWhiteSpace(dir))
-                    Directory.CreateDirectory(dir);
+                // Atomic write: write to temp and then replace target
+                var tmpPath = filePath + ".tmp";
 
-                await File.WriteAllTextAsync(filePath, json, cancellationToken)
-                          .ConfigureAwait(false);
+                // Small retry loop for transient sharing violations (e.g., AV scanner, parallel close)
+                const int maxAttempts = 6;
+                for (int attempt = 1; ; attempt++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    try
+                    {
+                        await File.WriteAllTextAsync(tmpPath, json, cancellationToken).ConfigureAwait(false);
+
+#if NET6_0_OR_GREATER
+                        File.Move(tmpPath, filePath, overwrite: true);
+#else
+                        if (File.Exists(filePath))
+                            File.Delete(filePath);
+                        File.Move(tmpPath, filePath);
+#endif
+                        break;
+                    }
+                    catch (IOException ex) when (IsSharingOrLockViolation(ex) && attempt < maxAttempts)
+                    {
+                        // backoff: 80, 160, 240, ...
+                        await Task.Delay(80 * attempt, cancellationToken).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        // If move failed, try to clean up tmp on next run (best effort)
+                        // Don't throw if cleanup fails.
+                        try
+                        {
+                            if (File.Exists(tmpPath) && attempt == maxAttempts)
+                                File.Delete(tmpPath);
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                throw new Exception("Fehler beim Speichern der Datei", ex);
+                throw new IOException($"Fehler beim Speichern der Datei '{filePath}'.", ex);
+            }
+            finally
+            {
+                fileLock.Release();
             }
         }
 
-        public async Task<IEnumerable<T>> LoadFromFileAsync<T>(
-            CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<T>> LoadFromFileAsync<T>(CancellationToken cancellationToken = default)
             where T : ModelBase
         {
+            var filePath = GetFilePath<T>();
+
+            if (!File.Exists(filePath))
+                return Enumerable.Empty<T>();
+
+            var fileLock = GetLock(filePath);
+            await fileLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+
             try
             {
-                var filePath = Path.Combine(Settings.FilePathQuizzer, $"{typeof(T).Name}{FileEnding}");
+                // If a previous crash left a temp file, we ignore it.
+                var json = await File.ReadAllTextAsync(filePath, cancellationToken).ConfigureAwait(false);
 
-                if (!File.Exists(filePath))
+                if (string.IsNullOrWhiteSpace(json))
                     return Enumerable.Empty<T>();
 
-                var json = await File.ReadAllTextAsync(filePath, cancellationToken)
-                                     .ConfigureAwait(false);
-
                 var result = JsonConvert.DeserializeObject<List<T>>(json, JsonSettings);
-
                 return result ?? Enumerable.Empty<T>();
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                throw new Exception("Fehler beim Laden der Datei", ex);
+                throw new IOException($"Fehler beim Laden der Datei '{filePath}'.", ex);
+            }
+            finally
+            {
+                fileLock.Release();
             }
         }
     }

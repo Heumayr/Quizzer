@@ -23,15 +23,19 @@
 
         <StackPanel Grid.Column="1">
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Name:" VerticalAlignment="Center" />
+                <Label MinWidth="120" Content="Designation:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" Text="{Binding Path=Player.Designation}" MinWidth="200" Margin="5,0,0,0" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Display Name:" VerticalAlignment="Center" />
+                <TextBox VerticalContentAlignment="Center" Text="{Binding Path=Player.DisplayName}" MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Sum Final Score:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" IsReadOnly="True" Text="{Binding Path=Player.FinalScore, Mode=OneWay}" MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
 
-            <DataGrid ItemsSource="{Binding Player.QuestionResults}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True">
+            <DataGrid ItemsSource="{Binding Player.CurrentQuestionResults}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Game" Binding="{Binding Game.Designation}" Width="*" />
                     <DataGridTextColumn Header="Question" Binding="{Binding Question.Designation}" Width="2*" />

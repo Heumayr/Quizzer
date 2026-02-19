@@ -9,9 +9,36 @@ using System.Windows;
 
 namespace Quizzer.Base
 {
-    public class ViewModelBase : INotifyPropertyChanged
+    public abstract class ViewModelBase : INotifyPropertyChanged
     {
-        public Window? Window { get; set; }
+        private Window? window;
+
+        public Window? Window
+        {
+            get => window;
+            set
+            {
+                if (!Equals(window, value))
+                {
+                    window?.Closed -= Window_Closed;
+                    window = value;
+                    window?.Closed += Window_Closed;
+                }
+            }
+        }
+
+        private async void Window_Closed(object? sender, EventArgs e)
+        {
+            try
+            {
+                await VMSaveAsync();
+            }
+            catch (Exception ex)
+            {
+                // TODO: Logging statt MessageBox, je nach App
+                MessageBox.Show(ex.InnerException?.Message ?? ex.Message, "Save failed");
+            }
+        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -23,5 +50,7 @@ namespace Quizzer.Base
         public virtual async Task InitializeAsync()
         {
         }
+
+        public abstract Task VMSaveAsync();
     }
 }

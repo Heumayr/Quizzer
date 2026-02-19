@@ -44,5 +44,10 @@ namespace Quizzer.Views
         {
             Window?.Close();
         }
+
+        public override Task VMSaveAsync()
+        {
+            return Task.CompletedTask;
+        }
     }
 }

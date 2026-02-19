@@ -77,6 +77,11 @@ namespace Quizzer.Views
 
         private async Task SaveAsync(object? commandParameter)
         {
+            await VMSaveAsync();
+        }
+
+        public override async Task VMSaveAsync()
+        {
             if (Question == null)
             {
                 return;
@@ -119,7 +124,7 @@ namespace Quizzer.Views
 
             var step = new QuestionStepResource();
 
-            step.SquenceNumber = Question.Steps.Max(q => q.SquenceNumber) + 10;
+            step.SquenceNumber = Question.Steps.Any() ? Question.Steps.Max(q => q.SquenceNumber) + 10 : 0;
 
             Question.Steps.Add(step);
 

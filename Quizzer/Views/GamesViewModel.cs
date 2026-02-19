@@ -17,7 +17,7 @@ namespace Quizzer.Views
     {
         public ObservableCollection<Game> Games { get => Loader.Games; set => Loader.Games = value; }
 
-        public Task SaveAsync()
+        public override Task VMSaveAsync()
         {
             var ctrl = new GenericDataHandler();
             return ctrl.SaveToFileAsync(Games);
@@ -28,7 +28,7 @@ namespace Quizzer.Views
 
         private async Task SaveCommandAsync(object? param)
         {
-            await SaveAsync();
+            await VMSaveAsync();
         }
 
         public ObservableCollection<Game> SelectedGames { get; set; } = new();
@@ -93,7 +93,7 @@ namespace Quizzer.Views
                 Games.Remove(game);
             }
 
-            await SaveAsync();
+            await VMSaveAsync();
             OnDatagridSourceChanged();
 
             return;

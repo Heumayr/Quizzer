@@ -29,7 +29,7 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Designation" Binding="{Binding Designation}" Width="2*" />
                 <DataGridTextColumn Header="Category" Binding="{Binding Category.Designation}" Width="*" />
-                <DataGridTextColumn Header="Category" Binding="{Binding Difficulty}" Width="*" />
+                <DataGridTextColumn Header="Difficulty" Binding="{Binding Difficulty}" Width="*" />
                 <DataGridTextColumn Header="Points" Binding="{Binding Points}" Width="*" />
                 <DataGridTextColumn Header="Minus-Points" Binding="{Binding MinusPoints}" Width="*" />
             </DataGrid.Columns>

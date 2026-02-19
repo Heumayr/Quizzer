@@ -30,7 +30,12 @@ namespace Quizzer.Views
 
         private async Task SaveAsync(object? param)
         {
-            await SaveCategoriesAsync();
+            await VMSaveAsync();
+        }
+
+        public override Task VMSaveAsync()
+        {
+            return SaveCategoriesAsync();
         }
     }
 }

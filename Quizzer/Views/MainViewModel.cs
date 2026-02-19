@@ -56,5 +56,10 @@ namespace Quizzer.Views
             var window = new GamesView();
             window.ShowDialog();
         }
+
+        public override Task VMSaveAsync()
+        {
+            return Task.CompletedTask;
+        }
     }
 }

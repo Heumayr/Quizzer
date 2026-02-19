@@ -7,8 +7,8 @@
         <Style x:Key="CellBorderStyle" TargetType="Border">
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Padding" Value="6" />
-            <Setter Property="Margin" Value="2" />
+            <Setter Property="Padding" Value="3" />
+            <Setter Property="Margin" Value="1" />
             <Setter Property="Background" Value="#FFADFFFA" />
             <Setter Property="BorderBrush" Value="Gray" />
 
@@ -30,7 +30,16 @@
         </Border.InputBindings>
 
         <StackPanel>
-            <TextBlock Text="{Binding DisplayBuild}" />
+            <StackPanel.Resources>
+                <Style TargetType="Label">
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Margin" Value="0" />
+                </Style>
+            </StackPanel.Resources>
+
+            <Label Content="{Binding DisplayBuild}" />
+            <Label Content="{Binding DifficultyDisplay}" />
+            <Label Content="{Binding PointsDisplay}" />
         </StackPanel>
     </Border>
 </UserControl>
