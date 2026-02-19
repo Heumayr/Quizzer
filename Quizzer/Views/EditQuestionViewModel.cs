@@ -60,6 +60,7 @@ namespace Quizzer.Views
         {
             OnPropertyChanged(nameof(SelectedCategory));
             OnPropertyChanged(nameof(Question));
+            OnDatagridSourceChanged();
         }
 
         public void SetQuestionBase(QuestionBase questionBase)
@@ -118,9 +119,30 @@ namespace Quizzer.Views
 
             var step = new QuestionStepResource();
 
+            step.SquenceNumber = Question.Steps.Max(q => q.SquenceNumber) + 10;
+
             Question.Steps.Add(step);
 
             return EditStepAsync(step);
+        }
+
+        private AsyncRelayCommand? removeStepCommnad;
+        public ICommand RemoveStepCommnad => removeStepCommnad ??= new AsyncRelayCommand(RemoveStepCommnadAsync);
+
+        private async Task RemoveStepCommnadAsync(object? commandParameter)
+        {
+            if (Question == null)
+            {
+                throw new InvalidOperationException("Question is null");
+            }
+
+            foreach (var step in SelectedSteps)
+            {
+                Question.Steps.Remove(step);
+            }
+
+            //await SaveAsync(null);
+            OnDatagridSourceChanged();
         }
 
         private async Task EditStepAsync(QuestionStepResource step)
@@ -147,7 +169,14 @@ namespace Quizzer.Views
                 return;
             }
 
-            CollectionViewSource.GetDefaultView(Question.Steps)?.Refresh();
+            var view = CollectionViewSource.GetDefaultView(Question.Steps);
+            view.SortDescriptions.Clear();
+            view.SortDescriptions.Add(
+                new System.ComponentModel.SortDescription(
+                    nameof(QuestionStepResource.SquenceNumber),
+                    System.ComponentModel.ListSortDirection.Ascending));
+
+            view.Refresh();
         }
 
         private AsyncRelayCommand? openStepCommand;

@@ -1,6 +1,5 @@
 ﻿using Quizzer.Attributes;
 using Quizzer.Datamodels.Enumerations;
-using Quizzer.Datamodels.Other;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,6 +8,8 @@ namespace Quizzer.Datamodels
 {
     public abstract class QuestionBase : ModelBase
     {
+        public string DesignationShort { get; set; } = string.Empty;
+
         public Guid CategoryId { get; set; }
 
         public virtual int Points { get; set; }

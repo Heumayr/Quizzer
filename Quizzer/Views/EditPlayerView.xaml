@@ -1,0 +1,51 @@
+﻿<base:WindowBase x:Class="Quizzer.Views.EditPlayerView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Quizzer.Views"
+        xmlns:base="clr-namespace:Quizzer.Base"
+        mc:Ignorable="d"
+        Title="EditPlayerView" Height="450" Width="800">
+    <base:WindowBase.DataContext>
+        <local:EditPlayerViewModel />
+    </base:WindowBase.DataContext>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Margin="5">
+            <Button Content="Save" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding SaveCommand}" />
+            <Button Content="Save and Close" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding SaveAndCloseCommand}" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="1">
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Name:" VerticalAlignment="Center" />
+                <TextBox VerticalContentAlignment="Center" Text="{Binding Path=Player.Designation}" MinWidth="200" Margin="5,0,0,0" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Sum Final Score:" VerticalAlignment="Center" />
+                <TextBox VerticalContentAlignment="Center" IsReadOnly="True" Text="{Binding Path=Player.FinalScore, Mode=OneWay}" MinWidth="200" Margin="5,0,0,0" />
+            </StackPanel>
+
+            <DataGrid ItemsSource="{Binding Player.QuestionResults}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Game" Binding="{Binding Game.Designation}" Width="*" />
+                    <DataGridTextColumn Header="Question" Binding="{Binding Question.Designation}" Width="2*" />
+                    <DataGridTextColumn Header="Final Score" Binding="{Binding FinalScore}" Width="*" />
+                    <DataGridCheckBoxColumn Header="Correct Answered" Binding="{Binding CorrectAnswered}" Width="auto" />
+                    <DataGridTextColumn Header="Points" Binding="{Binding Points}" Width="auto" />
+                    <DataGridTextColumn Header="Minus-Points" Binding="{Binding MinusPoints}" Width="auto" />
+                </DataGrid.Columns>
+                <!--base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedSteps}"-->
+                <!--base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenStepCommand}">-->
+                <!--<DataGrid.Columns>
+                <DataGridTextColumn Header="StepText" Binding="{Binding StepText}" Width="2*" />
+            </DataGrid.Columns>-->
+            </DataGrid>
+        </StackPanel>
+    </Grid>
+</base:WindowBase>

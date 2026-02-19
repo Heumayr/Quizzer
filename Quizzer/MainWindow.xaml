@@ -18,10 +18,10 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Start Quiz" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding StartQuizCommand}" />
             <Button Content="Categories" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding CategoryCommand}" />
             <Button Content="Questions" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding QuestionsCommand}" />
             <Button Content="Players" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding PlayersCommand}" />
+            <Button Content="Games" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding GamesCommand}" />
         </StackPanel>
     </Grid>
 </base:WindowBase>

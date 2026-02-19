@@ -34,7 +34,7 @@ namespace Quizzer.Views
             await SaveAsync();
         }
 
-        public ObservableCollection<QuestionBase>? SelectedQuestions { get; set; }
+        public ObservableCollection<QuestionBase> SelectedQuestions { get; set; } = new();
 
         private AsyncRelayCommand? openQuestionCommand;
         public ICommand OpenQuestionCommand => openQuestionCommand ??= new AsyncRelayCommand(OpenQuestionAsync);
@@ -73,6 +73,29 @@ namespace Quizzer.Views
         public void OnDatagridSourceChanged()
         {
             CollectionViewSource.GetDefaultView(Questions)?.Refresh();
+        }
+
+        private AsyncRelayCommand? removeQuestionCommand;
+        public ICommand RemoveQuestionCommand => removeQuestionCommand ??= new AsyncRelayCommand(RemoveQuestionAsync);
+
+        private async Task RemoveQuestionAsync(object? commandParameter)
+        {
+            if (SelectedQuestions == null || SelectedQuestions.Count == 0)
+            {
+                return;
+            }
+
+            var toRemove = new List<QuestionBase>(SelectedQuestions);
+
+            foreach (var question in toRemove)
+            {
+                Questions.Remove(question);
+            }
+
+            await SaveAsync();
+            OnDatagridSourceChanged();
+
+            return;
         }
     }
 }

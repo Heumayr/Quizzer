@@ -1,4 +1,4 @@
-﻿<base:WindowBase x:Class="Quizzer.Views.QuestionsView"
+﻿<base:WindowBase x:Class="Quizzer.Views.GamesView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,9 +6,9 @@
         xmlns:local="clr-namespace:Quizzer.Views"
         xmlns:base="clr-namespace:Quizzer.Base"
         mc:Ignorable="d"
-        Title="QuestionsView" Height="450" Width="800">
+        Title="GamesView" Height="450" Width="800">
     <base:WindowBase.DataContext>
-        <local:QuestionsViewModel />
+        <local:GamesViewModel />
     </base:WindowBase.DataContext>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -18,20 +18,16 @@
 
         <StackPanel Margin="5">
             <!--<Button Content="Save" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding SaveCommand}" />-->
-            <Button Content="Add Question" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding AddQuestionCommand}" />
-            <Button Content="Remove Question" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding RemoveQuestionCommand}" />
+            <Button Content="Add Game" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding AddGameCommand}" />
+            <Button Content="Remove Game" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding RemoveGameCommand}" />
             <!--<Button Content="Remove Category" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding RemoveCategoryCommand}" />-->
         </StackPanel>
 
-        <DataGrid Grid.Column="1" ItemsSource="{Binding Questions}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True"
-                  base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedQuestions}"
-                  base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenQuestionCommand}">
+        <DataGrid Grid.Column="1" ItemsSource="{Binding Games}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True"
+               base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedGames}"
+               base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenGameCommand}">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Designation" Binding="{Binding Designation}" Width="2*" />
-                <DataGridTextColumn Header="Category" Binding="{Binding Category.Designation}" Width="*" />
-                <DataGridTextColumn Header="Category" Binding="{Binding Difficulty}" Width="*" />
-                <DataGridTextColumn Header="Points" Binding="{Binding Points}" Width="*" />
-                <DataGridTextColumn Header="Minus-Points" Binding="{Binding MinusPoints}" Width="*" />
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

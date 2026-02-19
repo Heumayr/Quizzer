@@ -25,7 +25,7 @@
         <StackPanel Grid.Column="1">
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Designation:" VerticalAlignment="Center" />
-                <TextBox Text="{Binding Path=Question.Designation, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" Margin="5,0,0,0" />
+                <TextBox VerticalContentAlignment="Center" Text="{Binding Path=Question.Designation, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120"  Content="Category:" VerticalAlignment="Center" />
@@ -42,7 +42,7 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Points:" VerticalAlignment="Center" />
-                <TextBox MinWidth="200" Margin="5,0,0,0">
+                <TextBox VerticalContentAlignment="Center" MinWidth="200" Margin="5,0,0,0">
                     <TextBox.Text>
                         <Binding Path="Question.Points"
                              UpdateSourceTrigger="PropertyChanged"
@@ -58,7 +58,7 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Minus-Points:" VerticalAlignment="Center" />
-                <TextBox MinWidth="200" Margin="5,0,0,0">
+                <TextBox VerticalContentAlignment="Center" MinWidth="200" Margin="5,0,0,0">
                     <TextBox.Text>
                         <Binding Path="Question.MinusPoints"
                                   UpdateSourceTrigger="PropertyChanged"
@@ -89,6 +89,7 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5,10,0,0">
                 <Button Content="Add Step" Width="120" Height="20" Margin="0,0,0,0" Command="{Binding AddStepCommnad}" />
+                <Button Content="Remove Step" Width="120" Height="20" Margin="10,0,0,0" Command="{Binding RemoveStepCommnad}" />
             </StackPanel>
             <DataGrid ItemsSource="{Binding Question.Steps}" AutoGenerateColumns="True" Margin="5" CanUserAddRows="False" IsReadOnly="True"
                       base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedSteps}"

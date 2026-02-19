@@ -35,6 +35,8 @@ namespace Quizzer.Views
 
         private void Players(object? param)
         {
+            var window = new PlayersView();
+            window.ShowDialog();
         }
 
         private RelayCommand? questionsCommand;
@@ -43,6 +45,15 @@ namespace Quizzer.Views
         private void Questions(object? param)
         {
             var window = new QuestionsView();
+            window.ShowDialog();
+        }
+
+        private RelayCommand? gamesCommand;
+        public ICommand GamesCommand => gamesCommand ??= new RelayCommand(Games);
+
+        private void Games(object? commandParameter)
+        {
+            var window = new GamesView();
             window.ShowDialog();
         }
     }

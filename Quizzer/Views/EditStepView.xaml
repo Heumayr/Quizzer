@@ -24,7 +24,7 @@
         <StackPanel Grid.Column="1">
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Sequens Number:" VerticalAlignment="Center" />
-                <TextBox MinWidth="200" Margin="5,0,0,0">
+                <TextBox VerticalContentAlignment="Center" MinWidth="200" Margin="5,0,0,0">
                     <TextBox.Text>
                         <Binding Path="Step.SquenceNumber"
                                  UpdateSourceTrigger="PropertyChanged"
@@ -61,7 +61,7 @@
 
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Resource Filename:" VerticalAlignment="Center" />
-                <TextBox Text="{Binding Path=Step.ResourceFileName, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" Margin="5,0,0,0" />
+                <TextBox VerticalContentAlignment="Center" Text="{Binding Path=Step.ResourceFileName, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">
