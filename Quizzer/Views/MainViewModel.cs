@@ -1,5 +1,6 @@
 ﻿using Quizzer.Base;
 using Quizzer.Controller.TypedHelper;
+using Quizzer.Views.BuzzerViews;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -60,6 +61,15 @@ namespace Quizzer.Views
         public override Task VMSaveAsync()
         {
             return Task.CompletedTask;
+        }
+
+        private RelayCommand? buzzerServerCommand;
+        public ICommand BuzzerServerCommand => buzzerServerCommand ??= new RelayCommand(BuzzerServer);
+
+        private void BuzzerServer(object? commandParameter)
+        {
+            var window = new BuzzerServerView();
+            window.Show();
         }
     }
 }

@@ -1,0 +1,100 @@
+﻿<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Buzzer</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: system-ui, sans-serif;
+            background: #0b0f19;
+            color: #fff;
+        }
+
+        .top {
+            padding: 12px 14px;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            opacity: .9;
+        }
+
+        #name {
+            font-weight: 800;
+        }
+
+        #status {
+            text-align: right;
+        }
+
+        button {
+            height: calc(100% - 110px);
+            margin: 12px;
+            width: calc(100% - 24px);
+            border: 0;
+            border-radius: 24px;
+            font-size: 44px;
+            font-weight: 900;
+            background: #1f6feb;
+            color: #fff;
+        }
+
+            button:disabled {
+                background: #2a3345;
+                opacity: .7;
+            }
+    </style>
+</head>
+<body>
+    <div class="top">
+        <div id="name">…</div>
+        <div id="status">Verbinde…</div>
+    </div>
+    <button id="buzz" disabled>BUZZ</button>
+
+    <script src="/lib/signalr/dist/browser/signalr.min.js"></script>
+    <script>
+        const nameEl = document.getElementById('name');
+        const statusEl = document.getElementById('status');
+        const btn = document.getElementById('buzz');
+        let locked = false;
+
+        const conn = new signalR.HubConnectionBuilder()
+            .withUrl("/hub")
+            .withAutomaticReconnect()
+            .build();
+
+        conn.on("Assigned", (name, round, isLocked, winner) => {
+            nameEl.textContent = name;
+            locked = isLocked;
+            statusEl.textContent = winner ? `Runde ${round}: ${winner}` : `Runde ${round}: bereit`;
+            btn.disabled = locked;
+        });
+
+        conn.on("Winner", (winner, round) => {
+            locked = true;
+            statusEl.textContent = `Runde ${round}: Gewinner: ${winner}`;
+            btn.disabled = true;
+        });
+
+        conn.on("Reset", (round) => {
+            locked = false;
+            statusEl.textContent = `Runde ${round}: bereit`;
+            btn.disabled = false;
+        });
+
+        btn.addEventListener('click', async () => {
+            try {
+                await conn.invoke("Buzz");
+                console.log("Buzz invoked");
+            } catch (e) {
+                console.error("Buzz failed", e);
+                statusEl.textContent = "Buzz failed";
+            }
+        });
+
+        (async () => { await conn.start(); btn.disabled = false; statusEl.textContent = "Bereit"; })();</script>
+</body>
+</html>

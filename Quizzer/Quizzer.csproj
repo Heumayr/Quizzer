@@ -26,4 +26,8 @@
     <Folder Include="Views\QuestionTypes\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\LocalBuzzer.Service\LocalBuzzer.Service.csproj" />
+  </ItemGroup>
+
 </Project>

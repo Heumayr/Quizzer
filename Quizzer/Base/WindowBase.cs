@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Quizzer.Views.Base;
+using System;
+using System.Security.Principal;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -7,6 +9,9 @@ namespace Quizzer.Base
 {
     public class WindowBase : Window
     {
+        public Guid Id { get; } = Guid.NewGuid();
+        public WindowTyp WindowTyp { get; set; } = WindowTyp.Menu;
+
         private static readonly WindowPlacementStore PlacementStore = new("Quizzer");
 
         /// <summary>
@@ -29,6 +34,11 @@ namespace Quizzer.Base
             LocationChanged += (_, __) => SavePlacementThrottled();
             SizeChanged += (_, __) => SavePlacementThrottled();
             StateChanged += (_, __) => SavePlacementThrottled();
+        }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
         }
 
         private void WindowBase_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -123,6 +133,11 @@ namespace Quizzer.Base
             if (Top < minY) Top = minY;
             if (Left > maxX) Left = maxX;
             if (Top > maxY) Top = maxY;
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
         }
     }
 }

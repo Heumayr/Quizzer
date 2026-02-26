@@ -4,6 +4,8 @@ using Quizzer.Controller.TypedHelper;
 using Quizzer.Datamodels;
 using Quizzer.Datamodels.Enumerations;
 using Quizzer.ViewModels;
+using Quizzer.Views.Base;
+using Quizzer.Views.GameViews;
 using Quizzer.Views.HelperViewModels;
 using System;
 using System.Collections.Generic;
@@ -372,6 +374,14 @@ namespace Quizzer.Views
 
             OnModelChanged();
             await VMSaveAsync();
+
+            var gameView = new GameMasterView();
+            var gameContext = new GameMasterViewModel();
+            gameView.DataContext = gameContext;
+
+            gameContext.Game = Game;
+
+            gameView.ShowDialog();
         }
 
         public void ResetGameResults()
