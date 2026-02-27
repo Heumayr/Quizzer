@@ -42,7 +42,6 @@ namespace Quizzer.Views
         }
 
         private AsyncRelayCommand? saveCommand;
-        private QuestionResult? selectedQuestionResut;
 
         public ICommand SaveCommand => saveCommand ??= new AsyncRelayCommand(SaveAsync);
 

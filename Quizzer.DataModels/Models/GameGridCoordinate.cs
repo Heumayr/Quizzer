@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Quizzer.DataModels.Models
 {
@@ -26,6 +27,7 @@ namespace Quizzer.DataModels.Models
         public bool IsDone { get; set; }
 
         public int CurrentPoints { get; set; }
+
         public int CurrentMinusPoints { get; set; }
 
         public void CalculatedPoints()
@@ -56,9 +58,17 @@ namespace Quizzer.DataModels.Models
             CalculatedPoints();
         }
 
-        public string DisplayBuild => $"{X}/{Y}: {Question?.Designation}";
+        [JsonIgnore]
+        public string DisplyCoords => $"{X}/{Y}";
 
+        [JsonIgnore]
+        public string DisplayBuild => $"{Question?.Designation}";
+
+        [JsonIgnore]
         public string DisplayPlay => $"{CurrentPoints} pts / -{CurrentMinusPoints} pts";
+
+        [JsonIgnore]
+        public string DisplayMaster => !string.IsNullOrEmpty(Question?.DesignationShort) ? $"{Question?.DesignationShort}" : DisplayBuild;
 
         [ClearOnSave]
         public QuestionBase? Question
@@ -66,10 +76,6 @@ namespace Quizzer.DataModels.Models
             get => question;
             set
             {
-                if (QuestionId != value?.Id)
-                {
-                    QuestionId = value?.Id ?? Guid.Empty;
-                }
                 question = value;
             }
         }

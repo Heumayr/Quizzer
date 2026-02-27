@@ -47,6 +47,13 @@ namespace Quizzer.Views
         public ObservableCollection<HeaderEntryViewModel> ColumnHeaderVMs { get; } = new();
         public ObservableCollection<HeaderEntryViewModel> RowHeaderVMs { get; } = new();
 
+        public void RebuildCells()
+        {
+            if (Game == null) return;
+
+            GridBuilder.RebuildCells(Game, CellVMs, ColumnHeaderVMs, RowHeaderVMs, CellView.Build);
+        }
+
         public int Height
         {
             get => Game?.Height ?? 0;
@@ -117,83 +124,6 @@ namespace Quizzer.Views
             view.ShowDialog();
 
             cell.RefreshFromModel();
-        }
-
-        private void RebuildCells()
-        {
-            if (Game == null) return;
-
-            int h = Game.Height;
-            int w = Game.Width;
-
-            CellVMs.Clear();
-            ColumnHeaderVMs.Clear();
-            RowHeaderVMs.Clear();
-
-            if (h <= 0 || w <= 0)
-            {
-                //clear model too when invalid
-                Game.GameGridCoordinates.Clear();
-                Game.ColumnHeader.Clear();
-                Game.RowHeader.Clear();
-                return;
-            }
-
-            // 1) Remove out-of-bounds coordinates from MODEL
-            for (int i = Game.GameGridCoordinates.Count - 1; i >= 0; i--)
-            {
-                var c = Game.GameGridCoordinates[i];
-                if (c.X < 0 || c.X >= w || c.Y < 0 || c.Y >= h)
-                    Game.GameGridCoordinates.RemoveAt(i);
-            }
-
-            // 2) Remove out-of-bounds headers from MODEL
-            foreach (var key in Game.ColumnHeader.Keys.ToList())
-                if (key < 0 || key >= w)
-                    Game.ColumnHeader.Remove(key);
-
-            foreach (var key in Game.RowHeader.Keys.ToList())
-                if (key < 0 || key >= h)
-                    Game.RowHeader.Remove(key);
-
-            // 3) Ensure header entries exist for all indices
-            for (int x = 0; x < w; x++)
-                if (!Game.ColumnHeader.ContainsKey(x))
-                    Game.ColumnHeader[x] = (x + 1).ToString();
-
-            for (int y = 0; y < h; y++)
-                if (!Game.RowHeader.ContainsKey(y))
-                    Game.RowHeader[y] = (y + 1).ToString();
-
-            // 4) Build header VMs (directly read/write dictionaries)
-            for (int x = 0; x < w; x++)
-                ColumnHeaderVMs.Add(new HeaderEntryViewModel(Game.ColumnHeader, x, isColumnHeader: true));
-
-            for (int y = 0; y < h; y++)
-                RowHeaderVMs.Add(new HeaderEntryViewModel(Game.RowHeader, y, isColumnHeader: false));
-
-            // 5) Map remaining coords and ensure full matrix exists
-            var map = Game.GameGridCoordinates
-                .GroupBy(c => (c.Y, c.X))
-                .ToDictionary(g => g.Key, g => g.First());
-
-            for (int y = 0; y < h; y++)
-            {
-                for (int x = 0; x < w; x++)
-                {
-                    if (!map.TryGetValue((y, x), out var cell))
-                    {
-                        cell = new GameGridCoordinate(y, x);
-                        Game.GameGridCoordinates.Add(cell);
-                        map[(y, x)] = cell;
-                    }
-
-                    var cellVM = new GameGridCoordinateViewModel(cell);
-                    cell.Game = Game; // set reference for easier access in VM
-                    cell.CalculatedPoints();
-                    CellVMs.Add(cellVM);
-                }
-            }
         }
 
         public void OnModelChanged()

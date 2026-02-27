@@ -20,12 +20,16 @@ namespace Quizzer.Views.BuzzerViews
     {
         private BuzzerServer? _server;
 
+        public event EventHandler<ServerState>? PlayerConnectionStateChanged;
+
         public override Task VMSaveAsync()
         {
             return Task.CompletedTask;
         }
 
-        public string State { get; set; } = "Stopped";
+        public string State => ServerState.ToString();
+
+        public ServerState ServerState { get; set; } = ServerState.Unknown;
 
         private readonly ObservableCollection<Player> _players = new();
         public ObservableCollection<Player> Players => _players;
@@ -55,6 +59,43 @@ namespace Quizzer.Views.BuzzerViews
             }
         }
 
+        private void CalcServerState()
+        {
+            if (_server == null)
+            {
+                ServerState = ServerState.Stopped;
+                NotifyServerStateChanged();
+                return;
+            }
+
+            if (_server.IsRunning)
+            {
+                ServerState = ServerState.Running;
+            }
+            else
+            {
+                ServerState = ServerState.Starting;
+            }
+
+            if (_players.All(p => p.ConnectionState == PlayerConnection.Connected))
+            {
+                ServerState = ServerState.AllConnecteted;
+            }
+
+            NotifyServerStateChanged();
+        }
+
+        private void NotifyServerStateChanged()
+        {
+            OnPropertyChanged(nameof(State));
+            OnPropertyChanged(nameof(IsRunning));
+            OnPropertyChanged(nameof(ServerState));
+            startServerCommand?.RaiseCanExecuteChanged();
+            stopServerCommand?.RaiseCanExecuteChanged();
+
+            RaisePlayerConnectionStateChanged();
+        }
+
         private void OnConnectionChanged(object? sender, PlayerConnection e)
         {
             Application.Current.Dispatcher.Invoke(() =>
@@ -62,11 +103,17 @@ namespace Quizzer.Views.BuzzerViews
                 // If Player implements INotifyPropertyChanged for its connection props,
                 // this is NOT needed. But if it doesn't, refresh the view:
                 CollectionViewSource.GetDefaultView(_players).Refresh();
+                CalcServerState();
             });
         }
 
+        public void RaisePlayerConnectionStateChanged()
+        {
+            PlayerConnectionStateChanged?.Invoke(this, ServerState);
+        }
+
         private AsyncRelayCommand? startServerCommand;
-        public ICommand StartServerCommand => startServerCommand ??= new AsyncRelayCommand(StartServerAsync);
+        public ICommand StartServerCommand => startServerCommand ??= new AsyncRelayCommand(StartServerAsync, (p) => !IsRunning);
 
         private async Task StartServerAsync(object? commandParameter)
         {
@@ -76,14 +123,13 @@ namespace Quizzer.Views.BuzzerViews
                 return;
             }
 
-            State = "Starting";
-            OnPropertyChanged(nameof(State));
+            CalcServerState();
 
             _server = new BuzzerServer();
             _server.GetGame = () => Game;
-            _server.WinnerDeclared += (name, round) =>
+            _server.WinnerDeclared += (player, round) =>
             {
-                MessageBox.Show($"Winner: {name} (Runde {round})");
+                MessageBox.Show($"Winner: {player} (Runde {round})");
             };
 
             await _server.StartAsync(new BuzzerServerOptions
@@ -92,20 +138,20 @@ namespace Quizzer.Views.BuzzerViews
                 WebRootPath = System.IO.Path.Combine(AppContext.BaseDirectory, "wwwroot")
             });
 
-            State = "Running";
-            OnPropertyChanged(nameof(State));
+            CalcServerState();
         }
 
+        public bool IsRunning => _server != null && _server.IsRunning;
+
         private AsyncRelayCommand? stopServerCommand;
-        public ICommand StopServerCommand => stopServerCommand ??= new AsyncRelayCommand(StopServerAsync);
+        public ICommand StopServerCommand => stopServerCommand ??= new AsyncRelayCommand(StopServerAsync, (p) => IsRunning);
 
         private async Task StopServerAsync(object? commandParameter)
         {
             if (_server is not null) await _server.StopAsync();
 
             _server = null;
-            State = "Stopped";
-            OnPropertyChanged(nameof(State));
+            CalcServerState();
         }
 
         private AsyncRelayCommand? resetRoundCommand;
@@ -123,7 +169,7 @@ namespace Quizzer.Views.BuzzerViews
         private RelayCommand? openPlayerQRCommand;
         public ICommand OpenPlayerQRCommand => openPlayerQRCommand ??= new RelayCommand(OpenPlayerQR);
 
-        public object ConnectionChanged { get; private set; }
+        public object? ConnectionChanged { get; private set; }
 
         private void OpenPlayerQR(object? commandParameter)
         {

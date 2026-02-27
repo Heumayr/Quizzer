@@ -71,6 +71,16 @@ namespace Quizzer.Controller.TypedHelper
 
         public static async Task<ObservableCollection<Player>> LoadGamesAsync()
         {
+            if (!Players.Any())
+            {
+                await LoadPlayersAsync();
+            }
+
+            if (!Questions.Any())
+            {
+                await LoadQuestionsAsync();
+            }
+
             var ctrl = new GenericDataHandler();
 
             var games = (await ctrl.LoadFromFileAsync<Game>()).ToList();
@@ -78,6 +88,9 @@ namespace Quizzer.Controller.TypedHelper
             foreach (var g in games)
             {
                 g.Players = Players.Where(p => g.PlayerIds.Contains(p.Id)).ToList();
+
+                foreach (var c in g.GameGridCoordinates)
+                    c.Question = Questions.FirstOrDefault(q => q.Id == c.QuestionId);
             }
 
             Games = new ObservableCollection<Game>(games);

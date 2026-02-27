@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Quizzer.Views.StaticRessources;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,6 +37,10 @@ namespace Quizzer.Base
                 _isExecuting = true;
                 RaiseCanExecuteChanged();
                 await _execute(parameter);
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
             }
             finally
             {

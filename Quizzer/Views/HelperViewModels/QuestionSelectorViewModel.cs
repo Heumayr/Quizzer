@@ -24,7 +24,7 @@ namespace Quizzer.Views.HelperViewModels
             set
             {
                 Coordinate?.Question = value;
-
+                Coordinate?.QuestionId = value != null ? value.Id : default;
                 OnPropertyChanged(nameof(SelectedQuestion));
                 OnPropertyChanged(nameof(CurrentSelectedQuestionDisplay));
             }

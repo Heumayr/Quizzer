@@ -1,12 +1,40 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Windows.Media;
 using Quizzer.Base;
 using Quizzer.DataModels.Models;
+using Quizzer.DataModels.Models.Enumerations;
 
 namespace Quizzer.ViewModels
 {
     public class GameGridCoordinateViewModel : ViewModelBase
     {
+        private CellView _cellView = CellView.PlayField;
+
+        public CellView CellView
+        {
+            get => _cellView;
+            set
+            {
+                if (_cellView == value) return;
+                _cellView = value;
+                OnPropertyChanged(nameof(CellView));
+
+                OnPropertyChanged(nameof(DifficultyDisplay));
+                OnPropertyChanged(nameof(PointsDisplay));
+                OnPropertyChanged(nameof(DisplayCoords));
+
+                OnPropertyChanged(nameof(DisplayText));
+            }
+        }
+
+        public string DisplayText => CellView switch
+        {
+            CellView.Build => _coordinate.DisplayBuild,
+            CellView.Master => _coordinate.DisplayMaster,
+            _ => _coordinate.DisplayPlay
+        };
+
         private GameGridCoordinate _coordinate;
 
         private INotifyPropertyChanged? _questionNotify;
@@ -45,7 +73,7 @@ namespace Quizzer.ViewModels
                 _coordinate.X = value;
                 OnPropertyChanged(nameof(X));
                 OnPropertyChanged(nameof(GridColumn));
-                OnPropertyChanged(nameof(DisplayBuild));
+                OnPropertyChanged(nameof(DisplayCoords));
             }
         }
 
@@ -58,7 +86,7 @@ namespace Quizzer.ViewModels
                 _coordinate.Y = value;
                 OnPropertyChanged(nameof(Y));
                 OnPropertyChanged(nameof(GridRow));
-                OnPropertyChanged(nameof(DisplayBuild));
+                OnPropertyChanged(nameof(DisplayCoords));
             }
         }
 
@@ -70,6 +98,7 @@ namespace Quizzer.ViewModels
                 if (_coordinate.Z == value) return;
                 _coordinate.Z = value;
                 OnPropertyChanged(nameof(Z));
+                OnPropertyChanged(nameof(DisplayCoords));
             }
         }
 
@@ -103,8 +132,13 @@ namespace Quizzer.ViewModels
                 if (_coordinate.IsDone == value) return;
                 _coordinate.IsDone = value;
                 OnPropertyChanged(nameof(IsDone));
+                OnPropertyChanged(nameof(IsDoneBrush));
+                OnPropertyChanged(nameof(IsDoneTextBrush));
             }
         }
+
+        public Brush IsDoneBrush => IsDone ? Brushes.DarkRed : Brushes.DarkSlateBlue;
+        public Brush IsDoneTextBrush => IsDone ? Brushes.Wheat : Brushes.White;
 
         public QuestionBase? Question
         {
@@ -119,13 +153,12 @@ namespace Quizzer.ViewModels
                 HookQuestion(_coordinate.Question);
 
                 OnPropertyChanged(nameof(Question));
-                OnPropertyChanged(nameof(DisplayBuild));
-                OnPropertyChanged(nameof(DisplayPlay));
+                OnPropertyChanged(nameof(DisplayCoords));
+                OnPropertyChanged(nameof(DisplayText));
             }
         }
 
-        public string DisplayBuild => _coordinate.DisplayBuild;
-        public string DisplayPlay => _coordinate.DisplayPlay;
+        public string DisplayCoords => _coordinate.DisplyCoords;
 
         public string DifficultyDisplay => _coordinate.Question?.Difficulty.ToString() ?? string.Empty;
 
@@ -162,9 +195,13 @@ namespace Quizzer.ViewModels
 
         private void Question_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            // Question.Designation or Question.Points changes should update these computed strings
-            OnPropertyChanged(nameof(DisplayBuild));
-            OnPropertyChanged(nameof(DisplayPlay));
+            OnPropertyChanged(nameof(Question));
+
+            OnPropertyChanged(nameof(DifficultyDisplay));
+            OnPropertyChanged(nameof(PointsDisplay));
+            OnPropertyChanged(nameof(DisplayCoords));
+
+            OnPropertyChanged(nameof(DisplayText));
         }
 
         public override Task VMSaveAsync()

@@ -21,7 +21,7 @@ namespace Quizzer.Base
             Load();
         }
 
-        public bool TryGet(string key, out WindowPlacement placement)
+        public bool TryGet(string key, out WindowPlacement? placement)
             => _data.TryGetValue(key, out placement);
 
         public void Set(string key, WindowPlacement placement)

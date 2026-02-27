@@ -20,11 +20,11 @@
                 base:MatrixGridBehavior.CellHeight="{Binding DataContext.CellHeight, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
         </ItemsPanelTemplate>
     </base:WindowBase.Resources>
-    <Grid>
+    <Grid Background="{Binding BackgroundBrush}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -33,7 +33,7 @@
         <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="0">
             <Button Content="Buzzer Server" Width="120" Height="20" Margin="5,5,5,10" Command="{Binding BuzzerServerCommand}" />
         </StackPanel>
-        <ScrollViewer Margin="5" Grid.Column="2" Grid.Row="1"
+        <ScrollViewer Margin="5" Grid.Column="1" Grid.Row="1"
               HorizontalScrollBarVisibility="Auto"
               VerticalScrollBarVisibility="Auto">
             <Grid>
@@ -47,19 +47,28 @@
                     </ItemsControl.ItemContainerStyle>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
-                             AcceptsReturn="True"
-                             TextWrapping="Wrap"
-                             TextAlignment="Center"
-                             VerticalContentAlignment="Center"
-                             HorizontalAlignment="Stretch"
-                             VerticalAlignment="Stretch"
-                             Padding="4"
-                             HorizontalScrollBarVisibility="Disabled"
-                             VerticalScrollBarVisibility="Disabled"
-                             base:AutoFitTextBox.IsEnabled="True"
-                             base:AutoFitTextBox.MinFontSize="6"
-                             base:AutoFitTextBox.MaxFontSize="22" />
+                            <Border CornerRadius="10"
+                                    Background="DarkBlue"
+                                    SnapsToDevicePixels="True"
+                                    Margin="3">
+                                <TextBox IsReadOnly="{Binding LockHeader}"
+                                         Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+                                         Background="Transparent"
+                                         Foreground="WhiteSmoke"
+                                         BorderThickness="0"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         TextAlignment="Center"
+                                         VerticalContentAlignment="Center"
+                                         HorizontalAlignment="Stretch"
+                                         VerticalAlignment="Stretch"
+                                         Padding="4"
+                                         HorizontalScrollBarVisibility="Disabled"
+                                         VerticalScrollBarVisibility="Disabled"
+                                         base:AutoFitTextBox.IsEnabled="True"
+                                         base:AutoFitTextBox.MinFontSize="6"
+                                         base:AutoFitTextBox.MaxFontSize="22" />
+                            </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -74,19 +83,27 @@
                     </ItemsControl.ItemContainerStyle>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
-                            AcceptsReturn="True"
-                            TextWrapping="Wrap"
-                            TextAlignment="Center"
-                            VerticalContentAlignment="Center"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch"
-                            Padding="4"
-                            HorizontalScrollBarVisibility="Disabled"
-                            VerticalScrollBarVisibility="Disabled"
-                            base:AutoFitTextBox.IsEnabled="True"
-                            base:AutoFitTextBox.MinFontSize="6"
-                            base:AutoFitTextBox.MaxFontSize="22" />
+                            <Border CornerRadius="10"
+                                    Background="DarkBlue"
+                                    SnapsToDevicePixels="True"
+                                    Margin="3">
+                                <TextBox IsReadOnly="{Binding LockHeader}" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+                                        Background="Transparent"
+                                        Foreground="WhiteSmoke"
+                                        BorderThickness="0"
+                                        AcceptsReturn="True"
+                                        TextWrapping="Wrap"
+                                        TextAlignment="Center"
+                                        VerticalContentAlignment="Center"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Stretch"
+                                        Padding="4"
+                                        HorizontalScrollBarVisibility="Disabled"
+                                        VerticalScrollBarVisibility="Disabled"
+                                        base:AutoFitTextBox.IsEnabled="True"
+                                        base:AutoFitTextBox.MinFontSize="6"
+                                        base:AutoFitTextBox.MaxFontSize="22" />
+                            </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

@@ -18,7 +18,6 @@ namespace LocalBuzzer.Service
     public sealed class BuzzerServer : IAsyncDisposable
     {
         private WebApplication? _app;
-        private Task? _runTask;
 
         public event Action<string>? ClientAssigned;
 
@@ -31,53 +30,66 @@ namespace LocalBuzzer.Service
 
         public Func<Game?>? GetGame { get; set; }
 
-        public bool IsRunning => _app is not null;
+        private bool _isRuning = false;
+        public bool IsRunning => _app != null && _isRuning;
 
         public async Task StartAsync(BuzzerServerOptions? options = null, CancellationToken ct = default)
         {
-            if (_app is not null) return;
-            options ??= new BuzzerServerOptions();
+            try
+            {
+                if (_app is not null) return;
+                options ??= new BuzzerServerOptions();
 
-            if (!Directory.Exists(options.WebRootPath))
-                throw new DirectoryNotFoundException($"wwwroot nicht gefunden: {options.WebRootPath}");
+                if (!Directory.Exists(options.WebRootPath))
+                    throw new DirectoryNotFoundException($"wwwroot nicht gefunden: {options.WebRootPath}");
 
-            var builder = WebApplication.CreateBuilder();
-            builder.WebHost.UseKestrel();
-            builder.WebHost.UseUrls($"http://{options.BindAddress}:{options.Port}");
+                var builder = WebApplication.CreateBuilder();
+                builder.WebHost.UseKestrel();
+                builder.WebHost.UseUrls($"http://{options.BindAddress}:{options.Port}");
 
-            builder.Services.AddSingleton(new PhysicalFileProvider(options.WebRootPath));
-            builder.Services.AddSingleton<BuzzerState>();
-            builder.Services.AddSingleton<BuzzerEventBus>();
-            builder.Services.AddSingleton<GameAccessor>();
-            builder.Services.AddSignalR();
+                builder.Services.AddSingleton(new PhysicalFileProvider(options.WebRootPath));
+                builder.Services.AddSingleton<BuzzerState>();
+                builder.Services.AddSingleton<BuzzerEventBus>();
+                builder.Services.AddSingleton<GameAccessor>();
+                builder.Services.AddSignalR();
 
-            var app = builder.Build();
+                var app = builder.Build();
 
-            _hub = app.Services.GetRequiredService<IHubContext<BuzzerHub>>();
-            _state = app.Services.GetRequiredService<BuzzerState>();
-            var gameAccessor = app.Services.GetRequiredService<GameAccessor>();
-            gameAccessor.GetGame = GetGame;
+                _hub = app.Services.GetRequiredService<IHubContext<BuzzerHub>>();
+                _state = app.Services.GetRequiredService<BuzzerState>();
+                var gameAccessor = app.Services.GetRequiredService<GameAccessor>();
+                gameAccessor.GetGame = GetGame;
 
-            var fp = app.Services.GetRequiredService<PhysicalFileProvider>();
-            app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = fp });
-            app.UseStaticFiles(new StaticFileOptions { FileProvider = fp });
+                var fp = app.Services.GetRequiredService<PhysicalFileProvider>();
+                app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = fp });
+                app.UseStaticFiles(new StaticFileOptions { FileProvider = fp });
 
-            app.MapHub<BuzzerHub>("/hub");
+                app.MapHub<BuzzerHub>("/hub");
 
-            var bus = app.Services.GetRequiredService<BuzzerEventBus>();
+                var bus = app.Services.GetRequiredService<BuzzerEventBus>();
 
-            bus.ClientAssigned += p => ClientAssigned?.Invoke(p);
-            bus.WinnerDeclared += (p, r) => WinnerDeclared?.Invoke(p, r);
-            bus.RoundReset += r => RoundReset?.Invoke(r);
+                bus.ClientAssigned += p => ClientAssigned?.Invoke(p);
+                bus.WinnerDeclared += (p, r) => WinnerDeclared?.Invoke(p, r);
+                bus.RoundReset += r => RoundReset?.Invoke(r);
 
-            _app = app;
+                _app = app;
 
-            await _app.StartAsync(ct);
+                //_isRuning = true;
+                await _app.StartAsync(ct);
+                _isRuning = true;
+            }
+            catch (Exception)
+            {
+                _isRuning = false;
+
+                throw;
+            }
         }
 
         public async Task StopAsync(CancellationToken ct = default)
         {
             if (_app is null) return;
+            _isRuning = false;
 
             await _app.StopAsync(ct);
             await _app.DisposeAsync();

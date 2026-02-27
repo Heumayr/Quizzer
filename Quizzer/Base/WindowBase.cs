@@ -2,6 +2,7 @@
 using System;
 using System.Security.Principal;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 
@@ -34,6 +35,17 @@ namespace Quizzer.Base
             LocationChanged += (_, __) => SavePlacementThrottled();
             SizeChanged += (_, __) => SavePlacementThrottled();
             StateChanged += (_, __) => SavePlacementThrottled();
+
+            KeyDown += (s, e) => DefaultKeyDown(s, e);
+        }
+
+        private void DefaultKeyDown(object s, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                Close();
+                e.Handled = true;
+            }
         }
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -63,6 +75,9 @@ namespace Quizzer.Base
             _restored = true;
 
             if (!PlacementStore.TryGet(GetKey(), out var p))
+                return;
+
+            if (p == null)
                 return;
 
             // restore normal size/pos only if valid

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Quizzer.Views.StaticRessources;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,8 +27,15 @@ namespace Quizzer.Base
 
         public void Execute(object? parameter)
         {
-            if (parameter is T t)
-                _execute(t);
+            try
+            {
+                if (parameter is T t)
+                    _execute(t);
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
         }
 
         public event EventHandler? CanExecuteChanged
