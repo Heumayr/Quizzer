@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Quizzer.DataModels.Models;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,19 +9,21 @@ namespace LocalBuzzer.Service.Base
     {
         private int _round = 1;
         private bool _locked;
-        private string? _winner;
+        private Player? _winner;
 
         public int Round => _round;
         public bool Locked => _locked;
-        public string? Winner => _winner;
+        public Player? Winner => _winner;
 
-        public bool TryBuzz(string name)
+        public bool TryBuzz(Player? player)
         {
+            if (player == null) return false;
+
             lock (this)
             {
                 if (_locked) return false;
                 _locked = true;
-                _winner = name;
+                _winner = player;
                 return true;
             }
         }

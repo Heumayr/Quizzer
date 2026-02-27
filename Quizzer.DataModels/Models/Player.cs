@@ -1,13 +1,15 @@
 ﻿using Newtonsoft.Json;
-using Quizzer.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Quizzer.DataModels.Attributes;
+using Quizzer.DataModels.Models.Enumerations;
 
-namespace Quizzer.Datamodels
+namespace Quizzer.DataModels.Models
 {
     public class Player : ModelBase
     {
+        private PlayerConnection connectionState = PlayerConnection.Unknown;
+
+        public event EventHandler<PlayerConnection>? PlayerConnectionChanged;
+
         public string DisplayName { get; set; } = string.Empty;
 
         [JsonIgnore]
@@ -24,6 +26,17 @@ namespace Quizzer.Datamodels
 
         [ClearOnSave]
         public List<QuestionResult> CurrentQuestionResults { get; set; } = new();
+
+        [JsonIgnore]
+        public PlayerConnection ConnectionState
+        {
+            get => connectionState;
+            set
+            {
+                connectionState = value;
+                PlayerConnectionChanged?.Invoke(this, value);
+            }
+        }
 
         public override string ToString()
         {

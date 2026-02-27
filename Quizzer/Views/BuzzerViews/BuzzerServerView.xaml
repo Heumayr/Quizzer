@@ -27,6 +27,10 @@
             <StackPanel>
                 <Button Content="Reset Round" Width="120" Height="20" Margin="5" Command="{Binding ResetRoundCommand}" />
             </StackPanel>
+
+            <DataGrid ItemsSource="{Binding Players}" AutoGenerateColumns="True" Margin="5" IsReadOnly="True"
+                      base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenPlayerQRCommand}">
+            </DataGrid>
         </StackPanel>
     </Grid>
 </base:WindowBase>

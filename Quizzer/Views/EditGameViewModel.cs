@@ -1,12 +1,13 @@
 ﻿using Quizzer.Base;
 using Quizzer.Controller;
 using Quizzer.Controller.TypedHelper;
-using Quizzer.Datamodels;
-using Quizzer.Datamodels.Enumerations;
+using Quizzer.DataModels.Models;
+using Quizzer.DataModels.Models.Enumerations;
 using Quizzer.ViewModels;
 using Quizzer.Views.Base;
 using Quizzer.Views.GameViews;
 using Quizzer.Views.HelperViewModels;
+using Quizzer.Views.StaticRessources;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -380,7 +381,7 @@ namespace Quizzer.Views
             gameView.DataContext = gameContext;
 
             gameContext.Game = Game;
-
+            StaticManager.BuzzerServerViewModel.Game = Game;
             gameView.ShowDialog();
         }
 

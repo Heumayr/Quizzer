@@ -15,4 +15,8 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Quizzer.DataModels\Quizzer.DataModels.csproj" />
+	</ItemGroup>
 </Project>

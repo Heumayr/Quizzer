@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Quizzer.Datamodels.Enumerations
+namespace Quizzer.DataModels.Models.Enumerations
 {
     public enum EditResultState
     {

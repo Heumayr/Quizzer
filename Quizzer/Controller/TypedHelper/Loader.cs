@@ -1,4 +1,4 @@
-﻿using Quizzer.Datamodels;
+﻿using Quizzer.DataModels.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

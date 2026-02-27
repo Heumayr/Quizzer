@@ -1,10 +1,7 @@
 ﻿using Quizzer.Base;
 using Quizzer.Controller;
 using Quizzer.Controller.TypedHelper;
-using Quizzer.Datamodels;
-using Quizzer.Datamodels.QuestionTypes;
-using System;
-using System.Collections.Generic;
+using Quizzer.DataModels.Models;
 using System.Collections.ObjectModel;
 using System.Text;
 using System.Windows.Input;

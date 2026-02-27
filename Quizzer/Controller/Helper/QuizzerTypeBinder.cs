@@ -9,7 +9,7 @@ namespace Quizzer.Controller.Helper
     {
         private static readonly HashSet<Type> Allowed = new()
         {
-            typeof(Quizzer.Datamodels.QuestionTypes.DefaultQuestion),
+            typeof(Quizzer.DataModels.Models.QuestionTypes.DefaultQuestion),
             // add more question types here...
         };
 

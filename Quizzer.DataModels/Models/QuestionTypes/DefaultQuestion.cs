@@ -1,10 +1,8 @@
-﻿using Quizzer.Datamodels.Enumerations;
-
-using System;
+﻿using Quizzer.DataModels.Models.Enumerations;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Quizzer.Datamodels.QuestionTypes
+namespace Quizzer.DataModels.Models.QuestionTypes
 {
     public class DefaultQuestion : QuestionBase
     {

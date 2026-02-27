@@ -1,10 +1,13 @@
 ﻿using Quizzer.Base;
 using Quizzer.Controller;
 using Quizzer.Controller.TypedHelper;
-using Quizzer.Datamodels;
+using Quizzer.DataModels.Models;
+using Quizzer.Views.BuzzerViews;
+using Quizzer.Views.StaticRessources;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Windows.Input;
 
 namespace Quizzer.Views.GameViews
 {
@@ -38,5 +41,15 @@ namespace Quizzer.Views.GameViews
         public QuestionBase? SelectedQuestion { get; set; }
 
         public List<Player> Players => Game?.Players ?? new List<Player>();
+
+        private RelayCommand? buzzerServerCommand;
+        public ICommand BuzzerServerCommand => buzzerServerCommand ??= new RelayCommand(BuzzerServer);
+
+        private void BuzzerServer(object? commandParameter)
+        {
+            var window = new BuzzerServerView();
+            window.DataContext = StaticManager.BuzzerServerViewModel;
+            window.Show();
+        }
     }
 }

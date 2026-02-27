@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using Quizzer.Base;
-using Quizzer.Datamodels;
+using Quizzer.DataModels.Models;
 
 namespace Quizzer.ViewModels
 {

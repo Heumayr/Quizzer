@@ -1,10 +1,11 @@
-﻿using Quizzer.Attributes;
-using Quizzer.Datamodels.Enumerations;
+﻿using Quizzer.DataModels.Attributes;
+using Quizzer.DataModels.Models;
+using Quizzer.DataModels.Models.Enumerations;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Quizzer.Datamodels
+namespace Quizzer.DataModels.Models
 {
     public abstract class QuestionBase : ModelBase
     {

@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json;
-using Quizzer.Attributes;
+using Quizzer.DataModels.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Quizzer.Datamodels
+namespace Quizzer.DataModels.Models
 {
     public class Category : ModelBase
     {

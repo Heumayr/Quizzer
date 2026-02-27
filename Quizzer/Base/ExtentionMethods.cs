@@ -66,7 +66,7 @@ namespace Quizzer.Base
             var properties = typeof(T).GetProperties();
             foreach (var prop in properties)
             {
-                var attrs = prop.GetCustomAttributes(typeof(Attributes.ClearOnSaveAttribute), true);
+                var attrs = prop.GetCustomAttributes(typeof(DataModels.Attributes.ClearOnSaveAttribute), true);
                 if (attrs.Length > 0)
                 {
                     if (prop.PropertyType.IsValueType)

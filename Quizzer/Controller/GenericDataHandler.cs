@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Quizzer.Base;
 using Quizzer.Controller.Helper;
-using Quizzer.Datamodels;
+using Quizzer.DataModels.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Quizzer.Datamodels
+namespace Quizzer.DataModels.Models
 {
     public abstract class ModelBase
     {

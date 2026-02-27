@@ -1,9 +1,8 @@
 ﻿using Quizzer.Base;
 using Quizzer.Controller;
 using Quizzer.Controller.TypedHelper;
-using Quizzer.Datamodels;
-using Quizzer.Datamodels.Enumerations;
-using System;
+using Quizzer.DataModels.Models;
+using Quizzer.DataModels.Models.Enumerations;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
