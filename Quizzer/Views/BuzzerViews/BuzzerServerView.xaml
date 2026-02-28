@@ -17,15 +17,15 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Start Server" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding StartServerCommand}" />
-            <Button Content="Stop Server" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding StopServerCommand}" />
+            <Button Content="Start Server" Command="{Binding StartServerCommand}" />
+            <Button Content="Stop Server" Command="{Binding StopServerCommand}" />
         </StackPanel>
 
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <Label Content="{Binding State}"></Label>
 
             <StackPanel>
-                <Button Content="Reset Round" Width="120" Height="20" Margin="5" Command="{Binding ResetRoundCommand}" />
+                <Button Content="Reset Round" Command="{Binding ResetRoundCommand}" />
             </StackPanel>
 
             <DataGrid ItemsSource="{Binding Players}" AutoGenerateColumns="True" Margin="5" IsReadOnly="True"

@@ -18,8 +18,8 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Save" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding SaveCommand}" />
-            <Button Content="Save and Close" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding SaveAndCloseCommand}" />
+            <Button Content="Save" Command="{Binding SaveCommand}" />
+            <Button Content="Save and Close" Command="{Binding SaveAndCloseCommand}" />
         </StackPanel>
 
         <StackPanel Grid.Column="1">
@@ -92,8 +92,8 @@
                      VerticalAlignment="Top" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5,10,0,0">
-                <Button Content="Add Step" Width="120" Height="20" Margin="0,0,0,0" Command="{Binding AddStepCommnad}" />
-                <Button Content="Remove Step" Width="120" Height="20" Margin="10,0,0,0" Command="{Binding RemoveStepCommnad}" />
+                <Button Content="Add Step" Command="{Binding AddStepCommnad}" />
+                <Button Content="Remove Step" Command="{Binding RemoveStepCommnad}" Style="{StaticResource DangerButton}" />
             </StackPanel>
             <DataGrid ItemsSource="{Binding Question.Steps}" AutoGenerateColumns="True" Margin="5" CanUserAddRows="False" IsReadOnly="True"
                       base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedSteps}"

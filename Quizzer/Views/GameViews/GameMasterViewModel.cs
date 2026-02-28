@@ -10,6 +10,7 @@ using Quizzer.Views.StaticRessources;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
@@ -19,19 +20,40 @@ namespace Quizzer.Views.GameViews
 {
     public class GameMasterViewModel : ViewModelBase
     {
+        private BuzzerServerView? _buzzerServerView = null;
+
         public GameMasterViewModel()
         {
             StaticManager.BuzzerServerViewModel.PlayerConnectionStateChanged += OnPlayerConnectionStateChanged;
+        }
+
+        protected override Task OnClosed()
+        {
+            try
+            {
+                _buzzerServerView?.Close();
+
+                if (StaticManager.BuzzerServerViewModel != null && StaticManager.BuzzerServerViewModel.IsBuzzerServerRunning)
+                {
+                    StaticManager.BuzzerServerViewModel.StopServerCommand.Execute(null);
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
+
+            return base.OnClosed();
         }
 
         private void OnPlayerConnectionStateChanged(object? sender, ServerState e)
         {
             BackgroundBrush = e switch
             {
-                ServerState.Unknown => Brushes.White,
+                ServerState.None => Brushes.White,
                 ServerState.Running => Brushes.Red,
                 ServerState.Stopped => Brushes.Wheat,
-                ServerState.AllConnecteted => Brushes.WhiteSmoke,
+                ServerState.AllConnected => Brushes.WhiteSmoke,
                 _ => Brushes.White
             };
 
@@ -92,9 +114,12 @@ namespace Quizzer.Views.GameViews
 
         private void BuzzerServer(object? commandParameter)
         {
-            var window = new BuzzerServerView();
-            window.DataContext = StaticManager.BuzzerServerViewModel;
-            window.Show();
+            if (_buzzerServerView == null)
+            {
+                _buzzerServerView = new BuzzerServerView();
+            }
+            _buzzerServerView.DataContext = StaticManager.BuzzerServerViewModel;
+            _buzzerServerView.Show();
         }
 
         private ICommand? _cellClickCommand;

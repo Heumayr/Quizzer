@@ -17,10 +17,8 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <!--<Button Content="Save" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding SaveCommand}" />-->
-            <Button Content="Add Game" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding AddGameCommand}" />
-            <Button Content="Remove Game" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding RemoveGameCommand}" />
-            <!--<Button Content="Remove Category" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding RemoveCategoryCommand}" />-->
+            <Button Content="Add Game" Command="{Binding AddGameCommand}" />
+            <Button Content="Remove Game" Command="{Binding RemoveGameCommand}" Style="{StaticResource DangerButton}" />
         </StackPanel>
 
         <DataGrid Grid.Column="1" ItemsSource="{Binding Games}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True"

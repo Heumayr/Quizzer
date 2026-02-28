@@ -24,15 +24,19 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Start Game" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding StartGameCommand}" />
-            <Button Content="Save" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding SaveCommand}" />
-            <Button Content="Save and Close" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding SaveAndCloseCommand}" />
-            <Button Content="Reset Game Build" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding ResetGameBuildCommand}" />
-            <Button Content="Enable Building" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding SetToBuildingModeCommand}" />
+            <Button Content="Start Game" Command="{Binding StartGameCommand}" />
+            <Button Content="Save" Command="{Binding SaveCommand}" />
+            <Button Content="Save and Close" Command="{Binding SaveAndCloseCommand}" />
+            <Button Content="Reset Game Build" Command="{Binding ResetGameBuildCommand}" Style="{StaticResource DangerButton}" />
+            <Button Content="Enable Building" Command="{Binding SetToBuildingModeCommand}" />
         </StackPanel>
 
         <StackPanel IsEnabled="{Binding IsBuilding}" Grid.Column="1">
@@ -47,8 +51,8 @@
             <StackPanel Orientation="Vertical">
                 <StackPanel Orientation="Horizontal" Margin="5">
                     <ComboBox ItemsSource="{Binding AvailablePlayers}" DisplayMemberPath="CalculatedDisplayName" SelectedItem="{Binding CmbSelectedPlayer}" Width="200" Margin="0,0,10,0" />
-                    <Button Content="Add Player" Width="120" Height="20" Margin="0,0,0,0" Command="{Binding AddPlayerCommand}" />
-                    <Button Content="Remove Player" Width="120" Height="20" Margin="10,0,0,0" Command="{Binding RemovePlayerCommand}" />
+                    <Button Content="Add Player" Command="{Binding AddPlayerCommand}" />
+                    <Button Content="Remove Player" Command="{Binding RemovePlayerCommand}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="5">
                     <Label MinWidth="120" Content="Players:" VerticalAlignment="Center" />
@@ -67,7 +71,7 @@
                             </Binding>
                         </TextBox.Text>
                     </TextBox>
-                    <Button Content="Refresh Grid" Width="120" Height="20" Margin="0,0,0,0" Command="{Binding RefreshGridCommand}" />
+                    <Button Content="Refresh Grid" Command="{Binding RefreshGridCommand}" />
                 </StackPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5">
@@ -182,100 +186,103 @@
                     </TextBox.Text>
                 </TextBox>
             </StackPanel>
-            <ScrollViewer Margin="5"
-              HorizontalScrollBarVisibility="Auto"
-              VerticalScrollBarVisibility="Auto">
-                <Grid>
-                    <!-- Column headers -->
-                    <ItemsControl ItemsSource="{Binding ColumnHeaderVMs}" ItemsPanel="{StaticResource MatrixPanel}">
-                        <ItemsControl.ItemContainerStyle>
-                            <Style TargetType="ContentPresenter">
-                                <Setter Property="Grid.Row" Value="{Binding GridRow}" />
-                                <Setter Property="Grid.Column" Value="{Binding GridColumn}" />
-                            </Style>
-                        </ItemsControl.ItemContainerStyle>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border CornerRadius="10"
-                                        Background="DarkBlue"
-                                        SnapsToDevicePixels="True"
-                                        Margin="3">
-                                    <TextBox IsReadOnly="{Binding LockHeader}"
-                                           Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
-                                           Background="Transparent"
-                                           Foreground="WhiteSmoke"
-                                           BorderThickness="0"
-                                           AcceptsReturn="True"
-                                           TextWrapping="Wrap"
-                                           TextAlignment="Center"
-                                           VerticalContentAlignment="Center"
-                                           HorizontalAlignment="Stretch"
-                                           VerticalAlignment="Stretch"
-                                           Padding="4"
-                                           HorizontalScrollBarVisibility="Disabled"
-                                           VerticalScrollBarVisibility="Disabled"
-                                           base:AutoFitTextBox.IsEnabled="True"
-                                           base:AutoFitTextBox.MinFontSize="6"
-                                           base:AutoFitTextBox.MaxFontSize="22" />
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-
-                    <!-- Row headers -->
-                    <ItemsControl ItemsSource="{Binding RowHeaderVMs}" ItemsPanel="{StaticResource MatrixPanel}">
-                        <ItemsControl.ItemContainerStyle>
-                            <Style TargetType="ContentPresenter">
-                                <Setter Property="Grid.Row" Value="{Binding GridRow}" />
-                                <Setter Property="Grid.Column" Value="{Binding GridColumn}" />
-                            </Style>
-                        </ItemsControl.ItemContainerStyle>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border CornerRadius="10"
-                                     Background="DarkBlue"
-                                     SnapsToDevicePixels="True"
-                                     Margin="3">
-                                    <TextBox IsReadOnly="{Binding LockHeader}" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
-                                          Background="Transparent"
-                                          Foreground="WhiteSmoke"
-                                          BorderThickness="0"
-                                          AcceptsReturn="True"
-                                          TextWrapping="Wrap"
-                                          TextAlignment="Center"
-                                          VerticalContentAlignment="Center"
-                                          HorizontalAlignment="Stretch"
-                                          VerticalAlignment="Stretch"
-                                          Padding="4"
-                                          HorizontalScrollBarVisibility="Disabled"
-                                          VerticalScrollBarVisibility="Disabled"
-                                          base:AutoFitTextBox.IsEnabled="True"
-                                          base:AutoFitTextBox.MinFontSize="6"
-                                          base:AutoFitTextBox.MaxFontSize="22" />
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-
-                    <!-- Cells -->
-                    <ItemsControl ItemsSource="{Binding CellVMs}" ItemsPanel="{StaticResource MatrixPanel}">
-                        <ItemsControl.ItemContainerStyle>
-                            <Style TargetType="ContentPresenter">
-                                <Setter Property="Grid.Row" Value="{Binding GridRow}" />
-                                <Setter Property="Grid.Column" Value="{Binding GridColumn}" />
-                            </Style>
-                        </ItemsControl.ItemContainerStyle>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <helper:UcCellView
-                                    Command="{Binding DataContext.CellClickCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                    CommandParameter="{Binding}"
-                                    Margin="2" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </Grid>
-            </ScrollViewer>
         </StackPanel>
+        <!--Gamegrid-->
+        <ScrollViewer Margin="5" Grid.Column="2"
+              HorizontalScrollBarVisibility="Auto"
+              VerticalScrollBarVisibility="Auto"
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch">
+            <Grid>
+                <!-- Column headers -->
+                <ItemsControl ItemsSource="{Binding ColumnHeaderVMs}" ItemsPanel="{StaticResource MatrixPanel}">
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="Grid.Row" Value="{Binding GridRow}" />
+                            <Setter Property="Grid.Column" Value="{Binding GridColumn}" />
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border CornerRadius="10"
+                            Background="DarkBlue"
+                            SnapsToDevicePixels="True"
+                            Margin="3">
+                                <TextBox IsReadOnly="{Binding LockHeader}"
+                               Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+                               Background="Transparent"
+                               Foreground="WhiteSmoke"
+                               BorderThickness="0"
+                               AcceptsReturn="True"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"
+                               VerticalContentAlignment="Center"
+                               HorizontalAlignment="Stretch"
+                               VerticalAlignment="Stretch"
+                               Padding="4"
+                               HorizontalScrollBarVisibility="Disabled"
+                               VerticalScrollBarVisibility="Disabled"
+                               base:AutoFitTextBox.IsEnabled="True"
+                               base:AutoFitTextBox.MinFontSize="6"
+                               base:AutoFitTextBox.MaxFontSize="22" />
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Row headers -->
+                <ItemsControl ItemsSource="{Binding RowHeaderVMs}" ItemsPanel="{StaticResource MatrixPanel}">
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="Grid.Row" Value="{Binding GridRow}" />
+                            <Setter Property="Grid.Column" Value="{Binding GridColumn}" />
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border CornerRadius="10"
+                         Background="DarkBlue"
+                         SnapsToDevicePixels="True"
+                         Margin="3">
+                                <TextBox IsReadOnly="{Binding LockHeader}" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+                              Background="Transparent"
+                              Foreground="WhiteSmoke"
+                              BorderThickness="0"
+                              AcceptsReturn="True"
+                              TextWrapping="Wrap"
+                              TextAlignment="Center"
+                              VerticalContentAlignment="Center"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"
+                              Padding="4"
+                              HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Disabled"
+                              base:AutoFitTextBox.IsEnabled="True"
+                              base:AutoFitTextBox.MinFontSize="6"
+                              base:AutoFitTextBox.MaxFontSize="22" />
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Cells -->
+                <ItemsControl ItemsSource="{Binding CellVMs}" ItemsPanel="{StaticResource MatrixPanel}">
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="Grid.Row" Value="{Binding GridRow}" />
+                            <Setter Property="Grid.Column" Value="{Binding GridColumn}" />
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <helper:UcCellView
+                        Command="{Binding DataContext.CellClickCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                        CommandParameter="{Binding}"
+                        Margin="2" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </ScrollViewer>
     </Grid>
 </base:WindowBase>

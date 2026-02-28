@@ -17,16 +17,16 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Close" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding CloseCommand}" />
+            <Button Content="Close" Command="{Binding CloseCommand}" />
         </StackPanel>
 
         <StackPanel Grid.Column="1">
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Button Content="New" Width="100" Height="20" Margin="0,0,0,0" Command="{Binding AddQuestionCommand}" />
-                <Button Content="Edit Selected" Width="100" Height="20" Margin="10,0,0,0" Command="{Binding EditSelectedQuestionCommand}" />
+                <Button Content="New" Command="{Binding AddQuestionCommand}" />
+                <Button Content="Edit Selected" Command="{Binding EditSelectedQuestionCommand}" />
                 <Label MinWidth="120" Margin="10,0,0,0" Content="Selected Question:" />
                 <Label Content="{Binding Path=CurrentSelectedQuestionDisplay}" MinWidth="200" Margin="5,0,0,0" />
-                <Button Content="Deselect" Width="100" Height="20" Margin="10,0,0,0" Command="{Binding DeselectCommand}" />
+                <Button Content="Deselect" Command="{Binding DeselectCommand}" Style="{StaticResource DangerButton}" />
             </StackPanel>
             <DataGrid ItemsSource="{Binding AvailableQuestions}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" SelectionMode="Single" IsReadOnly="True" SelectedItem="{Binding SelectedQuestion}"
                         base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding SelectAndCloseCommand}">

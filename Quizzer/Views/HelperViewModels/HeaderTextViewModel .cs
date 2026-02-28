@@ -48,8 +48,33 @@ namespace Quizzer.Views.HelperViewModels
 
                 _dict[Index] = value;
                 OnPropertyChanged(nameof(Text));
+                OnPropertyChanged(nameof(TextShort));
+                OnPropertyChanged(nameof(TextLong));
             }
         }
+
+        private (string Long, string Short) SplitLastBracketText(string? text)
+        {
+            text ??= string.Empty;
+
+            int open = text.LastIndexOf('[');
+            int close = text.LastIndexOf(']');
+
+            // no valid pair
+            if (open < 0 || close < 0 || close <= open)
+                return (text.Trim(), text.Trim());
+
+            // short inside brackets
+            var shortPart = text.Substring(open + 1, close - open - 1);
+
+            // long = remove the bracket part (including brackets) and trim
+            var longPart = (text.Remove(open, close - open + 1)).Trim();
+
+            return (longPart, shortPart);
+        }
+
+        public string TextLong => SplitLastBracketText(Text).Long;
+        public string TextShort => SplitLastBracketText(Text).Short;
 
         public override Task VMSaveAsync()
         {

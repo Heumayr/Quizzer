@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Quizzer.DataModels.Models;
+using Quizzer.DataModels.Models.Enumerations;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -30,16 +31,26 @@ namespace LocalBuzzer.Service
 
         public Func<Game?>? GetGame { get; set; }
 
-        private bool _isRuning = false;
-        public bool IsRunning => _app != null && _isRuning;
+        private readonly SemaphoreSlim _gate = new(1, 1);
 
-        public async Task StartAsync(BuzzerServerOptions? options = null, CancellationToken ct = default)
+        public ServerState ServerState { get; private set; } = ServerState.None;
+
+        public async Task StartAsync(BuzzerServerOptions? options = null, CancellationToken ct = default, bool rebuild = false)
         {
+            await _gate.WaitAsync(ct);
             try
             {
-                if (_app is not null) return;
-                options ??= new BuzzerServerOptions();
+                // If already running and no rebuild requested => no-op
+                if (_app != null && !rebuild && ServerState == ServerState.Running)
+                    return;
 
+                // If something exists (running or error), dispose it before rebuild/start
+                if (_app != null)
+                    await StopAsync(ct);
+
+                ServerState = ServerState.Starting;
+
+                options ??= new BuzzerServerOptions();
                 if (!Directory.Exists(options.WebRootPath))
                     throw new DirectoryNotFoundException($"wwwroot nicht gefunden: {options.WebRootPath}");
 
@@ -53,48 +64,84 @@ namespace LocalBuzzer.Service
                 builder.Services.AddSingleton<GameAccessor>();
                 builder.Services.AddSignalR();
 
-                var app = builder.Build();
+                var app = builder.Build(); // local until started successfully
 
-                _hub = app.Services.GetRequiredService<IHubContext<BuzzerHub>>();
-                _state = app.Services.GetRequiredService<BuzzerState>();
-                var gameAccessor = app.Services.GetRequiredService<GameAccessor>();
-                gameAccessor.GetGame = GetGame;
+                try
+                {
+                    _hub = app.Services.GetRequiredService<IHubContext<BuzzerHub>>();
+                    _state = app.Services.GetRequiredService<BuzzerState>();
 
-                var fp = app.Services.GetRequiredService<PhysicalFileProvider>();
-                app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = fp });
-                app.UseStaticFiles(new StaticFileOptions { FileProvider = fp });
+                    var gameAccessor = app.Services.GetRequiredService<GameAccessor>();
+                    gameAccessor.GetGame = GetGame;
 
-                app.MapHub<BuzzerHub>("/hub");
+                    var fp = app.Services.GetRequiredService<PhysicalFileProvider>();
+                    app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = fp });
+                    app.UseStaticFiles(new StaticFileOptions { FileProvider = fp });
 
-                var bus = app.Services.GetRequiredService<BuzzerEventBus>();
+                    app.MapHub<BuzzerHub>("/hub");
 
-                bus.ClientAssigned += p => ClientAssigned?.Invoke(p);
-                bus.WinnerDeclared += (p, r) => WinnerDeclared?.Invoke(p, r);
-                bus.RoundReset += r => RoundReset?.Invoke(r);
+                    var bus = app.Services.GetRequiredService<BuzzerEventBus>();
+                    bus.ClientAssigned += p => ClientAssigned?.Invoke(p);
+                    bus.WinnerDeclared += (p, r) => WinnerDeclared?.Invoke(p, r);
+                    bus.RoundReset += r => RoundReset?.Invoke(r);
 
-                _app = app;
+                    await app.StartAsync(ct);
 
-                //_isRuning = true;
-                await _app.StartAsync(ct);
-                _isRuning = true;
+                    _app = app;                 // assign only after successful start
+                    ServerState = ServerState.Running;
+                }
+                catch
+                {
+                    await app.DisposeAsync();    // prevent leaks
+                    _hub = null;
+                    _state = null;
+                    ServerState = ServerState.Error;
+                    throw;
+                }
             }
-            catch (Exception)
+            finally
             {
-                _isRuning = false;
-
-                throw;
+                _gate.Release();
             }
         }
 
         public async Task StopAsync(CancellationToken ct = default)
         {
-            if (_app is null) return;
-            _isRuning = false;
+            await _gate.WaitAsync(ct);
+            try
+            {
+                if (_app == null)
+                {
+                    ServerState = ServerState.None;
+                    _hub = null;
+                    _state = null;
+                    return;
+                }
 
-            await _app.StopAsync(ct);
-            await _app.DisposeAsync();
+                ServerState = ServerState.Stopping;
 
-            _app = null;
+                try
+                {
+                    await _app.StopAsync(ct);
+                    await _app.DisposeAsync();
+                    ServerState = ServerState.None;
+                }
+                catch
+                {
+                    ServerState = ServerState.Error;
+                    throw;
+                }
+                finally
+                {
+                    _app = null;
+                    _hub = null;
+                    _state = null;
+                }
+            }
+            finally
+            {
+                _gate.Release();
+            }
         }
 
         public async Task ResetRoundAsync(CancellationToken ct = default)

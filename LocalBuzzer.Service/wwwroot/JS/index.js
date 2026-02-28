@@ -1,0 +1,130 @@
+﻿const nameEl = document.getElementById('name');
+const statusEl = document.getElementById('status');
+const btn = document.getElementById('buzz');
+let locked = false;
+
+// ---- cookie helpers ----
+const COOKIE_NAME = "playerId";
+const COOKIE_DAYS = 365;
+
+function setCookie(name, value, days) {
+    const expires = new Date(Date.now() + days * 864e5).toUTCString();
+    document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; Expires=${expires}; Path=/; SameSite=Lax`;
+}
+
+function getCookie(name) {
+    const key = encodeURIComponent(name) + "=";
+    return document.cookie
+        .split(";")
+        .map(s => s.trim())
+        .find(s => s.startsWith(key))
+        ?.slice(key.length) ?? null;
+}
+
+function isGuid(s) {
+    // simple GUID v4-ish / general GUID format check
+    return typeof s === "string" &&
+        /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(s.trim());
+}
+
+// ---- resolve id: URL -> cookie -> prompt ----
+function resolvePlayerId() {
+    const params = new URLSearchParams(location.search);
+    const urlIdRaw = params.get("id");
+    const urlId = urlIdRaw?.trim() ?? null;
+
+    if (urlId && isGuid(urlId)) {
+        setCookie(COOKIE_NAME, urlId, COOKIE_DAYS);
+        return urlId;
+    }
+
+    const cookieIdRaw = getCookie(COOKIE_NAME);
+    const cookieId = cookieIdRaw ? decodeURIComponent(cookieIdRaw).trim() : null;
+
+    if (cookieId && isGuid(cookieId)) {
+        return cookieId;
+    }
+
+    // blocking popup: user must provide a GUID or we won't connect
+    const input = prompt("Player-ID (GUID) fehlt. Bitte einfügen:", "");
+    const typed = input?.trim() ?? "";
+
+    if (typed && isGuid(typed)) {
+        setCookie(COOKIE_NAME, typed, COOKIE_DAYS);
+        return typed;
+    }
+
+    return null;
+}
+
+async function start() {
+    btn.disabled = true;
+    statusEl.textContent = "Verbinde…";
+
+    const id = resolvePlayerId();
+    if (!id) {
+        statusEl.textContent = "Nicht verbunden: keine gültige Player-ID.";
+        nameEl.textContent = "—";
+        return; // do NOT connect
+    }
+
+    const conn = new signalR.HubConnectionBuilder()
+        .withUrl(`/hub?playerid=${encodeURIComponent(id)}`)
+        .withAutomaticReconnect()
+        .build();
+
+    conn.on("Assigned", (name, round, isLocked, winner) => {
+        nameEl.textContent = name;
+        locked = isLocked;
+        statusEl.textContent = winner ? `Runde ${round}: ${winner}` : `Runde ${round}: bereit`;
+        btn.disabled = locked;
+    });
+
+    conn.on("Winner", (winner, round) => {
+        locked = true;
+        statusEl.textContent = `Runde ${round}: Gewinner: ${winner}`;
+        btn.disabled = true;
+    });
+
+    conn.on("Reset", (round) => {
+        locked = false;
+        statusEl.textContent = `Runde ${round}: bereit`;
+        btn.disabled = false;
+    });
+
+    conn.onreconnecting(() => {
+        statusEl.textContent = "Verbindung verloren… reconnecting";
+        btn.disabled = true;
+    });
+
+    conn.onreconnected(() => {
+        statusEl.textContent = "Wieder verbunden";
+        // button state will be corrected by next Assigned/Reset/Winner
+    });
+
+    conn.onclose(() => {
+        statusEl.textContent = "Nicht verbunden: Verbindung geschlossen.";
+        btn.disabled = true;
+    });
+
+    btn.addEventListener('click', async () => {
+        try {
+            await conn.invoke("Buzz");
+        } catch (e) {
+            console.error("Buzz failed", e);
+            statusEl.textContent = "Buzz failed";
+        }
+    });
+
+    try {
+        await conn.start();
+        statusEl.textContent = "Bereit";
+        btn.disabled = false;
+    } catch (e) {
+        console.error("Connect failed", e);
+        statusEl.textContent = "Nicht verbunden: Verbindung fehlgeschlagen.";
+        btn.disabled = true;
+    }
+}
+
+start();

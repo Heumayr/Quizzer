@@ -4,12 +4,17 @@ using System.Text;
 
 namespace Quizzer.DataModels.Models.Enumerations
 {
+    [Flags]
     public enum ServerState
     {
-        Unknown,
-        Stopped,
-        Starting,
-        Running,
-        AllConnecteted,
+        None = 0,
+        Stopped = 1 << 0,
+        Starting = 1 << 1,
+        Running = 1 << 2,
+        AllConnected = 1 << 3,
+        Stopping = 1 << 4,
+        Error = 1 << 5,
+
+        ActiveState = Running | AllConnected
     }
 }

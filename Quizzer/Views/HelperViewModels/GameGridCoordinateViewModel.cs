@@ -1,15 +1,20 @@
-﻿using System;
-using System.ComponentModel;
-using System.Windows.Media;
-using Quizzer.Base;
+﻿using Quizzer.Base;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Enumerations;
+using Quizzer.Extentions;
+using Quizzer.Views.HelperViewModels;
+using System;
+using System.ComponentModel;
+using System.Windows.Media;
 
 namespace Quizzer.ViewModels
 {
     public class GameGridCoordinateViewModel : ViewModelBase
     {
         private CellView _cellView = CellView.PlayField;
+
+        public HeaderEntryViewModel? ColumnHeader { get; set; }
+        public HeaderEntryViewModel? RowHeader { get; set; }
 
         public CellView CellView
         {
@@ -23,6 +28,7 @@ namespace Quizzer.ViewModels
                 OnPropertyChanged(nameof(DifficultyDisplay));
                 OnPropertyChanged(nameof(PointsDisplay));
                 OnPropertyChanged(nameof(DisplayCoords));
+                OnPropertyChanged(nameof(DisplayCoordsFull));
 
                 OnPropertyChanged(nameof(DisplayText));
             }
@@ -160,7 +166,9 @@ namespace Quizzer.ViewModels
 
         public string DisplayCoords => _coordinate.DisplyCoords;
 
-        public string DifficultyDisplay => _coordinate.Question?.Difficulty.ToString() ?? string.Empty;
+        public string DisplayCoordsFull => $"{ColumnHeader?.TextShort ?? "-"}/{RowHeader?.TextShort ?? "-"}";
+
+        public string DifficultyDisplay => _coordinate.Question?.Difficulty.DescriptionOrString() ?? string.Empty;
 
         public string PointsDisplay => _coordinate != null ? $"{_coordinate?.CurrentPoints} pts / -{_coordinate?.CurrentMinusPoints} pts" : string.Empty;
 

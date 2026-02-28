@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Quizzer.Views.StaticRessources;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -27,16 +28,21 @@ namespace Quizzer.Base
             }
         }
 
+        protected virtual Task OnClosed()
+        {
+            return Task.CompletedTask;
+        }
+
         private async void Window_Closed(object? sender, EventArgs e)
         {
             try
             {
                 await VMSaveAsync();
+                await OnClosed();
             }
             catch (Exception ex)
             {
-                // TODO: Logging statt MessageBox, je nach App
-                MessageBox.Show(ex.InnerException?.Message ?? ex.Message, "Save failed");
+                ExceptionManager.HandleException(ex);
             }
         }
 

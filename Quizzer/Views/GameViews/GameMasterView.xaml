@@ -23,19 +23,20 @@
     <Grid Background="{Binding BackgroundBrush}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />
-            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
             <ColumnDefinition Width="auto" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="0">
-            <Button Content="Buzzer Server" Width="120" Height="20" Margin="5,5,5,10" Command="{Binding BuzzerServerCommand}" />
+            <Button Content="Buzzer Server" Command="{Binding BuzzerServerCommand}" />
         </StackPanel>
-        <ScrollViewer Margin="5" Grid.Column="1" Grid.Row="1"
+        <ScrollViewer Margin="5" Grid.Column="1" Grid.Row="0"
               HorizontalScrollBarVisibility="Auto"
-              VerticalScrollBarVisibility="Auto">
+              VerticalScrollBarVisibility="Auto"
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch">
             <Grid>
                 <!-- Column headers -->
                 <ItemsControl ItemsSource="{Binding ColumnHeaderVMs}" ItemsPanel="{StaticResource MatrixPanel}">
@@ -52,7 +53,7 @@
                                     SnapsToDevicePixels="True"
                                     Margin="3">
                                 <TextBox IsReadOnly="{Binding LockHeader}"
-                                         Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+                                         Text="{Binding TextLong, Mode=OneWay}"
                                          Background="Transparent"
                                          Foreground="WhiteSmoke"
                                          BorderThickness="0"
@@ -87,7 +88,8 @@
                                     Background="DarkBlue"
                                     SnapsToDevicePixels="True"
                                     Margin="3">
-                                <TextBox IsReadOnly="{Binding LockHeader}" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+                                <TextBox IsReadOnly="{Binding LockHeader}"
+                                        Text="{Binding TextLong, Mode=OneWay}"
                                         Background="Transparent"
                                         Foreground="WhiteSmoke"
                                         BorderThickness="0"
@@ -118,10 +120,10 @@
                     </ItemsControl.ItemContainerStyle>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <helper:UcCellView
-                        Command="{Binding DataContext.CellClickCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                        CommandParameter="{Binding}"
-                        Margin="2" />
+                            <helper:UcCellViewPlay
+                                Command="{Binding DataContext.CellClickCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}"
+                                Margin="2" />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

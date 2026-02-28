@@ -86,6 +86,8 @@ namespace Quizzer.Views.HelperViewModels
 
                     var cellVM = new GameGridCoordinateViewModel(cell);
                     cellVM.CellView = cellView;
+                    cellVM.ColumnHeader = columnHeaderVMs[x];
+                    cellVM.RowHeader = rowHeaderVMs[y];
                     cell.Game = game; // set reference for easier access in VM
                     cell.CalculatedPoints();
                     cellVMs.Add(cellVM);

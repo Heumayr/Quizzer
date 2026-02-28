@@ -17,11 +17,11 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <StackPanel Margin="5">
-            <Button Content="Categories" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding CategoryCommand}" />
-            <Button Content="Questions" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding QuestionsCommand}" />
-            <Button Content="Players" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding PlayersCommand}" />
-            <Button Content="Games" Width="120" Height="20" Margin="0,0,0,10" Command="{Binding GamesCommand}" />
+        <StackPanel Margin="5" Width="120">
+            <Button Content="Categories" Command="{Binding CategoryCommand}" />
+            <Button Content="Questions" Command="{Binding QuestionsCommand}" />
+            <Button Content="Players" Command="{Binding PlayersCommand}" />
+            <Button Content="Games" Command="{Binding GamesCommand}" />
         </StackPanel>
     </Grid>
 </base:WindowBase>

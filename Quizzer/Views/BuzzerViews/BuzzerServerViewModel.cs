@@ -4,9 +4,12 @@ using QRCoder;
 using Quizzer.Base;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Enumerations;
+using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
-using System.Security.Cryptography.X509Certificates;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -19,36 +22,48 @@ namespace Quizzer.Views.BuzzerViews
     public class BuzzerServerViewModel : ViewModelBase
     {
         private BuzzerServer? _server;
+        private Game? _game;
+
+        private ServerState _serverState = ServerState.None;
 
         public event EventHandler<ServerState>? PlayerConnectionStateChanged;
 
-        public override Task VMSaveAsync()
-        {
-            return Task.CompletedTask;
-        }
+        public override Task VMSaveAsync() => Task.CompletedTask;
 
         public string State => ServerState.ToString();
 
-        public ServerState ServerState { get; set; } = ServerState.Unknown;
+        /// <summary>
+        /// ViewModel state = server state + computed flags (e.g. AllConnected).
+        /// </summary>
+        public ServerState ServerState
+        {
+            get => _serverState;
+            private set
+            {
+                if (_serverState == value) return;
+                _serverState = value;
+                NotifyServerStateChanged();
+            }
+        }
 
         private readonly ObservableCollection<Player> _players = new();
         public ObservableCollection<Player> Players => _players;
 
         public Game? Game
         {
-            get => game;
+            get => _game;
             set
             {
-                if (game != null)
-                    foreach (var p in game.Players)
+                if (_game != null)
+                    foreach (var p in _game.Players)
                         p.PlayerConnectionChanged -= OnConnectionChanged;
 
-                game = value;
+                _game = value;
 
                 _players.Clear();
-                if (game != null)
+                if (_game != null)
                 {
-                    foreach (var p in game.Players)
+                    foreach (var p in _game.Players)
                     {
                         _players.Add(p);
                         p.PlayerConnectionChanged += OnConnectionChanged;
@@ -56,137 +71,175 @@ namespace Quizzer.Views.BuzzerViews
                 }
 
                 OnPropertyChanged(nameof(Game));
+                OnPropertyChanged(nameof(Players));
+
+                // Re-evaluate state when game/players change
+                RecalcServerState();
             }
         }
 
-        private void CalcServerState()
-        {
-            if (_server == null)
-            {
-                ServerState = ServerState.Stopped;
-                NotifyServerStateChanged();
-                return;
-            }
-
-            if (_server.IsRunning)
-            {
-                ServerState = ServerState.Running;
-            }
-            else
-            {
-                ServerState = ServerState.Starting;
-            }
-
-            if (_players.All(p => p.ConnectionState == PlayerConnection.Connected))
-            {
-                ServerState = ServerState.AllConnecteted;
-            }
-
-            NotifyServerStateChanged();
-        }
+        /// <summary>
+        /// True if underlying server is running (independent from AllConnected flag).
+        /// </summary>
+        public bool IsBuzzerServerRunning => _server != null && _server.ServerState.HasFlag(ServerState.Running);
 
         private void NotifyServerStateChanged()
         {
-            OnPropertyChanged(nameof(State));
-            OnPropertyChanged(nameof(IsRunning));
             OnPropertyChanged(nameof(ServerState));
+            OnPropertyChanged(nameof(State));
+            OnPropertyChanged(nameof(IsBuzzerServerRunning));
+
             startServerCommand?.RaiseCanExecuteChanged();
             stopServerCommand?.RaiseCanExecuteChanged();
+            openPlayerQRCommand?.RaiseCanExecuteChanged();
+            resetRoundCommand?.RaiseCanExecuteChanged();
 
-            RaisePlayerConnectionStateChanged();
-        }
-
-        private void OnConnectionChanged(object? sender, PlayerConnection e)
-        {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                // If Player implements INotifyPropertyChanged for its connection props,
-                // this is NOT needed. But if it doesn't, refresh the view:
-                CollectionViewSource.GetDefaultView(_players).Refresh();
-                CalcServerState();
-            });
-        }
-
-        public void RaisePlayerConnectionStateChanged()
-        {
             PlayerConnectionStateChanged?.Invoke(this, ServerState);
         }
 
+        private async void OnConnectionChanged(object? sender, PlayerConnection e)
+        {
+            // Avoid deadlocks: prefer InvokeAsync
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                CollectionViewSource.GetDefaultView(_players).Refresh();
+                RecalcServerState();
+            });
+        }
+
+        /// <summary>
+        /// Rebuild VM ServerState from:
+        /// 1) _server.ServerState (authoritative server state)
+        /// 2) computed AllConnected flag (players)
+        /// </summary>
+        private void RecalcServerState()
+        {
+            var s = _server?.ServerState ?? ServerState.None;
+
+            // Only consider AllConnected if there are players
+            bool allConnected =
+                _players.Count > 0 &&
+                _players.All(p => p.ConnectionState == PlayerConnection.Connected);
+
+            if (allConnected)
+                s |= ServerState.AllConnected;
+            else
+                s &= ~ServerState.AllConnected;
+
+            ServerState = s;
+        }
+
+        // ---------------- Commands ----------------
+
         private AsyncRelayCommand? startServerCommand;
-        public ICommand StartServerCommand => startServerCommand ??= new AsyncRelayCommand(StartServerAsync, (p) => !IsRunning);
+
+        public ICommand StartServerCommand =>
+            startServerCommand ??= new AsyncRelayCommand(StartServerAsync, _ => !IsBuzzerServerRunning && !ServerState.HasFlag(ServerState.Starting));
 
         private async Task StartServerAsync(object? commandParameter)
         {
-            if (_server != null)
+            try
             {
-                MessageBox.Show("Server is already running");
-                return;
+                if (_server == null)
+                {
+                    _server = new BuzzerServer
+                    {
+                        GetGame = () => Game
+                    };
+
+                    _server.WinnerDeclared += (player, round) =>
+                    {
+                        // NOTE: this runs on server thread; marshal to UI
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            MessageBox.Show($"Winner: {player} (Runde {round})");
+                        });
+                    };
+                }
+
+                ServerState = (_server.ServerState | ServerState.Starting) & ~ServerState.Error;
+
+                await _server.StartAsync(new BuzzerServerOptions
+                {
+                    Port = 5000,
+                    WebRootPath = Path.Combine(AppContext.BaseDirectory, "wwwroot")
+                });
+
+                RecalcServerState();
             }
-
-            CalcServerState();
-
-            _server = new BuzzerServer();
-            _server.GetGame = () => Game;
-            _server.WinnerDeclared += (player, round) =>
+            catch (Exception ex)
             {
-                MessageBox.Show($"Winner: {player} (Runde {round})");
-            };
+                // reflect error in VM
+                var s = _server?.ServerState ?? ServerState.None;
+                ServerState = s | ServerState.Error;
 
-            await _server.StartAsync(new BuzzerServerOptions
-            {
-                Port = 5000,
-                WebRootPath = System.IO.Path.Combine(AppContext.BaseDirectory, "wwwroot")
-            });
-
-            CalcServerState();
+                MessageBox.Show(ex.Message, "Start Server failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                throw;
+            }
         }
 
-        public bool IsRunning => _server != null && _server.IsRunning;
-
         private AsyncRelayCommand? stopServerCommand;
-        public ICommand StopServerCommand => stopServerCommand ??= new AsyncRelayCommand(StopServerAsync, (p) => IsRunning);
+
+        public ICommand StopServerCommand =>
+            stopServerCommand ??= new AsyncRelayCommand(StopServerAsync, _ => IsBuzzerServerRunning);
 
         private async Task StopServerAsync(object? commandParameter)
         {
-            if (_server is not null) await _server.StopAsync();
+            if (_server == null) return;
+            if (!_server.ServerState.HasFlag(ServerState.Running)) return;
 
-            _server = null;
-            CalcServerState();
+            try
+            {
+                ServerState = (ServerState | ServerState.Stopping) & ~ServerState.Starting;
+
+                await _server.StopAsync();
+
+                RecalcServerState(); // should become None (and remove AllConnected)
+            }
+            catch (Exception ex)
+            {
+                var s = _server.ServerState;
+                ServerState = s | ServerState.Error;
+
+                MessageBox.Show(ex.Message, "Stop Server failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                throw;
+            }
         }
 
         private AsyncRelayCommand? resetRoundCommand;
-        private Game? game;
 
-        public ICommand ResetRoundCommand => resetRoundCommand ??= new AsyncRelayCommand(ResetRoundAsync);
+        public ICommand ResetRoundCommand => resetRoundCommand ??= new AsyncRelayCommand(ResetRoundAsync, _ => IsBuzzerServerRunning);
 
         private async Task ResetRoundAsync(object? commandParameter)
         {
             if (_server == null) return;
-
             await _server.ResetRoundAsync();
         }
 
         private RelayCommand? openPlayerQRCommand;
-        public ICommand OpenPlayerQRCommand => openPlayerQRCommand ??= new RelayCommand(OpenPlayerQR);
 
-        public object? ConnectionChanged { get; private set; }
+        public ICommand OpenPlayerQRCommand =>
+            openPlayerQRCommand ??= new RelayCommand(OpenPlayerQR, _ => IsBuzzerServerRunning);
 
         private void OpenPlayerQR(object? commandParameter)
         {
             if (commandParameter is not Player player)
                 return;
 
-            if (_server is null || !_server.IsRunning)
+            if (!IsBuzzerServerRunning)
             {
                 MessageBox.Show("Server is not running.");
                 return;
             }
 
-            // pick first LAN endpoint (e.g. 192.168.0.23:5000)
-            var endpoint = _server.GetBestListeningIpPort();
+            var endpoint = _server?.GetBestListeningIpPort();
+            if (string.IsNullOrWhiteSpace(endpoint))
+            {
+                MessageBox.Show("No LAN endpoint found (is the server started and bound to a LAN interface?).");
+                return;
+            }
 
             var url = $"http://{endpoint}?id={Uri.EscapeDataString(player.Id.ToString())}";
-
             var qrImage = CreateQrBitmap(url);
 
             var urlBox = new TextBox
@@ -233,7 +286,7 @@ namespace Quizzer.Views.BuzzerViews
                 Owner = Application.Current?.MainWindow
             };
 
-            win.ShowDialog();
+            win.Show();
         }
 
         private static BitmapImage CreateQrBitmap(string payload)
@@ -241,7 +294,6 @@ namespace Quizzer.Views.BuzzerViews
             using var gen = new QRCodeGenerator();
             using var data = gen.CreateQrCode(payload, QRCodeGenerator.ECCLevel.Q);
 
-            // PNG bytes
             var png = new PngByteQRCode(data);
             byte[] bytes = png.GetGraphic(20);
 
