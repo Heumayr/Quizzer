@@ -306,13 +306,28 @@ namespace Quizzer.Views
             OnModelChanged();
             await VMSaveAsync();
 
-            var gameView = new GameMasterView();
-            var gameContext = new GameMasterViewModel();
-            gameView.DataContext = gameContext;
+            try
+            {
+                this.Window?.Hide();
 
-            gameContext.Game = Game;
-            StaticManager.BuzzerServerViewModel.Game = Game;
-            gameView.ShowDialog();
+                var gameView = new GameMasterView();
+                var gameContext = new GameMasterViewModel();
+                gameView.DataContext = gameContext;
+
+                gameContext.Game = Game;
+                StaticManager.BuzzerServerViewModel.Game = Game;
+
+                gameView.Closed += (_, __) => this.Window?.Show();
+                gameView.Show();
+            }
+            catch (Exception)
+            {
+                this.Window?.Show();
+                throw;
+            }
+            finally
+            {
+            }
         }
 
         public void ResetGameResults()

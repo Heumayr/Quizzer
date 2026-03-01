@@ -49,22 +49,44 @@ namespace Quizzer.Views
 
         private async Task EditGameAsync(Game game)
         {
-            var window = new EditGameView();
-
-            if (window.DataContext is EditGameViewModel vm)
+            try
             {
-                vm.SetGame(game);
-                window.ShowDialog();
+                var window = new EditGameView();
 
-                if (vm.ResultState == EditResultState.New || vm.ResultState == EditResultState.Updated || vm.ResultState == EditResultState.Deleted)
+                if (window.DataContext is EditGameViewModel vm)
                 {
-                    OnDatagridSourceChanged();
+                    vm.SetGame(game);
+                    this.Window?.Hide();
+                    window.Closed += OnClosed;
+                    window.ShowDialog();
+
+                    if (vm.ResultState == EditResultState.New || vm.ResultState == EditResultState.Updated || vm.ResultState == EditResultState.Deleted)
+                    {
+                        OnDatagridSourceChanged();
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("DataContext is not of type EditGameViewModel");
                 }
             }
-            else
+            catch (Exception)
             {
-                throw new InvalidOperationException("DataContext is not of type EditGameViewModel");
+                this.Window?.Show();
+                addGameCommand?.RaiseCanExecuteChanged();
+                openGameCommand?.RaiseCanExecuteChanged();
+                throw;
             }
+            finally
+            {
+            }
+        }
+
+        private void OnClosed(object? sender, EventArgs e)
+        {
+            this.Window?.Show();
+            addGameCommand?.RaiseCanExecuteChanged();
+            openGameCommand?.RaiseCanExecuteChanged();
         }
 
         public void OnDatagridSourceChanged()

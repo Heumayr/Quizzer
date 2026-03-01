@@ -55,8 +55,24 @@ namespace Quizzer.Views
 
         private void Games(object? commandParameter)
         {
-            var window = new GamesView();
-            window.ShowDialog();
+            try
+            {
+                this.Window?.Hide();
+                var window = new GamesView();
+                window.Closed += (_, __) => this.Window?.Show();
+                window.Show();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+            }
+        }
+
+        private void OnClosed(object? sender, EventArgs e)
+        {
         }
 
         public override Task VMSaveAsync()

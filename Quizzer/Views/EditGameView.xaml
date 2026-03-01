@@ -193,7 +193,7 @@
               VerticalScrollBarVisibility="Auto"
               HorizontalAlignment="Stretch"
               VerticalAlignment="Stretch">
-            <Grid>
+            <Grid IsEnabled="{Binding IsBuilding}">
                 <!-- Column headers -->
                 <ItemsControl ItemsSource="{Binding ColumnHeaderVMs}" ItemsPanel="{StaticResource MatrixPanel}">
                     <ItemsControl.ItemContainerStyle>
