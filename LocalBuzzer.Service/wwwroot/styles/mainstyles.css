@@ -1,4 +1,5 @@
-﻿html, body {
+﻿/* ===== Base ===== */
+html, body {
     height: 100%;
     margin: 0;
     font-family: system-ui, sans-serif;
@@ -6,6 +7,7 @@
     color: #fff;
 }
 
+/* ===== Top bar ===== */
 .top {
     padding: 12px 14px;
     display: flex;
@@ -22,7 +24,30 @@
     text-align: right;
 }
 
-button {
+/* ===== Inline error in top bar ===== */
+#error_display {
+    flex: 1 1 auto;
+    min-width: 0;
+    align-self: center;
+    padding: 8px 10px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.2;
+    background: rgba(220, 38, 38, 0.18);
+    border: 1px solid rgba(220, 38, 38, 0.45);
+    color: #ffd1d1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: none;
+}
+
+    #error_display.show {
+        display: block;
+    }
+
+/* ===== Main BUZZ button (IMPORTANT: scoped!) ===== */
+#buzz {
     height: calc(100% - 110px);
     margin: 12px;
     width: calc(100% - 24px);
@@ -34,7 +59,101 @@ button {
     color: #fff;
 }
 
-    button:disabled {
+    #buzz:disabled {
         background: #2a3345;
         opacity: .7;
+    }
+
+/* ===== Toast host ===== */
+#toast-host {
+    position: fixed;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: calc(100vw - 24px);
+    max-width: 700px; /* a bit wider so it doesn't look cramped on desktop */
+    pointer-events: none;
+}
+
+/* ===== Toast ===== */
+.toast {
+    pointer-events: auto;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative; /* for absolute close button */
+    padding: 12px 44px 12px 14px; /* room for close button */
+
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.25;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 10px 30px rgba(0,0,0,.45);
+    border: 1px solid rgba(255,255,255,.14);
+    transform: translateY(-8px);
+    opacity: 0;
+    transition: opacity .18s ease, transform .18s ease;
+}
+
+    .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .toast .toast-msg {
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-break: normal;
+    }
+
+    /* ===== Close button (RESET so it is NOT affected by #buzz / generic button rules) ===== */
+    .toast .toast-close {
+        all: unset; /* nukes inherited button styling */
+        position: absolute;
+        top: 3px;
+        right: 3px;
+        width: 28px;
+        height: 28px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        opacity: .85;
+        color: inherit;
+        font-size: 20px;
+        line-height: 1;
+    }
+
+        .toast .toast-close:hover {
+            opacity: 1;
+            background: rgba(255,255,255,.08);
+        }
+
+    /* ===== Toast variants ===== */
+    .toast.debug {
+        background: rgba(59,130,246,.18);
+        border-color: rgba(59,130,246,.45);
+        color: #dbeafe;
+    }
+
+    .toast.info {
+        background: rgba(34,197,94,.18);
+        border-color: rgba(34,197,94,.45);
+        color: #dcfce7;
+    }
+
+    .toast.warning {
+        background: rgba(245,158,11,.18);
+        border-color: rgba(245,158,11,.50);
+        color: #ffedd5;
+    }
+
+    .toast.error {
+        background: rgba(239,68,68,.18);
+        border-color: rgba(239,68,68,.50);
+        color: #ffe4e6;
     }

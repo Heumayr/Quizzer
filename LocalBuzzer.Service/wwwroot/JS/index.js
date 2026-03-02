@@ -1,6 +1,7 @@
 ﻿const nameEl = document.getElementById('name');
 const statusEl = document.getElementById('status');
 const btn = document.getElementById('buzz');
+const errorEl = document.getElementById('error_display');
 let locked = false;
 
 // ---- cookie helpers ----
@@ -57,6 +58,26 @@ function resolvePlayerId() {
     return null;
 }
 
+// ---- error display helpers ----
+function showError(msg) {
+    errorEl.textContent = msg ?? "";
+    errorEl.classList.toggle("show", !!msg);
+}
+
+function getErrMsg(e) {
+    const m = e?.message ?? String(e ?? "");
+    // make it nicer: keep only HubException text if present
+    const match = m.match(/HubException:\s*(.*)$/);
+    return (match ? match[1] : m).trim();
+}
+
+// ---- toast integration (expects show_toast from earlier snippet) ----
+function toast(type, msg) {
+    if (typeof window.show_toast === "function") {
+        window.show_toast(type, msg);
+    }
+}
+
 async function start() {
     btn.disabled = true;
     statusEl.textContent = "Verbinde…";
@@ -65,6 +86,9 @@ async function start() {
     if (!id) {
         statusEl.textContent = "Nicht verbunden: keine gültige Player-ID.";
         nameEl.textContent = "—";
+        const m = "Nicht verbunden: keine gültige Player-ID.";
+        showError(m);
+        toast("error", m);
         return; // do NOT connect
     }
 
@@ -74,37 +98,57 @@ async function start() {
         .build();
 
     conn.on("Assigned", (name, round, isLocked, winner) => {
+        showError(""); // clear any previous errors
         nameEl.textContent = name;
         locked = isLocked;
         statusEl.textContent = winner ? `Runde ${round}: ${winner}` : `Runde ${round}: bereit`;
         btn.disabled = locked;
+
+        // optional small toast on (re)assign
+        toast("info", `${name} verbunden`);
     });
 
     conn.on("Winner", (winner, round) => {
+        showError("");
         locked = true;
         statusEl.textContent = `Runde ${round}: Gewinner: ${winner}`;
         btn.disabled = true;
+        toast("warning", `Runde ${round}: Gewinner: ${winner}`);
     });
 
     conn.on("Reset", (round) => {
+        showError("");
         locked = false;
         statusEl.textContent = `Runde ${round}: bereit`;
         btn.disabled = false;
+        toast("info", `Runde ${round}: bereit`);
     });
 
     conn.onreconnecting(() => {
-        statusEl.textContent = "Verbindung verloren… reconnecting";
+        const m = "Verbindung verloren… reconnecting";
+        statusEl.textContent = m;
         btn.disabled = true;
+        toast("warning", m);
     });
 
     conn.onreconnected(() => {
-        statusEl.textContent = "Wieder verbunden";
+        const m = "Wieder verbunden";
+        statusEl.textContent = m;
+        toast("info", m);
         // button state will be corrected by next Assigned/Reset/Winner
     });
 
-    conn.onclose(() => {
+    conn.on("Error", (errorMessage) => {
+        showError(errorMessage);
+        toast("error", errorMessage);
+    });
+
+    conn.onclose((closeErr) => {
+        const m = closeErr ? getErrMsg(closeErr) : "Verbindung geschlossen.";
+        showError(m);
         statusEl.textContent = "Nicht verbunden: Verbindung geschlossen.";
         btn.disabled = true;
+        toast("error", m);
     });
 
     btn.addEventListener('click', async () => {
@@ -113,17 +157,25 @@ async function start() {
         } catch (e) {
             console.error("Buzz failed", e);
             statusEl.textContent = "Buzz failed";
+            const m = getErrMsg(e);
+            showError(m);
+            toast("error", m);
         }
     });
 
     try {
         await conn.start();
+        showError("");                 // clear on success
         statusEl.textContent = "Bereit";
-        btn.disabled = false;
+        btn.disabled = locked;
+        toast("debug", "Bereit");
     } catch (e) {
         console.error("Connect failed", e);
+        const m = getErrMsg(e);
+        showError(m);                  // <-- THIS is what you want
         statusEl.textContent = "Nicht verbunden: Verbindung fehlgeschlagen.";
         btn.disabled = true;
+        toast("error", m);
     }
 }
 

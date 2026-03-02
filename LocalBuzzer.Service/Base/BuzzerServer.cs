@@ -63,6 +63,7 @@ namespace LocalBuzzer.Service
                 builder.Services.AddSingleton<BuzzerEventBus>();
                 builder.Services.AddSingleton<GameAccessor>();
                 builder.Services.AddSignalR();
+                builder.Services.AddSignalR(o => o.EnableDetailedErrors = true);
 
                 var app = builder.Build(); // local until started successfully
 

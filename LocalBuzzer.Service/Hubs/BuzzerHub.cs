@@ -7,6 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml.Linq;
 
 namespace LocalBuzzer.Service.Hubs
 {
@@ -30,29 +31,29 @@ namespace LocalBuzzer.Service.Hubs
         public override async Task OnConnectedAsync()
         {
             var game = _gameAccessor.GetGame?.Invoke();
-
             if (game == null)
-                return;
+                throw new HubException("Kein Spiel aktiv.");
 
-            var http = Context.GetHttpContext();
             var qs = Context.GetHttpContext()?.Request.Query["playerid"].ToString();
 
             if (!Guid.TryParse(qs, out var guid))
-                throw new HubException("Invalid or missing player id");
+                throw new HubException("Invalid or missing player id.");
 
             var player = game.Players.FirstOrDefault(p => p.Id == guid);
-
             if (player == null)
-                throw new Exception("Player not found");
+                throw new HubException("Player not found.");
 
+            if (player.ConnectionState == PlayerConnection.Connected)
+                throw new HubException($"{player.DisplayName} bereits verbunden.");
+
+            player.ConnectionState = PlayerConnection.Connected;
             PlayerByConn[Context.ConnectionId] = player;
-            var name = player.CalculatedDisplayName;
-            _bus.OnAssigned(name);
 
             Interlocked.Increment(ref _counter);
 
-            await Clients.Caller.SendAsync("Assigned", name, _state.Round, _state.Locked, _state.Winner);
-            player.ConnectionState = PlayerConnection.Connected;
+            await Clients.Caller.SendAsync("Assigned",
+                player.CalculatedDisplayName, _state.Round, _state.Locked, _state.Winner);
+
             await base.OnConnectedAsync();
         }
 

@@ -218,8 +218,7 @@ namespace Quizzer.Views.BuzzerViews
 
         private RelayCommand? openPlayerQRCommand;
 
-        public ICommand OpenPlayerQRCommand =>
-            openPlayerQRCommand ??= new RelayCommand(OpenPlayerQR, _ => IsBuzzerServerRunning);
+        public ICommand OpenPlayerQRCommand => openPlayerQRCommand ??= new RelayCommand(OpenPlayerQR);
 
         private void OpenPlayerQR(object? commandParameter)
         {
@@ -236,6 +235,12 @@ namespace Quizzer.Views.BuzzerViews
             if (string.IsNullOrWhiteSpace(endpoint))
             {
                 MessageBox.Show("No LAN endpoint found (is the server started and bound to a LAN interface?).");
+                return;
+            }
+
+            if (player.ConnectionState == PlayerConnection.Connected)
+            {
+                MessageBox.Show($"Player {player.DisplayName} is already connected.");
                 return;
             }
 
