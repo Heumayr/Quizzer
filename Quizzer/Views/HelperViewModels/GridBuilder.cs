@@ -1,5 +1,6 @@
-﻿using Quizzer.DataModels.Models;
-using Quizzer.DataModels.Models.Enumerations;
+﻿using Quizzer.DataModels.Enumerations;
+using Quizzer.DataModels.Models;
+using Quizzer.DataModels.Models.Base;
 using Quizzer.ViewModels;
 using System;
 using System.Collections.Generic;

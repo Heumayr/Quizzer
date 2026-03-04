@@ -4,13 +4,15 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Text;
 
-namespace Quizzer.Base
+namespace Quizzer.DataModels
 {
     public static class Settings
     {
         public static IConfiguration Configuration { get; private set; } = null!;
 
         public static string FilePathQuizzer { get; set; } = string.Empty;
+
+        public static string ConnectionString { get; set; } = string.Empty;
 
         public static void LoadSettings()
         {
@@ -21,6 +23,7 @@ namespace Quizzer.Base
             Configuration = builder.Build();
 
             FilePathQuizzer = Configuration["AppSettings:FilePathQuizzer"]! ?? throw new InvalidOperationException("Missing FilePathQuestions");
+            ConnectionString = Configuration["AppSettings:MsSqlConString"]! ?? throw new InvalidOperationException("Missing MsSqlConString");
         }
     }
 }

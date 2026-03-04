@@ -1,8 +1,9 @@
 ﻿using Quizzer.Base;
 using Quizzer.Controller;
 using Quizzer.Controller.TypedHelper;
+using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
-using Quizzer.DataModels.Models.Enumerations;
+using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.QuestionTypes;
 using System;
 using System.Collections.Generic;
@@ -20,17 +21,17 @@ namespace Quizzer.Views.HelperViewModels
 
         public QuestionBase? SelectedQuestion
         {
-            get => Coordinate?.Question;
+            get => Coordinate?.QuestionBase;
             set
             {
-                Coordinate?.Question = value;
+                Coordinate?.QuestionBase = value;
                 Coordinate?.QuestionId = value != null ? value.Id : default;
                 OnPropertyChanged(nameof(SelectedQuestion));
                 OnPropertyChanged(nameof(CurrentSelectedQuestionDisplay));
             }
         }
 
-        public string CurrentSelectedQuestionDisplay => Coordinate?.Question != null ? $"{Coordinate.Question.Category?.Designation} {Coordinate.Question.Designation} {Coordinate.Question.Difficulty} {Coordinate.Question.Points}" : "No question selected";
+        public string CurrentSelectedQuestionDisplay => Coordinate?.QuestionBase != null ? $"{Coordinate.QuestionBase.Category?.Designation} {Coordinate.QuestionBase.Designation} {Coordinate.QuestionBase.Difficulty} {Coordinate.QuestionBase.Points}" : "No question selected";
 
         public void SetDependencys(Game game, GameGridCoordinate coordinate)
         {

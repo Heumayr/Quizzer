@@ -1,7 +1,7 @@
 ﻿using Quizzer.Base;
 using Quizzer.Controller;
 using Quizzer.Controller.TypedHelper;
-using Quizzer.DataModels.Models;
+using Quizzer.DataModels.Models.Base;
 using System.Collections.ObjectModel;
 using System.Text;
 using System.Windows.Input;

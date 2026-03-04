@@ -1,8 +1,8 @@
 ﻿using LocalBuzzer.Service.Base;
 using LocalBuzzer.Service.Hubs.Accessors;
 using Microsoft.AspNetCore.SignalR;
-using Quizzer.DataModels.Models;
-using Quizzer.DataModels.Models.Enumerations;
+using Quizzer.DataModels.Enumerations;
+using Quizzer.DataModels.Models.Base;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

@@ -1,15 +1,18 @@
 ﻿using Quizzer.DataModels.Attributes;
+using Quizzer.DataModels.Models.QuestionTypes;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
-namespace Quizzer.DataModels.Models
+namespace Quizzer.DataModels.Models.Base
 {
+    [Table(nameof(QuestionResult), Schema = "base")]
     public class QuestionResult : ModelBase
     {
         public Guid PlayerId { get; set; }
 
-        public Guid QuestionId { get; set; }
+        public Guid QuestionBaseId { get; set; }
 
         public Guid GameId { get; set; }
 
@@ -21,13 +24,10 @@ namespace Quizzer.DataModels.Models
 
         public int FinalScore => Score - MinusScore;
 
-        [ClearOnSave]
-        public QuestionBase? Question { get; set; }
+        public QuestionBase QuestionBase { get; set; } = null!;
 
-        [ClearOnSave]
-        public Game? Game { get; set; }
+        public Game Game { get; set; } = null!;
 
-        [ClearOnSave]
-        public Player? Player { get; set; }
+        public Player Player { get; set; } = null!;
     }
 }

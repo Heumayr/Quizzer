@@ -1,7 +1,7 @@
 ﻿using System.Configuration;
 using System.Data;
 using System.Windows;
-using Quizzer.Base;
+using Quizzer.DataModels;
 using Quizzer.Views;
 
 namespace Quizzer

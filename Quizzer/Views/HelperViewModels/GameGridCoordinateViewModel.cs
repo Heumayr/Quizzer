@@ -1,6 +1,7 @@
 ﻿using Quizzer.Base;
+using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
-using Quizzer.DataModels.Models.Enumerations;
+using Quizzer.DataModels.Models.Base;
 using Quizzer.Extentions;
 using Quizzer.Views.HelperViewModels;
 using System;
@@ -48,7 +49,7 @@ namespace Quizzer.ViewModels
         public GameGridCoordinateViewModel(GameGridCoordinate coordinate)
         {
             _coordinate = coordinate ?? throw new ArgumentNullException(nameof(coordinate));
-            HookQuestion(_coordinate.Question);
+            HookQuestion(_coordinate.QuestionBase);
         }
 
         public GameGridCoordinate Coordinate
@@ -58,9 +59,9 @@ namespace Quizzer.ViewModels
             {
                 if (ReferenceEquals(_coordinate, value) || value is null) return;
 
-                UnhookQuestion(_coordinate.Question);
+                UnhookQuestion(_coordinate.QuestionBase);
                 _coordinate = value;
-                HookQuestion(_coordinate.Question);
+                HookQuestion(_coordinate.QuestionBase);
 
                 OnPropertyChanged(nameof(Coordinate));
                 RaiseAllPropertiesChanged();
@@ -148,15 +149,15 @@ namespace Quizzer.ViewModels
 
         public QuestionBase? Question
         {
-            get => _coordinate.Question;
+            get => _coordinate.QuestionBase;
             set
             {
-                if (ReferenceEquals(_coordinate.Question, value)) return;
+                if (ReferenceEquals(_coordinate.QuestionBase, value)) return;
 
-                UnhookQuestion(_coordinate.Question);
-                _coordinate.Question = value;
+                UnhookQuestion(_coordinate.QuestionBase);
+                _coordinate.QuestionBase = value;
                 _coordinate.CalculatedPoints();
-                HookQuestion(_coordinate.Question);
+                HookQuestion(_coordinate.QuestionBase);
 
                 OnPropertyChanged(nameof(Question));
                 OnPropertyChanged(nameof(DisplayCoords));
@@ -168,7 +169,7 @@ namespace Quizzer.ViewModels
 
         public string DisplayCoordsFull => $"{ColumnHeader?.TextShort ?? "-"}/{RowHeader?.TextShort ?? "-"}";
 
-        public string DifficultyDisplay => _coordinate.Question?.Difficulty.DescriptionOrString() ?? string.Empty;
+        public string DifficultyDisplay => _coordinate.QuestionBase?.Difficulty.DescriptionOrString() ?? string.Empty;
 
         public string PointsDisplay => _coordinate != null ? $"{_coordinate?.CurrentPoints} pts / -{_coordinate?.CurrentMinusPoints} pts" : string.Empty;
 

@@ -1,15 +1,19 @@
 ﻿using Quizzer.DataModels.Attributes;
-using Quizzer.DataModels.Models.Enumerations;
+using Quizzer.DataModels.Enumerations;
+using Quizzer.DataModels.Models.QuestionTypes;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
-namespace Quizzer.DataModels.Models
+namespace Quizzer.DataModels.Models.Base
 {
+    [Table(nameof(Game), Schema = "base")]
     public class Game : ModelBase
     {
         public bool Restart { get; set; } = false;
+
         public GameState State { get; set; } = GameState.Building;
 
         public int Height { get; set; } = 10;
@@ -34,17 +38,23 @@ namespace Quizzer.DataModels.Models
 
         public int PhaseAddition { get; set; }
 
-        public Dictionary<int, string> ColumnHeader { get; set; } = new();
+        public List<Header> Columns { get; set; } = new();
 
-        public Dictionary<int, string> RowHeader { get; set; } = new();
+        public List<Header> Rows { get; set; } = new();
 
-        public List<Guid> PlayerIds { get; set; } = new();
-
-        public ObservableCollection<GameGridCoordinate> GameGridCoordinates { get; set; } = new();
+        public List<GameGridCoordinate> GameGridCoordinates { get; set; } = new();
 
         public List<QuestionResult> QuestionResults { get; set; } = new();
 
-        [ClearOnSave]
-        public List<Player> Players { get; set; } = new();
+        public List<PlayerXGame> PlayerXGames { get; set; } = new();
+
+        [NotMapped]
+        public Dictionary<int, string> ColumnHeader { get; set; } = new();
+
+        [NotMapped]
+        public Dictionary<int, string> RowHeader { get; set; } = new();
+
+        [NotMapped]
+        public IEnumerable<Player> Players => PlayerXGames.Select(x => x.Player);
     }
 }

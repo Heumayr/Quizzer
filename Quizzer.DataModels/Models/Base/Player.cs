@@ -1,33 +1,36 @@
 ﻿using Newtonsoft.Json;
 using Quizzer.DataModels.Attributes;
-using Quizzer.DataModels.Models.Enumerations;
+using Quizzer.DataModels.Enumerations;
+using Quizzer.DataModels.Models.QuestionTypes;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Quizzer.DataModels.Models
+namespace Quizzer.DataModels.Models.Base
 {
+    [Table(nameof(Player), Schema = "base")]
     public class Player : ModelBase
     {
-        private PlayerConnection connectionState = PlayerConnection.Unknown;
-
         public event EventHandler<PlayerConnection>? PlayerConnectionChanged;
 
         public string DisplayName { get; set; } = string.Empty;
 
-        [JsonIgnore]
-        public string CalculatedDisplayName => string.IsNullOrEmpty(DisplayName) ? Designation : DisplayName;
-
-        [JsonIgnore]
-        public int FinalScore => Score - MinusScore;
-
-        [JsonIgnore]
-        public int Score => CurrentQuestionResults.Sum(qr => qr.Score);
-
-        [JsonIgnore]
-        public int MinusScore => CurrentQuestionResults.Sum(qr => qr.MinusScore);
-
-        [ClearOnSave]
         public List<QuestionResult> CurrentQuestionResults { get; set; } = new();
 
-        [JsonIgnore]
+        [NotMapped]
+        private PlayerConnection connectionState = PlayerConnection.Unknown;
+
+        [NotMapped]
+        public string CalculatedDisplayName => string.IsNullOrEmpty(DisplayName) ? Designation : DisplayName;
+
+        [NotMapped]
+        public int FinalScore => Score - MinusScore;
+
+        [NotMapped]
+        public int Score => CurrentQuestionResults.Sum(qr => qr.Score);
+
+        [NotMapped]
+        public int MinusScore => CurrentQuestionResults.Sum(qr => qr.MinusScore);
+
+        [NotMapped]
         public PlayerConnection ConnectionState
         {
             get => connectionState;

@@ -2,8 +2,8 @@
 using LocalBuzzer.Service.Base;
 using QRCoder;
 using Quizzer.Base;
-using Quizzer.DataModels.Models;
-using Quizzer.DataModels.Models.Enumerations;
+using Quizzer.DataModels.Enumerations;
+using Quizzer.DataModels.Models.Base;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;

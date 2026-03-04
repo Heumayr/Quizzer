@@ -1,5 +1,7 @@
 <Solution>
   <Project Path="LocalBuzzer.Service/LocalBuzzer.Service.csproj" Id="dc2248f5-6fe9-43a2-ad08-74a26fee660b" />
   <Project Path="Quizzer.DataModels/Quizzer.DataModels.csproj" Id="918aabbb-bf78-42b7-9ac8-4608217693cb" />
+  <Project Path="Quizzer.EF/Quizzer.EF.csproj" Id="7b61c4e9-6b0d-4db5-bd4b-939055f10b4b" />
+  <Project Path="Quizzer.Logic/Quizzer.Logic.csproj" Id="da2af078-c5cd-4d0d-9e31-53540392e138" />
   <Project Path="Quizzer/Quizzer.csproj" />
 </Solution>
