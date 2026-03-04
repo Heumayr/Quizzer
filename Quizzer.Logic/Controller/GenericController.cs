@@ -38,7 +38,7 @@ namespace Quizzer.Logic.Controller
         /// <summary>
         /// Selects the data set by the generic type.
         /// </summary>
-        internal DbSet<TEntity> EntitySet
+        public DbSet<TEntity> EntitySet
         {
             get
             {
@@ -78,7 +78,7 @@ namespace Quizzer.Logic.Controller
         /// </summary>
         /// <param name="entity">The entity to insert.</param>
         /// <returns>The entity entry of the inserted entity.</returns>
-        internal virtual async ValueTask<EntityEntry<TEntity>> InsertAsync(TEntity entity)
+        public virtual async ValueTask<EntityEntry<TEntity>> InsertAsync(TEntity entity)
         {
             return await EntitySet.AddAsync(await BeforeActionAsync(entity, Actions.Insert)).ConfigureAwait(false);
         }
@@ -88,7 +88,7 @@ namespace Quizzer.Logic.Controller
         /// </summary>
         /// <param name="id">The id of the searched entity.</param>
         /// <returns>The entity if found, otherwise null.</returns>
-        internal virtual async ValueTask<TEntity?> GetAsync(Guid? id)
+        public virtual async ValueTask<TEntity?> GetAsync(Guid? id)
         {
             var query = EntitySet.AsQueryable();
 
@@ -106,7 +106,7 @@ namespace Quizzer.Logic.Controller
         /// Gets all entries in the database. Must be restricted.
         /// </summary>
         /// <returns>An array with all entries.</returns>
-        internal virtual async Task<TEntity[]> GetAllAsync()
+        public virtual async Task<TEntity[]> GetAllAsync()
         {
             var query = EntitySet.AsNoTracking().AsQueryable();
 
@@ -127,7 +127,7 @@ namespace Quizzer.Logic.Controller
         /// </summary>
         /// <param name="entity">The updated entity.</param>
         /// <returns>The updated entity.</returns>
-        internal virtual Task<TEntity> UpdateAsync(TEntity entity)
+        public virtual Task<TEntity> UpdateAsync(TEntity entity)
         {
             return Task.Run(async () =>
             {
@@ -140,7 +140,7 @@ namespace Quizzer.Logic.Controller
         /// </summary>
         /// <param name="id">The id of the entity to remove.</param>
         /// <returns>True if removing was successful, otherwise false.</returns>
-        internal virtual async Task<bool> DeleteAsync(Guid? id)
+        public virtual async Task<bool> DeleteAsync(Guid? id)
         {
             var entity = await GetAsync(id).ConfigureAwait(false);
 
@@ -166,7 +166,7 @@ namespace Quizzer.Logic.Controller
         /// </summary>
         /// <param name="ids">The ids of the entities to remove.</param>
         /// <returns>True if all removals were successful, otherwise false.</returns>
-        internal virtual async Task<bool> DeleteAsync(IEnumerable<Guid> ids)
+        public virtual async Task<bool> DeleteAsync(IEnumerable<Guid> ids)
         {
             foreach (var id in ids)
             {
@@ -181,7 +181,7 @@ namespace Quizzer.Logic.Controller
         /// Saves all changes in the current data context.
         /// </summary>
         /// <returns>The number of state entries written to the database.</returns>
-        internal virtual async Task<int> SaveChangesAsync()
+        public virtual async Task<int> SaveChangesAsync()
         {
             if (Context == null)
                 return 0;
@@ -195,9 +195,64 @@ namespace Quizzer.Logic.Controller
         /// Gets the number of entries in the database.
         /// </summary>
         /// <returns>The number of entries.</returns>
-        internal virtual async Task<int> CountAsync()
+        public virtual async Task<int> CountAsync()
         {
             return await EntitySet.CountAsync().ConfigureAwait(false);
+        }
+
+        public virtual async Task<(TEntity Entity, bool Created)> UpsertAsync(
+                TEntity entity,
+                Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null)
+        {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+
+            // If your ModelBase.Id is Guid
+            var id = entity.Id;
+
+            // No Id => treat as insert
+            if (id == Guid.Empty)
+            {
+                // ensure it has an id if you don't use DB-generated GUIDs
+                entity.Id = Guid.NewGuid();
+
+                entity = await BeforeActionAsync(entity, Actions.Insert).ConfigureAwait(false);
+                await EntitySet.AddAsync(entity).ConfigureAwait(false);
+                entity = await AfterActionAsync(entity, Actions.Insert).ConfigureAwait(false);
+
+                return (entity, true);
+            }
+
+            // Try to find existing
+            IQueryable<TEntity> query = EntitySet.AsQueryable();
+            query = SetQueryAttributes(query, Actions.Get);
+
+            if (include != null)
+                query = include(query);
+
+            var existing = await query.FirstOrDefaultAsync(e => e.Id == id).ConfigureAwait(false);
+
+            // Not found => insert (with provided Id)
+            if (existing == null)
+            {
+                entity = await BeforeActionAsync(entity, Actions.Insert).ConfigureAwait(false);
+                await EntitySet.AddAsync(entity).ConfigureAwait(false);
+                entity = await AfterActionAsync(entity, Actions.Insert).ConfigureAwait(false);
+
+                return (entity, true);
+            }
+
+            // Found => update (copy values into tracked entity)
+            entity = await BeforeActionAsync(entity, Actions.Update).ConfigureAwait(false);
+
+            // If existing is tracked, this updates it safely
+            Context!.Entry(existing).CurrentValues.SetValues(entity);
+
+            // If you want to update owned/child collections, you must handle that per-entity
+            // (generic update of collections is not safe).
+
+            entity = await AfterActionAsync(existing, Actions.Update).ConfigureAwait(false);
+
+            return (existing, false);
         }
     }
 }

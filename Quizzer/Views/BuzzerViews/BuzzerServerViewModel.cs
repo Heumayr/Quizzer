@@ -30,6 +30,8 @@ namespace Quizzer.Views.BuzzerViews
 
         public override Task VMSaveAsync() => Task.CompletedTask;
 
+        protected override Task Onload() => Task.CompletedTask;
+
         public string State => ServerState.ToString();
 
         /// <summary>

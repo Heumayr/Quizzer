@@ -1,6 +1,7 @@
 ﻿using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.ViewModels;
 using Quizzer.Views.Base;
 using Quizzer.Views.GameViews;
@@ -19,16 +20,33 @@ namespace Quizzer.Views
 {
     public class EditGameViewModel : ViewModelBase
     {
-        public void SetGame(Game game)
+        public async Task SetGame(Game game)
         {
-            Game = game;
+            if (game.Id == Guid.Empty)
+                throw new Exception("No Game Id");
+
+            using var ctrl = new GamesController();
+            var dbgame = await ctrl.GetAsync(game.Id);
+
+            if (dbgame == null)
+                throw new Exception("No Game found");
+
+            Game = dbgame;
+        }
+
+        private List<Player> AllPlayers { get; set; } = new();
+
+        protected override async Task Onload()
+        {
+            using var pCtrl = new PlayersController();
+            AllPlayers = (await pCtrl.GetAllAsync()).ToList();
         }
 
         public EditResultState ResultState { get; set; } = EditResultState.Cancelled;
 
         private Game? _game;
 
-        public Game? Game
+        internal Game? Game
         {
             get => _game;
             set
@@ -151,25 +169,13 @@ namespace Quizzer.Views
 
         public override async Task VMSaveAsync()
         {
-            if (Game == null)
-            {
-                return;
-            }
+            if (Game == null) return;
 
-            if (Game.Id == Guid.Empty)
-            {
-                Game.Id = Guid.NewGuid();
-                ResultState = EditResultState.New;
-                Loader.Games.Add(Game);
-            }
-            else
-            {
-                ResultState = EditResultState.Updated;
-            }
+            using var ctrl = new GamesController();
+            var result = await ctrl.UpsertAsync(Game);
+            await ctrl.SaveChangesAsync();
 
-            var ctrl = new GenericDataHandler();
-
-            await ctrl.SaveToFileAsync(Loader.Games);
+            ResultState = result.Created ? EditResultState.New : EditResultState.Updated;
         }
 
         private AsyncRelayCommand? saveAndCloseCommand;
@@ -201,34 +207,50 @@ namespace Quizzer.Views
         public Player? SelectedPlayer { get; set; }
         public Player? CmbSelectedPlayer { get; set; }
 
-        public IEnumerable<Player> AvailablePlayers => Loader.Players.Where(p => Game != null && !Game.PlayerIds.Contains(p.Id)).ToList();
+        public IEnumerable<Player> AvailablePlayers => AllPlayers.Where(p => Game != null && !Game.Players.Select(p => p.Id).Contains(p.Id)).ToList();
 
-        private RelayCommand? addPlayerCommand;
-        public ICommand AddPlayerCommand => addPlayerCommand ??= new RelayCommand(AddPlayer);
+        private AsyncRelayCommand? addPlayerCommand;
+        public ICommand AddPlayerCommand => addPlayerCommand ??= new AsyncRelayCommand(AddPlayerAsync);
 
-        private void AddPlayer(object? commandParameter)
+        private async Task AddPlayerAsync(object? commandParameter)
         {
             if (CmbSelectedPlayer == null || Game == null) return;
 
-            Game.Players.Add(CmbSelectedPlayer);
-            if (!Game.PlayerIds.Contains(CmbSelectedPlayer.Id))
-                Game.PlayerIds.Add(CmbSelectedPlayer.Id);
+            var found = Game.PlayerXGames.FirstOrDefault(x => x.PlayerId == CmbSelectedPlayer.Id);
+
+            if (found == null) return;
+
+            using var ctrl = new PlayerXGamesController();
+            var inserted = await ctrl.InsertAsync(new()
+            {
+                PlayerId = CmbSelectedPlayer.Id,
+                GamesId = Game.Id
+            });
+
+            await ctrl.SaveChangesAsync();
+
+            Game.PlayerXGames.Add(inserted.Entity);
 
             OnPlayerListSourceChanged();
         }
 
-        private RelayCommand? removePlayerCommand;
-        public ICommand RemovePlayerCommand => removePlayerCommand ??= new RelayCommand(RemovePlayer);
+        private AsyncRelayCommand? removePlayerCommand;
+        public ICommand RemovePlayerCommand => removePlayerCommand ??= new AsyncRelayCommand(RemovePlayerAsync);
 
-        private void RemovePlayer(object? commandParameter)
+        private async Task RemovePlayerAsync(object? commandParameter)
         {
             if (SelectedPlayer == null || Game == null) return;
 
-            Game.Players.Remove(SelectedPlayer);
+            var found = Game.PlayerXGames.FirstOrDefault(x => x.PlayerId == CmbSelectedPlayer.Id);
 
-            var id = Game.PlayerIds.FirstOrDefault(pid => pid == SelectedPlayer.Id);
-            if (id != Guid.Empty)
-                Game.PlayerIds.Remove(id);
+            if (found == null) return;
+
+            using var ctrl = new PlayerXGamesController();
+            await ctrl.DeleteAsync(found.Id);
+
+            await ctrl.SaveChangesAsync();
+
+            Game.PlayerXGames.Remove(found);
 
             OnPlayerListSourceChanged();
         }
@@ -247,8 +269,7 @@ namespace Quizzer.Views
             {
                 Game.State = GameState.Building;
                 Game.GameGridCoordinates.Clear();
-                Game.Players.Clear();
-                Game.PlayerIds.Clear();
+                Game.PlayerXGames.Clear();
                 Game.ColumnHeader.Clear();
                 Game.RowHeader.Clear();
                 Game.QuestionResults.Clear();
@@ -280,7 +301,7 @@ namespace Quizzer.Views
         {
             if (Game == null) return;
 
-            if (Game.Players.Count == 0)
+            if (Game.Players.Count() == 0)
             {
                 MessageBox.Show("Cannot start the game without any players. Please add at least one player before starting.", "No Players", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;

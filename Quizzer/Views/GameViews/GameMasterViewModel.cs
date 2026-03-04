@@ -1,9 +1,8 @@
 ﻿using Quizzer.Base;
-using Quizzer.Controller;
-using Quizzer.Controller.TypedHelper;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.ViewModels;
 using Quizzer.Views.BuzzerViews;
 using Quizzer.Views.HelperViewModels;
@@ -27,6 +26,8 @@ namespace Quizzer.Views.GameViews
         {
             StaticManager.BuzzerServerViewModel.PlayerConnectionStateChanged += OnPlayerConnectionStateChanged;
         }
+
+        protected override Task Onload() => Task.CompletedTask;
 
         protected override Task OnClosed()
         {
@@ -78,8 +79,12 @@ namespace Quizzer.Views.GameViews
 
         public override async Task VMSaveAsync()
         {
-            var gCtrl = new GenericDataHandler();
-            await gCtrl.SaveToFileAsync(Loader.Games);
+            if (Game == null) return;
+
+            using var ctrl = new GamesController();
+            await ctrl.UpsertAsync(Game);
+
+            await ctrl.SaveChangesAsync();
         }
 
         public Game? Game
@@ -108,7 +113,7 @@ namespace Quizzer.Views.GameViews
 
         public QuestionBase? SelectedQuestion { get; set; }
 
-        public List<Player> Players => Game?.Players ?? new List<Player>();
+        public IEnumerable<Player> Players => Game?.Players ?? Enumerable.Empty<Player>();
 
         private RelayCommand? buzzerServerCommand;
         public ICommand BuzzerServerCommand => buzzerServerCommand ??= new RelayCommand(BuzzerServer);

@@ -1,8 +1,7 @@
 ﻿using Quizzer.Base;
-using Quizzer.Controller;
-using Quizzer.Controller.TypedHelper;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.Logic.Controller.TypedControllers;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
@@ -35,6 +34,11 @@ namespace Quizzer.Views
             }
         }
 
+        protected override Task Onload()
+        {
+            return Task.CompletedTask;
+        }
+
         public void OnModelChanged()
         {
             OnPropertyChanged(nameof(Player));
@@ -52,25 +56,13 @@ namespace Quizzer.Views
 
         public override async Task VMSaveAsync()
         {
-            if (Player == null)
-            {
-                return;
-            }
+            if (Player == null) return;
 
-            if (Player.Id == Guid.Empty)
-            {
-                Player.Id = Guid.NewGuid();
-                ResultState = EditResultState.New;
-                Loader.Players.Add(Player);
-            }
-            else
-            {
-                ResultState = EditResultState.Updated;
-            }
+            using var ctrl = new PlayersController();
+            var result = await ctrl.UpsertAsync(Player);
+            await ctrl.SaveChangesAsync();
 
-            var ctrl = new GenericDataHandler();
-
-            await ctrl.SaveToFileAsync(Loader.Players);
+            ResultState = result.Created ? EditResultState.New : EditResultState.Updated;
         }
 
         private AsyncRelayCommand? saveAndCloseCommand;

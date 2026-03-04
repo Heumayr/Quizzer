@@ -48,7 +48,7 @@ namespace Quizzer.Logic.Controller
                 {
                     Context?.Dispose();
                 }
-                Context = null;
+                Context = null!;
 
                 disposedValue = true;
             }

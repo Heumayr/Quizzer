@@ -7,13 +7,13 @@ using System.Text;
 
 namespace Quizzer.Logic.Controller.TypedControllers
 {
-    public class QuestonBasesController : GenericController<QuestionBase>
+    public class QuestionBasesController : GenericController<QuestionBase>
     {
-        public QuestonBasesController()
+        public QuestionBasesController()
         {
         }
 
-        public QuestonBasesController(ControllerBase other) : base(other)
+        public QuestionBasesController(ControllerBase other) : base(other)
         {
         }
 

@@ -1,6 +1,7 @@
 ﻿using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.Logic.Controller.TypedControllers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -29,6 +30,11 @@ namespace Quizzer.Views
             }
         }
 
+        protected override Task Onload()
+        {
+            return Task.CompletedTask;
+        }
+
         public void OnModelChanged()
         {
             OnPropertyChanged(nameof(Step));
@@ -43,9 +49,15 @@ namespace Quizzer.Views
             Window?.Close();
         }
 
-        public override Task VMSaveAsync()
+        public override async Task VMSaveAsync()
         {
-            return Task.CompletedTask;
+            if (Step == null) return;
+
+            using var ctrl = new QuestionStepResourcesController();
+            var result = await ctrl.UpsertAsync(Step);
+            await ctrl.SaveChangesAsync();
+
+            ResultState = result.Created ? EditResultState.New : EditResultState.Updated;
         }
     }
 }

@@ -22,11 +22,27 @@ namespace Quizzer.Base
                 if (!Equals(window, value))
                 {
                     window?.Closed -= Window_Closed;
+                    window?.Loaded -= Window_Loaded;
                     window = value;
+                    window?.Loaded += Window_Loaded;
                     window?.Closed += Window_Closed;
                 }
             }
         }
+
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await Onload();
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
+        }
+
+        protected abstract Task Onload();
 
         protected virtual Task OnClosed()
         {

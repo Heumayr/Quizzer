@@ -19,11 +19,14 @@ namespace Quizzer.Logic.Controller.TypedControllers
 
         protected override IQueryable<Game> SetQueryAttributes(IQueryable<Game> query, Actions action)
         {
-            query = query.Include(q => q.Columns)
-                         .Include(q => q.Rows)
-                         .Include(q => q.QuestionResults)
-                         .Include(q => q.GameGridCoordinates).ThenInclude(t => t.QuestionBase)
-                         .Include(q => q.PlayerXGames).ThenInclude(t => t.Player);
+            if (action == Actions.Get)
+            {
+                query = query.Include(q => q.Columns)
+                 .Include(q => q.Rows)
+                 .Include(q => q.QuestionResults)
+                 .Include(q => q.GameGridCoordinates).ThenInclude(t => t.QuestionBase)
+                 .Include(q => q.PlayerXGames).ThenInclude(t => t.Player);
+            }
 
             return base.SetQueryAttributes(query, action);
         }

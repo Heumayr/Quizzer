@@ -1,5 +1,4 @@
 ﻿using Quizzer.Base;
-using Quizzer.Controller.TypedHelper;
 using Quizzer.Views.BuzzerViews;
 using Quizzer.Views.StaticRessources;
 using System;
@@ -13,8 +12,10 @@ namespace Quizzer.Views
     {
         public override async Task InitializeAsync()
         {
-            await Loader.ReloadAllAsync();
+            //await Loader.ReloadAllAsync();
         }
+
+        protected override Task Onload() => Task.CompletedTask;
 
         private RelayCommand? startQuizCommand;
         public ICommand StartQuizCommand => startQuizCommand ??= new RelayCommand(StartQuiz);

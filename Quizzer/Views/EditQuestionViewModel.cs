@@ -1,9 +1,9 @@
 ﻿using Quizzer.Base;
-using Quizzer.Controller;
-using Quizzer.Controller.TypedHelper;
+
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.Logic.Controller.TypedControllers;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
@@ -16,7 +16,7 @@ namespace Quizzer.Views
     {
         public Array Difficulties { get; } = Enum.GetValues(typeof(Difficulty));
 
-        public ObservableCollection<Category> Categories { get => Loader.Categories; set => Loader.Categories = value; }
+        public ObservableCollection<Category> Categories { get; set; } = new();
 
         public Category? SelectedCategory
         {
@@ -34,6 +34,19 @@ namespace Quizzer.Views
                     _question?.CategoryId = value.Id;
                 }
                 OnModelChanged();
+            }
+        }
+
+        protected override async Task Onload()
+        {
+            Categories.Clear();
+            using var catCtrl = new CategoriesController();
+
+            var categories = await catCtrl.GetAllAsync();
+
+            foreach (var item in categories)
+            {
+                Categories.Add(item);
             }
         }
 
@@ -81,25 +94,13 @@ namespace Quizzer.Views
 
         public override async Task VMSaveAsync()
         {
-            if (Question == null)
-            {
-                return;
-            }
+            if (Question == null) return;
 
-            if (Question.Id == Guid.Empty)
-            {
-                Question.Id = Guid.NewGuid();
-                ResultState = EditResultState.New;
-                Loader.Questions.Add(Question);
-            }
-            else
-            {
-                ResultState = EditResultState.Updated;
-            }
+            using var ctrl = new QuestionBasesController();
+            var result = await ctrl.UpsertAsync(Question);
+            await ctrl.SaveChangesAsync();
 
-            var ctrl = new GenericDataHandler();
-
-            await ctrl.SaveToFileAsync(Loader.Questions);
+            ResultState = result.Created ? EditResultState.New : EditResultState.Updated;
         }
 
         private AsyncRelayCommand? saveAndCloseCommand;

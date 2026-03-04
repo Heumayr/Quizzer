@@ -1,10 +1,9 @@
 ﻿using Newtonsoft.Json;
 using Quizzer.Base;
-using Quizzer.Controller;
-using Quizzer.Controller.TypedHelper;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.QuestionTypes;
+using Quizzer.Logic.Controller.TypedControllers;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,12 +17,18 @@ namespace Quizzer.Views
 {
     internal class QuestionsViewModel : ViewModelBase
     {
-        public ObservableCollection<QuestionBase> Questions { get => Loader.Questions; set => Loader.Questions = value; }
+        public ObservableCollection<QuestionBase> Questions { get; set; } = new();
 
-        public override Task VMSaveAsync()
+        public override async Task VMSaveAsync()
         {
-            var ctrl = new GenericDataHandler();
-            return ctrl.SaveToFileAsync(Questions);
+            using var ctrl = new QuestionBasesController();
+
+            foreach (var q in Questions)
+            {
+                await ctrl.UpsertAsync(q);
+            }
+
+            await ctrl.SaveChangesAsync();
         }
 
         private AsyncRelayCommand? saveCommand;
@@ -32,6 +37,19 @@ namespace Quizzer.Views
         private async Task SaveCommandAsync(object? param)
         {
             await VMSaveAsync();
+        }
+
+        protected override async Task Onload()
+        {
+            Questions.Clear();
+
+            using var ctrl = new QuestionBasesController();
+            var questions = await ctrl.GetAllAsync();
+
+            foreach (var q in questions)
+            {
+                Questions.Add(q);
+            }
         }
 
         public ObservableCollection<QuestionBase> SelectedQuestions { get; set; } = new();

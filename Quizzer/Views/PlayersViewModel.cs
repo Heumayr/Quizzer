@@ -1,8 +1,7 @@
 ﻿using Quizzer.Base;
-using Quizzer.Controller;
-using Quizzer.Controller.TypedHelper;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.Logic.Controller.TypedControllers;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
@@ -14,12 +13,18 @@ namespace Quizzer.Views
 {
     public class PlayersViewModel : ViewModelBase
     {
-        public ObservableCollection<Player> Players { get => Loader.Players; set => Loader.Players = value; }
+        public ObservableCollection<Player> Players { get; set; } = new();
 
-        public override Task VMSaveAsync()
+        public override async Task VMSaveAsync()
         {
-            var ctrl = new GenericDataHandler();
-            return ctrl.SaveToFileAsync(Players);
+            using var ctrl = new PlayersController();
+
+            foreach (var p in Players)
+            {
+                await ctrl.UpsertAsync(p);
+            }
+
+            await ctrl.SaveChangesAsync();
         }
 
         private AsyncRelayCommand? saveCommand;
@@ -28,6 +33,19 @@ namespace Quizzer.Views
         private async Task SaveCommandAsync(object? param)
         {
             await VMSaveAsync();
+        }
+
+        protected override async Task Onload()
+        {
+            Players.Clear();
+
+            using var ctrl = new PlayersController();
+            var players = await ctrl.GetAllAsync();
+
+            foreach (var p in players)
+            {
+                Players.Add(p);
+            }
         }
 
         public ObservableCollection<Player> SelectedPlayers { get; set; } = new();

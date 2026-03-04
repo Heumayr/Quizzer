@@ -1,6 +1,5 @@
 ﻿using Quizzer.Base;
-using Quizzer.Controller;
-using Quizzer.Controller.TypedHelper;
+
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using System;
@@ -15,12 +14,11 @@ namespace Quizzer.Views
 {
     public class GamesViewModel : ViewModelBase
     {
-        public ObservableCollection<Game> Games { get => Loader.Games; set => Loader.Games = value; }
+        public ObservableCollection<Game> Games { get; set; } = new();
 
         public override Task VMSaveAsync()
         {
-            var ctrl = new GenericDataHandler();
-            return ctrl.SaveToFileAsync(Games);
+            throw new NotImplementedException();
         }
 
         private AsyncRelayCommand? saveCommand;
@@ -29,6 +27,11 @@ namespace Quizzer.Views
         private async Task SaveCommandAsync(object? param)
         {
             await VMSaveAsync();
+        }
+
+        protected override Task Onload()
+        {
+            throw new NotImplementedException();
         }
 
         public ObservableCollection<Game> SelectedGames { get; set; } = new();

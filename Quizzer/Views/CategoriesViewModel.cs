@@ -1,7 +1,7 @@
 ﻿using Quizzer.Base;
 using Quizzer.Controller;
-using Quizzer.Controller.TypedHelper;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.Logic.Controller.TypedControllers;
 using System.Collections.ObjectModel;
 using System.Text;
 using System.Windows.Input;
@@ -14,12 +14,31 @@ namespace Quizzer.Views
         {
         }
 
-        public ObservableCollection<Category> Categories { get => Loader.Categories; set => Loader.Categories = value; }
+        public ObservableCollection<Category> Categories { get; set; } = new();
 
-        public Task SaveCategoriesAsync()
+        public async Task SaveCategoriesAsync()
         {
-            var ctrl = new GenericDataHandler();
-            return ctrl.SaveToFileAsync(Categories);
+            using var ctrl = new CategoriesController();
+
+            foreach (var category in Categories)
+            {
+                await ctrl.UpsertAsync(category);
+            }
+
+            await ctrl.SaveChangesAsync();
+        }
+
+        protected override async Task Onload()
+        {
+            Categories.Clear();
+
+            using var ctrl = new CategoriesController();
+            var categories = await ctrl.GetAllAsync();
+
+            foreach (var category in categories)
+            {
+                Categories.Add(category);
+            }
         }
 
         private AsyncRelayCommand? saveCommand;
