@@ -21,7 +21,7 @@
             <Button Content="Remove Question" Command="{Binding RemoveQuestionCommand}" Style="{StaticResource DangerButton}" />
         </StackPanel>
 
-        <DataGrid Grid.Column="1" ItemsSource="{Binding Questions}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True"
+        <DataGrid Grid.Column="1" ItemsSource="{Binding QuestionsView}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True"
                   base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedQuestions}"
                   base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenQuestionCommand}">
             <DataGrid.Columns>

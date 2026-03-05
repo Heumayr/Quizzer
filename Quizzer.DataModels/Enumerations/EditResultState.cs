@@ -6,9 +6,10 @@ namespace Quizzer.DataModels.Enumerations
 {
     public enum EditResultState
     {
+        None,
         New,
         Updated,
-        Cancelled,
-        Deleted
+        Canceled,
+        Deleted,
     }
 }

@@ -29,7 +29,7 @@ namespace Quizzer.Views
             await VMSaveAsync();
         }
 
-        protected override Task Onload()
+        protected override Task OnloadAsync()
         {
             throw new NotImplementedException();
         }

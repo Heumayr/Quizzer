@@ -4,6 +4,7 @@ using Quizzer.DataModels.Models.Base;
 using Quizzer.Logic.Controller.TypedControllers;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Text;
 using System.Windows;
 using System.Windows.Data;
@@ -13,7 +14,21 @@ namespace Quizzer.Views
 {
     public class PlayersViewModel : ViewModelBase
     {
-        public ObservableCollection<Player> Players { get; set; } = new();
+        private ObservableCollection<Player> players = new();
+
+        private ObservableCollection<Player> Players
+        {
+            get => players;
+            set
+            {
+                players = value;
+                OnPropertyChanged();
+                PlayersView = CollectionViewSource.GetDefaultView(players);
+                OnPropertyChanged(nameof(PlayersView));
+            }
+        }
+
+        public ICollectionView? PlayersView { get; private set; }
 
         public override async Task VMSaveAsync()
         {
@@ -33,19 +48,14 @@ namespace Quizzer.Views
         private async Task SaveCommandAsync(object? param)
         {
             await VMSaveAsync();
+            await OnloadAsync();
         }
 
-        protected override async Task Onload()
+        protected override async Task OnloadAsync()
         {
-            Players.Clear();
-
             using var ctrl = new PlayersController();
             var players = await ctrl.GetAllAsync();
-
-            foreach (var p in players)
-            {
-                Players.Add(p);
-            }
+            Players = new ObservableCollection<Player>(players);
         }
 
         public ObservableCollection<Player> SelectedPlayers { get; set; } = new();
@@ -73,10 +83,7 @@ namespace Quizzer.Views
                 vm.SetPlayer(player);
                 window.ShowDialog();
 
-                if (vm.ResultState == EditResultState.New || vm.ResultState == EditResultState.Updated || vm.ResultState == EditResultState.Deleted)
-                {
-                    OnDatagridSourceChanged();
-                }
+                await OnloadAsync();
             }
             else
             {
@@ -84,12 +91,8 @@ namespace Quizzer.Views
             }
         }
 
-        public void OnDatagridSourceChanged()
-        {
-            CollectionViewSource.GetDefaultView(Players)?.Refresh();
-        }
-
         private AsyncRelayCommand? removePlayerCommand;
+
         public ICommand RemovePlayerCommand => removePlayerCommand ??= new AsyncRelayCommand(RemovePlayerAsync);
 
         private async Task RemovePlayerAsync(object? commandParameter)
@@ -105,15 +108,16 @@ namespace Quizzer.Views
 
             var toRemove = new List<Player>(SelectedPlayers);
 
+            using var ctrl = new PlayersController();
+
             foreach (var player in toRemove)
             {
-                Players.Remove(player);
+                await ctrl.DeleteAsync(player.Id);
             }
 
-            await VMSaveAsync();
-            OnDatagridSourceChanged();
+            await ctrl.SaveChangesAsync();
 
-            return;
+            await OnloadAsync();
         }
     }
 }

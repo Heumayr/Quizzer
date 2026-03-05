@@ -32,7 +32,7 @@ namespace Quizzer.Views.HelperViewModels
             }
         }
 
-        protected override async Task Onload()
+        protected override async Task OnloadAsync()
         {
             using var qCtrl = new QuestionBasesController();
             AllQuestion = await qCtrl.GetAllAsync();
@@ -102,7 +102,7 @@ namespace Quizzer.Views.HelperViewModels
 
             if (window.DataContext is EditQuestionViewModel vm)
             {
-                vm.SetQuestionBase(questionBase);
+                await vm.SetModel(questionBase);
                 window.ShowDialog();
 
                 if (vm.ResultState == EditResultState.New || vm.ResultState == EditResultState.Updated || vm.ResultState == EditResultState.Deleted)

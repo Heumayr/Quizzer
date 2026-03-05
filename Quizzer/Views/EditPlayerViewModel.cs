@@ -17,8 +17,6 @@ namespace Quizzer.Views
             Player = player;
         }
 
-        public EditResultState ResultState { get; set; } = EditResultState.Cancelled;
-
         private Player? _player;
 
         public Player? Player
@@ -34,7 +32,7 @@ namespace Quizzer.Views
             }
         }
 
-        protected override Task Onload()
+        protected override Task OnloadAsync()
         {
             return Task.CompletedTask;
         }

@@ -13,8 +13,6 @@ namespace Quizzer.Views
     {
         public Array ResourceTyps { get; } = Enum.GetValues(typeof(ResourceTyp));
 
-        public EditResultState ResultState { get; set; } = EditResultState.Cancelled;
-
         private QuestionStepResource? _step;
 
         public QuestionStepResource? Step
@@ -30,7 +28,25 @@ namespace Quizzer.Views
             }
         }
 
-        protected override Task Onload()
+        public async Task SetModel(QuestionStepResource? step)
+        {
+            ResultState = EditResultState.Canceled;
+
+            if (step == null)
+                step = new QuestionStepResource();
+
+            if (step.Id == Guid.Empty)
+            {
+                Step = step;
+                return;
+            }
+
+            using var ctrl = new QuestionStepResourcesController();
+            var m = await ctrl.GetAsync(step.Id);
+            Step = step;
+        }
+
+        protected override Task OnloadAsync()
         {
             return Task.CompletedTask;
         }

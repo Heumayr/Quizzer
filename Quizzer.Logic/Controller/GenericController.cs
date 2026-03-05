@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using Quizzer.DataModels.Enumerations;
+using System.Collections.Concurrent;
 
 namespace Quizzer.Logic.Controller
 {
@@ -18,6 +19,8 @@ namespace Quizzer.Logic.Controller
     public abstract class GenericController<TEntity> : ControllerBase
         where TEntity : ModelBase, new()
     {
+        protected ConcurrentDictionary<Guid, object?> _PrivateModelCache = new ConcurrentDictionary<Guid, object?>();
+
         private DbSet<TEntity>? entitySet;
 
         /// <summary>

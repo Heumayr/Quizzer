@@ -21,7 +21,7 @@
             <Button Content="Remove Player" Margin="0,0,0,10" Command="{Binding RemovePlayerCommand}" Style="{StaticResource DangerButton}" />
         </StackPanel>
 
-        <DataGrid Grid.Column="1" ItemsSource="{Binding Players}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True"
+        <DataGrid Grid.Column="1" ItemsSource="{Binding PlayersView}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True"
                 base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedPlayers}"
                 base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenPlayerCommand}">
             <DataGrid.Columns>

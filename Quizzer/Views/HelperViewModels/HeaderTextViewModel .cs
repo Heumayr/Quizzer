@@ -81,7 +81,7 @@ namespace Quizzer.Views.HelperViewModels
             return Task.CompletedTask;
         }
 
-        protected override Task Onload()
+        protected override Task OnloadAsync()
         {
             throw new NotImplementedException();
         }

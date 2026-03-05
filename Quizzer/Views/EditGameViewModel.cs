@@ -36,13 +36,13 @@ namespace Quizzer.Views
 
         private List<Player> AllPlayers { get; set; } = new();
 
-        protected override async Task Onload()
+        protected override async Task OnloadAsync()
         {
             using var pCtrl = new PlayersController();
             AllPlayers = (await pCtrl.GetAllAsync()).ToList();
         }
 
-        public EditResultState ResultState { get; set; } = EditResultState.Cancelled;
+        public EditResultState ResultState { get; set; } = EditResultState.Canceled;
 
         private Game? _game;
 

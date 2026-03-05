@@ -28,7 +28,7 @@ namespace Quizzer.Views
             await ctrl.SaveChangesAsync();
         }
 
-        protected override async Task Onload()
+        protected override async Task OnloadAsync()
         {
             Categories.Clear();
 

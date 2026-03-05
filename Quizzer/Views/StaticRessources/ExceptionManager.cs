@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Interop;
 
 namespace Quizzer.Views.StaticRessources
@@ -16,11 +17,27 @@ namespace Quizzer.Views.StaticRessources
             if (ex == null)
                 return;
 
-            var window = new Window();
+            var window = new WindowBase();
 
             var contentPanel = new StackPanel();
 
             _ = RenderException(contentPanel, ex);
+
+            var rtb = new RichTextBox();
+            rtb.IsReadOnly = true;
+
+            var binding = new Binding(nameof(ex.StackTrace))
+            {
+                Source = ex,                 // or a specific vm instance
+                Mode = BindingMode.OneWay,
+                UpdateSourceTrigger = UpdateSourceTrigger.Default
+            };
+
+            BindingOperations.SetBinding(rtb,
+                                         RichTextBoxBinder.PlainTextProperty,
+                                         binding);
+
+            contentPanel.Children.Add(rtb);
 
             contentPanel.Children.Add(new Button()
             {
@@ -28,7 +45,10 @@ namespace Quizzer.Views.StaticRessources
                 Command = new RelayCommand((p) => window.Close())
             });
 
-            window.Content = contentPanel;
+            var scrollViewer = new ScrollViewer();
+            scrollViewer.Content = contentPanel;
+
+            window.Content = scrollViewer;
 
             window.Show();
         }

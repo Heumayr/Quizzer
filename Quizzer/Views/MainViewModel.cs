@@ -15,7 +15,7 @@ namespace Quizzer.Views
             //await Loader.ReloadAllAsync();
         }
 
-        protected override Task Onload() => Task.CompletedTask;
+        protected override Task OnloadAsync() => Task.CompletedTask;
 
         private RelayCommand? startQuizCommand;
         public ICommand StartQuizCommand => startQuizCommand ??= new RelayCommand(StartQuiz);

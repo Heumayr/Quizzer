@@ -1,4 +1,5 @@
-﻿using Quizzer.DataModels.Enumerations;
+﻿using Microsoft.EntityFrameworkCore;
+using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using System;
 using System.Collections.Generic;

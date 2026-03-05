@@ -1,4 +1,5 @@
-﻿using Quizzer.Views.StaticRessources;
+﻿using Quizzer.DataModels.Enumerations;
+using Quizzer.Views.StaticRessources;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,6 +14,8 @@ namespace Quizzer.Base
     public abstract class ViewModelBase : INotifyPropertyChanged
     {
         private Window? window;
+
+        public EditResultState ResultState { get; set; } = EditResultState.None;
 
         public Window? Window
         {
@@ -34,7 +37,7 @@ namespace Quizzer.Base
         {
             try
             {
-                await Onload();
+                await OnloadAsync();
             }
             catch (Exception ex)
             {
@@ -42,7 +45,7 @@ namespace Quizzer.Base
             }
         }
 
-        protected abstract Task Onload();
+        protected abstract Task OnloadAsync();
 
         protected virtual Task OnClosed()
         {

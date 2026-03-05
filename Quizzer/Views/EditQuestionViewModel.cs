@@ -33,26 +33,25 @@ namespace Quizzer.Views
                 {
                     _question?.CategoryId = value.Id;
                 }
-                OnModelChanged();
+                OnPropertyChanged();
             }
         }
 
-        protected override async Task Onload()
+        protected override async Task OnloadAsync()
         {
-            Categories.Clear();
             using var catCtrl = new CategoriesController();
 
             var categories = await catCtrl.GetAllAsync();
 
-            foreach (var item in categories)
-            {
-                Categories.Add(item);
-            }
+            Categories = new ObservableCollection<Category>(categories);
+
+            if (Question != null && Question.CategoryId != Guid.Empty)
+                SelectedCategory = categories.FirstOrDefault(c => c.Id == Question.CategoryId);
+
+            OnPropertyChanged(nameof(SelectedCategory));
         }
 
         public List<QuestionStepResource> SelectedSteps { get; set; } = new List<QuestionStepResource>();
-
-        public EditResultState ResultState { get; set; } = EditResultState.Cancelled;
 
         private QuestionBase? _question;
 
@@ -61,9 +60,13 @@ namespace Quizzer.Views
             get => _question;
             set
             {
+                if (value == null)
+                    throw new Exception("Can't set null model");
+
                 if (!Equals(_question, value))
                 {
                     _question = value;
+                    SelectedCategory = Categories.FirstOrDefault(c => c.Id == _question.CategoryId);
                     OnModelChanged();
                 }
             }
@@ -76,11 +79,27 @@ namespace Quizzer.Views
             OnDatagridSourceChanged();
         }
 
-        public void SetQuestionBase(QuestionBase questionBase)
+        public async Task SetModel(QuestionBase questionBase)
         {
-            Question = questionBase;
+            ResultState = EditResultState.Canceled;
+            await LoadModel(questionBase);
+        }
 
-            OnPropertyChanged(nameof(QuestionBase));
+        private async Task LoadModel(QuestionBase questionBase)
+        {
+            if (questionBase.Id == Guid.Empty)
+            {
+                Question = questionBase;
+                return;
+            }
+
+            using var ctrl = new QuestionBasesController();
+            var q = await ctrl.GetAsync(questionBase.Id);
+
+            if (q == null)
+                throw new Exception("Model could not be loaded");
+
+            Question = q;
         }
 
         private AsyncRelayCommand? saveCommand;
@@ -89,7 +108,10 @@ namespace Quizzer.Views
 
         private async Task SaveAsync(object? commandParameter)
         {
+            if (Question == null) return;
+
             await VMSaveAsync();
+            await LoadModel(Question);
         }
 
         public override async Task VMSaveAsync()
@@ -99,7 +121,6 @@ namespace Quizzer.Views
             using var ctrl = new QuestionBasesController();
             var result = await ctrl.UpsertAsync(Question);
             await ctrl.SaveChangesAsync();
-
             ResultState = result.Created ? EditResultState.New : EditResultState.Updated;
         }
 
@@ -119,14 +140,12 @@ namespace Quizzer.Views
         {
             if (Question == null)
             {
-                throw new InvalidOperationException("Question is null");
+                return Task.CompletedTask;
             }
 
             var step = new QuestionStepResource();
 
             step.SquenceNumber = Question.Steps.Any() ? Question.Steps.Max(q => q.SquenceNumber) + 10 : 0;
-
-            Question.Steps.Add(step);
 
             return EditStepAsync(step);
         }
@@ -146,20 +165,26 @@ namespace Quizzer.Views
                 Question.Steps.Remove(step);
             }
 
-            //await SaveAsync(null);
+            await VMSaveAsync();
             OnDatagridSourceChanged();
         }
 
         private async Task EditStepAsync(QuestionStepResource step)
         {
+            if (Question == null) return;
+
+            await VMSaveAsync();
+
             var window = new EditStepView();
 
             if (window.DataContext is EditStepViewModel vm)
             {
-                vm.Step = step;
+                step.QuestionBaseId = Question.Id;
+
+                await vm.SetModel(step);
                 window.ShowDialog();
 
-                OnDatagridSourceChanged();
+                await LoadModel(Question);
             }
             else
             {

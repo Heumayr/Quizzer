@@ -17,7 +17,21 @@ namespace Quizzer.Views
 {
     internal class QuestionsViewModel : ViewModelBase
     {
-        public ObservableCollection<QuestionBase> Questions { get; set; } = new();
+        private ObservableCollection<QuestionBase> _questions = new();
+
+        public ObservableCollection<QuestionBase> Questions
+        {
+            get => _questions;
+            private set
+            {
+                _questions = value;
+                OnPropertyChanged();
+                QuestionsView = CollectionViewSource.GetDefaultView(_questions);
+                OnPropertyChanged(nameof(QuestionsView));
+            }
+        }
+
+        public ICollectionView? QuestionsView { get; private set; }
 
         public override async Task VMSaveAsync()
         {
@@ -39,17 +53,12 @@ namespace Quizzer.Views
             await VMSaveAsync();
         }
 
-        protected override async Task Onload()
+        protected override async Task OnloadAsync()
         {
-            Questions.Clear();
-
             using var ctrl = new QuestionBasesController();
             var questions = await ctrl.GetAllAsync();
 
-            foreach (var q in questions)
-            {
-                Questions.Add(q);
-            }
+            Questions = new ObservableCollection<QuestionBase>(questions);
         }
 
         public ObservableCollection<QuestionBase> SelectedQuestions { get; set; } = new();
@@ -74,23 +83,15 @@ namespace Quizzer.Views
 
             if (window.DataContext is EditQuestionViewModel vm)
             {
-                vm.SetQuestionBase(questionBase);
+                await vm.SetModel(questionBase);
                 window.ShowDialog();
 
-                if (vm.ResultState == EditResultState.New || vm.ResultState == EditResultState.Updated || vm.ResultState == EditResultState.Deleted)
-                {
-                    OnDatagridSourceChanged();
-                }
+                await OnloadAsync();
             }
             else
             {
                 throw new InvalidOperationException("DataContext is not of type EditQuestionViewModel");
             }
-        }
-
-        public void OnDatagridSourceChanged()
-        {
-            CollectionViewSource.GetDefaultView(Questions)?.Refresh();
         }
 
         private AsyncRelayCommand? removeQuestionCommand;
@@ -105,15 +106,15 @@ namespace Quizzer.Views
 
             var toRemove = new List<QuestionBase>(SelectedQuestions);
 
+            using var ctrl = new QuestionBasesController();
+
             foreach (var question in toRemove)
             {
-                Questions.Remove(question);
+                await ctrl.DeleteAsync(question.Id);
             }
 
-            await VMSaveAsync();
-            OnDatagridSourceChanged();
-
-            return;
+            await ctrl.SaveChangesAsync();
+            await OnloadAsync();
         }
     }
 }

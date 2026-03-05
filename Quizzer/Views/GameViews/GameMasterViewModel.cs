@@ -27,7 +27,7 @@ namespace Quizzer.Views.GameViews
             StaticManager.BuzzerServerViewModel.PlayerConnectionStateChanged += OnPlayerConnectionStateChanged;
         }
 
-        protected override Task Onload() => Task.CompletedTask;
+        protected override Task OnloadAsync() => Task.CompletedTask;
 
         protected override Task OnClosed()
         {

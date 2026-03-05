@@ -218,7 +218,7 @@ namespace Quizzer.ViewModels
             return Task.CompletedTask;
         }
 
-        protected override Task Onload()
+        protected override Task OnloadAsync()
         {
             throw new NotImplementedException();
         }
