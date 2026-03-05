@@ -80,7 +80,11 @@ namespace Quizzer.Views.HelperViewModels
                 {
                     if (!map.TryGetValue((y, x), out var cell))
                     {
-                        cell = new GameGridCoordinate(y, x);
+                        cell = new GameGridCoordinate()
+                        {
+                            Y = y,
+                            X = x
+                        };
                         game.GameGridCoordinates.Add(cell);
                         map[(y, x)] = cell;
                     }

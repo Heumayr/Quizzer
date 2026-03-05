@@ -122,11 +122,11 @@ namespace Quizzer.ViewModels
 
         public Guid QuestionsId
         {
-            get => _coordinate.QuestionId;
+            get => _coordinate.QuestionBaseId;
             set
             {
-                if (_coordinate.QuestionId == value) return;
-                _coordinate.QuestionId = value;
+                if (_coordinate.QuestionBaseId == value) return;
+                _coordinate.QuestionBaseId = value;
                 OnPropertyChanged(nameof(QuestionsId));
             }
         }
@@ -216,6 +216,11 @@ namespace Quizzer.ViewModels
         public override Task VMSaveAsync()
         {
             return Task.CompletedTask;
+        }
+
+        protected override Task Onload()
+        {
+            throw new NotImplementedException();
         }
     }
 }

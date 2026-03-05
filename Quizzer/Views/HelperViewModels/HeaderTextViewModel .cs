@@ -80,5 +80,10 @@ namespace Quizzer.Views.HelperViewModels
         {
             return Task.CompletedTask;
         }
+
+        protected override Task Onload()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

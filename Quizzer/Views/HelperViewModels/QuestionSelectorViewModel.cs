@@ -1,10 +1,9 @@
 ﻿using Quizzer.Base;
-using Quizzer.Controller;
-using Quizzer.Controller.TypedHelper;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.QuestionTypes;
+using Quizzer.Logic.Controller.TypedControllers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,6 +16,8 @@ namespace Quizzer.Views.HelperViewModels
     {
         public Game? Game { get; set; }
 
+        public QuestionBase[] AllQuestion { get; set; } = [];
+
         public GameGridCoordinate? Coordinate { get; set; }
 
         public QuestionBase? SelectedQuestion
@@ -25,10 +26,16 @@ namespace Quizzer.Views.HelperViewModels
             set
             {
                 Coordinate?.QuestionBase = value;
-                Coordinate?.QuestionId = value != null ? value.Id : default;
+                Coordinate?.QuestionBaseId = value != null ? value.Id : default;
                 OnPropertyChanged(nameof(SelectedQuestion));
                 OnPropertyChanged(nameof(CurrentSelectedQuestionDisplay));
             }
+        }
+
+        protected override async Task Onload()
+        {
+            using var qCtrl = new QuestionBasesController();
+            AllQuestion = await qCtrl.GetAllAsync();
         }
 
         public string CurrentSelectedQuestionDisplay => Coordinate?.QuestionBase != null ? $"{Coordinate.QuestionBase.Category?.Designation} {Coordinate.QuestionBase.Designation} {Coordinate.QuestionBase.Difficulty} {Coordinate.QuestionBase.Points}" : "No question selected";
@@ -51,8 +58,7 @@ namespace Quizzer.Views.HelperViewModels
 
         public override async Task VMSaveAsync()
         {
-            var genCtrl = new GenericDataHandler();
-            await genCtrl.SaveToFileAsync(Loader.Games);
+            throw new NotImplementedException();
         }
 
         public IEnumerable<QuestionBase> AvailableQuestions
@@ -60,11 +66,11 @@ namespace Quizzer.Views.HelperViewModels
             get
             {
                 var used = Game?.GameGridCoordinates
-                    .Select(c => c.QuestionId)
+                    .Select(c => c.QuestionBaseId)
                     .Where(id => id != Guid.Empty)
                     .ToHashSet() ?? new HashSet<Guid>();
 
-                var choices = Loader.Questions
+                var choices = AllQuestion
                     .Where(q => q.Id != Guid.Empty && !used.Contains(q.Id))
                     .ToList();
 

@@ -11,6 +11,14 @@ namespace Quizzer.Logic.Context
 {
     internal class DataContext : DbContext
     {
+        static DataContext()
+        {
+            if (string.IsNullOrEmpty(Settings.ConnectionString))
+            {
+                Settings.LoadSettings();
+            }
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             var connectionString = Settings.ConnectionString;
