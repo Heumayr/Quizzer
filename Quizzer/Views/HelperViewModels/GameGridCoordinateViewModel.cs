@@ -156,7 +156,7 @@ namespace Quizzer.ViewModels
 
                 UnhookQuestion(_coordinate.QuestionBase);
                 _coordinate.QuestionBase = value;
-                _coordinate.CalculatedPoints();
+                _coordinate.CalculateAndSetCurrentPoints();
                 HookQuestion(_coordinate.QuestionBase);
 
                 OnPropertyChanged(nameof(Question));

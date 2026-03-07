@@ -35,7 +35,7 @@ namespace Quizzer.DataModels.Models.Base
 
         public int CurrentMinusPoints { get; set; }
 
-        public void CalculatedPoints()
+        public void CalculateAndSetCurrentPoints()
         {
             if (IsDone) return;
 
@@ -60,7 +60,7 @@ namespace Quizzer.DataModels.Models.Base
             if (IsDone) return;
 
             Phase++;
-            CalculatedPoints();
+            CalculateAndSetCurrentPoints();
         }
 
         public QuestionBase? QuestionBase

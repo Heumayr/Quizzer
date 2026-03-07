@@ -17,6 +17,8 @@ namespace Quizzer.Base
 
         public EditResultState ResultState { get; set; } = EditResultState.None;
 
+        public event EventHandler? VMSaved;
+
         public Window? Window
         {
             get => window;
@@ -57,6 +59,7 @@ namespace Quizzer.Base
             try
             {
                 await VMSaveAsync();
+                VMSaved?.Invoke(sender, e);
                 await OnClosed();
             }
             catch (Exception ex)

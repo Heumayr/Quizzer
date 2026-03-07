@@ -16,7 +16,15 @@ namespace Quizzer.Views
     {
         public Array Difficulties { get; } = Enum.GetValues(typeof(Difficulty));
 
-        public ObservableCollection<Category> Categories { get; set; } = new();
+        public ObservableCollection<Category> Categories
+        {
+            get => categories;
+            set
+            {
+                categories = value;
+                OnPropertyChanged();
+            }
+        }
 
         public Category? SelectedCategory
         {
@@ -160,13 +168,17 @@ namespace Quizzer.Views
                 throw new InvalidOperationException("Question is null");
             }
 
+            using var ctrl = new QuestionStepResourcesController();
+
+            var removed = new List<QuestionStepResource>();
+
             foreach (var step in SelectedSteps)
             {
-                Question.Steps.Remove(step);
+                await ctrl.DeleteAsync(step.Id);
             }
 
-            await VMSaveAsync();
-            OnDatagridSourceChanged();
+            await ctrl.SaveChangesAsync();
+            await LoadModel(Question);
         }
 
         private async Task EditStepAsync(QuestionStepResource step)
@@ -210,6 +222,8 @@ namespace Quizzer.Views
         }
 
         private AsyncRelayCommand? openStepCommand;
+        private ObservableCollection<Category> categories = new();
+
         public ICommand OpenStepCommand => openStepCommand ??= new AsyncRelayCommand(OpenStepAsync);
 
         private Task OpenStepAsync(object? commandParameter)

@@ -5,6 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Numerics;
+using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Quizzer.DataModels.Models.Base
@@ -22,7 +25,7 @@ namespace Quizzer.DataModels.Models.Base
 
         public int Depth { get; set; } = 0;
 
-        public double CellHeight { get; set; } = 60;
+        public double CellHeight { get; set; } = 100;
 
         public double CellWidth { get; set; } = 120;
 
@@ -30,7 +33,7 @@ namespace Quizzer.DataModels.Models.Base
 
         public int DifficultyAddition { get; set; } = 0;
 
-        public double DifficultyMinusMultiplier { get; set; } = 1;
+        public double DifficultyMinusMultiplier { get; set; } = 0.5;
 
         public int DifficultyMinusAddition { get; set; } = 0;
 
@@ -38,9 +41,7 @@ namespace Quizzer.DataModels.Models.Base
 
         public int PhaseAddition { get; set; }
 
-        public List<Header> Columns { get; set; } = new();
-
-        public List<Header> Rows { get; set; } = new();
+        public List<Header> Headers { get; set; } = new();
 
         public List<GameGridCoordinate> GameGridCoordinates { get; set; } = new();
 
@@ -49,12 +50,32 @@ namespace Quizzer.DataModels.Models.Base
         public List<PlayerXGame> PlayerXGames { get; set; } = new();
 
         [NotMapped]
-        public Dictionary<int, string> ColumnHeader { get; set; } = new();
+        public IEnumerable<Header> Columns => Headers.Where(h => h.HeaderType == HeaderType.Column);
 
         [NotMapped]
-        public Dictionary<int, string> RowHeader { get; set; } = new();
+        public IEnumerable<Header> Rows => Headers.Where(h => h.HeaderType == HeaderType.Row);
 
         [NotMapped]
         public IEnumerable<Player> Players => PlayerXGames.Select(x => x.Player);
+
+        public void CalculateAndSetCurrentPoints()
+        {
+            if (GameGridCoordinates.Count == 0) return;
+
+            foreach (var coord in GameGridCoordinates)
+            {
+                coord.CalculateAndSetCurrentPoints();
+            }
+        }
+
+        public void RaisePhase()
+        {
+            if (GameGridCoordinates.Count == 0) return;
+
+            foreach (var coord in GameGridCoordinates)
+            {
+                coord.RaisePhase();
+            }
+        }
     }
 }

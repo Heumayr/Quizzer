@@ -32,7 +32,6 @@
         </Grid.RowDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Start Game" Command="{Binding StartGameCommand}" />
             <Button Content="Save" Command="{Binding SaveCommand}" />
             <Button Content="Save and Close" Command="{Binding SaveAndCloseCommand}" />
             <Button Content="Reset Game Build" Command="{Binding ResetGameBuildCommand}" Style="{StaticResource DangerButton}" />
@@ -42,27 +41,27 @@
         <StackPanel IsEnabled="{Binding IsBuilding}" Grid.Column="1">
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Reset Game on Start:" VerticalAlignment="Center" />
-                <CheckBox VerticalContentAlignment="Center" IsChecked="{Binding Game.Restart}" MinWidth="200" Margin="5,0,0,0" />
+                <CheckBox VerticalContentAlignment="Center" IsChecked="{Binding Restart}" MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Designation:" VerticalAlignment="Center" />
-                <TextBox VerticalContentAlignment="Center" Text="{Binding Path=Game.Designation}" MinWidth="200" Margin="5,0,0,0" />
+                <TextBox VerticalContentAlignment="Center" Text="{Binding Path=Designation}" MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
             <StackPanel Orientation="Vertical">
                 <StackPanel Orientation="Horizontal" Margin="5">
-                    <ComboBox ItemsSource="{Binding AvailablePlayers}" DisplayMemberPath="CalculatedDisplayName" SelectedItem="{Binding CmbSelectedPlayer}" Width="200" Margin="0,0,10,0" />
+                    <ComboBox ItemsSource="{Binding AvailablePlayersView}" DisplayMemberPath="CalculatedDisplayName" SelectedItem="{Binding CmbSelectedPlayer}" Width="200" Margin="0,8,10,8" />
                     <Button Content="Add Player" Command="{Binding AddPlayerCommand}" />
                     <Button Content="Remove Player" Command="{Binding RemovePlayerCommand}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="5">
                     <Label MinWidth="120" Content="Players:" VerticalAlignment="Center" />
-                    <ListView Margin="5,0,0,0" MinHeight="20" MinWidth="200" MaxWidth="250" ItemsSource="{Binding Game.Players}" SelectedItem="{Binding SelectedPlayer}" />
+                    <ListView Margin="5,0,0,0" MinHeight="20" MinWidth="200" MaxWidth="250" ItemsSource="{Binding GameAddedPlayersView}" SelectedItem="{Binding SelectedPlayer}" />
                 </StackPanel>
             </StackPanel>
             <StackPanel Orientation="Vertical">
                 <StackPanel Orientation="Horizontal" Margin="5">
                     <Label MinWidth="120" Content="Test Phase: "></Label>
-                    <TextBox VerticalContentAlignment="Center" MinWidth="50" Margin="5,0,5,0">
+                    <TextBox VerticalContentAlignment="Center" MinWidth="50" Margin="5,8,5,8">
                         <TextBox.Text>
                             <Binding Path="TestPhase" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
                                 <Binding.ValidationRules>
@@ -78,7 +77,7 @@
                 <Label MinWidth="120" Content="Diff. x / +:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" MinWidth="50" Margin="5,0,0,0">
                     <TextBox.Text>
-                        <Binding Path="Game.DifficultyMultiplier" UpdateSourceTrigger="LostFocus" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
+                        <Binding Path="DifficultyMultiplier" UpdateSourceTrigger="LostFocus" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
                             <Binding.ValidationRules>
                                 <val:PositiveDoubleValidationRule />
                             </Binding.ValidationRules>
@@ -87,7 +86,7 @@
                 </TextBox>
                 <TextBox VerticalContentAlignment="Center" MinWidth="50" Margin="5,0,0,0">
                     <TextBox.Text>
-                        <Binding Path="Game.DifficultyAddition" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
+                        <Binding Path="DifficultyAddition" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
                             <Binding.ValidationRules>
                                 <val:PositiveIntValidationRule />
                             </Binding.ValidationRules>
@@ -97,7 +96,7 @@
                 <Label Margin="70,0,0,0" MinWidth="120" Content="Minus-Diff. x / +:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" MinWidth="50" Margin="5,0,0,0">
                     <TextBox.Text>
-                        <Binding Path="Game.DifficultyMinusMultiplier" UpdateSourceTrigger="LostFocus" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
+                        <Binding Path="DifficultyMinusMultiplier" UpdateSourceTrigger="LostFocus" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
                             <Binding.ValidationRules>
                                 <val:PositiveDoubleValidationRule />
                             </Binding.ValidationRules>
@@ -106,7 +105,7 @@
                 </TextBox>
                 <TextBox VerticalContentAlignment="Center" MinWidth="50" Margin="5,0,0,0">
                     <TextBox.Text>
-                        <Binding Path="Game.DifficultyMinusAddition" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
+                        <Binding Path="DifficultyMinusAddition" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
                             <!--<Binding.ValidationRules>
                                 <val:PositiveIntValidationRule />
                             </Binding.ValidationRules>-->
@@ -118,7 +117,7 @@
                 <Label MinWidth="120" Content="Phase. x / +:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" MinWidth="50" Margin="5,0,0,0">
                     <TextBox.Text>
-                        <Binding Path="Game.PhaseMultiplier" UpdateSourceTrigger="LostFocus" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
+                        <Binding Path="PhaseMultiplier" UpdateSourceTrigger="LostFocus" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
                             <Binding.ValidationRules>
                                 <val:PositiveDoubleValidationRule />
                             </Binding.ValidationRules>
@@ -127,7 +126,7 @@
                 </TextBox>
                 <TextBox VerticalContentAlignment="Center" MinWidth="50" Margin="5,0,0,0">
                     <TextBox.Text>
-                        <Binding Path="Game.PhaseAddition" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
+                        <Binding Path="PhaseAddition" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
                             <Binding.ValidationRules>
                                 <val:PositiveIntValidationRule />
                             </Binding.ValidationRules>
@@ -136,10 +135,10 @@
                 </TextBox>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="H/W/D:" VerticalAlignment="Center" />
+                <Label MinWidth="120" Content="H/W:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" MinWidth="50" Margin="5,0,0,0">
                     <TextBox.Text>
-                        <Binding Path="Height" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
+                        <Binding Path="Height" UpdateSourceTrigger="LostFocus" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
                             <Binding.ValidationRules>
                                 <val:PositiveIntValidationRule />
                             </Binding.ValidationRules>
@@ -148,14 +147,14 @@
                 </TextBox>
                 <TextBox VerticalContentAlignment="Center" MinWidth="50" Margin="5,0,0,0">
                     <TextBox.Text>
-                        <Binding Path="Width" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
+                        <Binding Path="Width" UpdateSourceTrigger="LostFocus" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
                             <Binding.ValidationRules>
                                 <val:PositiveIntValidationRule />
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
                 </TextBox>
-                <TextBox VerticalContentAlignment="Center" MinWidth="50" Margin="5,0,0,0">
+                <!--<TextBox VerticalContentAlignment="Center" MinWidth="50" Margin="5,0,0,0">
                     <TextBox.Text>
                         <Binding Path="Game.Depth" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
                             <Binding.ValidationRules>
@@ -163,7 +162,7 @@
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
-                </TextBox>
+                </TextBox>-->
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Box size H/W:" VerticalAlignment="Center" />

@@ -36,6 +36,7 @@ namespace Quizzer.Views.HelperViewModels
         {
             using var qCtrl = new QuestionBasesController();
             AllQuestion = await qCtrl.GetAllAsync();
+            CalculateAvailableQuestions();
         }
 
         public string CurrentSelectedQuestionDisplay => Coordinate?.QuestionBase != null ? $"{Coordinate.QuestionBase.Category?.Designation} {Coordinate.QuestionBase.Designation} {Coordinate.QuestionBase.Difficulty} {Coordinate.QuestionBase.Points}" : "No question selected";
@@ -45,6 +46,7 @@ namespace Quizzer.Views.HelperViewModels
             Game = game;
             Coordinate = coordinate;
             OnModelChanged();
+            CalculateAvailableQuestions();
         }
 
         public void OnModelChanged()
@@ -58,28 +60,39 @@ namespace Quizzer.Views.HelperViewModels
 
         public override async Task VMSaveAsync()
         {
-            throw new NotImplementedException();
+            if (Coordinate == null) return;
+
+            using var ctrlCoords = new GameGridCoordinatesController();
+            await ctrlCoords.UpsertAsync(Coordinate);
+            await ctrlCoords.SaveChangesAsync();
         }
 
-        public IEnumerable<QuestionBase> AvailableQuestions
+        public List<QuestionBase> AvailableQuestions
         {
-            get
+            get => availableQuestions;
+            set
             {
-                var used = Game?.GameGridCoordinates
-                    .Select(c => c.QuestionBaseId)
-                    .Where(id => id != Guid.Empty)
-                    .ToHashSet() ?? new HashSet<Guid>();
-
-                var choices = AllQuestion
-                    .Where(q => q.Id != Guid.Empty && !used.Contains(q.Id))
-                    .ToList();
-
-                if (SelectedQuestion != null && !choices.Contains(SelectedQuestion))
-                {
-                    choices.Prepend(SelectedQuestion);
-                }
-                return choices;
+                availableQuestions = value;
+                OnPropertyChanged();
             }
+        }
+
+        public void CalculateAvailableQuestions()
+        {
+            var used = Game?.GameGridCoordinates
+                .Select(c => c.QuestionBaseId)
+                .Where(id => id != Guid.Empty)
+                .ToHashSet() ?? new HashSet<Guid>();
+
+            var choices = AllQuestion
+                .Where(q => q.Id != Guid.Empty && !used.Contains(q.Id))
+                .ToList();
+
+            if (SelectedQuestion != null && !choices.Contains(SelectedQuestion))
+            {
+                choices.Prepend(SelectedQuestion);
+            }
+            AvailableQuestions = choices;
         }
 
         private AsyncRelayCommand? openQuestionCommand;
@@ -105,22 +118,12 @@ namespace Quizzer.Views.HelperViewModels
                 await vm.SetModel(questionBase);
                 window.ShowDialog();
 
-                if (vm.ResultState == EditResultState.New || vm.ResultState == EditResultState.Updated || vm.ResultState == EditResultState.Deleted)
-                {
-                    SelectedQuestion = vm.Question;
-                    OnDatagridSourceChanged();
-                }
+                await OnloadAsync();
             }
             else
             {
                 throw new InvalidOperationException("DataContext is not of type EditQuestionViewModel");
             }
-        }
-
-        public void OnDatagridSourceChanged()
-        {
-            //CollectionViewSource.GetDefaultView(AvailableQuestions)?.Refresh();
-            OnPropertyChanged(nameof(AvailableQuestions));
         }
 
         private RelayCommand? closeCommand;
@@ -153,6 +156,8 @@ namespace Quizzer.Views.HelperViewModels
         }
 
         private AsyncRelayCommand? selectAndCloseCommand;
+        private List<QuestionBase> availableQuestions = new();
+
         public ICommand SelectAndCloseCommand => selectAndCloseCommand ??= new AsyncRelayCommand(SelectAndCloseAsync);
 
         private Task SelectAndCloseAsync(object? commandParameter)

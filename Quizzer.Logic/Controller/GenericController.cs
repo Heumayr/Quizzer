@@ -203,6 +203,18 @@ namespace Quizzer.Logic.Controller
             return await EntitySet.CountAsync().ConfigureAwait(false);
         }
 
+        public virtual async Task<IEnumerable<TEntity>> UpsertAsync(IEnumerable<TEntity> entities)
+        {
+            var toSaves = entities.ToList();
+
+            foreach (var toSave in toSaves)
+            {
+                await UpsertAsync(toSave);
+            }
+
+            return toSaves;
+        }
+
         public virtual async Task<(TEntity Entity, bool Created)> UpsertAsync(
                 TEntity entity,
                 Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null)

@@ -13,8 +13,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using static Quizzer.Views.HelperViewModels.GridBuilder;
 
 namespace Quizzer.Views.GameViews
 {
@@ -27,7 +29,10 @@ namespace Quizzer.Views.GameViews
             StaticManager.BuzzerServerViewModel.PlayerConnectionStateChanged += OnPlayerConnectionStateChanged;
         }
 
-        protected override Task OnloadAsync() => Task.CompletedTask;
+        protected override async Task OnloadAsync()
+        {
+            await OnModelChangedAsync();
+        }
 
         protected override Task OnClosed()
         {
@@ -65,40 +70,137 @@ namespace Quizzer.Views.GameViews
         public Brush BackgroundBrush { get; set; } = Brushes.Wheat;
 
         private Game? game;
+        private GameGridVMs gameGridVMs = new();
 
-        public ObservableCollection<GameGridCoordinateViewModel> CellVMs { get; } = new();
-        public ObservableCollection<HeaderEntryViewModel> ColumnHeaderVMs { get; } = new();
-        public ObservableCollection<HeaderEntryViewModel> RowHeaderVMs { get; } = new();
+        public GameGridVMs GameGridVMs
+        {
+            get => gameGridVMs;
+            private set
+            {
+                gameGridVMs = value;
+                OnPropertyChanged();
+                CellVMs = CollectionViewSource.GetDefaultView(value.CellVMs);
+                ColumnHeaderVMs = CollectionViewSource.GetDefaultView(value.ColumnHeaderVMs);
+                RowHeaderVMs = CollectionViewSource.GetDefaultView(value.RowHeaderVMs);
+            }
+        }
 
-        public void RebuildCells()
+        public ICollectionView? CellVMs
+        {
+            get => field;
+            private set
+            {
+                field = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ICollectionView? ColumnHeaderVMs
+        {
+            get => field;
+            private set
+            {
+                field = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ICollectionView? RowHeaderVMs
+        {
+            get => field;
+            private set
+            {
+                field = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public async Task RebuildCellsAsync()
         {
             if (Game == null) return;
 
-            GridBuilder.RebuildCells(Game, CellVMs, ColumnHeaderVMs, RowHeaderVMs, CellView.Master, true);
+            GameGridVMs = await GridBuilder.RebuildCells(Game, CellView.Master, true);
         }
 
         public override async Task VMSaveAsync()
         {
             if (Game == null) return;
 
-            using var ctrl = new GamesController();
-            await ctrl.UpsertAsync(Game);
+            using var ctrlGams = new GamesController();
+            await ctrlGams.UpsertAsync(Game);
+            await ctrlGams.SaveChangesAsync();
 
-            await ctrl.SaveChangesAsync();
+            using var ctrlCells = new GameGridCoordinatesController();
+            await ctrlCells.UpsertAsync(Game.GameGridCoordinates.Where(c => c.QuestionBase != null || c.QuestionBaseId != Guid.Empty));
+            await ctrlCells.SaveChangesAsync();
+
+            using var ctrlResults = new QuestionResultsController();
+            await ctrlResults.UpsertAsync(Game.QuestionResults.Where(c => c.QuestionBase != null || c.QuestionBaseId != Guid.Empty));
+            await ctrlResults.SaveChangesAsync();
         }
 
-        public Game? Game
+        private Game? Game
         {
             get => game;
             set
             {
                 game = value;
-
-                OnModelChanged();
             }
         }
 
-        private void OnModelChanged()
+        public async Task<Game?> LoadModel(Guid gameId)
+        {
+            using var ctrlGames = new GamesController();
+            var dbGame = await ctrlGames.GetAsync(gameId);
+
+            if (dbGame == null)
+            {
+                MessageBox.Show("No game found in Database");
+                return null;
+            }
+
+            if (dbGame.Players.Count() == 0)
+            {
+                MessageBox.Show("Cannot start the game without any players. Please add at least one player before starting.", "No Players", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return null;
+            }
+
+            if (dbGame.GameGridCoordinates.Count == 0)
+            {
+                MessageBox.Show("Cannot start the game without any questions assigned. Please assign at least one question to the grid before starting.", "No Questions", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return null;
+            }
+
+            if (dbGame.Restart)
+            {
+                await EditGameViewModel.ResetGameResultsAsync(dbGame);
+
+                using var ctrlGamesAfterReset = new GamesController();
+                dbGame = (await ctrlGamesAfterReset.GetAsync(gameId)) ?? throw new Exception("Game could not be loaded");
+
+                dbGame.Restart = false;
+                if (dbGame.State != GameState.Finished)
+                    dbGame.State = GameState.InProgress;
+
+                await ctrlGamesAfterReset.UpdateAsync(dbGame);
+                await ctrlGamesAfterReset.SaveChangesAsync();
+            }
+            else
+            {
+                if (dbGame.State != GameState.Finished)
+                    dbGame.State = GameState.InProgress;
+
+                await ctrlGames.UpdateAsync(dbGame);
+                await ctrlGames.SaveChangesAsync();
+            }
+
+            Game = dbGame;
+            StaticManager.BuzzerServerViewModel.Game = Game;
+            await OnModelChangedAsync();
+            return Game;
+        }
+
+        private async Task OnModelChangedAsync()
         {
             OnPropertyChanged(nameof(Game));
             OnPropertyChanged(nameof(Players));
@@ -108,7 +210,7 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(CellHeight));
             OnPropertyChanged(nameof(CellWidth));
 
-            RebuildCells();
+            await RebuildCellsAsync();
         }
 
         public QuestionBase? SelectedQuestion { get; set; }

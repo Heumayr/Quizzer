@@ -21,8 +21,7 @@ namespace Quizzer.Logic.Controller.TypedControllers
         {
             if (action == Actions.Get)
             {
-                query = query.Include(q => q.Columns)
-                 .Include(q => q.Rows)
+                query = query.Include(q => q.Headers)
                  .Include(q => q.QuestionResults)
                  .Include(q => q.GameGridCoordinates).ThenInclude(t => t.QuestionBase)
                  .Include(q => q.PlayerXGames).ThenInclude(t => t.Player);

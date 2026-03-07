@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Quizzer.Logic.Context;
 
@@ -11,9 +12,11 @@ using Quizzer.Logic.Context;
 namespace Quizzer.Logic.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260307144535_init3")]
+    partial class init3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -162,11 +165,17 @@ namespace Quizzer.Logic.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("GameId")
+                    b.Property<Guid>("GameColumnId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("HeaderType")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("GameId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("GameId1")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("GameRowId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Index")
                         .HasColumnType("int");
@@ -179,6 +188,8 @@ namespace Quizzer.Logic.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GameId");
+
+                    b.HasIndex("GameId1");
 
                     b.ToTable("Header", "base");
                 });
@@ -396,13 +407,13 @@ namespace Quizzer.Logic.Migrations
 
             modelBuilder.Entity("Quizzer.DataModels.Models.Base.Header", b =>
                 {
-                    b.HasOne("Quizzer.DataModels.Models.Base.Game", "Game")
-                        .WithMany("Headers")
-                        .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("Quizzer.DataModels.Models.Base.Game", null)
+                        .WithMany("Columns")
+                        .HasForeignKey("GameId");
 
-                    b.Navigation("Game");
+                    b.HasOne("Quizzer.DataModels.Models.Base.Game", null)
+                        .WithMany("Rows")
+                        .HasForeignKey("GameId1");
                 });
 
             modelBuilder.Entity("Quizzer.DataModels.Models.Base.PlayerXGame", b =>
@@ -482,13 +493,15 @@ namespace Quizzer.Logic.Migrations
 
             modelBuilder.Entity("Quizzer.DataModels.Models.Base.Game", b =>
                 {
-                    b.Navigation("GameGridCoordinates");
+                    b.Navigation("Columns");
 
-                    b.Navigation("Headers");
+                    b.Navigation("GameGridCoordinates");
 
                     b.Navigation("PlayerXGames");
 
                     b.Navigation("QuestionResults");
+
+                    b.Navigation("Rows");
                 });
 
             modelBuilder.Entity("Quizzer.DataModels.Models.Base.Player", b =>

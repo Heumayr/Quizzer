@@ -2,9 +2,12 @@
 
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.Logic.Controller.TypedControllers;
+using Quizzer.Views.GameViews;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Text;
 using System.Windows;
 using System.Windows.Data;
@@ -14,24 +17,37 @@ namespace Quizzer.Views
 {
     public class GamesViewModel : ViewModelBase
     {
-        public ObservableCollection<Game> Games { get; set; } = new();
+        public ICollectionView? GamesView { get; set; }
+
+        public ObservableCollection<Game> Games
+        {
+            get => games;
+            set
+            {
+                games = value;
+                OnPropertyChanged();
+                GamesView = CollectionViewSource.GetDefaultView(games);
+                OnPropertyChanged(nameof(GamesView));
+            }
+        }
 
         public override Task VMSaveAsync()
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
-        private AsyncRelayCommand? saveCommand;
-        public ICommand SaveCommand => saveCommand ??= new AsyncRelayCommand(SaveCommandAsync);
+        //private AsyncRelayCommand? saveCommand;
+        //public ICommand SaveCommand => saveCommand ??= new AsyncRelayCommand(SaveCommandAsync);
 
-        private async Task SaveCommandAsync(object? param)
-        {
-            await VMSaveAsync();
-        }
+        //private async Task SaveCommandAsync(object? param)
+        //{
+        //    await VMSaveAsync();
+        //}
 
-        protected override Task OnloadAsync()
+        protected override async Task OnloadAsync()
         {
-            throw new NotImplementedException();
+            using var ctrl = new GamesController();
+            Games = new ObservableCollection<Game>(await ctrl.GetAllAsync());
         }
 
         public ObservableCollection<Game> SelectedGames { get; set; } = new();
@@ -58,15 +74,12 @@ namespace Quizzer.Views
 
                 if (window.DataContext is EditGameViewModel vm)
                 {
-                    vm.SetGame(game);
+                    await vm.LoadModel(game.Id);
                     this.Window?.Hide();
                     window.Closed += OnClosed;
                     window.ShowDialog();
 
-                    if (vm.ResultState == EditResultState.New || vm.ResultState == EditResultState.Updated || vm.ResultState == EditResultState.Deleted)
-                    {
-                        OnDatagridSourceChanged();
-                    }
+                    await OnloadAsync();
                 }
                 else
                 {
@@ -98,30 +111,72 @@ namespace Quizzer.Views
         }
 
         private AsyncRelayCommand? removeGameCommand;
+        private ObservableCollection<Game> games = new();
+
         public ICommand RemoveGameCommand => removeGameCommand ??= new AsyncRelayCommand(RemoveGameAsync);
 
         private async Task RemoveGameAsync(object? commandParameter)
         {
-            MessageBoxResult result = MessageBox.Show("Are you sure you want to remove the selected game(s)?", "Confirm Removal", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-            if (result != MessageBoxResult.Yes) return;
-
             if (SelectedGames == null || SelectedGames.Count == 0)
             {
                 return;
             }
 
-            var toRemove = new List<Game>(SelectedGames);
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to remove the selected game(s)?", "Confirm Removal", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
+            if (result != MessageBoxResult.Yes) return;
+
+            var toRemove = new List<Game>(SelectedGames);
+            using var ctrl = new GamesController();
             foreach (var game in toRemove)
             {
-                Games.Remove(game);
+                await ctrl.DeleteAsync(game.Id);
             }
 
-            await VMSaveAsync();
-            OnDatagridSourceChanged();
+            await ctrl.SaveChangesAsync();
+            await OnloadAsync();
+        }
 
-            return;
+        private AsyncRelayCommand? startGameCommand;
+        public ICommand StartGameCommand => startGameCommand ??= new AsyncRelayCommand(StartGameAsync);
+
+        private async Task StartGameAsync(object? commandParameter)
+        {
+            var game = SelectedGames.FirstOrDefault();
+
+            if (game == null || game.Id == Guid.Empty) return;
+
+            try
+            {
+                this.Window?.Hide();
+
+                var gameView = new GameMasterView();
+                var gameContext = new GameMasterViewModel();
+                gameView.DataContext = gameContext;
+
+                var loadedGame = await gameContext.LoadModel(game.Id);
+
+                if (loadedGame == null)
+                {
+                    this.Window?.Show();
+                    return;
+                }
+
+                gameView.Closed += async (_, __) =>
+                {
+                    this.Window?.Show();
+                };
+
+                gameView.Show();
+            }
+            catch (Exception)
+            {
+                this.Window?.Show();
+                throw;
+            }
+            finally
+            {
+            }
         }
     }
 }

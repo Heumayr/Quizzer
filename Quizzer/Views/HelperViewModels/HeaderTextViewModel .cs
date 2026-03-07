@@ -1,22 +1,25 @@
 ﻿using Quizzer.Base;
+using Quizzer.DataModels.Models.Base;
 using System;
 using System.Collections.Generic;
+using System.Reflection.PortableExecutable;
 using System.Text;
 
 namespace Quizzer.Views.HelperViewModels
 {
     public class HeaderEntryViewModel : ViewModelBase
     {
-        private readonly Dictionary<int, string> _dict;
         private bool lockHeader;
+        private Header Header { get; set; }
 
-        public HeaderEntryViewModel(Dictionary<int, string> dict, int index, bool isColumnHeader, bool lockHeader = false)
+        public HeaderEntryViewModel(Header header, bool isColumnHeader, bool lockHeader = false)
         {
-            _dict = dict ?? throw new ArgumentNullException(nameof(dict));
-            Index = index;
+            Header = header;
 
-            GridRow = isColumnHeader ? 0 : index + 1;
-            GridColumn = isColumnHeader ? index + 1 : 0;
+            Index = header.Index;
+
+            GridRow = isColumnHeader ? 0 : Index;
+            GridColumn = isColumnHeader ? Index : 0;
 
             LockHeader = lockHeader;
         }
@@ -40,13 +43,10 @@ namespace Quizzer.Views.HelperViewModels
 
         public string Text
         {
-            get => _dict.TryGetValue(Index, out var v) ? (v ?? "") : "";
+            get => Header.Designation;
             set
             {
-                value ??= "";
-                if (_dict.TryGetValue(Index, out var old) && old == value) return;
-
-                _dict[Index] = value;
+                Header.Designation = value;
                 OnPropertyChanged(nameof(Text));
                 OnPropertyChanged(nameof(TextShort));
                 OnPropertyChanged(nameof(TextLong));

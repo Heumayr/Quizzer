@@ -17,11 +17,12 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
+            <Button Content="Start Game" Command="{Binding StartGameCommand}" />
             <Button Content="Add Game" Command="{Binding AddGameCommand}" />
             <Button Content="Remove Game" Command="{Binding RemoveGameCommand}" Style="{StaticResource DangerButton}" />
         </StackPanel>
 
-        <DataGrid Grid.Column="1" ItemsSource="{Binding Games}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True"
+        <DataGrid Grid.Column="1" ItemsSource="{Binding GamesView}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True"
                base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedGames}"
                base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenGameCommand}">
             <DataGrid.Columns>

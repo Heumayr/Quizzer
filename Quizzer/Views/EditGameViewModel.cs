@@ -10,64 +10,251 @@ using Quizzer.Views.StaticRessources;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Text;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media.Media3D;
+using static Quizzer.Views.HelperViewModels.GridBuilder;
 
 namespace Quizzer.Views
 {
     public class EditGameViewModel : ViewModelBase
     {
-        public async Task SetGame(Game game)
+        private ObservableCollection<Player> availablePlayers = new();
+        private ObservableCollection<Player> gameAddedPlayers = new();
+        private GameGridVMs gameGridVMs = new();
+
+        public async Task LoadModel(Guid gameId)
         {
-            if (game.Id == Guid.Empty)
-                throw new Exception("No Game Id");
-
             using var ctrl = new GamesController();
-            var dbgame = await ctrl.GetAsync(game.Id);
 
-            if (dbgame == null)
-                throw new Exception("No Game found");
+            if (gameId != Guid.Empty)
+            {
+                var dbgame = await ctrl.GetAsync(gameId);
 
-            Game = dbgame;
+                if (dbgame == null)
+                    throw new Exception("No Game found");
+
+                Game = dbgame;
+            }
+            else
+            {
+                var game = new Game();
+
+                if (string.IsNullOrEmpty(game.Designation))
+                    game.Designation = "No Name - New Game";
+
+                var inserted = await ctrl.InsertAsync(game);
+                await ctrl.SaveChangesAsync();
+                Game = inserted.Entity;
+            }
+
+            await OnModelChangedAsync();
         }
 
         private List<Player> AllPlayers { get; set; } = new();
+
+        private ObservableCollection<Player> AvailablePlayers
+        {
+            get => availablePlayers;
+            set
+            {
+                availablePlayers = value;
+                OnPropertyChanged();
+                AvailablePlayersView = CollectionViewSource.GetDefaultView(availablePlayers);
+                OnPropertyChanged(nameof(AvailablePlayersView));
+            }
+        }
+
+        public ICollectionView? AvailablePlayersView { get; private set; }
+
+        private ObservableCollection<Player> GameAddedPlayers
+        {
+            get => gameAddedPlayers;
+            set
+            {
+                gameAddedPlayers = value;
+                OnPropertyChanged();
+                GameAddedPlayersView = CollectionViewSource.GetDefaultView(gameAddedPlayers);
+                OnPropertyChanged(nameof(GameAddedPlayersView));
+            }
+        }
+
+        public ICollectionView? GameAddedPlayersView { get; private set; }
 
         protected override async Task OnloadAsync()
         {
             using var pCtrl = new PlayersController();
             AllPlayers = (await pCtrl.GetAllAsync()).ToList();
-        }
+            CalculatePlayerLists();
 
-        public EditResultState ResultState { get; set; } = EditResultState.Canceled;
+            await OnModelChangedAsync();
+        }
 
         private Game? _game;
 
-        internal Game? Game
+        private Game? Game
         {
             get => _game;
             set
             {
-                if (!Equals(_game, value))
-                {
-                    _game = value;
-                    OnModelChanged();
-                }
+                _game = value;
             }
         }
 
-        public ObservableCollection<GameGridCoordinateViewModel> CellVMs { get; } = new();
-        public ObservableCollection<HeaderEntryViewModel> ColumnHeaderVMs { get; } = new();
-        public ObservableCollection<HeaderEntryViewModel> RowHeaderVMs { get; } = new();
+        public GameGridVMs GameGridVMs
+        {
+            get => gameGridVMs;
+            private set
+            {
+                gameGridVMs = value;
+                OnPropertyChanged();
+                CellVMs = CollectionViewSource.GetDefaultView(value.CellVMs);
+                ColumnHeaderVMs = CollectionViewSource.GetDefaultView(value.ColumnHeaderVMs);
+                RowHeaderVMs = CollectionViewSource.GetDefaultView(value.RowHeaderVMs);
+            }
+        }
 
-        public void RebuildCells()
+        public ICollectionView? CellVMs
+        {
+            get => field;
+            private set
+            {
+                field = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ICollectionView? ColumnHeaderVMs
+        {
+            get => field;
+            private set
+            {
+                field = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ICollectionView? RowHeaderVMs
+        {
+            get => field;
+            private set
+            {
+                field = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public async Task RebuildCellsAsync()
         {
             if (Game == null) return;
 
-            GridBuilder.RebuildCells(Game, CellVMs, ColumnHeaderVMs, RowHeaderVMs, CellView.Build);
+            GameGridVMs = await GridBuilder.RebuildCells(Game, CellView.Build);
+        }
+
+        public bool Restart
+        {
+            get => Game?.Restart ?? false;
+            set
+            {
+                if (Game == null) return;
+
+                Game?.Restart = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string Designation
+        {
+            get => Game?.Designation ?? "";
+            set
+            {
+                if (Game == null) return;
+                if (Game?.Designation == value) return;
+
+                Game?.Designation = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double DifficultyMultiplier
+        {
+            get => Game?.DifficultyMultiplier ?? 0;
+            set
+            {
+                if (Game == null) return;
+                if (Game?.DifficultyMultiplier == value) return;
+
+                Game?.DifficultyMultiplier = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int DifficultyAddition
+        {
+            get => Game?.DifficultyAddition ?? 0;
+            set
+            {
+                if (Game == null) return;
+                if (Game?.DifficultyAddition == value) return;
+
+                Game?.DifficultyAddition = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double DifficultyMinusMultiplier
+        {
+            get => Game?.DifficultyMinusMultiplier ?? 0;
+            set
+            {
+                if (Game == null) return;
+                if (Game?.DifficultyMinusMultiplier == value) return;
+
+                Game?.DifficultyMinusMultiplier = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int DifficultyMinusAddition
+        {
+            get => Game?.DifficultyMinusAddition ?? 0;
+            set
+            {
+                if (Game == null) return;
+                if (Game?.DifficultyMinusAddition == value) return;
+
+                Game?.DifficultyMinusAddition = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double PhaseMultiplier
+        {
+            get => Game?.PhaseMultiplier ?? 0;
+            set
+            {
+                if (Game == null) return;
+                if (Game?.PhaseMultiplier == value) return;
+
+                Game?.PhaseMultiplier = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int PhaseAddition
+        {
+            get => Game?.PhaseAddition ?? 0;
+            set
+            {
+                if (Game == null) return;
+                if (Game?.PhaseAddition == value) return;
+
+                Game?.PhaseAddition = value;
+                OnPropertyChanged();
+            }
         }
 
         public int Height
@@ -79,8 +266,7 @@ namespace Quizzer.Views
                 if (Game.Height == value) return;
 
                 Game.Height = value;
-                OnPropertyChanged(nameof(Height));
-                RebuildCells();
+                OnPropertyChanged();
             }
         }
 
@@ -93,8 +279,7 @@ namespace Quizzer.Views
                 if (Game.Width == value) return;
 
                 Game.Width = value;
-                OnPropertyChanged(nameof(Width));
-                RebuildCells();
+                OnPropertyChanged();
             }
         }
 
@@ -107,7 +292,7 @@ namespace Quizzer.Views
                 if (Game.CellHeight == value) return;
 
                 Game.CellHeight = value;
-                OnPropertyChanged(nameof(CellHeight));
+                OnPropertyChanged();
             }
         }
 
@@ -120,14 +305,14 @@ namespace Quizzer.Views
                 if (Game.CellWidth == value) return;
 
                 Game.CellWidth = value;
-                OnPropertyChanged(nameof(CellWidth));
+                OnPropertyChanged();
             }
         }
 
-        private ICommand? _cellClickCommand;
-        public ICommand CellClickCommand => _cellClickCommand ??= new RelayCommand<GameGridCoordinateViewModel>(OnCellClicked);
+        private AsyncRelayCommand? _cellClickCommand;
+        public ICommand CellClickCommand => _cellClickCommand ??= new AsyncRelayCommand((p) => OnCellClickedAsync((GameGridCoordinateViewModel?)p));
 
-        private void OnCellClicked(GameGridCoordinateViewModel? cell)
+        private async Task OnCellClickedAsync(GameGridCoordinateViewModel? cell)
         {
             if (cell == null || Game == null) return;
 
@@ -139,23 +324,38 @@ namespace Quizzer.Views
 
             view.ShowDialog();
 
+            if (cell.QuestionsId != Guid.Empty)
+            {
+                using var ctrlQ = new QuestionBasesController();
+                cell.Question = (await ctrlQ.GetAsync(cell.QuestionsId));
+            }
+
             cell.RefreshFromModel();
         }
 
-        public void OnModelChanged()
+        public async Task OnModelChangedAsync()
         {
             OnPropertyChanged(nameof(Game));
+            OnPropertyChanged(nameof(Restart));
+            OnPropertyChanged(nameof(Designation));
+            OnPropertyChanged(nameof(IsBuilding));
             OnPropertyChanged(nameof(Height));
             OnPropertyChanged(nameof(Width));
             OnPropertyChanged(nameof(CellHeight));
             OnPropertyChanged(nameof(CellWidth));
 
-            OnPropertyChanged(nameof(AvailablePlayers));
+            OnPropertyChanged(nameof(DifficultyMultiplier));
+            OnPropertyChanged(nameof(DifficultyAddition));
+            OnPropertyChanged(nameof(DifficultyMinusMultiplier));
+            OnPropertyChanged(nameof(DifficultyMinusAddition));
+            OnPropertyChanged(nameof(PhaseMultiplier));
+            OnPropertyChanged(nameof(PhaseAddition));
+
+            CalculatePlayerLists();
             OnPropertyChanged(nameof(SelectedPlayer));
             OnPropertyChanged(nameof(CmbSelectedPlayer));
-            OnPropertyChanged(nameof(IsBuilding));
-            OnPlayerListSourceChanged();
-            RebuildCells();
+
+            await RebuildCellsAsync();
         }
 
         private AsyncRelayCommand? saveCommand;
@@ -171,11 +371,17 @@ namespace Quizzer.Views
         {
             if (Game == null) return;
 
-            using var ctrl = new GamesController();
-            var result = await ctrl.UpsertAsync(Game);
-            await ctrl.SaveChangesAsync();
+            using var ctrlGames = new GamesController();
+            await ctrlGames.UpsertAsync(Game);
+            await ctrlGames.SaveChangesAsync();
 
-            ResultState = result.Created ? EditResultState.New : EditResultState.Updated;
+            using var ctrlHeader = new HeadersController();
+            await ctrlHeader.UpsertAsync(Game.Headers);
+            await ctrlHeader.SaveChangesAsync();
+
+            using var ctrlCells = new GameGridCoordinatesController();
+            await ctrlCells.UpsertAsync(Game.GameGridCoordinates.Where(c => c.QuestionBase != null || c.QuestionBaseId != Guid.Empty));
+            await ctrlCells.SaveChangesAsync();
         }
 
         private AsyncRelayCommand? saveAndCloseCommand;
@@ -189,25 +395,10 @@ namespace Quizzer.Views
 
         #region Player
 
-        private void OnPlayerListSourceChanged()
-        {
-            if (Game == null)
-            {
-                return;
-            }
-
-            var view = CollectionViewSource.GetDefaultView(Game.Players);
-            view.Refresh();
-
-            OnPropertyChanged(nameof(AvailablePlayers));
-            //var viewCmb = CollectionViewSource.GetDefaultView(AvailablePlayers);
-            //viewCmb.Refresh();
-        }
-
         public Player? SelectedPlayer { get; set; }
         public Player? CmbSelectedPlayer { get; set; }
 
-        public IEnumerable<Player> AvailablePlayers => AllPlayers.Where(p => Game != null && !Game.Players.Select(p => p.Id).Contains(p.Id)).ToList();
+        //public IEnumerable<Player> AvailablePlayers => AllPlayers.Where(p => Game != null && !Game.Players.Select(p => p.Id).Contains(p.Id)).ToList();
 
         private AsyncRelayCommand? addPlayerCommand;
         public ICommand AddPlayerCommand => addPlayerCommand ??= new AsyncRelayCommand(AddPlayerAsync);
@@ -218,20 +409,28 @@ namespace Quizzer.Views
 
             var found = Game.PlayerXGames.FirstOrDefault(x => x.PlayerId == CmbSelectedPlayer.Id);
 
-            if (found == null) return;
+            if (found != null) return;
 
             using var ctrl = new PlayerXGamesController();
             var inserted = await ctrl.InsertAsync(new()
             {
                 PlayerId = CmbSelectedPlayer.Id,
-                GamesId = Game.Id
+                GameId = Game.Id
             });
 
             await ctrl.SaveChangesAsync();
 
+            inserted.Entity.Player = CmbSelectedPlayer;
+
             Game.PlayerXGames.Add(inserted.Entity);
 
-            OnPlayerListSourceChanged();
+            CalculatePlayerLists();
+        }
+
+        private void CalculatePlayerLists()
+        {
+            AvailablePlayers = new ObservableCollection<Player>(AllPlayers.Where(p => Game != null && !Game.Players.Select(p => p.Id).Contains(p.Id)).ToList());
+            GameAddedPlayers = new ObservableCollection<Player>(AllPlayers.Where(p => Game != null && Game.Players.Select(p => p.Id).Contains(p.Id)).ToList());
         }
 
         private AsyncRelayCommand? removePlayerCommand;
@@ -241,7 +440,7 @@ namespace Quizzer.Views
         {
             if (SelectedPlayer == null || Game == null) return;
 
-            var found = Game.PlayerXGames.FirstOrDefault(x => x.PlayerId == CmbSelectedPlayer.Id);
+            var found = Game.PlayerXGames.FirstOrDefault(x => x.PlayerId == SelectedPlayer.Id);
 
             if (found == null) return;
 
@@ -252,37 +451,47 @@ namespace Quizzer.Views
 
             Game.PlayerXGames.Remove(found);
 
-            OnPlayerListSourceChanged();
+            CalculatePlayerLists();
         }
 
         #endregion Player
 
         public bool IsBuilding => Game?.State == GameState.Building;
 
-        private RelayCommand? resetGameBuildCommand;
-        public ICommand ResetGameBuildCommand => resetGameBuildCommand ??= new RelayCommand(ResetGameBuild, (p) => IsBuilding);
+        private AsyncRelayCommand? resetGameBuildCommand;
+        public ICommand ResetGameBuildCommand => resetGameBuildCommand ??= new AsyncRelayCommand(ResetGameBuildAsync, (p) => IsBuilding);
 
-        private void ResetGameBuild(object? commandParameter)
+        private async Task ResetGameBuildAsync(object? commandParameter)
         {
             if (Game == null) return;
             if (MessageBox.Show("Are you sure you want to reset the game build? This will remove all assigned questions and players from the game.", "Confirm Reset", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
                 Game.State = GameState.Building;
-                Game.GameGridCoordinates.Clear();
-                Game.PlayerXGames.Clear();
-                Game.ColumnHeader.Clear();
-                Game.RowHeader.Clear();
-                Game.QuestionResults.Clear();
-                OnModelChanged();
+                using var ctrlGame = new GamesController();
+                await ctrlGame.SaveChangesAsync();
+
+                using var ctrl = new QuestionResultsController(ctrlGame);
+                await ctrl.DeleteByGameIdAsync(Game.Id); //immediatly saved
+
+                using var ctrl2 = new GameGridCoordinatesController(ctrlGame);
+                await ctrl2.DeleteByGameIdAsync(Game.Id);
+
+                using var ctrl3 = new PlayerXGamesController(ctrlGame);
+                await ctrl3.DeleteByGameIdAsync(Game.Id);
+
+                using var ctrl4 = new HeadersController(ctrlGame);
+                await ctrl4.DeleteByGameIdAsync(Game.Id);
+
+                await LoadModel(Game.Id);
             }
         }
 
         public int TestPhase { get; set; }
 
-        private RelayCommand? refreshGridCommand;
-        public ICommand RefreshGridCommand => refreshGridCommand ??= new RelayCommand(RefreshGrid);
+        private AsyncRelayCommand? refreshGridCommand;
+        public ICommand RefreshGridCommand => refreshGridCommand ??= new AsyncRelayCommand(RefreshGridAsync);
 
-        private void RefreshGrid(object? commandParameter)
+        private async Task RefreshGridAsync(object? commandParameter)
         {
             if (Game == null) return;
 
@@ -291,81 +500,29 @@ namespace Quizzer.Views
                 cell.Phase = TestPhase;
             }
 
-            RebuildCells();
+            await RebuildCellsAsync();
         }
 
-        private AsyncRelayCommand? startGameCommand;
-        public ICommand StartGameCommand => startGameCommand ??= new AsyncRelayCommand(StartGameAsync);
-
-        private async Task StartGameAsync(object? commandParameter)
+        public static async Task ResetGameResultsAsync(Game game)
         {
-            if (Game == null) return;
+            if (game == null) return;
 
-            if (Game.Players.Count() == 0)
-            {
-                MessageBox.Show("Cannot start the game without any players. Please add at least one player before starting.", "No Players", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            var mbResult = MessageBox.Show($"Delete all results for this Game: {game.Designation}", "Deletion", MessageBoxButton.YesNo);
 
-            if (Game.GameGridCoordinates.Count == 0)
-            {
-                MessageBox.Show("Cannot start the game without any questions assigned. Please assign at least one question to the grid before starting.", "No Questions", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            if (mbResult != MessageBoxResult.Yes) return;
 
-            if (Game.State != GameState.Finished)
-                Game.State = GameState.InProgress;
+            using var ctrl = new QuestionResultsController();
+            await ctrl.DeleteByGameIdAsync(game.Id);
 
-            if (Game.Restart)
-            {
-                Game.Restart = false;
-                ResetGameResults();
-            }
+            using var ctrlCoords = new GameGridCoordinatesController(ctrl);
+            await ctrlCoords.UpdateIsDoneStateOfGame(game.Id, false);
+            await ctrlCoords.UpdatePhaseOfGame(game.Id, 1);
 
-            OnModelChanged();
-            await VMSaveAsync();
-
-            try
-            {
-                this.Window?.Hide();
-
-                var gameView = new GameMasterView();
-                var gameContext = new GameMasterViewModel();
-                gameView.DataContext = gameContext;
-
-                gameContext.Game = Game;
-                StaticManager.BuzzerServerViewModel.Game = Game;
-
-                gameView.Closed += (_, __) => this.Window?.Show();
-                gameView.Show();
-            }
-            catch (Exception)
-            {
-                this.Window?.Show();
-                throw;
-            }
-            finally
-            {
-            }
-        }
-
-        public void ResetGameResults()
-        {
-            if (Game == null) return;
-
-            Game.QuestionResults.Clear();
-
-            foreach (var cell in Game.GameGridCoordinates)
-            {
-                cell.Phase = 1;
-                cell.IsDone = false;
-                cell.CalculatedPoints();
-            }
-
-            RebuildCells();
+            game.CalculateAndSetCurrentPoints();
         }
 
         private RelayCommand? setToBuildingModeCommand;
+
         public ICommand SetToBuildingModeCommand => setToBuildingModeCommand ??= new RelayCommand(SetToBuildingMode);
 
         private void SetToBuildingMode(object? commandParameter)

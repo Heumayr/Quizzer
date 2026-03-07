@@ -1,4 +1,5 @@
-﻿using Quizzer.DataModels.Enumerations;
+﻿using Microsoft.EntityFrameworkCore;
+using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using System;
 using System.Collections.Generic;
@@ -23,12 +24,29 @@ namespace Quizzer.Logic.Controller.TypedControllers
 
         protected override Task<Header> BeforeActionAsync(Header entity, Actions action)
         {
+            if (Context != null && (action & Actions.WriteActions) > 0)
+            {
+                if (entity.Game != null)
+                {
+                    entity.GameId = entity.Game.Id;
+
+                    entity.Game = null!;
+                }
+            }
+
             return base.BeforeActionAsync(entity, action);
         }
 
         protected override Task<Header> AfterActionAsync(Header entity, Actions action)
         {
             return base.AfterActionAsync(entity, action);
+        }
+
+        public async Task<int> DeleteByGameIdAsync(Guid gameId)
+        {
+            return await EntitySet
+                .Where(qr => qr.GameId == gameId)
+                .ExecuteDeleteAsync();
         }
     }
 }

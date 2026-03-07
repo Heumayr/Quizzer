@@ -1,4 +1,5 @@
-﻿using Quizzer.DataModels.Enumerations;
+﻿using Microsoft.EntityFrameworkCore;
+using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using System;
 using System.Collections.Generic;
@@ -29,6 +30,13 @@ namespace Quizzer.Logic.Controller.TypedControllers
         protected override Task<QuestionResult> AfterActionAsync(QuestionResult entity, Actions action)
         {
             return base.AfterActionAsync(entity, action);
+        }
+
+        public async Task<int> DeleteByGameIdAsync(Guid gameId)
+        {
+            return await EntitySet
+                .Where(qr => qr.GameId == gameId)
+                .ExecuteDeleteAsync();
         }
     }
 }

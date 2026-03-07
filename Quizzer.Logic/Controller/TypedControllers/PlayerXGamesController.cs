@@ -32,5 +32,12 @@ namespace Quizzer.Logic.Controller.TypedControllers
         {
             return base.AfterActionAsync(entity, action);
         }
+
+        public async Task<int> DeleteByGameIdAsync(Guid gameId)
+        {
+            return await EntitySet
+                .Where(qr => qr.GameId == gameId)
+                .ExecuteDeleteAsync();
+        }
     }
 }
