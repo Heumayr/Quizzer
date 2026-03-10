@@ -3,6 +3,7 @@ using Quizzer.DataModels.Models.Base;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Media;
 using static Quizzer.Views.HelperViewModels.GridBuilder;
 
 namespace Quizzer.Views.GameViews
@@ -67,6 +68,8 @@ namespace Quizzer.Views.GameViews
                 OnGameModelChanged();
             }
         }
+
+        public Brush BackgroundBrush { get; set; } = Brushes.Wheat;
 
         public void OnGameModelChanged()
         {
