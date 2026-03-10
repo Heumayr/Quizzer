@@ -1,0 +1,46 @@
+﻿<base:WindowBase x:Class="Quizzer.Views.GameViews.QuestionMasterView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Quizzer.Views.GameViews"
+        xmlns:base="clr-namespace:Quizzer.Base"
+        xmlns:questions="clr-namespace:Quizzer.Views.GameViews.QuestionViews"
+        xmlns:buzzerServer="clr-namespace:Quizzer.Views.BuzzerViews"
+        xmlns:typed="clr-namespace:Quizzer.Views.GameViews.QuestionViews.Typed"
+        mc:Ignorable="d"
+        Title="QuestionMasterView" Height="auto" Width="auto">
+    <base:WindowBase.DataContext>
+        <local:CurrentQuestionViewModel></local:CurrentQuestionViewModel>
+    </base:WindowBase.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+
+        <questions:CurrentQuestionView Grid.Row="0" Grid.Column="0"></questions:CurrentQuestionView>
+        <buzzerServer:BuzzerControlsView Grid.Row="1" Grid.Column="0" Background="{Binding BackgroundBrush}"></buzzerServer:BuzzerControlsView>
+
+        <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" MinWidth="200" Background="AliceBlue">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" MinWidth="200" Background="AliceBlue">
+                <Label Content="Current Step" Foreground="DarkGreen" FontWeight="Bold" FontSize="14"></Label>
+                <typed:DefaultStepView DataContext="{Binding CurrentStep}"></typed:DefaultStepView>
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Grid.Column="0" Grid.RowSpan="2" MinWidth="200" Background="AliceBlue">
+                <Label Content="Next Step" Foreground="DarkBlue" FontWeight="Bold" FontSize="14"></Label>
+                <typed:DefaultStepView DataContext="{Binding NextStep}"></typed:DefaultStepView>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</base:WindowBase>

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Quizzer.Logic.Context;
 
@@ -11,9 +12,11 @@ using Quizzer.Logic.Context;
 namespace Quizzer.Logic.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260310122739_questiontype")]
+    partial class questiontype
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -361,9 +364,6 @@ namespace Quizzer.Logic.Migrations
 
                     b.Property<int>("Typ")
                         .HasColumnType("int");
-
-                    b.Property<bool>("WarnOnResultStep")
-                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 

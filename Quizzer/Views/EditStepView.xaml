@@ -23,7 +23,11 @@
 
         <StackPanel Grid.Column="1">
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Sequens Number:" VerticalAlignment="Center" />
+                <Label MinWidth="120" Content="Designation:" VerticalAlignment="Center" />
+                <TextBox VerticalContentAlignment="Center" Text="{Binding Step.Designation}" MinWidth="200" Margin="5,0,0,0"></TextBox>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Sequenz Number:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" MinWidth="200" Margin="5,0,0,0">
                     <TextBox.Text>
                         <Binding Path="Step.SquenceNumber"

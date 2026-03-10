@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Quizzer.DataModels.Models
 {
-    [Table(nameof(QuestionBase), Schema = "base")]
+    [Table(nameof(QuestionBase), Schema = "question")]
     public class QuestionBase : ModelBase
     {
         public string DesignationShort { get; set; } = string.Empty;
@@ -21,12 +21,45 @@ namespace Quizzer.DataModels.Models
 
         public string Notes { get; set; } = string.Empty;
 
-        //public abstract QuestionTyp Typ { get; protected set; }
+        public virtual QuestionType Typ { get; protected set; }
 
         public Difficulty Difficulty { get; set; } = Difficulty.Level1;
+
+        public bool WarnOnResultStep { get; set; } = true;
 
         public List<QuestionStepResource> Steps { get; set; } = new List<QuestionStepResource>();
 
         public Category? Category { get; set; }
+
+        [NotMapped]
+        public QuestionStepResource[] OrderdSteps => Steps.OrderBy(s => s.SquenceNumber).ToArray() ?? Array.Empty<QuestionStepResource>();
+
+        public QuestionStepResource? GetNextStep(QuestionStepResource? currentStep = null)
+        {
+            if (!OrderdSteps.Any())
+                return null;
+
+            if (currentStep == null)
+                return OrderdSteps.First();
+
+            var seq = currentStep.SquenceNumber;
+
+            return OrderdSteps.FirstOrDefault(s => s.SquenceNumber > seq);
+        }
+
+        public QuestionStepResource? GetStepBehind(QuestionStepResource? currentStep = null)
+        {
+            if (!OrderdSteps.Any())
+                return null;
+
+            if (currentStep == null)
+                return null;
+
+            var reverse = OrderdSteps.Reverse();
+
+            var seq = currentStep.SquenceNumber;
+
+            return reverse.FirstOrDefault(s => s.SquenceNumber < seq);
+        }
     }
 }

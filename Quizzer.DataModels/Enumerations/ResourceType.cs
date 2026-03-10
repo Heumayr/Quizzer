@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Quizzer.DataModels.Enumerations
 {
-    public enum ResourceTyp
+    public enum ResourceType
     {
         None = 0,
         Image = 1,

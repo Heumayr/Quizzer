@@ -31,6 +31,7 @@
         </Grid.RowDefinitions>
         <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="0">
             <Button Content="Buzzer Server" Command="{Binding BuzzerServerCommand}" />
+            <Button Content="Open Player View" Command="{Binding OpenGamePlayerViewCommand}" />
         </StackPanel>
         <ScrollViewer Margin="5" Grid.Column="1" Grid.Row="0"
               HorizontalScrollBarVisibility="Auto"

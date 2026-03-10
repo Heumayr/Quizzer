@@ -20,6 +20,9 @@ namespace Quizzer.DataModels.Models.Base
 
         public string ResourceFileName { get; set; } = string.Empty;
 
-        public ResourceTyp ResourceTyp { get; set; } = ResourceTyp.None;
+        public ResourceType ResourceTyp { get; set; } = ResourceType.None;
+
+        [NotMapped]
+        public bool HasResource => ResourceTyp != ResourceType.None;
     }
 }

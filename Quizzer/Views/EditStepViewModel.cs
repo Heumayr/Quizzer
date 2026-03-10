@@ -11,7 +11,7 @@ namespace Quizzer.Views
 {
     public class EditStepViewModel : ViewModelBase
     {
-        public Array ResourceTyps { get; } = Enum.GetValues(typeof(ResourceTyp));
+        public Array ResourceTyps { get; } = Enum.GetValues(typeof(ResourceType));
 
         private QuestionStepResource? _step;
 

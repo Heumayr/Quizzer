@@ -91,6 +91,12 @@
                      HorizontalAlignment="Stretch"
                      VerticalAlignment="Top" />
             </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Warn on result step:" VerticalAlignment="Center" />
+                <CheckBox VerticalContentAlignment="Center" IsChecked="{Binding Path=Question.WarnOnResultStep}" MinWidth="200" Margin="5,0,0,0" />
+            </StackPanel>
+
             <StackPanel Orientation="Horizontal" Margin="5,10,0,0">
                 <Button Content="Add Step" Command="{Binding AddStepCommnad}" />
                 <Button Content="Remove Step" Command="{Binding RemoveStepCommnad}" Style="{StaticResource DangerButton}" />

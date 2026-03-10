@@ -223,6 +223,7 @@ namespace Quizzer.Views
 
         private AsyncRelayCommand? openStepCommand;
         private ObservableCollection<Category> categories = new();
+        private bool warnOnResultStep;
 
         public ICommand OpenStepCommand => openStepCommand ??= new AsyncRelayCommand(OpenStepAsync);
 

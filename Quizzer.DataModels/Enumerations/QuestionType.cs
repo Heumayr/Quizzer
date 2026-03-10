@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Quizzer.DataModels.Enumerations
 {
-    public enum QuestionTyp
+    public enum QuestionType
     {
         Default,
         MultipleChoice,

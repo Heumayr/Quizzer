@@ -5,6 +5,7 @@ using Quizzer.DataModels.Models.Base;
 using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.ViewModels;
 using Quizzer.Views.BuzzerViews;
+using Quizzer.Views.GameViews.QuestionViews;
 using Quizzer.Views.HelperViewModels;
 using Quizzer.Views.StaticRessources;
 using System;
@@ -22,7 +23,11 @@ namespace Quizzer.Views.GameViews
 {
     public class GameMasterViewModel : ViewModelBase
     {
-        private BuzzerServerView? _buzzerServerView = null;
+        private List<Window> OpenGamePlayerViews = new();
+
+        public GamePlayerViewModel GamePlayerViewModel { get; private set; } = new();
+
+        private BuzzerServerView? buzzerServerView = null;
 
         public GameMasterViewModel()
         {
@@ -32,13 +37,25 @@ namespace Quizzer.Views.GameViews
         protected override async Task OnloadAsync()
         {
             await OnModelChangedAsync();
+            GamePlayerViewModel.Game = Game;
         }
 
         protected override Task OnClosed()
         {
             try
             {
-                _buzzerServerView?.Close();
+                foreach (var gpv in OpenGamePlayerViews)
+                {
+                    try
+                    {
+                        gpv?.Close();
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                buzzerServerView?.Close();
 
                 if (StaticManager.BuzzerServerViewModel != null && StaticManager.BuzzerServerViewModel.IsBuzzerServerRunning)
                 {
@@ -120,6 +137,7 @@ namespace Quizzer.Views.GameViews
             if (Game == null) return;
 
             GameGridVMs = await GridBuilder.RebuildCells(Game, CellView.Master, true);
+            GamePlayerViewModel?.GameGridVMs = GameGridVMs;
         }
 
         public override async Task VMSaveAsync()
@@ -222,12 +240,16 @@ namespace Quizzer.Views.GameViews
 
         private void BuzzerServer(object? commandParameter)
         {
-            if (_buzzerServerView == null)
+            if (buzzerServerView != null)
             {
-                _buzzerServerView = new BuzzerServerView();
+                buzzerServerView.Close();
+                buzzerServerView = null;
             }
-            _buzzerServerView.DataContext = StaticManager.BuzzerServerViewModel;
-            _buzzerServerView.Show();
+
+            buzzerServerView = new BuzzerServerView();
+
+            buzzerServerView.DataContext = StaticManager.BuzzerServerViewModel;
+            buzzerServerView.Show();
         }
 
         private ICommand? _cellClickCommand;
@@ -237,9 +259,18 @@ namespace Quizzer.Views.GameViews
         {
             if (cell == null || Game == null) return;
 
-            MessageBox.Show(cell.DisplayText);
+            var context = new CurrentQuestionViewModel()
+            {
+                Coordinate = cell.Coordinate,
+                GamePlayerViewModel = GamePlayerViewModel
+            };
 
-            cell.IsDone = true;
+            var qMaster = new QuestionMasterView()
+            {
+                DataContext = context
+            };
+
+            qMaster.ShowDialog();
 
             cell.RefreshFromModel();
         }
@@ -278,6 +309,19 @@ namespace Quizzer.Views.GameViews
                 Game.CellWidth = value;
                 OnPropertyChanged(nameof(CellWidth));
             }
+        }
+
+        private AsyncRelayCommand? openGamePlayerViewCommand;
+        public ICommand OpenGamePlayerViewCommand => openGamePlayerViewCommand ??= new AsyncRelayCommand(OpenGamePlayerViewAsync);
+
+        private async Task OpenGamePlayerViewAsync(object? commandParameter)
+        {
+            var window = new GamePlayerView()
+            {
+                DataContext = GamePlayerViewModel
+            };
+            OpenGamePlayerViews.Add(window);
+            window.Show();
         }
     }
 }
