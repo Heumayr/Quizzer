@@ -4,6 +4,8 @@ using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.Logic.Controller.TypedControllers;
+using Quizzer.QuestionTemplates.Helper;
+using Quizzer.Views.QuestionTypes;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,6 +19,10 @@ namespace Quizzer.Views
 {
     internal class QuestionsViewModel : ViewModelBase
     {
+        public Array QuestionTypes { get; } = Enum.GetValues(typeof(QuestionType));
+
+        public QuestionType SelectedQuestionType { get; set; }
+
         private ObservableCollection<QuestionBase> _questions = new();
 
         public ObservableCollection<QuestionBase> Questions
@@ -75,7 +81,7 @@ namespace Quizzer.Views
         }
 
         private AsyncRelayCommand? addQuestionCommand;
-        public ICommand AddQuestionCommand => addQuestionCommand ??= new AsyncRelayCommand((p) => EditQuestionAsync(new DefaultQuestion()));
+        public ICommand AddQuestionCommand => addQuestionCommand ??= new AsyncRelayCommand((p) => EditQuestionAsync(Factory.CreateNewQuestion(SelectedQuestionType)));
 
         private async Task EditQuestionAsync(QuestionBase questionBase)
         {

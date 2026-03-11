@@ -17,6 +17,7 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
+            <ComboBox ItemsSource="{Binding QuestionTypes}" SelectedItem="{Binding SelectedQuestionType}"></ComboBox>
             <Button Content="Add Question" Command="{Binding AddQuestionCommand}" />
             <Button Content="Remove Question" Command="{Binding RemoveQuestionCommand}" Style="{StaticResource DangerButton}" />
         </StackPanel>

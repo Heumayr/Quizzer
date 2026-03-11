@@ -13,6 +13,8 @@ namespace Quizzer.DataModels.Models
     {
         public string DesignationShort { get; set; } = string.Empty;
 
+        public string QuestionText { get; set; } = string.Empty;
+
         public Guid CategoryId { get; set; }
 
         public virtual int Points { get; set; }
@@ -32,7 +34,7 @@ namespace Quizzer.DataModels.Models
         public Category? Category { get; set; }
 
         [NotMapped]
-        public QuestionStepResource[] OrderdSteps => Steps.OrderBy(s => s.SquenceNumber).ToArray() ?? Array.Empty<QuestionStepResource>();
+        public QuestionStepResource[] OrderdSteps => Steps.OrderBy(s => s.SequenceNumber).ToArray() ?? Array.Empty<QuestionStepResource>();
 
         public QuestionStepResource? GetNextStep(QuestionStepResource? currentStep = null)
         {
@@ -42,9 +44,9 @@ namespace Quizzer.DataModels.Models
             if (currentStep == null)
                 return OrderdSteps.First();
 
-            var seq = currentStep.SquenceNumber;
+            var seq = currentStep.SequenceNumber;
 
-            return OrderdSteps.FirstOrDefault(s => s.SquenceNumber > seq);
+            return OrderdSteps.FirstOrDefault(s => s.SequenceNumber > seq);
         }
 
         public QuestionStepResource? GetStepBehind(QuestionStepResource? currentStep = null)
@@ -57,9 +59,9 @@ namespace Quizzer.DataModels.Models
 
             var reverse = OrderdSteps.Reverse();
 
-            var seq = currentStep.SquenceNumber;
+            var seq = currentStep.SequenceNumber;
 
-            return reverse.FirstOrDefault(s => s.SquenceNumber < seq);
+            return reverse.FirstOrDefault(s => s.SequenceNumber < seq);
         }
     }
 }

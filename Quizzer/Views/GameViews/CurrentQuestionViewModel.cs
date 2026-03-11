@@ -7,6 +7,7 @@ using Quizzer.DataModels.Models.Base;
 using Quizzer.Extentions;
 using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.Views.BuzzerViews;
+using Quizzer.Views.GameViews.QuestionViews;
 using Quizzer.Views.StaticRessources;
 using System;
 using System.Collections.Generic;
@@ -62,9 +63,13 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(CurrentPoints));
             OnPropertyChanged(nameof(CurrentMinusPoints));
             OnPropertyChanged(nameof(Notes));
+
             OnPropertyChanged(nameof(QuestionSteps));
+
             OnPropertyChanged(nameof(CurrentStep));
             OnPropertyChanged(nameof(NextStep));
+            OnPropertyChanged(nameof(CurrentStepContext));
+            OnPropertyChanged(nameof(NextStepContext));
         }
 
         protected override Task OnClosed()
@@ -119,7 +124,7 @@ namespace Quizzer.Views.GameViews
         public int CurrentMinusPoints => Coordinate?.CurrentMinusPoints ?? 0;
         public string Notes => Question?.Notes ?? String.Empty;
 
-        public QuestionStepResource[] QuestionSteps => Question?.Steps.OrderBy(s => s.IsResult).ThenBy(s => s.SquenceNumber).ToArray() ?? [];
+        public QuestionStepResource[] QuestionSteps => Question?.Steps.OrderBy(s => s.IsResult).ThenBy(s => s.SequenceNumber).ToArray() ?? [];
 
         private QuestionStepResource? currentStep;
 
@@ -130,6 +135,7 @@ namespace Quizzer.Views.GameViews
             {
                 currentStep = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(CurrentStepContext));
                 GamePlayerViewModel?.SetView(value);
             }
         }
@@ -143,8 +149,21 @@ namespace Quizzer.Views.GameViews
             {
                 nextStep = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(NextStepContext));
             }
         }
+
+        public QuestionStepViewContext CurrentStepContext => new()
+        {
+            Owner = this,
+            Step = CurrentStep
+        };
+
+        public QuestionStepViewContext NextStepContext => new()
+        {
+            Owner = this,
+            Step = NextStep
+        };
 
         public ObservableCollection<QuestionStepResource> SelectedSteps { get; set; } = new();
 

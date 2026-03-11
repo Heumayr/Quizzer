@@ -1,9 +1,9 @@
-﻿<base:WindowBase x:Class="Quizzer.Views.EditStepView"
+﻿<base:WindowBase x:Class="Quizzer.Views.QuestionTypes.EditStepView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Quizzer.Views"
+        xmlns:local="clr-namespace:Quizzer.Views.QuestionTypes"
         xmlns:base="clr-namespace:Quizzer.Base"
         xmlns:val="clr-namespace:Quizzer.Validators"
         mc:Ignorable="d"
@@ -30,7 +30,7 @@
                 <Label MinWidth="120" Content="Sequenz Number:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" MinWidth="200" Margin="5,0,0,0">
                     <TextBox.Text>
-                        <Binding Path="Step.SquenceNumber"
+                        <Binding Path="Step.SequenceNumber"
                                  UpdateSourceTrigger="PropertyChanged"
                                  ValidatesOnDataErrors="True"
                                  ValidatesOnExceptions="True"
@@ -74,6 +74,15 @@
                     SelectedItem="{Binding Step.ResourceTyp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="5,10,0,0">
+                <ComboBox MinWidth="200" Height="25" ItemsSource="{Binding CmbSource}" SelectedItem="{Binding CmbSelectedStep}"></ComboBox>
+                <Button Content="Add Step" Command="{Binding AddStepCommnad}" />
+                <Button Content="Remove Step" Command="{Binding RemoveStepCommnad}" Style="{StaticResource DangerButton}" />
+            </StackPanel>
+            <DataGrid ItemsSource="{Binding Froms}" AutoGenerateColumns="True" Margin="5" CanUserAddRows="False" IsReadOnly="True"
+                    base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedStepXSteps}"
+                    base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenStepCommand}">
+            </DataGrid>
         </StackPanel>
     </Grid>
 </base:WindowBase>

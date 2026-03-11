@@ -13,6 +13,17 @@
     <base:WindowBase.DataContext>
         <local:CurrentQuestionViewModel></local:CurrentQuestionViewModel>
     </base:WindowBase.DataContext>
+    <Window.Resources>
+        <questions:QuestionStepTemplateSelector x:Key="QuestionStepTemplateSelector" />
+
+        <DataTemplate x:Key="DefaultStepTemplate">
+            <typed:DefaultStepView />
+        </DataTemplate>
+
+        <DataTemplate x:Key="MultipleChoiceStepTemplate">
+            <typed:MultipleChoiceStepView />
+        </DataTemplate>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"></RowDefinition>
@@ -32,14 +43,16 @@
                 <RowDefinition Height="*"></RowDefinition>
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" MinWidth="200" Background="Wheat">
-                <Label Content="Current Step" Foreground="DarkGreen" FontWeight="Bold" FontSize="14"></Label>
-                <typed:DefaultStepView DataContext="{Binding CurrentStep}"></typed:DefaultStepView>
+            <StackPanel Grid.Row="0" Grid.Column="0" MinWidth="200" Background="Wheat">
+                <Label Content="Current Step" Foreground="DarkGreen" FontWeight="Bold" FontSize="14" />
+                <ContentControl Content="{Binding CurrentStepContext}"
+                    ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
             </StackPanel>
 
-            <StackPanel Grid.Row="1" Grid.Column="0" Grid.RowSpan="2" MinWidth="200" Background="Wheat">
-                <Label Content="Next Step" Foreground="DarkBlue" FontWeight="Bold" FontSize="14"></Label>
-                <typed:DefaultStepView DataContext="{Binding NextStep}"></typed:DefaultStepView>
+            <StackPanel Grid.Row="1" Grid.Column="0" MinWidth="200" Background="Wheat">
+                <Label Content="Next Step" Foreground="DarkBlue" FontWeight="Bold" FontSize="14" />
+                <ContentControl Content="{Binding NextStepContext}"
+                    ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
             </StackPanel>
         </Grid>
     </Grid>

@@ -19,6 +19,12 @@ namespace Quizzer.Logic.Controller.TypedControllers
 
         protected override IQueryable<QuestionStepResource> SetQueryAttributes(IQueryable<QuestionStepResource> query, Actions action)
         {
+            if ((action & Actions.Get) > 0)
+            {
+                query = query.Include(q => q.Tos);
+                query = query.Include(q => q.Froms);
+            }
+
             return base.SetQueryAttributes(query, action);
         }
 
@@ -30,6 +36,11 @@ namespace Quizzer.Logic.Controller.TypedControllers
         protected override Task<QuestionStepResource> AfterActionAsync(QuestionStepResource entity, Actions action)
         {
             return base.AfterActionAsync(entity, action);
+        }
+
+        public async Task<QuestionStepResource[]> GetAllStepsOfQuestionExceptMe(QuestionStepResource step)
+        {
+            return await EntitySet.Where(s => s.QuestionBaseId == step.QuestionBaseId && s.Id != step.Id).ToArrayAsync();
         }
     }
 }

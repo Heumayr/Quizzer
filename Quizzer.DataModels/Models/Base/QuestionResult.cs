@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Quizzer.DataModels.Models.Base
 {
-    [Table(nameof(QuestionResult), Schema = "base")]
+    [Table(nameof(QuestionResult), Schema = "question")]
     public class QuestionResult : ModelBase
     {
         public Guid PlayerId { get; set; }

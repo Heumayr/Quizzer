@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Quizzer.Logic.Context;
 
@@ -11,9 +12,11 @@ using Quizzer.Logic.Context;
 namespace Quizzer.Logic.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260311184519_qtext")]
+    partial class qtext
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -279,7 +282,7 @@ namespace Quizzer.Logic.Migrations
 
                     b.HasIndex("QuestionBaseId");
 
-                    b.ToTable("QuestionResult", "question");
+                    b.ToTable("QuestionResult", "base");
                 });
 
             modelBuilder.Entity("Quizzer.DataModels.Models.Base.QuestionStepResource", b =>
@@ -289,10 +292,6 @@ namespace Quizzer.Logic.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Designation")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GroupKey")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -309,15 +308,12 @@ namespace Quizzer.Logic.Migrations
                     b.Property<int>("ResourceTyp")
                         .HasColumnType("int");
 
-                    b.Property<int>("ResultType")
-                        .HasColumnType("int");
-
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
-                    b.Property<int>("SequenceNumber")
+                    b.Property<int>("SquenceNumber")
                         .HasColumnType("int");
 
                     b.Property<string>("StepText")
@@ -328,39 +324,7 @@ namespace Quizzer.Logic.Migrations
 
                     b.HasIndex("QuestionBaseId");
 
-                    b.ToTable("QuestionStepResource", "question");
-                });
-
-            modelBuilder.Entity("Quizzer.DataModels.Models.Base.StepXStep", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Designation")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("FromId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.Property<Guid?>("ToId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ToId");
-
-                    b.HasIndex("FromId", "ToId")
-                        .IsUnique()
-                        .HasFilter("[FromId] IS NOT NULL AND [ToId] IS NOT NULL");
-
-                    b.ToTable("StepXStep", "question");
+                    b.ToTable("QuestionStepResource", "base");
                 });
 
             modelBuilder.Entity("Quizzer.DataModels.Models.QuestionBase", b =>
@@ -516,21 +480,6 @@ namespace Quizzer.Logic.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Quizzer.DataModels.Models.Base.StepXStep", b =>
-                {
-                    b.HasOne("Quizzer.DataModels.Models.Base.QuestionStepResource", "From")
-                        .WithMany("Froms")
-                        .HasForeignKey("FromId");
-
-                    b.HasOne("Quizzer.DataModels.Models.Base.QuestionStepResource", "To")
-                        .WithMany("Tos")
-                        .HasForeignKey("ToId");
-
-                    b.Navigation("From");
-
-                    b.Navigation("To");
-                });
-
             modelBuilder.Entity("Quizzer.DataModels.Models.QuestionBase", b =>
                 {
                     b.HasOne("Quizzer.DataModels.Models.Base.Category", "Category")
@@ -574,13 +523,6 @@ namespace Quizzer.Logic.Migrations
             modelBuilder.Entity("Quizzer.DataModels.Models.Base.Player", b =>
                 {
                     b.Navigation("CurrentQuestionResults");
-                });
-
-            modelBuilder.Entity("Quizzer.DataModels.Models.Base.QuestionStepResource", b =>
-                {
-                    b.Navigation("Froms");
-
-                    b.Navigation("Tos");
                 });
 
             modelBuilder.Entity("Quizzer.DataModels.Models.QuestionBase", b =>

@@ -10,7 +10,7 @@ using System.Text;
 using System.Windows.Data;
 using System.Windows.Input;
 
-namespace Quizzer.Views
+namespace Quizzer.Views.QuestionTypes
 {
     public class EditQuestionViewModel : ViewModelBase
     {
@@ -153,7 +153,7 @@ namespace Quizzer.Views
 
             var step = new QuestionStepResource();
 
-            step.SquenceNumber = Question.Steps.Any() ? Question.Steps.Max(q => q.SquenceNumber) + 10 : 0;
+            step.SequenceNumber = Question.Steps.Any() ? Question.Steps.Max(q => q.SequenceNumber) + 10 : 0;
 
             return EditStepAsync(step);
         }
@@ -215,7 +215,7 @@ namespace Quizzer.Views
             view.SortDescriptions.Clear();
             view.SortDescriptions.Add(
                 new System.ComponentModel.SortDescription(
-                    nameof(QuestionStepResource.SquenceNumber),
+                    nameof(QuestionStepResource.SequenceNumber),
                     System.ComponentModel.ListSortDirection.Ascending));
 
             view.Refresh();

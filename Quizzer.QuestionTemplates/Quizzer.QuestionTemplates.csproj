@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Base\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Quizzer.DataModels\Quizzer.DataModels.csproj" />
+    <ProjectReference Include="..\Quizzer.Logic\Quizzer.Logic.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="QuestionViews\CurrentQuestionView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="QuestionViews\Typed\DefaultStepView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="QuestionViews\Typed\MultipleChoiceStepView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
+</Project>

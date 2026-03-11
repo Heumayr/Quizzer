@@ -4,6 +4,7 @@ using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.Logic.Controller.TypedControllers;
+using Quizzer.Views.QuestionTypes;
 using System;
 using System.Collections.Generic;
 using System.Text;

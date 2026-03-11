@@ -21,7 +21,6 @@
 
 	<ItemGroup>
 		<Folder Include="Styles\" />
-		<Folder Include="Views\QuestionTypes\" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -7,22 +7,40 @@ using System.Text;
 
 namespace Quizzer.DataModels.Models.Base
 {
-    [Table(nameof(QuestionStepResource), Schema = "base")]
+    [Table(nameof(QuestionStepResource), Schema = "question")]
     public class QuestionStepResource : ModelBase
     {
         public Guid QuestionBaseId { get; set; }
 
+        public string GroupKey { get; set; } = string.Empty;
+
         public bool IsResult { get; set; } = false;
 
-        public int SquenceNumber { get; set; }
+        public int SequenceNumber { get; set; }
 
         public string StepText { get; set; } = string.Empty;
+
+        public ResultType ResultType { get; set; } = ResultType.AllPreviousSteps;
 
         public string ResourceFileName { get; set; } = string.Empty;
 
         public ResourceType ResourceTyp { get; set; } = ResourceType.None;
 
+        [InverseProperty(nameof(StepXStep.From))]
+        public List<StepXStep> Froms { get; set; } = new();
+
+        [InverseProperty(nameof(StepXStep.To))]
+        public List<StepXStep> Tos { get; set; } = new();
+
         [NotMapped]
         public bool HasResource => ResourceTyp != ResourceType.None;
+
+        [NotMapped]
+        public string QuestionViewKey { get; set; } = string.Empty;
+
+        public override string ToString()
+        {
+            return $"{SequenceNumber}-{Designation}";
+        }
     }
 }

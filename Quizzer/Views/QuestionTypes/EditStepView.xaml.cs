@@ -11,16 +11,15 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace Quizzer.Views
+namespace Quizzer.Views.QuestionTypes;
+
+/// <summary>
+/// Interaction logic for EditStepView.xaml
+/// </summary>
+public partial class EditStepView : WindowBase
 {
-    /// <summary>
-    /// Interaction logic for EditQuestionsView.xaml
-    /// </summary>
-    public partial class EditQuestionsView : WindowBase
+    public EditStepView()
     {
-        public EditQuestionsView()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }
