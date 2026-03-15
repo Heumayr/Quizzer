@@ -39,12 +39,11 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <ScrollViewer Visibility="{Binding ShowGameGridView}" Margin="5" Grid.Column="0" Grid.Row="0"
-          HorizontalScrollBarVisibility="Auto"
-          VerticalScrollBarVisibility="Auto"
-          HorizontalAlignment="Stretch"
-          VerticalAlignment="Stretch">
-            <Grid>
+        <Viewbox Visibility="{Binding ShowGameGridView}" Margin="5" Grid.Column="0" Grid.Row="0"
+                 Stretch="Uniform"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch">
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                 <!-- Column headers -->
                 <ItemsControl ItemsSource="{Binding ColumnHeaderVMs}" ItemsPanel="{StaticResource MatrixPanel}">
                     <ItemsControl.ItemContainerStyle>
@@ -135,7 +134,7 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </Grid>
-        </ScrollViewer>
+        </Viewbox>
         <ScrollViewer Visibility="{Binding ShowQuestionView}" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" MinWidth="200" Background="Wheat">
             <Grid>
                 <Grid.RowDefinitions>

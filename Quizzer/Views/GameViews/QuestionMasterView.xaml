@@ -28,42 +28,46 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
-            <RowDefinition Height="auto"></RowDefinition>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Row="0" Grid.Column="1" Background="AliceBlue">
-            <Viewbox Margin="5" Stretch="Uniform">
-                <TextBlock Text="{Binding Question.QuestionText}"
-                   FontWeight="SemiBold"
-                   TextWrapping="Wrap"
-                   TextAlignment="Left"
-                   VerticalAlignment="Center"
-                   HorizontalAlignment="Center" />
-            </Viewbox>
-        </Grid>
+        <StackPanel Grid.Row="0" Grid.Column="0">
+            <buzzerServer:BuzzerControlsView Background="{Binding BackgroundBrush}"></buzzerServer:BuzzerControlsView>
+        </StackPanel>
 
-        <ScrollViewer Grid.Row="0" Grid.Column="0" Grid.RowSpan="2">
+        <StackPanel Grid.Row="1" Grid.Column="0">
             <questions:CurrentQuestionView ></questions:CurrentQuestionView>
-        </ScrollViewer>
-        <buzzerServer:BuzzerControlsView Grid.Row="2" Grid.Column="0" Background="{Binding BackgroundBrush}"></buzzerServer:BuzzerControlsView>
+        </StackPanel>
 
-        <Grid Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" MinWidth="200" Background="Wheat">
+        <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" MinWidth="200" Background="Wheat">
             <Grid.RowDefinitions>
+                <RowDefinition Height="auto"></RowDefinition>
                 <RowDefinition Height="*"></RowDefinition>
                 <RowDefinition Height="*"></RowDefinition>
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Grid.Column="0" MinWidth="200" Background="Wheat">
+            <Grid Grid.Row="0" Grid.Column="0" Background="DarkBlue">
+                <Viewbox Margin="5" Stretch="Uniform">
+                    <TextBlock Text="{Binding Question.QuestionText}"
+                     Foreground="WhiteSmoke"
+                     FontWeight="SemiBold"
+                     TextWrapping="Wrap"
+                     TextAlignment="Left"
+                     VerticalAlignment="Center"
+                     HorizontalAlignment="Center" />
+                </Viewbox>
+            </Grid>
+
+            <StackPanel Grid.Row="1" Grid.Column="0" MinWidth="200" Background="Wheat">
                 <Label Content="Current Step" Foreground="DarkGreen" FontWeight="Bold" FontSize="14" />
                 <ContentControl Content="{Binding CurrentStepContext}"
                     ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
             </StackPanel>
 
-            <StackPanel Grid.Row="1" Grid.Column="0" MinWidth="200" Background="Wheat">
+            <StackPanel Grid.Row="2" Grid.Column="0" MinWidth="200" Background="Wheat">
                 <Label Content="Next Step" Foreground="DarkBlue" FontWeight="Bold" FontSize="14" />
                 <ContentControl Content="{Binding NextStepContext}"
                     ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
