@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Quizzer.Logic.Context;
 
@@ -11,9 +12,11 @@ using Quizzer.Logic.Context;
 namespace Quizzer.Logic.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260315102654_StepNew")]
+    partial class StepNew
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -292,9 +295,6 @@ namespace Quizzer.Logic.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("FinishType")
-                        .HasColumnType("int");
-
                     b.Property<string>("GroupKey")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -313,6 +313,9 @@ namespace Quizzer.Logic.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ResourceTyp")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ResultType")
                         .HasColumnType("int");
 
                     b.Property<byte[]>("RowVersion")
@@ -375,9 +378,6 @@ namespace Quizzer.Logic.Migrations
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("DefaultFinishType")
-                        .HasColumnType("int");
-
                     b.Property<string>("Designation")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -410,9 +410,6 @@ namespace Quizzer.Logic.Migrations
 
                     b.Property<int>("Typ")
                         .HasColumnType("int");
-
-                    b.Property<bool>("UseRandomSequenceOnNonFinishSteps")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("WarnOnFinishStep")
                         .HasColumnType("bit");

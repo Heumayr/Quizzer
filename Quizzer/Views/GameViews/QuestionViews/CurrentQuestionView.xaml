@@ -67,16 +67,16 @@
                 <Button Content="Next" Command="{Binding NextStepCommnad}" />
                 <Button Content="Back" Command="{Binding BackStepCommnad}" />
             </StackPanel>
-            <DataGrid ItemsSource="{Binding QuestionSteps}"
-          AutoGenerateColumns="False"
-          Margin="5"
-          CanUserAddRows="False"
-          CanUserResizeColumns="True"
-          CanUserReorderColumns="True"
-          CanUserSortColumns="False"
-          IsReadOnly="True"
-          base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedSteps}"
-          base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenStepCommand}">
+            <DataGrid ItemsSource="{Binding QuestionOrderedSteps}"
+                  AutoGenerateColumns="False"
+                  Margin="5"
+                  CanUserAddRows="False"
+                  CanUserResizeColumns="True"
+                  CanUserReorderColumns="True"
+                  CanUserSortColumns="False"
+                  IsReadOnly="True"
+                  base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedSteps}"
+                  base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenStepCommand}">
 
                 <DataGrid.RowStyle>
                     <Style TargetType="DataGridRow">
@@ -101,8 +101,10 @@
                 </DataGrid.RowStyle>
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Sequenz" Binding="{Binding SquenceNumber}" Width="Auto" />
+                    <DataGridTextColumn Header="Sequenz" Binding="{Binding SequenceNumber}" Width="Auto" />
+                    <DataGridTextColumn Header="Sequenz" Binding="{Binding QuestionViewKey}" Width="Auto" />
                     <DataGridCheckBoxColumn Header="Is Result" Binding="{Binding IsResult}" Width="Auto" />
+                    <DataGridCheckBoxColumn Header="Is Finish" Binding="{Binding IsFinish}" Width="Auto" />
                     <DataGridTextColumn Header="Designation" Binding="{Binding Designation}" Width="*" />
                     <DataGridTextColumn Header="Resource type" Binding="{Binding ResourceTyp}" Width="Auto" />
                 </DataGrid.Columns>

@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Quizzer.QuestionTemplates.Helper
+namespace Quizzer.DataModels.Helpers
 {
     public static class Factory
     {

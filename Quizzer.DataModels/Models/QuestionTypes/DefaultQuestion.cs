@@ -11,5 +11,7 @@ namespace Quizzer.DataModels.Models.QuestionTypes
         public override int Points { get; set; } = 100;
         public override int MinusPoints { get; set; } = 100;
         public override QuestionType Typ { get; protected set; } = QuestionType.Default;
+
+        public override FinishType DefaultFinishType { get; protected set; } = FinishType.AllPreviousSteps;
     }
 }

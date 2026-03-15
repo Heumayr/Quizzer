@@ -7,7 +7,7 @@
         xmlns:base="clr-namespace:Quizzer.Base"
         xmlns:val="clr-namespace:Quizzer.Validators"
         mc:Ignorable="d"
-        Title="EditQuestionsView" Height="450" Width="800">
+        Title="EditQuestionsView" Height="626" Width="855">
     <base:WindowBase.DataContext>
         <local:EditQuestionViewModel />
     </base:WindowBase.DataContext>
@@ -111,11 +111,21 @@
                 <CheckBox VerticalContentAlignment="Center" IsChecked="{Binding Path=Question.WarnOnResultStep}" MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
 
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Warn on finish step:" VerticalAlignment="Center" />
+                <CheckBox VerticalContentAlignment="Center" IsChecked="{Binding Path=Question.WarnOnFinishStep}" MinWidth="200" Margin="5,0,0,0" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Random Sequence:" VerticalAlignment="Center" />
+                <CheckBox VerticalContentAlignment="Center" IsChecked="{Binding Path=Question.UseRandomSequenceOnNonFinishSteps}" MinWidth="200" Margin="5,0,0,0" />
+            </StackPanel>
+
             <StackPanel Orientation="Horizontal" Margin="5,10,0,0">
                 <Button Content="Add Step" Command="{Binding AddStepCommnad}" />
                 <Button Content="Remove Step" Command="{Binding RemoveStepCommnad}" Style="{StaticResource DangerButton}" />
             </StackPanel>
-            <DataGrid ItemsSource="{Binding Question.Steps}" AutoGenerateColumns="True" Margin="5" CanUserAddRows="False" IsReadOnly="True"
+            <DataGrid ItemsSource="{Binding StepsView}" AutoGenerateColumns="True" Margin="5" CanUserAddRows="False" IsReadOnly="True"
                       base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedSteps}"
                       base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenStepCommand}">
                 <!--<DataGrid.Columns>

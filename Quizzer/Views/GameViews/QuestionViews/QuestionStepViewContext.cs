@@ -14,12 +14,12 @@ namespace Quizzer.Views.GameViews.QuestionViews
 
         public QuestionBase? Question => Owner.Question;
 
-        public QuestionStepResource[] AllSteps => Owner.QuestionSteps;
+        public QuestionStepResource[] AllSteps => Owner.QuestionOrderedSteps;
 
         public QuestionStepResource[] PreviousSteps =>
             Step == null
                 ? []
-                : Owner.QuestionSteps
+                : Owner.QuestionOrderedSteps
                     .Where(s => s.SequenceNumber < Step.SequenceNumber)
                     .OrderBy(s => s.SequenceNumber)
                     .ToArray();
@@ -27,7 +27,7 @@ namespace Quizzer.Views.GameViews.QuestionViews
         public QuestionStepResource[] NextSteps =>
             Step == null
                 ? []
-                : Owner.QuestionSteps
+                : Owner.QuestionOrderedSteps
                     .Where(s => s.SequenceNumber > Step.SequenceNumber)
                     .OrderBy(s => s.SequenceNumber)
                     .ToArray();

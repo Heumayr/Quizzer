@@ -18,7 +18,8 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Close" Command="{Binding CloseCommand}" />
+            <Button Content="Save" Command="{Binding SaveCommand}" />
+            <Button Content="Save and Close" Command="{Binding SaveAndCloseCommand}" />
         </StackPanel>
 
         <StackPanel Grid.Column="1">
@@ -46,6 +47,11 @@
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Is Result:" VerticalAlignment="Center" />
                 <CheckBox VerticalAlignment="Center" IsChecked="{Binding Path=Step.IsResult, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Is Finish:" VerticalAlignment="Center" />
+                <CheckBox VerticalAlignment="Center" IsChecked="{Binding Path=Step.IsFinish, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">

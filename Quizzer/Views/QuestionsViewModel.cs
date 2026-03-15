@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json;
 using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
+using Quizzer.DataModels.Helpers;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.Logic.Controller.TypedControllers;
-using Quizzer.QuestionTemplates.Helper;
 using Quizzer.Views.QuestionTypes;
 using System;
 using System.Collections.Generic;

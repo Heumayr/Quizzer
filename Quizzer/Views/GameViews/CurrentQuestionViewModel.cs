@@ -45,7 +45,9 @@ namespace Quizzer.Views.GameViews
             using var ctrlQ = new QuestionBasesController();
             Coordinate.QuestionBase = (await ctrlQ.GetAsync(Coordinate.QuestionBaseId));
 
-            NextStep = Coordinate.QuestionBase?.OrderdSteps.FirstOrDefault();
+            Coordinate.QuestionBase?.CalculateOrderdSteps();
+
+            NextStep = Coordinate.QuestionBase?.OrderedSteps.FirstOrDefault();
 
             //TODO: Load Results
 
@@ -64,7 +66,7 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(CurrentMinusPoints));
             OnPropertyChanged(nameof(Notes));
 
-            OnPropertyChanged(nameof(QuestionSteps));
+            OnPropertyChanged(nameof(QuestionOrderedSteps));
 
             OnPropertyChanged(nameof(CurrentStep));
             OnPropertyChanged(nameof(NextStep));
@@ -124,7 +126,7 @@ namespace Quizzer.Views.GameViews
         public int CurrentMinusPoints => Coordinate?.CurrentMinusPoints ?? 0;
         public string Notes => Question?.Notes ?? String.Empty;
 
-        public QuestionStepResource[] QuestionSteps => Question?.Steps.OrderBy(s => s.IsResult).ThenBy(s => s.SequenceNumber).ToArray() ?? [];
+        public QuestionStepResource[] QuestionOrderedSteps => Question?.OrderedSteps ?? [];
 
         private QuestionStepResource? currentStep;
 
@@ -136,7 +138,6 @@ namespace Quizzer.Views.GameViews
                 currentStep = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CurrentStepContext));
-                GamePlayerViewModel?.SetView(value);
             }
         }
 
@@ -153,11 +154,20 @@ namespace Quizzer.Views.GameViews
             }
         }
 
-        public QuestionStepViewContext CurrentStepContext => new()
+        public QuestionStepViewContext CurrentStepContext
         {
-            Owner = this,
-            Step = CurrentStep
-        };
+            get
+            {
+                var current = new QuestionStepViewContext()
+                {
+                    Owner = this,
+                    Step = CurrentStep,
+                };
+
+                GamePlayerViewModel?.SetView(current);
+                return current;
+            }
+        }
 
         public QuestionStepViewContext NextStepContext => new()
         {
@@ -172,7 +182,7 @@ namespace Quizzer.Views.GameViews
 
         private async Task StartStepAsync(object? arg)
         {
-            CurrentStep = Question?.OrderdSteps.FirstOrDefault();
+            CurrentStep = Question?.OrderedSteps.FirstOrDefault();
             NextStep = Question?.GetNextStep(CurrentStep);
         }
 
@@ -194,15 +204,14 @@ namespace Quizzer.Views.GameViews
 
             if (up)
             {
-                if (CurrentStep == Question.OrderdSteps.Last())
+                if (CurrentStep == Question.OrderedSteps.Last())
                 {
                     //MessageBox.Show("End reached");
                     return;
                 }
 
-                if (Question.WarnOnResultStep
-                    && ((NextStep?.IsResult ?? false) && (!CurrentStep?.IsResult ?? true))
-                    && MessageBox.Show("Next is result! Want to proceed?", "Result step ahead", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+                bool flowControl = Proceed(NextStep);
+                if (!flowControl)
                 {
                     return;
                 }
@@ -212,7 +221,7 @@ namespace Quizzer.Views.GameViews
             }
             else
             {
-                if (CurrentStep == Question.OrderdSteps.First())
+                if (CurrentStep == Question.OrderedSteps.First())
                 {
                     //MessageBox.Show("Start reached");
                     return;
@@ -221,6 +230,28 @@ namespace Quizzer.Views.GameViews
                 NextStep = CurrentStep;
                 CurrentStep = Question.GetStepBehind(CurrentStep);
             }
+        }
+
+        private bool Proceed(QuestionStepResource? next)
+        {
+            if (Question == null || next == null)
+                return true;
+
+            if (Question.WarnOnResultStep
+                && ((next?.IsResult ?? false) && (!CurrentStep?.IsResult ?? true))
+                && MessageBox.Show("Next is result! Want to proceed?", "Result step ahead", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+            {
+                return false;
+            }
+
+            if (Question.WarnOnFinishStep
+                && ((next?.IsFinish ?? false) && (!CurrentStep?.IsFinish ?? true))
+                && MessageBox.Show("Next is a finish step! Want to proceed?", "Finish step ahead", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private AsyncRelayCommand? _backStepCommand;
@@ -247,9 +278,8 @@ namespace Quizzer.Views.GameViews
 
             if (first == currentStep) return;
 
-            if (Question.WarnOnResultStep
-                   && ((first?.IsResult ?? false) && (!CurrentStep?.IsResult ?? true))
-                   && MessageBox.Show("Next is result! Want to proceed?", "Result step ahead", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+            bool flowControl = Proceed(first);
+            if (!flowControl)
             {
                 return;
             }

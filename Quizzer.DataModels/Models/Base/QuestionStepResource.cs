@@ -16,11 +16,13 @@ namespace Quizzer.DataModels.Models.Base
 
         public bool IsResult { get; set; } = false;
 
+        public bool IsFinish { get; set; } = false;
+
         public int SequenceNumber { get; set; }
 
         public string StepText { get; set; } = string.Empty;
 
-        public ResultType ResultType { get; set; } = ResultType.AllPreviousSteps;
+        public FinishType FinishType { get; set; } = FinishType.AllPreviousSteps;
 
         public string ResourceFileName { get; set; } = string.Empty;
 

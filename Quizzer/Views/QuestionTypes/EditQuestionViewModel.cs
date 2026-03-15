@@ -6,6 +6,7 @@ using Quizzer.DataModels.Models.Base;
 using Quizzer.Logic.Controller.TypedControllers;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Text;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -15,6 +16,20 @@ namespace Quizzer.Views.QuestionTypes
     public class EditQuestionViewModel : ViewModelBase
     {
         public Array Difficulties { get; } = Enum.GetValues(typeof(Difficulty));
+
+        public ObservableCollection<QuestionStepResource> Steps
+        {
+            get => steps;
+            set
+            {
+                steps = value;
+                OnModelChanged();
+                StepsView = CollectionViewSource.GetDefaultView(steps);
+                OnPropertyChanged(nameof(StepsView));
+            }
+        }
+
+        public ICollectionView? StepsView { get; private set; }
 
         public ObservableCollection<Category> Categories
         {
@@ -71,12 +86,10 @@ namespace Quizzer.Views.QuestionTypes
                 if (value == null)
                     throw new Exception("Can't set null model");
 
-                if (!Equals(_question, value))
-                {
-                    _question = value;
-                    SelectedCategory = Categories.FirstOrDefault(c => c.Id == _question.CategoryId);
-                    OnModelChanged();
-                }
+                _question = value;
+                SelectedCategory = Categories.FirstOrDefault(c => c.Id == _question.CategoryId);
+                OnModelChanged();
+                Steps = new ObservableCollection<QuestionStepResource>(_question.Steps.OrderBy(s => s.SequenceNumber));
             }
         }
 
@@ -84,7 +97,7 @@ namespace Quizzer.Views.QuestionTypes
         {
             OnPropertyChanged(nameof(SelectedCategory));
             OnPropertyChanged(nameof(Question));
-            OnDatagridSourceChanged();
+            //OnDatagridSourceChanged();
         }
 
         public async Task SetModel(QuestionBase questionBase)
@@ -204,26 +217,27 @@ namespace Quizzer.Views.QuestionTypes
             }
         }
 
-        private void OnDatagridSourceChanged()
-        {
-            if (Question == null)
-            {
-                return;
-            }
+        //private void OnDatagridSourceChanged()
+        //{
+        //    if (Question == null)
+        //    {
+        //        return;
+        //    }
 
-            var view = CollectionViewSource.GetDefaultView(Question.Steps);
-            view.SortDescriptions.Clear();
-            view.SortDescriptions.Add(
-                new System.ComponentModel.SortDescription(
-                    nameof(QuestionStepResource.SequenceNumber),
-                    System.ComponentModel.ListSortDirection.Ascending));
+        //    var view = CollectionViewSource.GetDefaultView(Question.Steps);
+        //    view.SortDescriptions.Clear();
+        //    view.SortDescriptions.Add(
+        //        new System.ComponentModel.SortDescription(
+        //            nameof(QuestionStepResource.SequenceNumber),
+        //            System.ComponentModel.ListSortDirection.Ascending));
 
-            view.Refresh();
-        }
+        //    view.Refresh();
+        //}
 
         private AsyncRelayCommand? openStepCommand;
         private ObservableCollection<Category> categories = new();
         private bool warnOnResultStep;
+        private ObservableCollection<QuestionStepResource> steps = new();
 
         public ICommand OpenStepCommand => openStepCommand ??= new AsyncRelayCommand(OpenStepAsync);
 

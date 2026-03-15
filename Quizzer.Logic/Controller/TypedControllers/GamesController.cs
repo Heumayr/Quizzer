@@ -23,7 +23,7 @@ namespace Quizzer.Logic.Controller.TypedControllers
             {
                 query = query.Include(q => q.Headers)
                  .Include(q => q.QuestionResults)
-                 .Include(q => q.GameGridCoordinates).ThenInclude(t => t.QuestionBase).ThenInclude(q => q.Category)
+                 .Include(q => q.GameGridCoordinates).ThenInclude(t => t.QuestionBase).ThenInclude(q => q!.Category)
                  .Include(q => q.PlayerXGames).ThenInclude(t => t.Player);
             }
 

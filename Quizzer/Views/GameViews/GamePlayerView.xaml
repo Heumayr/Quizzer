@@ -7,6 +7,7 @@
         xmlns:base="clr-namespace:Quizzer.Base"
         xmlns:helper="clr-namespace:Quizzer.Views.HelperViewModels"
         xmlns:typed="clr-namespace:Quizzer.Views.GameViews.QuestionViews.Typed"
+        xmlns:questions="clr-namespace:Quizzer.Views.GameViews.QuestionViews"
         mc:Ignorable="d"
         Title="GamePlayerView" Height="450" Width="800">
     <base:WindowBase.DataContext>
@@ -20,6 +21,16 @@
              base:MatrixGridBehavior.CellWidth="{Binding DataContext.CellWidth, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
              base:MatrixGridBehavior.CellHeight="{Binding DataContext.CellHeight, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
         </ItemsPanelTemplate>
+
+        <questions:QuestionStepTemplateSelector x:Key="QuestionStepTemplateSelector" />
+
+        <DataTemplate x:Key="DefaultStepTemplate">
+            <typed:DefaultStepView />
+        </DataTemplate>
+
+        <DataTemplate x:Key="MultipleChoiceStepTemplate">
+            <typed:MultipleChoiceStepView />
+        </DataTemplate>
     </base:WindowBase.Resources>
     <Grid Background="{Binding BackgroundBrush}">
         <Grid.ColumnDefinitions>
@@ -126,9 +137,31 @@
             </Grid>
         </ScrollViewer>
         <ScrollViewer Visibility="{Binding ShowQuestionView}" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" MinWidth="200" Background="Wheat">
-            <StackPanel>
-                <typed:DefaultStepView DataContext="{Binding QuestionStepResource}"></typed:DefaultStepView>
-            </StackPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"></RowDefinition>
+                    <RowDefinition Height="9*"></RowDefinition>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Background="DarkBlue">
+                    <Viewbox Margin="5" Stretch="Uniform" Visibility="{Binding ShowQuestionText}">
+                        <TextBlock Text="{Binding QuestionText}"
+                               Foreground="WhiteSmoke"
+                               FontWeight="Bold"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center" />
+                    </Viewbox>
+                </Grid>
+                <!--<StackPanel Grid.Row="0">
+                    <Label Visibility="{Binding ShowQuestionText}" Content="{Binding QuestionText}"></Label>
+                </StackPanel>-->
+                <StackPanel Grid.Row="1">
+                    <ContentControl Content="{Binding QuestionStepViewContext}"
+                               ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
+                </StackPanel>
+            </Grid>
         </ScrollViewer>
     </Grid>
 </base:WindowBase>

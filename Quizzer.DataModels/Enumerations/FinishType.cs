@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Quizzer.DataModels.Enumerations
 {
-    public enum ResultType
+    public enum FinishType
     {
         None = 0,
         OnlyResult = 1,

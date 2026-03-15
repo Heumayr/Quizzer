@@ -58,8 +58,8 @@ namespace Quizzer.Base
         {
             try
             {
-                await VMSaveAsync();
-                VMSaved?.Invoke(sender, e);
+                //await VMSaveAsync();
+                //VMSaved?.Invoke(sender, e);
                 await OnClosed();
             }
             catch (Exception ex)

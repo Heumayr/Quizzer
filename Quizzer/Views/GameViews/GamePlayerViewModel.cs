@@ -1,5 +1,6 @@
 ﻿using Quizzer.Base;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.Views.GameViews.QuestionViews;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Data;
@@ -15,6 +16,10 @@ namespace Quizzer.Views.GameViews
         private Visibility showGameGridView = Visibility.Visible;
         private Visibility showQuestionView = Visibility.Hidden;
         private Game? game;
+
+        private QuestionStepViewContext? questionStepViewContext;
+        private string questionText = string.Empty;
+        private Visibility showQuestionText;
 
         public GameGridVMs GameGridVMs
         {
@@ -117,6 +122,20 @@ namespace Quizzer.Views.GameViews
             }
         }
 
+        public Visibility ShowQuestionText => string.IsNullOrEmpty(QuestionText) ? Visibility.Hidden : Visibility.Visible;
+
+        public string QuestionText
+        {
+            get => questionText;
+            set
+            {
+                questionText = value;
+                OnPropertyChanged();
+
+                OnPropertyChanged(nameof(ShowQuestionText));
+            }
+        }
+
         public QuestionStepResource? QuestionStepResource
         {
             get => questionStepResource;
@@ -124,6 +143,29 @@ namespace Quizzer.Views.GameViews
             {
                 questionStepResource = value;
                 OnPropertyChanged();
+
+                if (questionStepResource != null)
+                {
+                    QuestionText = QuestionStepViewContext?.Question?.QuestionText ?? "";
+                    ShowQuestionView = Visibility.Visible;
+                }
+                else
+                {
+                    QuestionText = "";
+                    ShowQuestionView = Visibility.Hidden;
+                }
+            }
+        }
+
+        public QuestionStepViewContext? QuestionStepViewContext
+        {
+            get => questionStepViewContext;
+            set
+            {
+                questionStepViewContext = value;
+                OnPropertyChanged();
+
+                QuestionStepResource = questionStepViewContext?.Step;
             }
         }
 
@@ -159,14 +201,13 @@ namespace Quizzer.Views.GameViews
                 ShowGameGridView = Visibility.Hidden;
             }
 
-            if (viewContent is QuestionStepResource resource)
+            if (viewContent is QuestionStepViewContext context)
             {
-                QuestionStepResource = resource;
-                ShowQuestionView = Visibility.Visible;
+                QuestionStepViewContext = context;
             }
             else
             {
-                QuestionStepResource = null;
+                QuestionStepViewContext = null;
                 ShowQuestionView = Visibility.Hidden;
             }
         }

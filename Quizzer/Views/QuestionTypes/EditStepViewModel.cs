@@ -65,7 +65,7 @@ public class EditStepViewModel : ViewModelBase
 
         if (Step == null) throw new Exception("Not able to load model");
 
-        var all = await ctrl.GetAllStepsOfQuestionExceptMe(m);
+        var all = await ctrl.GetAllStepsOfQuestionExceptMe(Step);
 
         var addedIds = Step.Froms.Select(x => x.ToId).ToList();
 
@@ -143,5 +143,22 @@ public class EditStepViewModel : ViewModelBase
 
         await ctrl.SaveChangesAsync();
         await SetModel(Step);
+    }
+
+    private AsyncRelayCommand? saveCommand;
+    public ICommand SaveCommand => saveCommand ??= new AsyncRelayCommand(SaveAsync);
+
+    private async Task SaveAsync(object? commandParameter)
+    {
+        await VMSaveAsync();
+    }
+
+    private AsyncRelayCommand? saveAndCloseCommand;
+    public ICommand SaveAndCloseCommand => saveAndCloseCommand ??= new AsyncRelayCommand(SaveAndCloseAsync);
+
+    private async Task SaveAndCloseAsync(object? commandParameter)
+    {
+        await VMSaveAsync();
+        Window?.Close();
     }
 }
