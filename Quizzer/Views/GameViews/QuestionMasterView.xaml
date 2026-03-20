@@ -17,14 +17,14 @@
         <questions:QuestionStepTemplateSelector x:Key="QuestionStepTemplateSelector" />
 
         <DataTemplate x:Key="DefaultStepTemplate">
-            <typed:DefaultStepView />
+            <typed:DefaultStepView IsMasterView="True" />
         </DataTemplate>
 
         <DataTemplate x:Key="MultipleChoiceStepTemplate">
-            <typed:MultipleChoiceStepView />
+            <typed:MultipleChoiceStepView IsMasterView="True" />
         </DataTemplate>
     </Window.Resources>
-    <Grid>
+    <Grid Background="Black">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
@@ -34,22 +34,25 @@
             <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="0" Grid.Column="0">
-            <buzzerServer:BuzzerControlsView Background="{Binding BackgroundBrush}"></buzzerServer:BuzzerControlsView>
-        </StackPanel>
-
         <StackPanel Grid.Row="1" Grid.Column="0">
             <questions:CurrentQuestionView ></questions:CurrentQuestionView>
         </StackPanel>
 
-        <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" MinWidth="200" Background="Wheat">
+        <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" MinWidth="200" ClipToBounds="True">
+            <Grid.Background>
+                <ImageBrush ImageSource="{Binding BackgroundImagePath}"
+                     Stretch="UniformToFill" />
+            </Grid.Background>
+
             <Grid.RowDefinitions>
-                <RowDefinition Height="auto"></RowDefinition>
-                <RowDefinition Height="*"></RowDefinition>
-                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="100" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Grid.Column="0" Background="DarkBlue">
+            <Grid Grid.Row="0" Grid.Column="0" Background="Black" MaxHeight="100" ClipToBounds="True">
                 <Viewbox Margin="5" Stretch="Uniform">
                     <TextBlock Text="{Binding Question.QuestionText}"
                      Foreground="WhiteSmoke"
@@ -61,17 +64,50 @@
                 </Viewbox>
             </Grid>
 
-            <StackPanel Grid.Row="1" Grid.Column="0" MinWidth="200" Background="Wheat">
-                <Label Content="Current Step" Foreground="DarkGreen" FontWeight="Bold" FontSize="14" />
-                <ContentControl Content="{Binding CurrentStepContext}"
+            <Grid  Grid.Row="1" Grid.Column="0" MinWidth="200" ClipToBounds="True">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Content="Current Step" Foreground="DarkGreen" FontWeight="Bold" FontSize="14" />
+                <ContentControl Grid.Row="1"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Content="{Binding CurrentStepContext}"
                     ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
-            </StackPanel>
+            </Grid>
 
-            <StackPanel Grid.Row="2" Grid.Column="0" MinWidth="200" Background="Wheat">
-                <Label Content="Next Step" Foreground="DarkBlue" FontWeight="Bold" FontSize="14" />
-                <ContentControl Content="{Binding NextStepContext}"
+            <Grid  Grid.Row="2" Grid.Column="0" MinWidth="200"  ClipToBounds="True">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Content="Next Step" Foreground="DarkBlue" FontWeight="Bold" FontSize="14" />
+                <ContentControl Grid.Row="1"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Content="{Binding NextStepContext}"
                     ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
-            </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="3" Grid.Column="0">
+                <Border BorderBrush="WhiteSmoke">
+                    <buzzerServer:BuzzerControlsView Background="{Binding BackgroundBrush}"></buzzerServer:BuzzerControlsView>
+                </Border>
+            </Grid>
+
+            <Grid  Grid.Row="4" Grid.Column="0" MinWidth="200" ClipToBounds="True">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Content="Finish Step" Foreground="DarkRed" FontWeight="Bold" FontSize="14" />
+                <ContentControl Grid.Row="1"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Content="{Binding FinishStepContext}"
+                    ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
+            </Grid>
         </Grid>
     </Grid>
 </base:WindowBase>

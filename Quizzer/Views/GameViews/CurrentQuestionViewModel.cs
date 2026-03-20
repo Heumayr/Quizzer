@@ -1,6 +1,7 @@
 ﻿using LocalBuzzer.Service;
 using Newtonsoft.Json.Linq;
 using Quizzer.Base;
+using Quizzer.DataModels;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
@@ -22,6 +23,19 @@ namespace Quizzer.Views.GameViews
     public class CurrentQuestionViewModel : ViewModelBase
     {
         public GamePlayerViewModel? GamePlayerViewModel { get; set; }
+
+        private string backgroundImagePath = Settings.BackgroundImagePath;
+        public Brush HeaderBrush { get; set; } = Brushes.Black;
+
+        public string BackgroundImagePath
+        {
+            get => backgroundImagePath;
+            set
+            {
+                backgroundImagePath = value;
+                OnPropertyChanged();
+            }
+        }
 
         public CurrentQuestionViewModel()
         {
@@ -48,7 +62,7 @@ namespace Quizzer.Views.GameViews
             Coordinate.QuestionBase?.CalculateOrderdSteps();
 
             NextStep = Coordinate.QuestionBase?.OrderedSteps.FirstOrDefault();
-
+            FinishStep = Coordinate.QuestionBase?.OrderedSteps.FirstOrDefault(s => s.IsFinish);
             //TODO: Load Results
 
             await OnModeldChanged();
@@ -60,17 +74,19 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(QuestionDesignation));
             OnPropertyChanged(nameof(QuestionDesignationShort));
             OnPropertyChanged(nameof(QuestionCategory));
+            OnPropertyChanged(nameof(QuestionNotes));
             OnPropertyChanged(nameof(QuestionDifficulty));
             OnPropertyChanged(nameof(Phase));
             OnPropertyChanged(nameof(CurrentPoints));
             OnPropertyChanged(nameof(CurrentMinusPoints));
-            OnPropertyChanged(nameof(Notes));
 
             OnPropertyChanged(nameof(QuestionOrderedSteps));
 
             OnPropertyChanged(nameof(CurrentStep));
+            OnPropertyChanged(nameof(FinishStep));
             OnPropertyChanged(nameof(NextStep));
             OnPropertyChanged(nameof(CurrentStepContext));
+            OnPropertyChanged(nameof(FinishStepContext));
             OnPropertyChanged(nameof(NextStepContext));
         }
 
@@ -95,11 +111,13 @@ namespace Quizzer.Views.GameViews
         {
             BackgroundBrush = e switch
             {
-                ServerState.None => Brushes.White,
+                ServerState.None => Brushes.DarkGray,
                 ServerState.Running => Brushes.Red,
-                ServerState.Stopped => Brushes.Wheat,
-                ServerState.AllConnected => Brushes.WhiteSmoke,
-                _ => Brushes.White
+                ServerState.Stopping => Brushes.Red,
+                ServerState.Stopped => Brushes.DarkGray,
+                ServerState.AllConnected => Brushes.Black,
+                ServerState.ActiveState => Brushes.Black,
+                _ => Brushes.Red
             };
 
             BuzzerState = e.DescriptionOrString();
@@ -120,11 +138,11 @@ namespace Quizzer.Views.GameViews
         public string QuestionDesignation => Question?.Designation ?? String.Empty;
         public string QuestionDesignationShort => Question?.DesignationShort ?? String.Empty;
         public string QuestionCategory => Question?.Category?.Designation ?? String.Empty;
+        public string QuestionNotes => Question?.Notes ?? String.Empty;
         public string QuestionDifficulty => Question?.Difficulty.DescriptionOrString().ToString() ?? String.Empty;
         public int Phase => Coordinate?.Phase ?? 0;
         public int CurrentPoints => Coordinate?.CurrentPoints ?? 0;
         public int CurrentMinusPoints => Coordinate?.CurrentMinusPoints ?? 0;
-        public string Notes => Question?.Notes ?? String.Empty;
 
         public QuestionStepResource[] QuestionOrderedSteps => Question?.OrderedSteps ?? [];
 
@@ -138,6 +156,19 @@ namespace Quizzer.Views.GameViews
                 currentStep = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CurrentStepContext));
+            }
+        }
+
+        private QuestionStepResource? finishStep;
+
+        public QuestionStepResource? FinishStep
+        {
+            get => finishStep;
+            set
+            {
+                finishStep = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(FinishStepContext));
             }
         }
 
@@ -168,6 +199,12 @@ namespace Quizzer.Views.GameViews
                 return current;
             }
         }
+
+        public QuestionStepViewContext FinishStepContext => new()
+        {
+            Owner = this,
+            Step = FinishStep
+        };
 
         public QuestionStepViewContext NextStepContext => new()
         {
@@ -291,7 +328,7 @@ namespace Quizzer.Views.GameViews
         #region Buzzer
 
         private string buzzerState = string.Empty;
-        private Brush backgroundBrush = Brushes.Wheat;
+        private Brush backgroundBrush = Brushes.DarkGray;
 
         public string BuzzerState
         {

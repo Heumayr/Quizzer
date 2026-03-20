@@ -16,7 +16,7 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
     /// <summary>
     /// Interaction logic for MultipleChoiceStepView.xaml
     /// </summary>
-    public partial class MultipleChoiceStepView : UserControl
+    public partial class MultipleChoiceStepView : UserControlStepViewBase
     {
         public MultipleChoiceStepView()
         {

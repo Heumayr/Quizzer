@@ -1,4 +1,5 @@
 ﻿using Quizzer.Base;
+using Quizzer.DataModels;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Views.GameViews.QuestionViews;
 using System.ComponentModel;
@@ -20,6 +21,19 @@ namespace Quizzer.Views.GameViews
         private QuestionStepViewContext? questionStepViewContext;
         private string questionText = string.Empty;
         private Visibility showQuestionText;
+
+        private string backgroundImagePath = Settings.BackgroundImagePath;
+        public Brush HeaderBrush { get; set; } = Brushes.Black;
+
+        public string BackgroundImagePath
+        {
+            get => backgroundImagePath;
+            set
+            {
+                backgroundImagePath = value;
+                OnPropertyChanged();
+            }
+        }
 
         public GameGridVMs GameGridVMs
         {

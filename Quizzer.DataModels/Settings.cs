@@ -12,6 +12,10 @@ namespace Quizzer.DataModels
 
         public static string FilePathQuizzer { get; set; } = string.Empty;
 
+        public static string ResourceRootFolder => Path.Combine(FilePathQuizzer, "Resources");
+        public static string AudioPlaceholderFile => Path.Combine(FilePathQuizzer, "AudioPlaceholderFile.png");
+        public static string BackgroundImagePath => Path.Combine(FilePathQuizzer, "Background.png");
+
         public static string ConnectionString { get; set; } = string.Empty;
 
         public static void LoadSettings()

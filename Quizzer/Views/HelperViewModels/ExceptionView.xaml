@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:Quizzer.Views.HelperViewModels"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Orientation="Vertical">
+    <StackPanel Orientation="Vertical" Background="Black">
         <Label x:Name="Message"></Label>
         <Label x:Name="Source" FontSize="8" FontWeight="Light"></Label>
     </StackPanel>

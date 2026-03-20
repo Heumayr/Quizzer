@@ -144,7 +144,7 @@ namespace Quizzer.ViewModels
             }
         }
 
-        public Brush IsDoneBrush => IsDone ? Brushes.DarkRed : Brushes.DarkSlateBlue;
+        public Brush IsDoneBrush => IsDone ? Brushes.DarkRed : new SolidColorBrush(Color.FromRgb(92, 72, 60));
         public Brush IsDoneTextBrush => IsDone ? Brushes.Wheat : Brushes.White;
 
         public QuestionBase? Question

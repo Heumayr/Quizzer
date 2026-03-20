@@ -11,7 +11,7 @@
     <base:WindowBase.DataContext>
         <local:EditStepViewModel />
     </base:WindowBase.DataContext>
-    <Grid>
+    <Grid Background="Black">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />
             <ColumnDefinition Width="*" />
@@ -25,7 +25,7 @@
         <StackPanel Grid.Column="1">
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Designation:" VerticalAlignment="Center" />
-                <TextBox VerticalContentAlignment="Center" Text="{Binding Step.Designation}" MinWidth="200" Margin="5,0,0,0"></TextBox>
+                <TextBox VerticalContentAlignment="Center" Text="{Binding Step.Designation}" MinWidth="200" Height="25" Margin="5,0,0,0"></TextBox>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Sequenz Number:" VerticalAlignment="Center" />
@@ -71,7 +71,8 @@
 
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Resource Filename:" VerticalAlignment="Center" />
-                <TextBox VerticalContentAlignment="Center" Text="{Binding Path=Step.ResourceFileName, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" Margin="5,0,0,0" />
+                <TextBox IsEnabled="False" Height="25" VerticalContentAlignment="Center" Text="{Binding Path=Step.ResourceFileName, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" Margin="5,0,0,0" Width="350" />
+                <Button Content="Select" Command="{Binding SelectResourceCommnad}" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">

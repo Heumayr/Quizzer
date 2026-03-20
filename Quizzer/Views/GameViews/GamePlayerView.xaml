@@ -25,14 +25,19 @@
         <questions:QuestionStepTemplateSelector x:Key="QuestionStepTemplateSelector" />
 
         <DataTemplate x:Key="DefaultStepTemplate">
-            <typed:DefaultStepView />
+            <typed:DefaultStepView IsMasterView="False" />
         </DataTemplate>
 
         <DataTemplate x:Key="MultipleChoiceStepTemplate">
-            <typed:MultipleChoiceStepView />
+            <typed:MultipleChoiceStepView IsMasterView="False" />
         </DataTemplate>
     </base:WindowBase.Resources>
-    <Grid Background="{Binding BackgroundBrush}">
+    <Grid>
+        <Grid.Background>
+            <ImageBrush ImageSource="{Binding BackgroundImagePath}"
+                    Stretch="UniformToFill" />
+        </Grid.Background>
+
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
@@ -55,7 +60,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border CornerRadius="10"
-                                Background="DarkBlue"
+                                Background="{Binding DataContext.HeaderBrush, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                 SnapsToDevicePixels="True"
                                 Margin="3">
                                 <TextBox IsReadOnly="{Binding LockHeader}"
@@ -91,9 +96,9 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border CornerRadius="10"
-                                Background="DarkBlue"
-                                SnapsToDevicePixels="True"
-                                Margin="3">
+                                    Background="{Binding DataContext.HeaderBrush, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    SnapsToDevicePixels="True"
+                                    Margin="3">
                                 <TextBox IsReadOnly="{Binding LockHeader}"
                                     Text="{Binding TextLong, Mode=OneWay}"
                                     Background="Transparent"
@@ -135,32 +140,28 @@
                 </ItemsControl>
             </Grid>
         </Viewbox>
-        <ScrollViewer Visibility="{Binding ShowQuestionView}" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" MinWidth="200" Background="Wheat">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"></RowDefinition>
-                    <RowDefinition Height="9*"></RowDefinition>
-                </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" Background="DarkBlue">
-                    <Viewbox Margin="5" Stretch="Uniform" Visibility="{Binding ShowQuestionText}">
-                        <TextBlock Text="{Binding QuestionText}"
+        <Grid Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Visibility="{Binding ShowQuestionView}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Background="Black" MaxHeight="100">
+                <Viewbox Margin="5" Stretch="Uniform" Visibility="{Binding ShowQuestionText}">
+                    <TextBlock Text="{Binding QuestionText}"
                                Foreground="WhiteSmoke"
                                FontWeight="Bold"
                                TextWrapping="Wrap"
                                TextAlignment="Center"
                                VerticalAlignment="Center"
                                HorizontalAlignment="Center" />
-                    </Viewbox>
-                </Grid>
-                <!--<StackPanel Grid.Row="0">
-                    <Label Visibility="{Binding ShowQuestionText}" Content="{Binding QuestionText}"></Label>
-                </StackPanel>-->
-                <StackPanel Grid.Row="1">
-                    <ContentControl Content="{Binding QuestionStepViewContext}"
-                               ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
-                </StackPanel>
+                </Viewbox>
             </Grid>
-        </ScrollViewer>
+            <Grid Grid.Row="1">
+                <ContentControl Content="{Binding QuestionStepViewContext}"
+                                    ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
+            </Grid>
+        </Grid>
     </Grid>
 </base:WindowBase>

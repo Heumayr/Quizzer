@@ -1,10 +1,11 @@
 ﻿using Quizzer.Views.Base;
 using System;
-using System.Security.Principal;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Quizzer.Base
 {
@@ -15,31 +16,94 @@ namespace Quizzer.Base
 
         private static readonly WindowPlacementStore PlacementStore = new("Quizzer");
 
-        /// <summary>
-        /// Optional: override per window instance.
-        /// By default we use the window type full name.
-        /// </summary>
         public string? PlacementKey { get; set; }
 
         private bool _restored;
+        private DateTime _lastSave = DateTime.MinValue;
+        private bool _sourceInitialized;
+        private bool _chromeApplyQueued;
 
         public WindowBase()
         {
             Loaded += WindowBase_Loaded;
             DataContextChanged += WindowBase_DataContextChanged;
 
-            // Save when closing
             Closing += (_, __) => SavePlacement();
-
-            // Save when user drags/resizes
             LocationChanged += (_, __) => SavePlacementThrottled();
             SizeChanged += (_, __) => SavePlacementThrottled();
             StateChanged += (_, __) => SavePlacementThrottled();
 
-            KeyDown += (s, e) => DefaultKeyDown(s, e);
+            KeyDown += DefaultKeyDown;
+
+            ChromeBackground = Colors.Black;
+            ChromeForeground = Colors.WhiteSmoke;
+            ChromeBorderColor = Colors.Black;
+            UseDarkChrome = true;
         }
 
-        private void DefaultKeyDown(object s, KeyEventArgs e)
+        #region Chrome Properties
+
+        public Color ChromeBackground
+        {
+            get => (Color)GetValue(ChromeBackgroundProperty);
+            set => SetValue(ChromeBackgroundProperty, value);
+        }
+
+        public static readonly DependencyProperty ChromeBackgroundProperty =
+            DependencyProperty.Register(
+                nameof(ChromeBackground),
+                typeof(Color),
+                typeof(WindowBase),
+                new PropertyMetadata(Colors.DarkBlue, OnChromePropertyChanged));
+
+        public Color ChromeForeground
+        {
+            get => (Color)GetValue(ChromeForegroundProperty);
+            set => SetValue(ChromeForegroundProperty, value);
+        }
+
+        public static readonly DependencyProperty ChromeForegroundProperty =
+            DependencyProperty.Register(
+                nameof(ChromeForeground),
+                typeof(Color),
+                typeof(WindowBase),
+                new PropertyMetadata(Colors.WhiteSmoke, OnChromePropertyChanged));
+
+        public Color ChromeBorderColor
+        {
+            get => (Color)GetValue(ChromeBorderColorProperty);
+            set => SetValue(ChromeBorderColorProperty, value);
+        }
+
+        public static readonly DependencyProperty ChromeBorderColorProperty =
+            DependencyProperty.Register(
+                nameof(ChromeBorderColor),
+                typeof(Color),
+                typeof(WindowBase),
+                new PropertyMetadata(Colors.DarkBlue, OnChromePropertyChanged));
+
+        public bool UseDarkChrome
+        {
+            get => (bool)GetValue(UseDarkChromeProperty);
+            set => SetValue(UseDarkChromeProperty, value);
+        }
+
+        public static readonly DependencyProperty UseDarkChromeProperty =
+            DependencyProperty.Register(
+                nameof(UseDarkChrome),
+                typeof(bool),
+                typeof(WindowBase),
+                new PropertyMetadata(true, OnChromePropertyChanged));
+
+        private static void OnChromePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is WindowBase window)
+                window.QueueApplyChrome();
+        }
+
+        #endregion Chrome Properties
+
+        private void DefaultKeyDown(object? sender, KeyEventArgs e)
         {
             if (e.Key == Key.Escape)
             {
@@ -51,6 +115,8 @@ namespace Quizzer.Base
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
+            _sourceInitialized = true;
+            QueueApplyChrome();
         }
 
         private void WindowBase_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -62,9 +128,63 @@ namespace Quizzer.Base
         private async void WindowBase_Loaded(object sender, RoutedEventArgs e)
         {
             RestorePlacement();
+            QueueApplyChrome();
 
             if (DataContext is ViewModelBase vm)
                 await vm.InitializeAsync();
+        }
+
+        private void QueueApplyChrome()
+        {
+            if (_chromeApplyQueued)
+                return;
+
+            _chromeApplyQueued = true;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                _chromeApplyQueued = false;
+
+                if (!_sourceInitialized)
+                    return;
+
+                ApplyChrome();
+            }), DispatcherPriority.Loaded);
+        }
+
+        public virtual void ApplyChrome()
+        {
+            ApplyNativeTitleBarColors();
+        }
+
+        private void ApplyNativeTitleBarColors()
+        {
+            var handle = new WindowInteropHelper(this).Handle;
+            if (handle == IntPtr.Zero)
+                return;
+
+            try
+            {
+                int darkMode = UseDarkChrome ? 1 : 0;
+                DwmSetWindowAttribute(handle, DWMWA_USE_IMMERSIVE_DARK_MODE, ref darkMode, Marshal.SizeOf<int>());
+
+                uint captionColor = ToDwmColor(ChromeBackground);
+                DwmSetWindowAttribute(handle, DWMWA_CAPTION_COLOR, ref captionColor, Marshal.SizeOf<uint>());
+
+                uint textColor = ToDwmColor(ChromeForeground);
+                DwmSetWindowAttribute(handle, DWMWA_TEXT_COLOR, ref textColor, Marshal.SizeOf<uint>());
+
+                uint borderColor = ToDwmColor(ChromeBorderColor);
+                DwmSetWindowAttribute(handle, DWMWA_BORDER_COLOR, ref borderColor, Marshal.SizeOf<uint>());
+            }
+            catch
+            {
+            }
+        }
+
+        private static uint ToDwmColor(Color color)
+        {
+            return (uint)(color.R | (color.G << 8) | (color.B << 16));
         }
 
         private string GetKey() => PlacementKey ?? GetType().FullName ?? GetType().Name;
@@ -74,13 +194,9 @@ namespace Quizzer.Base
             if (_restored) return;
             _restored = true;
 
-            if (!PlacementStore.TryGet(GetKey(), out var p))
+            if (!PlacementStore.TryGet(GetKey(), out var p) || p == null)
                 return;
 
-            if (p == null)
-                return;
-
-            // restore normal size/pos only if valid
             if (p.Width > 100) Width = p.Width;
             if (p.Height > 100) Height = p.Height;
 
@@ -96,13 +212,12 @@ namespace Quizzer.Base
 
         private void SavePlacement()
         {
-            // If minimized, save RestoreBounds instead of tiny minimized bounds
             Rect bounds = WindowState == WindowState.Normal
                 ? new Rect(Left, Top, Width, Height)
                 : RestoreBounds;
 
-            // If not yet shown / not measured
-            if (bounds.Width < 100 || bounds.Height < 100) return;
+            if (bounds.Width < 100 || bounds.Height < 100)
+                return;
 
             PlacementStore.Set(GetKey(), new WindowPlacement
             {
@@ -114,26 +229,19 @@ namespace Quizzer.Base
             });
         }
 
-        private DateTime _lastSave = DateTime.MinValue;
-
         private void SavePlacementThrottled()
         {
             if (!_restored) return;
 
             var now = DateTime.UtcNow;
             if ((now - _lastSave).TotalMilliseconds < 300) return;
-            _lastSave = now;
 
+            _lastSave = now;
             SavePlacement();
         }
 
         private void EnsureOnScreen()
         {
-            // If user changed monitor setup, window might restore off-screen.
-            // We just clamp it into the current virtual screen bounds.
-            var vs = SystemParameters.WorkArea; // primary work area
-            // Better multi-monitor clamp:
-            // Use SystemParameters.VirtualScreen* to include all monitors.
             var left = SystemParameters.VirtualScreenLeft;
             var top = SystemParameters.VirtualScreenTop;
             var width = SystemParameters.VirtualScreenWidth;
@@ -154,5 +262,28 @@ namespace Quizzer.Base
         {
             base.OnClosed(e);
         }
+
+        #region DWM Interop
+
+        private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+        private const int DWMWA_BORDER_COLOR = 34;
+        private const int DWMWA_CAPTION_COLOR = 35;
+        private const int DWMWA_TEXT_COLOR = 36;
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(
+            IntPtr hwnd,
+            int dwAttribute,
+            ref int pvAttribute,
+            int cbAttribute);
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(
+            IntPtr hwnd,
+            int dwAttribute,
+            ref uint pvAttribute,
+            int cbAttribute);
+
+        #endregion DWM Interop
     }
 }

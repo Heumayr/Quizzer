@@ -1,4 +1,5 @@
 ﻿using Quizzer.Base;
+using Quizzer.DataModels;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
@@ -28,6 +29,19 @@ namespace Quizzer.Views.GameViews
         public GamePlayerViewModel GamePlayerViewModel { get; private set; } = new();
 
         private BuzzerServerView? buzzerServerView = null;
+
+        private string backgroundImagePath = Settings.BackgroundImagePath;
+        public Brush HeaderBrush { get; set; } = Brushes.Black;
+
+        public string BackgroundImagePath
+        {
+            get => backgroundImagePath;
+            set
+            {
+                backgroundImagePath = value;
+                OnPropertyChanged();
+            }
+        }
 
         public GameMasterViewModel()
         {

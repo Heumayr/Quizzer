@@ -20,7 +20,12 @@
                 base:MatrixGridBehavior.CellHeight="{Binding DataContext.CellHeight, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
         </ItemsPanelTemplate>
     </base:WindowBase.Resources>
-    <Grid Background="{Binding BackgroundBrush}">
+    <Grid>
+        <Grid.Background>
+            <ImageBrush ImageSource="{Binding BackgroundImagePath}"
+             Stretch="UniformToFill" />
+        </Grid.Background>
+
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />
             <ColumnDefinition Width="*" />
@@ -33,11 +38,10 @@
             <Button Content="Buzzer Server" Command="{Binding BuzzerServerCommand}" />
             <Button Content="Open Player View" Command="{Binding OpenGamePlayerViewCommand}" />
         </StackPanel>
-        <ScrollViewer Margin="5" Grid.Column="1" Grid.Row="0"
-              HorizontalScrollBarVisibility="Auto"
-              VerticalScrollBarVisibility="Auto"
-              HorizontalAlignment="Stretch"
-              VerticalAlignment="Stretch">
+        <Viewbox Visibility="{Binding ShowGameGridView}" Margin="5" Grid.Column="1" Grid.Row="0"
+              Stretch="Uniform"
+               HorizontalAlignment="Stretch"
+               VerticalAlignment="Stretch">
             <Grid>
                 <!-- Column headers -->
                 <ItemsControl ItemsSource="{Binding ColumnHeaderVMs}" ItemsPanel="{StaticResource MatrixPanel}">
@@ -50,7 +54,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border CornerRadius="10"
-                                    Background="DarkBlue"
+                                    Background="{Binding DataContext.HeaderBrush, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                     SnapsToDevicePixels="True"
                                     Margin="3">
                                 <TextBox IsReadOnly="{Binding LockHeader}"
@@ -86,7 +90,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border CornerRadius="10"
-                                    Background="DarkBlue"
+                                    Background="{Binding DataContext.HeaderBrush, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                     SnapsToDevicePixels="True"
                                     Margin="3">
                                 <TextBox IsReadOnly="{Binding LockHeader}"
@@ -129,6 +133,6 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </Grid>
-        </ScrollViewer>
+        </Viewbox>
     </Grid>
 </base:WindowBase>

@@ -10,7 +10,7 @@
     <base:WindowBase.DataContext>
         <local:BuzzerServerViewModel></local:BuzzerServerViewModel>
     </base:WindowBase.DataContext>
-    <Grid>
+    <Grid Background="{Binding BackgroundBrush}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />
             <ColumnDefinition Width="*" />

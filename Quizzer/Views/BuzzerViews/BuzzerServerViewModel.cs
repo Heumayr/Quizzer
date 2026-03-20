@@ -45,6 +45,30 @@ namespace Quizzer.Views.BuzzerViews
                 if (_serverState == value) return;
                 _serverState = value;
                 NotifyServerStateChanged();
+
+                BackgroundBrush = _serverState switch
+                {
+                    ServerState.None => Brushes.DarkGray,
+                    ServerState.Running => Brushes.Red,
+                    ServerState.Stopping => Brushes.Red,
+                    ServerState.Stopped => Brushes.DarkGray,
+                    ServerState.AllConnected => Brushes.Black,
+                    ServerState.ActiveState => Brushes.Black,
+                    _ => Brushes.Red
+                };
+                OnPropertyChanged(nameof(BackgroundBrush));
+            }
+        }
+
+        private Brush backgroundBrush = Brushes.DarkGray;
+
+        public Brush BackgroundBrush
+        {
+            get => backgroundBrush;
+            set
+            {
+                backgroundBrush = value;
+                OnPropertyChanged();
             }
         }
 

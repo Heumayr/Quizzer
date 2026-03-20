@@ -72,7 +72,7 @@ namespace Quizzer.DataModels.Models
 
         public void CalculateOrderdSteps()
         {
-            if (!Steps.Any())
+            if (Steps == null || !Steps.Any())
             {
                 OrderedSteps = [];
                 return;
@@ -80,56 +80,58 @@ namespace Quizzer.DataModels.Models
 
             var result = new List<QuestionStepResource>();
 
-            var normalSteps = Steps.Where(s => !s.IsFinish);
-            var finishSteps = Steps.Where(s => s.IsFinish);
-            var nextSeqNumber = 0;
-            var currentKey = Helpers.Helper.GetNextAlphabeticalEntry("");
+            var normalSteps = Steps.Where(s => !s.IsFinish && !s.IsStart).ToList();
+            var startSteps = Steps.Where(s => s.IsStart).ToList();
+            var finishSteps = Steps.Where(s => s.IsFinish).ToList();
 
             if (UseRandomSequenceOnNonFinishSteps)
             {
-                var random = new Random((int)DateTime.Now.Ticks);
-
-                foreach (var step in normalSteps)
-                {
-                    step.SequenceNumber = random.Next();
-                }
-
-                normalSteps = normalSteps.OrderBy(s => s.SequenceNumber);
-
-                for (int i = 0; i < normalSteps.Count(); i++)
-                {
-                    normalSteps.ElementAt(i).SequenceNumber = nextSeqNumber;
-                    normalSteps.ElementAt(i).QuestionViewKey = currentKey;
-                    result.Add(normalSteps.ElementAt(i));
-                    nextSeqNumber += 10;
-                    currentKey = Helpers.Helper.GetNextAlphabeticalEntry(currentKey);
-                }
+                normalSteps = normalSteps
+                    .OrderBy(_ => Random.Shared.Next())
+                    .ToList();
             }
             else
             {
-                foreach (var step in normalSteps.OrderBy(s => s.SequenceNumber))
-                {
-                    step.QuestionViewKey = currentKey;
-                    result.Add(step);
-                    currentKey = Helpers.Helper.GetNextAlphabeticalEntry(currentKey);
-                }
+                normalSteps = normalSteps
+                    .OrderBy(s => s.SequenceNumber)
+                    .ToList();
             }
 
-            if (!finishSteps.Any())
+            if (finishSteps.Count == 0)
             {
-                finishSteps.Append(new()
+                finishSteps.Add(new QuestionStepResource
                 {
-                    FinishType = DefaultFinishType
+                    FinishType = DefaultFinishType,
+                    IsFinish = true
                 });
             }
 
-            foreach (var step in finishSteps)
+            if (startSteps.Count == 0)
             {
-                step.SequenceNumber = nextSeqNumber;
-                step.QuestionViewKey = currentKey;
+                startSteps.Add(new QuestionStepResource
+                {
+                    IsStart = true
+                });
+            }
+
+            var ordered = startSteps.Concat(normalSteps.Concat(finishSteps)).ToList();
+
+            var nextSequenceNumber = 0;
+            var currentKey = Helpers.Helper.GetNextAlphabeticalEntry("");
+
+            foreach (var step in ordered)
+            {
+                step.SequenceNumber = nextSequenceNumber;
+
+                if (!step.IsStart && !step.IsFinish)
+                {
+                    step.QuestionViewKey = currentKey;
+                    currentKey = Helpers.Helper.GetNextAlphabeticalEntry(currentKey);
+                }
+
                 result.Add(step);
-                nextSeqNumber += 10;
-                currentKey = Helpers.Helper.GetNextAlphabeticalEntry(currentKey);
+
+                nextSequenceNumber += 10;
             }
 
             OrderedSteps = result.ToArray();

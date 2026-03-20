@@ -16,11 +16,19 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
     /// <summary>
     /// Interaction logic for DefaultStepView.xaml
     /// </summary>
-    public partial class DefaultStepView : UserControl
+    public partial class DefaultStepView : UserControlStepViewBase
     {
         public DefaultStepView()
         {
             InitializeComponent();
+        }
+
+        public override void RefreshView()
+        {
+            StackPanleIsResult.Visibility = IsMasterView ? Visibility.Visible : Visibility.Collapsed;
+            StackPanleIsFinish.Visibility = IsMasterView ? Visibility.Visible : Visibility.Collapsed;
+
+            base.RefreshView();
         }
     }
 }

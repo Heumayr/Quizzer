@@ -11,7 +11,7 @@
             <Setter Property="Padding" Value="3" />
             <Setter Property="Margin" Value="1" />
             <Setter Property="Background" Value="{Binding IsDoneBrush}" />
-            <Setter Property="BorderBrush" Value="Gray" />
+            <Setter Property="BorderBrush" Value="Black" />
 
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
@@ -29,7 +29,7 @@
                        CommandParameter="{Binding ElementName=root, Path=CommandParameter}" />
         </Border.InputBindings>
 
-        <Border Margin="2" Padding="6" BorderThickness="1">
+        <Border Margin="2" Padding="6" BorderThickness="0" Background="Transparent">
             <Grid>
                 <StackPanel HorizontalAlignment="Center"
                     VerticalAlignment="Center">

@@ -1,4 +1,5 @@
-﻿using Quizzer.DataModels.Enumerations;
+﻿using Quizzer.DataModels;
+using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
 using System;
@@ -11,6 +12,9 @@ namespace Quizzer.Views.GameViews.QuestionViews
     {
         public CurrentQuestionViewModel Owner { get; set; } = null!;
         public QuestionStepResource? Step { get; set; }
+
+        public string ResourceRootFolder => Settings.ResourceRootFolder;
+        public string AudioPlaceholderFile => Settings.AudioPlaceholderFile;
 
         public QuestionBase? Question => Owner.Question;
 

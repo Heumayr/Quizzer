@@ -40,6 +40,9 @@ namespace Quizzer.DataModels.Models.Base
         [NotMapped]
         public string QuestionViewKey { get; set; } = string.Empty;
 
+        [NotMapped]
+        public bool IsStart { get; set; }
+
         public override string ToString()
         {
             return $"{SequenceNumber}-{Designation}";

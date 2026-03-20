@@ -11,7 +11,7 @@
     <base:WindowBase.DataContext>
         <local:EditQuestionViewModel />
     </base:WindowBase.DataContext>
-    <Grid>
+    <Grid Background="Black">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />
             <ColumnDefinition Width="*" />

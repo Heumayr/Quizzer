@@ -11,7 +11,7 @@
             <Setter Property="Padding" Value="3" />
             <Setter Property="Margin" Value="1" />
             <Setter Property="Background" Value="{Binding IsDoneBrush}" />
-            <Setter Property="BorderBrush" Value="Gray" />
+            <Setter Property="BorderBrush" Value="Black" />
 
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
