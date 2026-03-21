@@ -45,7 +45,7 @@ namespace Quizzer.Views.GameViews
 
         public GameMasterViewModel()
         {
-            StaticManager.BuzzerServerViewModel.PlayerConnectionStateChanged += OnPlayerConnectionStateChanged;
+            //StaticManager.BuzzerServerViewModel.PlayerConnectionStateChanged += OnPlayerConnectionStateChanged;
         }
 
         protected override async Task OnloadAsync()
@@ -84,19 +84,19 @@ namespace Quizzer.Views.GameViews
             return base.OnClosed();
         }
 
-        private void OnPlayerConnectionStateChanged(object? sender, ServerState e)
-        {
-            BackgroundBrush = e switch
-            {
-                ServerState.None => Brushes.White,
-                ServerState.Running => Brushes.Red,
-                ServerState.Stopped => Brushes.Wheat,
-                ServerState.AllConnected => Brushes.WhiteSmoke,
-                _ => Brushes.White
-            };
+        //private void OnPlayerConnectionStateChanged(object? sender, ServerState e)
+        //{
+        //    BackgroundBrush = e switch
+        //    {
+        //        ServerState.None => Brushes.White,
+        //        ServerState.Running => Brushes.Red,
+        //        ServerState.Stopped => Brushes.Wheat,
+        //        ServerState.AllConnected => Brushes.WhiteSmoke,
+        //        _ => Brushes.White
+        //    };
 
-            OnPropertyChanged(nameof(BackgroundBrush));
-        }
+        //    OnPropertyChanged(nameof(BackgroundBrush));
+        //}
 
         public Brush BackgroundBrush { get; set; } = Brushes.Wheat;
 

@@ -13,6 +13,12 @@
     <base:WindowBase.DataContext>
         <local:CurrentQuestionViewModel></local:CurrentQuestionViewModel>
     </base:WindowBase.DataContext>
+
+    <base:WindowBase.InputBindings>
+        <KeyBinding Key="Enter" Command="{Binding NextStepCommnad}" />
+        <KeyBinding Key="Back" Command="{Binding BackStepCommnad}" />
+    </base:WindowBase.InputBindings>
+
     <Window.Resources>
         <questions:QuestionStepTemplateSelector x:Key="QuestionStepTemplateSelector" />
 

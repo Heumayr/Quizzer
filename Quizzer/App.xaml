@@ -10,6 +10,9 @@
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Palette -->
+            <SolidColorBrush x:Key="CommonBlackBrush" Color="#111111" />
+            <SolidColorBrush x:Key="CommonWitheBrush" Color="WhiteSmoke" />
+
             <SolidColorBrush x:Key="AppBgBrush" Color="#111111" />
             <SolidColorBrush x:Key="PanelBgBrush" Color="#161616" />
             <SolidColorBrush x:Key="ControlBgBrush" Color="#202020" />
@@ -286,13 +289,13 @@
 
             <!-- Toggles -->
             <Style TargetType="CheckBox">
-                <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Foreground" Value="{StaticResource CommonBlackBrush}" />
+                <Setter Property="Background" Value="{StaticResource CommonWitheBrush}" />
             </Style>
 
             <Style TargetType="RadioButton">
-                <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Foreground" Value="{StaticResource CommonBlackBrush}" />
+                <Setter Property="Background" Value="{StaticResource CommonWitheBrush}" />
             </Style>
 
             <!-- Grouping -->

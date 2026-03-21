@@ -101,12 +101,12 @@
                 </DataGrid.RowStyle>
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Sequenz" Binding="{Binding SequenceNumber}" Width="Auto" />
-                    <DataGridTextColumn Header="Sequenz" Binding="{Binding QuestionViewKey}" Width="Auto" />
-                    <DataGridCheckBoxColumn Header="Is Result" Binding="{Binding IsResult}" Width="Auto" />
-                    <DataGridCheckBoxColumn Header="Is Finish" Binding="{Binding IsFinish}" Width="Auto" />
-                    <DataGridTextColumn Header="Designation" Binding="{Binding Designation}" Width="*" />
-                    <DataGridTextColumn Header="Resource type" Binding="{Binding ResourceTyp}" Width="Auto" />
+                    <DataGridTextColumn Header="Seq." Binding="{Binding SequenceNumber}" Width="Auto" />
+                    <DataGridTextColumn Header="Key" Binding="{Binding QuestionViewKey}" Width="Auto" />
+                    <DataGridCheckBoxColumn Header="R" Binding="{Binding IsResult}" Width="Auto" />
+                    <DataGridCheckBoxColumn Header="F" Binding="{Binding IsFinish}" Width="Auto" />
+                    <DataGridTextColumn Header="Desig." Binding="{Binding Designation}" Width="Auto" />
+                    <DataGridTextColumn Header="RT" Binding="{Binding ResourceTyp}" Width="Auto" />
                 </DataGrid.Columns>
             </DataGrid>
         </StackPanel>
