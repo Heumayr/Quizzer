@@ -28,11 +28,11 @@ namespace LocalBuzzer.Service.Base
             }
         }
 
-        public int Reset()
+        public int Reset(int round)
         {
             lock (this)
             {
-                _round++;
+                _round = round;
                 _locked = false;
                 _winner = null;
                 return _round;

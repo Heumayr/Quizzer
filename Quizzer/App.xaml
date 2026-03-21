@@ -14,6 +14,7 @@
             <SolidColorBrush x:Key="PanelBgBrush" Color="#161616" />
             <SolidColorBrush x:Key="ControlBgBrush" Color="#202020" />
             <SolidColorBrush x:Key="ControlBgAltBrush" Color="#262626" />
+            <SolidColorBrush x:Key="ControlBgAltBrushHeader" Color="#444444" />
             <SolidColorBrush x:Key="BorderBrushDark" Color="#3A3A3A" />
             <SolidColorBrush x:Key="BorderBrushLight" Color="#555555" />
             <SolidColorBrush x:Key="ForegroundBrush" Color="WhiteSmoke" />
@@ -38,28 +39,28 @@
 
             <!-- Panels -->
             <Style TargetType="Grid">
-                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Background" Value="{x:Null}" />
                 <!--<Setter Property="Background" Value="{StaticResource AppBgBrush}" />-->
             </Style>
 
             <Style TargetType="StackPanel">
-                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Background" Value="{x:Null}" />
             </Style>
 
             <Style TargetType="DockPanel">
-                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Background" Value="{x:Null}" />
             </Style>
 
             <Style TargetType="WrapPanel">
-                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Background" Value="{x:Null}" />
             </Style>
 
             <Style TargetType="UniformGrid">
-                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Background" Value="{x:Null}" />
             </Style>
 
             <Style TargetType="Border">
-                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Background" Value="{x:Null}" />
                 <Setter Property="BorderBrush" Value="{StaticResource BorderBrushDark}" />
             </Style>
 
@@ -396,8 +397,9 @@
 
             <Style TargetType="DataGridColumnHeader">
                 <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-                <Setter Property="Background" Value="{StaticResource PanelBgBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource BorderBrushLight}" />
+                <Setter Property="Background" Value="{StaticResource ControlBgAltBrushHeader}" />
+                <Setter Property="BorderBrush" Value="{StaticResource AppBgBrush}" />
+                <Setter Property="FontWeight" Value="DemiBold" />
                 <Setter Property="BorderThickness" Value="0.5" />
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
             </Style>

@@ -39,6 +39,9 @@ namespace Quizzer.Logic.Controller.TypedControllers
 
                     entity.QuestionBase = null!;
                 }
+
+                if (entity.QuestionBaseId == Guid.Empty)
+                    entity.QuestionBaseId = null;
             }
 
             return base.BeforeActionAsync(entity, action);

@@ -76,14 +76,12 @@ namespace Quizzer.Views.HelperViewModels
         public string TextLong => SplitLastBracketText(Text).Long;
         public string TextShort => SplitLastBracketText(Text).Short;
 
-        public override Task VMSaveAsync()
+        public override async Task VMSaveAsync()
         {
-            return Task.CompletedTask;
         }
 
-        protected override Task OnloadAsync()
+        protected override async Task OnloadAsync()
         {
-            throw new NotImplementedException();
         }
     }
 }

@@ -107,9 +107,11 @@ namespace Quizzer.Views.HelperViewModels
                         var inserted = await ctrlCoords.InsertAsync(new GameGridCoordinate()
                         {
                             Y = y,
-                            X = x
+                            X = x,
+                            QuestionBaseId = null,
+                            GameId = game.Id,
                         });
-                        await ctrlHeader.SaveChangesAsync();
+                        await ctrlCoords.SaveChangesAsync();
 
                         cell = inserted?.Entity ?? throw new Exception("Cell could not be inserted");
 

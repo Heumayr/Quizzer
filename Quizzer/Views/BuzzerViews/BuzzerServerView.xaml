@@ -24,9 +24,9 @@
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <Label Content="{Binding State}"></Label>
 
-            <StackPanel>
+            <!--<StackPanel>
                 <Button Content="Reset Round" Command="{Binding ResetRoundCommand}" />
-            </StackPanel>
+            </StackPanel>-->
 
             <DataGrid ItemsSource="{Binding Players}" AutoGenerateColumns="True" Margin="5" IsReadOnly="True"
                       base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenPlayerQRCommand}">

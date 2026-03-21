@@ -20,14 +20,7 @@ namespace LocalBuzzer.Service
     {
         private WebApplication? _app;
 
-        public event Action<string>? ClientAssigned;
-
-        public event Action<Player?, int>? WinnerDeclared;
-
-        public event Action<int>? RoundReset;
-
-        private IHubContext<BuzzerHub>? _hub;
-        private BuzzerState? _state;
+        public BuzzerController? BuzzerController { get; private set; }
 
         public Func<Game?>? GetGame { get; set; }
 
@@ -69,9 +62,6 @@ namespace LocalBuzzer.Service
 
                 try
                 {
-                    _hub = app.Services.GetRequiredService<IHubContext<BuzzerHub>>();
-                    _state = app.Services.GetRequiredService<BuzzerState>();
-
                     var gameAccessor = app.Services.GetRequiredService<GameAccessor>();
                     gameAccessor.GetGame = GetGame;
 
@@ -81,10 +71,12 @@ namespace LocalBuzzer.Service
 
                     app.MapHub<BuzzerHub>("/hub");
 
-                    var bus = app.Services.GetRequiredService<BuzzerEventBus>();
-                    bus.ClientAssigned += p => ClientAssigned?.Invoke(p);
-                    bus.WinnerDeclared += (p, r) => WinnerDeclared?.Invoke(p, r);
-                    bus.RoundReset += r => RoundReset?.Invoke(r);
+                    var eventBus = app.Services.GetRequiredService<BuzzerEventBus>();
+                    var buzzerHubContext = app.Services.GetRequiredService<IHubContext<BuzzerHub>>();
+                    var state = app.Services.GetRequiredService<BuzzerState>();
+
+                    BuzzerController?.Dispose();
+                    BuzzerController = new BuzzerController(eventBus, buzzerHubContext, state);
 
                     await app.StartAsync(ct);
 
@@ -94,8 +86,7 @@ namespace LocalBuzzer.Service
                 catch
                 {
                     await app.DisposeAsync();    // prevent leaks
-                    _hub = null;
-                    _state = null;
+                    BuzzerController?.Dispose();
                     ServerState = ServerState.Error;
                     throw;
                 }
@@ -114,8 +105,7 @@ namespace LocalBuzzer.Service
                 if (_app == null)
                 {
                     ServerState = ServerState.None;
-                    _hub = null;
-                    _state = null;
+                    BuzzerController?.Dispose();
                     return;
                 }
 
@@ -135,29 +125,13 @@ namespace LocalBuzzer.Service
                 finally
                 {
                     _app = null;
-                    _hub = null;
-                    _state = null;
+                    BuzzerController?.Dispose();
                 }
             }
             finally
             {
                 _gate.Release();
             }
-        }
-
-        public async Task ResetRoundAsync(CancellationToken ct = default)
-        {
-            if (_hub is null || _state is null)
-                throw new InvalidOperationException("Server is not running.");
-
-            // reset state
-            var newRound = _state.Reset(); // make Reset return int (round) or read _state.Round after Reset()
-
-            // notify all clients
-            await _hub.Clients.All.SendAsync("Reset", newRound, ct);
-
-            // notify WPF subscribers
-            RoundReset?.Invoke(newRound);
         }
 
         public ValueTask DisposeAsync() => new(StopAsync());

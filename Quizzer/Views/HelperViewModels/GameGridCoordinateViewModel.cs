@@ -120,7 +120,7 @@ namespace Quizzer.ViewModels
             }
         }
 
-        public Guid QuestionsId
+        public Guid? QuestionsId
         {
             get => _coordinate.QuestionBaseId;
             set

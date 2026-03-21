@@ -81,18 +81,18 @@ namespace Quizzer.Views.HelperViewModels
         public void CalculateAvailableQuestions()
         {
             var used = Game?.GameGridCoordinates
-                .Select(c => c.QuestionBaseId)
-                .Where(id => id != Guid.Empty)
+                .Where(c => c.QuestionBaseId != null && c.QuestionBaseId.Value != Guid.Empty)
+                .Select(c => c.QuestionBaseId!.Value)
                 .ToHashSet() ?? new HashSet<Guid>();
 
             var choices = AllQuestion
                 .Where(q => q.Id != Guid.Empty && !used.Contains(q.Id))
                 .ToList();
 
-            if (SelectedQuestion != null && !choices.Contains(SelectedQuestion))
-            {
-                choices.Prepend(SelectedQuestion);
-            }
+            //if (SelectedQuestion != null && !choices.Contains(SelectedQuestion))
+            //{
+            //    choices.Prepend(SelectedQuestion);
+            //}
             AvailableQuestions = choices;
         }
 
@@ -154,6 +154,7 @@ namespace Quizzer.Views.HelperViewModels
         private void Deselect(object? commandParameter)
         {
             SelectedQuestion = null;
+            CalculateAvailableQuestions();
         }
 
         private AsyncRelayCommand? selectAndCloseCommand;
@@ -161,7 +162,7 @@ namespace Quizzer.Views.HelperViewModels
 
         public ICommand SelectAndCloseCommand => selectAndCloseCommand ??= new AsyncRelayCommand(SelectAndCloseAsync);
 
-        private Task SelectAndCloseAsync(object? commandParameter)
+        private async Task SelectAndCloseAsync(object? commandParameter)
         {
             if (commandParameter is QuestionBase questionBase)
             {
@@ -172,8 +173,6 @@ namespace Quizzer.Views.HelperViewModels
 
                 Window?.Close();
             }
-
-            return Task.CompletedTask;
         }
     }
 }

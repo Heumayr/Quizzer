@@ -41,6 +41,8 @@ namespace Quizzer.DataModels.Models.Base
 
         public int PhaseAddition { get; set; }
 
+        public int CurrentRound { get; set; } = 1;
+
         public List<Header> Headers { get; set; } = new();
 
         public List<GameGridCoordinate> GameGridCoordinates { get; set; } = new();

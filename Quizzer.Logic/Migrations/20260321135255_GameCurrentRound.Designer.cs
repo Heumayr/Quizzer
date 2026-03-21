@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Quizzer.Logic.Context;
 
@@ -11,9 +12,11 @@ using Quizzer.Logic.Context;
 namespace Quizzer.Logic.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260321135255_GameCurrentRound")]
+    partial class GameCurrentRound
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -129,7 +132,7 @@ namespace Quizzer.Logic.Migrations
                     b.Property<int>("Phase")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("QuestionBaseId")
+                    b.Property<Guid>("QuestionBaseId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("RowVersion")
@@ -456,7 +459,9 @@ namespace Quizzer.Logic.Migrations
 
                     b.HasOne("Quizzer.DataModels.Models.QuestionBase", "QuestionBase")
                         .WithMany()
-                        .HasForeignKey("QuestionBaseId");
+                        .HasForeignKey("QuestionBaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Game");
 

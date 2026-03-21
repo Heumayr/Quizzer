@@ -92,7 +92,7 @@
 
             <Grid Grid.Row="3" Grid.Column="0">
                 <Border BorderBrush="WhiteSmoke">
-                    <buzzerServer:BuzzerControlsView Background="{Binding BackgroundBrush}"></buzzerServer:BuzzerControlsView>
+                    <buzzerServer:BuzzerControlsView Background="{Binding BackgroundBrush}" DataContext="{Binding BuzzerControlsViewModel}"></buzzerServer:BuzzerControlsView>
                 </Border>
             </Grid>
 

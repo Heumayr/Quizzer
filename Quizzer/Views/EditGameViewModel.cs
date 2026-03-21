@@ -151,7 +151,7 @@ namespace Quizzer.Views
         {
             if (Game == null) return;
 
-            GameGridVMs = await GridBuilder.RebuildCells(Game, CellView.Build);
+            GameGridVMs = await GridBuilder.RebuildCells(Game, CellView.Build, Game.State != GameState.Building);
         }
 
         public bool Restart
@@ -324,7 +324,7 @@ namespace Quizzer.Views
 
             view.ShowDialog();
 
-            if (cell.QuestionsId != Guid.Empty)
+            if (cell.QuestionsId.HasValue && cell.QuestionsId != Guid.Empty)
             {
                 using var ctrlQ = new QuestionBasesController();
                 cell.Question = (await ctrlQ.GetAsync(cell.QuestionsId));
@@ -380,7 +380,7 @@ namespace Quizzer.Views
             await ctrlHeader.SaveChangesAsync();
 
             using var ctrlCells = new GameGridCoordinatesController();
-            await ctrlCells.UpsertAsync(Game.GameGridCoordinates.Where(c => c.QuestionBase != null || c.QuestionBaseId != Guid.Empty));
+            await ctrlCells.UpsertAsync(Game.GameGridCoordinates);
             await ctrlCells.SaveChangesAsync();
         }
 
@@ -521,14 +521,17 @@ namespace Quizzer.Views
             game.CalculateAndSetCurrentPoints();
         }
 
-        private RelayCommand? setToBuildingModeCommand;
+        private AsyncRelayCommand? setToBuildingModeCommand;
 
-        public ICommand SetToBuildingModeCommand => setToBuildingModeCommand ??= new RelayCommand(SetToBuildingMode);
+        public ICommand SetToBuildingModeCommand => setToBuildingModeCommand ??= new AsyncRelayCommand(SetToBuildingModeAsync);
 
-        private void SetToBuildingMode(object? commandParameter)
+        private async Task SetToBuildingModeAsync(object? commandParameter)
         {
-            Game?.State = GameState.Building;
-            OnPropertyChanged(nameof(IsBuilding));
+            if (Game == null) return;
+
+            Game.State = GameState.Building;
+            await VMSaveAsync();
+            await LoadModel(Game.Id);
         }
     }
 }

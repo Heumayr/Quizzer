@@ -21,8 +21,10 @@ namespace Quizzer.Views.BuzzerViews
 {
     public class BuzzerServerViewModel : ViewModelBase
     {
-        private BuzzerServer? _server;
-        private Game? _game;
+        internal BuzzerServer? _server;
+        internal Game? _game;
+
+        public BuzzerControlsViewModel? BuzzerControlsViewModel { get; set; }
 
         private ServerState _serverState = ServerState.None;
 
@@ -44,7 +46,6 @@ namespace Quizzer.Views.BuzzerViews
             {
                 if (_serverState == value) return;
                 _serverState = value;
-                NotifyServerStateChanged();
 
                 BackgroundBrush = _serverState switch
                 {
@@ -56,6 +57,8 @@ namespace Quizzer.Views.BuzzerViews
                     ServerState.ActiveState => Brushes.Black,
                     _ => Brushes.Red
                 };
+
+                NotifyServerStateChanged();
                 OnPropertyChanged(nameof(BackgroundBrush));
             }
         }
@@ -118,7 +121,7 @@ namespace Quizzer.Views.BuzzerViews
             startServerCommand?.RaiseCanExecuteChanged();
             stopServerCommand?.RaiseCanExecuteChanged();
             openPlayerQRCommand?.RaiseCanExecuteChanged();
-            resetRoundCommand?.RaiseCanExecuteChanged();
+            //resetRoundCommand?.RaiseCanExecuteChanged();
 
             PlayerConnectionStateChanged?.Invoke(this, ServerState);
         }
@@ -172,15 +175,6 @@ namespace Quizzer.Views.BuzzerViews
                     {
                         GetGame = () => Game
                     };
-
-                    _server.WinnerDeclared += (player, round) =>
-                    {
-                        // NOTE: this runs on server thread; marshal to UI
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            MessageBox.Show($"Winner: {player} (Runde {round})");
-                        });
-                    };
                 }
 
                 ServerState = (_server.ServerState | ServerState.Starting) & ~ServerState.Error;
@@ -191,11 +185,14 @@ namespace Quizzer.Views.BuzzerViews
                     WebRootPath = Path.Combine(AppContext.BaseDirectory, "wwwroot")
                 });
 
+                BuzzerControlsViewModel?.Dispose();
+                BuzzerControlsViewModel = new();
+                BuzzerControlsViewModel.SetBuzzerVerverViewModel(this);
+
                 RecalcServerState();
             }
             catch (Exception ex)
             {
-                // reflect error in VM
                 var s = _server?.ServerState ?? ServerState.None;
                 ServerState = s | ServerState.Error;
 
@@ -218,9 +215,11 @@ namespace Quizzer.Views.BuzzerViews
             {
                 ServerState = (ServerState | ServerState.Stopping) & ~ServerState.Starting;
 
+                BuzzerControlsViewModel?.Dispose();
+
                 await _server.StopAsync();
 
-                RecalcServerState(); // should become None (and remove AllConnected)
+                RecalcServerState();
             }
             catch (Exception ex)
             {
@@ -232,15 +231,15 @@ namespace Quizzer.Views.BuzzerViews
             }
         }
 
-        private AsyncRelayCommand? resetRoundCommand;
+        //private AsyncRelayCommand? resetRoundCommand;
 
-        public ICommand ResetRoundCommand => resetRoundCommand ??= new AsyncRelayCommand(ResetRoundAsync, _ => IsBuzzerServerRunning);
+        //public ICommand ResetRoundCommand => resetRoundCommand ??= new AsyncRelayCommand(ResetRoundAsync, _ => IsBuzzerServerRunning);
 
-        private async Task ResetRoundAsync(object? commandParameter)
-        {
-            if (_server == null) return;
-            await _server.ResetRoundAsync();
-        }
+        //private async Task ResetRoundAsync(object? commandParameter)
+        //{
+        //    if (_server == null) return;
+        //    await _server.ResetRoundAsync();
+        //}
 
         private RelayCommand? openPlayerQRCommand;
 

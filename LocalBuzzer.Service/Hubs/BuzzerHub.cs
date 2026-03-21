@@ -80,9 +80,9 @@ namespace LocalBuzzer.Service.Hubs
             }
         }
 
-        public async Task ResetRound()
+        public async Task ResetRound(int round)
         {
-            var round = _state.Reset();
+            _ = _state.Reset(round);
             _bus.OnReset(round);
             await Clients.All.SendAsync("Reset", round);
         }

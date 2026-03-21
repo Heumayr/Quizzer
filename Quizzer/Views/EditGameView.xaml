@@ -204,11 +204,10 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border CornerRadius="10"
-                            Background="DarkBlue"
+                            Background="#555555"
                             SnapsToDevicePixels="True"
                             Margin="3">
-                                <TextBox IsReadOnly="{Binding LockHeader}"
-                               Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+                                <TextBox IsReadOnly="{Binding LockHeader}" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
                                Background="Transparent"
                                Foreground="WhiteSmoke"
                                BorderThickness="0"
@@ -240,7 +239,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border CornerRadius="10"
-                         Background="DarkBlue"
+                         Background="#555555"
                          SnapsToDevicePixels="True"
                          Margin="3">
                                 <TextBox IsReadOnly="{Binding LockHeader}" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"

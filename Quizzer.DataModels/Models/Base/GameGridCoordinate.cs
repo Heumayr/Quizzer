@@ -3,6 +3,7 @@ using Quizzer.DataModels.Attributes;
 using Quizzer.DataModels.Models.QuestionTypes;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
@@ -25,7 +26,7 @@ namespace Quizzer.DataModels.Models.Base
 
         public int Phase { get; set; } = 1;
 
-        public Guid QuestionBaseId { get; set; }
+        public Guid? QuestionBaseId { get; set; }
 
         public Guid GameId { get; set; }
 

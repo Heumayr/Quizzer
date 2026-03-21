@@ -24,6 +24,8 @@ namespace Quizzer.Views.GameViews
     {
         public GamePlayerViewModel? GamePlayerViewModel { get; set; }
 
+        public BuzzerControlsViewModel? BuzzerControlsViewModel => StaticManager.BuzzerServerViewModel.BuzzerControlsViewModel;
+
         private string backgroundImagePath = Settings.BackgroundImagePath;
         public Brush HeaderBrush { get; set; } = Brushes.Black;
 
@@ -39,12 +41,12 @@ namespace Quizzer.Views.GameViews
 
         public CurrentQuestionViewModel()
         {
-            StaticManager.BuzzerServerViewModel.PlayerConnectionStateChanged += OnPlayerConnectionStateChanged;
+            //StaticManager.BuzzerServerViewModel.PlayerConnectionStateChanged += OnPlayerConnectionStateChanged;
         }
 
         protected override async Task OnloadAsync()
         {
-            OnPlayerConnectionStateChanged(this, StaticManager.BuzzerServerViewModel.ServerState);
+            //OnPlayerConnectionStateChanged(this, StaticManager.BuzzerServerViewModel.ServerState);
 
             if (Coordinate == null)
                 return;
@@ -97,31 +99,33 @@ namespace Quizzer.Views.GameViews
             return base.OnClosed();
         }
 
-        public Brush BackgroundBrush
-        {
-            get => backgroundBrush;
-            set
-            {
-                backgroundBrush = value;
-                OnPropertyChanged();
-            }
-        }
+        //private Brush backgroundBrush = Brushes.DarkGray;
 
-        private void OnPlayerConnectionStateChanged(object? sender, ServerState e)
-        {
-            BackgroundBrush = e switch
-            {
-                ServerState.None => Brushes.DarkGray,
-                ServerState.Running => Brushes.Red,
-                ServerState.Stopping => Brushes.Red,
-                ServerState.Stopped => Brushes.DarkGray,
-                ServerState.AllConnected => Brushes.Black,
-                ServerState.ActiveState => Brushes.Black,
-                _ => Brushes.Red
-            };
+        //public Brush BackgroundBrush
+        //{
+        //    get => backgroundBrush;
+        //    set
+        //    {
+        //        backgroundBrush = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
 
-            BuzzerState = e.DescriptionOrString();
-        }
+        //private void OnPlayerConnectionStateChanged(object? sender, ServerState e)
+        //{
+        //    BackgroundBrush = e switch
+        //    {
+        //        ServerState.None => Brushes.DarkGray,
+        //        ServerState.Running => Brushes.Red,
+        //        ServerState.Stopping => Brushes.Red,
+        //        ServerState.Stopped => Brushes.DarkGray,
+        //        ServerState.AllConnected => Brushes.Black,
+        //        ServerState.ActiveState => Brushes.Black,
+        //        _ => Brushes.Red
+        //    };
+
+        //    BuzzerState = e.DescriptionOrString();
+        //}
 
         public GameGridCoordinate? Coordinate { get; set; }
 
@@ -328,7 +332,6 @@ namespace Quizzer.Views.GameViews
         #region Buzzer
 
         private string buzzerState = string.Empty;
-        private Brush backgroundBrush = Brushes.DarkGray;
 
         public string BuzzerState
         {
@@ -339,8 +342,6 @@ namespace Quizzer.Views.GameViews
                 OnPropertyChanged();
             }
         }
-
-        public ICommand? ResetRoundCommand => BuzzerServerViewModel?.ResetRoundCommand;
 
         #endregion Buzzer
     }
