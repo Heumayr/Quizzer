@@ -2,6 +2,7 @@
 using Quizzer.DataModels;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Views.GameViews.QuestionViews;
+using Quizzer.Views.StaticRessources;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Data;
@@ -23,7 +24,8 @@ namespace Quizzer.Views.GameViews
         private Visibility showQuestionText;
 
         private string backgroundImagePath = Settings.BackgroundImagePath;
-        public Brush HeaderBrush { get; set; } = Brushes.Black;
+        public Brush HeaderColumnBrush { get; set; } = StaticResources.HeaderColumnImageBrush;
+        public Brush HeaderRowBrush { get; set; } = StaticResources.HeaderRowImageBrush;
 
         public string BackgroundImagePath
         {

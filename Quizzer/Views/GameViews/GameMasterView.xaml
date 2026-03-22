@@ -54,7 +54,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border CornerRadius="10"
-                                    Background="{Binding DataContext.HeaderBrush, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    Background="{Binding DataContext.HeaderColumnBrush, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                     SnapsToDevicePixels="True"
                                     Margin="3">
                                 <TextBox IsReadOnly="{Binding LockHeader}"
@@ -90,7 +90,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border CornerRadius="10"
-                                    Background="{Binding DataContext.HeaderBrush, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    Background="{Binding DataContext.HeaderRowBrush, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                     SnapsToDevicePixels="True"
                                     Margin="3">
                                 <TextBox IsReadOnly="{Binding LockHeader}"

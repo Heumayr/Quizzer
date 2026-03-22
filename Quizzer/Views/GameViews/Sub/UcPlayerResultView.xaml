@@ -9,9 +9,9 @@
     <!--<UserControl.DataContext>
         <local:PlayerResultContext></local:PlayerResultContext>
     </UserControl.DataContext>-->
-    <Grid MinHeight="50" MinWidth="50" Background="{Binding BackgroundBrush}">
+    <Grid MinHeight="50" MinWidth="50" Background="{Binding BackgroundBrush}" HorizontalAlignment="Stretch">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"></RowDefinition>
@@ -21,16 +21,23 @@
             <RowDefinition Height="auto"></RowDefinition>
         </Grid.RowDefinitions>
 
-        <Label Grid.Row="0" Grid.Column="0" Content="{Binding Player.Designation}"></Label>
-        <Label Grid.Row="1" Grid.Column="0"  Content="{Binding Player.DisplayName}"></Label>
-
-        <Grid Grid.Row="2" Grid.Column="0" Width="150" Height="150">
-            <Grid.Background>
-                <ImageBrush ImageSource="{Binding PlayerImagePath}"
-                   Stretch="UniformToFill" />
-            </Grid.Background>
+        <Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center">
+            <Label FontSize="18" FontWeight="ExtraBlack" Content="{Binding Player.Designation}"></Label>
         </Grid>
 
-        <CheckBox Grid.Row="3" Grid.Column="0" IsEnabled="False" IsChecked="{Binding IsBuzzerWinner, Mode=OneWay}"></CheckBox>
+        <Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center">
+            <Label FontSize="18" FontWeight="DemiBold" Content="{Binding Player.DisplayName}"></Label>
+        </Grid>
+
+        <Border Grid.Row="2" Grid.Column="0" Width="150" Height="150" BorderThickness="3" CornerRadius="10" BorderBrush="#333333">
+            <Border.Background>
+                <ImageBrush ImageSource="{Binding PlayerImagePath}"
+                   Stretch="UniformToFill" />
+            </Border.Background>
+        </Border>
+
+        <Grid Grid.Row="3" Grid.Column="0" HorizontalAlignment="Right">
+            <CheckBox IsEnabled="False" IsChecked="{Binding IsBuzzerWinner, Mode=OneWay}"></CheckBox>
+        </Grid>
     </Grid>
 </UserControl>

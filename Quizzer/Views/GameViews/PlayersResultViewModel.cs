@@ -16,6 +16,8 @@ namespace Quizzer.Views.GameViews
 
         private GameGridCoordinate? Coordinate { get; set; }
 
+        public int Columns => PlayerResultContextList.Count();
+
         public Player? CurrentBuzzerWinner
         {
             get => currentBuzzerWinner;
@@ -95,6 +97,7 @@ namespace Quizzer.Views.GameViews
             }
 
             PlayerResultContextList = contextList;
+            OnPropertyChanged(nameof(Columns));
         }
 
         public override async Task VMSaveAsync()

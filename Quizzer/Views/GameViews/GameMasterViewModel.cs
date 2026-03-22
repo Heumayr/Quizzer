@@ -31,7 +31,8 @@ namespace Quizzer.Views.GameViews
         private BuzzerServerView? buzzerServerView = null;
 
         private string backgroundImagePath = Settings.BackgroundImagePath;
-        public Brush HeaderBrush { get; set; } = Brushes.Black;
+        public Brush HeaderColumnBrush { get; set; } = StaticResources.HeaderColumnImageBrush;
+        public Brush HeaderRowBrush { get; set; } = StaticResources.HeaderRowImageBrush;
 
         public string BackgroundImagePath
         {

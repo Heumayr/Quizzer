@@ -4,9 +4,11 @@ using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Extentions;
 using Quizzer.Views.HelperViewModels;
+using Quizzer.Views.StaticRessources;
 using System;
 using System.ComponentModel;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace Quizzer.ViewModels
 {
@@ -144,8 +146,9 @@ namespace Quizzer.ViewModels
             }
         }
 
-        public Brush IsDoneBrush => IsDone ? Brushes.DarkRed : new SolidColorBrush(Color.FromRgb(92, 72, 60));
-        public Brush IsDoneTextBrush => IsDone ? Brushes.Wheat : Brushes.White;
+        public Brush IsDoneBrush => IsDone ? StaticResources.CellImageBrushIsDone : StaticResources.CellImageBrush;
+        public Brush HoverBrush => StaticResources.CellHoverImageBrush;
+        public Brush IsDoneTextBrush => IsDone ? Brushes.Wheat : Brushes.WhiteSmoke;
 
         public QuestionBase? Question
         {

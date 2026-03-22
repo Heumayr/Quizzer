@@ -15,7 +15,7 @@
 
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="DarkGreen" />
+                    <Setter Property="Background" Value="{Binding HoverBrush}" />
                     <Setter Property="BorderBrush" Value="Black" />
                     <Setter Property="BorderThickness" Value="1" />
                 </Trigger>
