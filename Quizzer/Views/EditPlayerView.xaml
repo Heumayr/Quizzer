@@ -30,6 +30,13 @@
                 <Label MinWidth="120" Content="Display Name:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" Text="{Binding Path=Player.DisplayName}" MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Resource Filename:" VerticalAlignment="Center" />
+                <TextBox IsEnabled="False" Height="25" VerticalContentAlignment="Center" Text="{Binding Path=Player.UserPictureFileName, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" Margin="5,0,0,0" Width="350" />
+                <Button Content="Select" Command="{Binding SelectResourceCommnad}" />
+            </StackPanel>
+
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Sum Final Score:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" IsReadOnly="True" Text="{Binding Path=Player.FinalScore, Mode=OneWay}" MinWidth="200" Margin="5,0,0,0" />

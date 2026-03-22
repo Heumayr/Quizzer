@@ -15,6 +15,8 @@ namespace Quizzer.DataModels.Models.Base
 
         public List<QuestionResult> CurrentQuestionResults { get; set; } = new();
 
+        public string UserPictureFileName { get; set; } = string.Empty;
+
         [NotMapped]
         private PlayerConnection connectionState = PlayerConnection.Unknown;
 
