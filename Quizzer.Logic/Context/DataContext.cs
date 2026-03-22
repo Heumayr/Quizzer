@@ -37,6 +37,12 @@ namespace Quizzer.Logic.Context
         {
             modelBuilder.Entity<QuestionBase>().UseTptMappingStrategy();
 
+            modelBuilder.Entity<QuestionResult>()
+                .HasOne(qr => qr.GameGridCoordinate)
+                .WithMany()
+                .HasForeignKey(qr => qr.GameGridCoordinateId)
+                .OnDelete(DeleteBehavior.NoAction);
+
             base.OnModelCreating(modelBuilder);
         }
 

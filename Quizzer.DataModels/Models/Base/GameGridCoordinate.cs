@@ -73,6 +73,8 @@ namespace Quizzer.DataModels.Models.Base
             }
         }
 
+        public List<QuestionResult> QuestionResults { get; set; } = new();
+
         [ForeignKey(nameof(GameId))]
         public Game Game { get; set; } = null!;
 

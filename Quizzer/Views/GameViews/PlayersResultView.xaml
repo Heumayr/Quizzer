@@ -1,0 +1,29 @@
+﻿<base:WindowBase x:Class="Quizzer.Views.GameViews.PlayersResultView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Quizzer.Views.GameViews"
+        xmlns:sub="clr-namespace:Quizzer.Views.GameViews.Sub"
+        xmlns:base="clr-namespace:Quizzer.Base"
+        mc:Ignorable="d"
+        Title="PlayersResultView" Height="450" Width="800">
+    <base:WindowBase.DataContext>
+        <local:PlayersResultViewModel></local:PlayersResultViewModel>
+    </base:WindowBase.DataContext>
+    <Grid Background="Black">
+        <ItemsControl ItemsSource="{Binding PlayerResultContextList}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="5" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <sub:UcPlayerResultView />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Grid>
+</base:WindowBase>

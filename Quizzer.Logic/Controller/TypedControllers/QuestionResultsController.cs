@@ -38,5 +38,12 @@ namespace Quizzer.Logic.Controller.TypedControllers
                 .Where(qr => qr.GameId == gameId)
                 .ExecuteDeleteAsync();
         }
+
+        public async Task<List<QuestionResult>?> GetAllResultsForCoordinate(Guid coordinateId)
+        {
+            var result = await EntitySet.Where(c => c.GameGridCoordinateId == coordinateId).ToListAsync();
+
+            return result;
+        }
     }
 }

@@ -14,6 +14,8 @@ namespace Quizzer.Views.BuzzerViews
 {
     public class BuzzerControlsViewModel : UcViewModelBase, IDisposable
     {
+        public Action<Player?, int>? WinnerDeclared { get; set; }
+
         private BuzzerServerViewModel? BuzzerServerViewModel { get; set; }
 
         public BuzzerController? BuzzerController => BuzzerServerViewModel?._server?.BuzzerController;
@@ -47,7 +49,7 @@ namespace Quizzer.Views.BuzzerViews
 
         public ICommand ResetRoundCommand => resetRoundCommand ??= new AsyncRelayCommand(ResetRoundAsync, _ => BuzzerServerViewModel?.IsBuzzerServerRunning ?? false);
 
-        private async Task ResetRoundAsync(object? commandParameter)
+        public async Task ResetRoundAsync(object? commandParameter)
         {
             if (BuzzerServerViewModel is null || BuzzerController is null || Game is null)
                 throw new Exception("Invalid Server State");
@@ -65,7 +67,7 @@ namespace Quizzer.Views.BuzzerViews
             {
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    MessageBox.Show($"Winner: {player?.Designation}");
+                    WinnerDeclared?.Invoke(player, round);
                 });
             }
             catch (Exception ex)

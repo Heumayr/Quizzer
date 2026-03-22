@@ -24,6 +24,8 @@ namespace Quizzer.Views.GameViews
     {
         public GamePlayerViewModel? GamePlayerViewModel { get; set; }
 
+        public PlayersResultViewModel? PlayersResultViewModel { get; set; }
+
         public BuzzerControlsViewModel? BuzzerControlsViewModel => StaticManager.BuzzerServerViewModel.BuzzerControlsViewModel;
 
         private string backgroundImagePath = Settings.BackgroundImagePath;
@@ -65,9 +67,18 @@ namespace Quizzer.Views.GameViews
 
             NextStep = Coordinate.QuestionBase?.OrderedSteps.FirstOrDefault();
             FinishStep = Coordinate.QuestionBase?.OrderedSteps.FirstOrDefault(s => s.IsFinish);
-            //TODO: Load Results
+
+            PlayersResultViewModel = new PlayersResultViewModel();
+            await PlayersResultViewModel.SetCoordinateAsync(Coordinate);
 
             await OnModeldChanged();
+
+            //Buzzer
+            if (BuzzerControlsViewModel != null)
+            {
+                await BuzzerControlsViewModel.ResetRoundAsync(null);
+                BuzzerControlsViewModel.WinnerDeclared = OnWinnerDeclared;
+            }
         }
 
         private async Task OnModeldChanged()
@@ -341,6 +352,28 @@ namespace Quizzer.Views.GameViews
                 buzzerState = value;
                 OnPropertyChanged();
             }
+        }
+
+        private AsyncRelayCommand? openResultsCommand;
+        public ICommand OpenResultsCommand => openResultsCommand ??= new AsyncRelayCommand(OpenResultsAsync);
+
+        private async Task OpenResultsAsync(object? commandParameter)
+        {
+            OpenResults(null, Coordinate?.Game.CurrentRound ?? 0);
+        }
+
+        private void OnWinnerDeclared(Player? player, int round)
+        {
+            OpenResults(player, round);
+        }
+
+        private void OpenResults(Player? winner, int round)
+        {
+            PlayersResultViewModel?.CurrentBuzzerWinner = winner;
+
+            var resultWindow = new PlayersResultView();
+            resultWindow.DataContext = PlayersResultViewModel;
+            resultWindow.ShowDialog();
         }
 
         #endregion Buzzer

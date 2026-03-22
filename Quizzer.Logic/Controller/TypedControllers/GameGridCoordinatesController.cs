@@ -19,6 +19,11 @@ namespace Quizzer.Logic.Controller.TypedControllers
 
         protected override IQueryable<GameGridCoordinate> SetQueryAttributes(IQueryable<GameGridCoordinate> query, Actions action)
         {
+            if ((action & Actions.Get) > 0)
+            {
+                query = query.Include(c => c.QuestionResults);
+            }
+
             return base.SetQueryAttributes(query, action);
         }
 
