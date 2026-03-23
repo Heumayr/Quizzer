@@ -5,39 +5,82 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Quizzer.Views.GameViews.Sub"
              mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="800">
+             MinWidth="100"
+             MinHeight="350"
+             d:DesignHeight="0" d:DesignWidth="0">
     <!--<UserControl.DataContext>
         <local:PlayerResultContext></local:PlayerResultContext>
     </UserControl.DataContext>-->
-    <Grid MinHeight="50" MinWidth="50" Background="{Binding BackgroundBrush}" HorizontalAlignment="Stretch">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto"></RowDefinition>
-            <RowDefinition Height="auto"></RowDefinition>
-            <RowDefinition Height="auto"></RowDefinition>
-            <RowDefinition Height="auto"></RowDefinition>
-            <RowDefinition Height="auto"></RowDefinition>
-        </Grid.RowDefinitions>
+    <Border BorderThickness="3" BorderBrush="#333333" CornerRadius="2">
+        <Grid MinHeight="50" MinWidth="50" Background="{Binding BackgroundBrush}" HorizontalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
+            </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center">
-            <Label FontSize="18" FontWeight="ExtraBlack" Content="{Binding Player.Designation}"></Label>
+            <Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center">
+                <Label FontSize="18" FontWeight="ExtraBlack" Content="{Binding Player.Designation}"></Label>
+            </Grid>
+
+            <Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center">
+                <Label FontSize="18" FontWeight="DemiBold" Content="{Binding Player.DisplayName}"></Label>
+            </Grid>
+
+            <Border Grid.Row="2" Grid.Column="0" Width="150" Height="150" BorderThickness="3" CornerRadius="10" BorderBrush="#333333">
+                <Border.Background>
+                    <ImageBrush ImageSource="{Binding PlayerImagePath}"
+                Stretch="UniformToFill" />
+                </Border.Background>
+            </Border>
+
+            <Grid Grid.Row="3" Grid.Column="0" x:Name="ScoreGrid">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"></RowDefinition>
+                    <RowDefinition Height="auto"></RowDefinition>
+                    <RowDefinition Height="auto"></RowDefinition>
+                    <RowDefinition Height="auto"></RowDefinition>
+                    <RowDefinition Height="auto"></RowDefinition>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Column="0" Grid.Row="0" Content="Correct answered:"></Label>
+                <CheckBox Grid.Column="1" Grid.Row="0" IsChecked="{Binding CorrectAnswered}" VerticalAlignment="Center"></CheckBox>
+
+                <Label Grid.Column="0" Grid.Row="1" Content="Actual Score:"></Label>
+                <Label Grid.Column="1" Grid.Row="1" Content="{Binding ActualScore, Mode=OneWay}"  HorizontalAlignment="Left"></Label>
+
+                <Label Grid.Column="0" Grid.Row="2" Content="Manipulation:"></Label>
+                <TextBox Grid.Column="1" Grid.Row="2" IsReadOnly="{Binding CanNotEditManipulation}" HorizontalAlignment="Left"
+                  Text="{Binding CurrentScoreManipulation, UpdateSourceTrigger=PropertyChanged}" Width="50"></TextBox>
+
+                <Label Grid.Column="0" Grid.Row="3" Content="New Score:"></Label>
+                <Label Grid.Column="1" Grid.Row="3" Content="{Binding NewScore, Mode=OneWay}"  HorizontalAlignment="Left"></Label>
+
+                <Grid Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button Content="Right" Command="{Binding RightSuggestionCommand}"></Button>
+                        <Button Content="Wrong" Command="{Binding WrongSuggestionCommand}"></Button>
+                        <Button Content="None" Command="{Binding NoneSuggestionCommand}"></Button>
+                        <Button Content="Correction" Command="{Binding CorrectionSuggestionCommand}"></Button>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+
+            <Grid Grid.Row="4" Grid.Column="0" HorizontalAlignment="Right">
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="Buzzered:"></Label>
+                    <CheckBox IsEnabled="False" IsChecked="{Binding IsBuzzerWinner, Mode=OneWay}" VerticalAlignment="Center"></CheckBox>
+                </StackPanel>
+            </Grid>
         </Grid>
-
-        <Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center">
-            <Label FontSize="18" FontWeight="DemiBold" Content="{Binding Player.DisplayName}"></Label>
-        </Grid>
-
-        <Border Grid.Row="2" Grid.Column="0" Width="150" Height="150" BorderThickness="3" CornerRadius="10" BorderBrush="#333333">
-            <Border.Background>
-                <ImageBrush ImageSource="{Binding PlayerImagePath}"
-                   Stretch="UniformToFill" />
-            </Border.Background>
-        </Border>
-
-        <Grid Grid.Row="3" Grid.Column="0" HorizontalAlignment="Right">
-            <CheckBox IsEnabled="False" IsChecked="{Binding IsBuzzerWinner, Mode=OneWay}"></CheckBox>
-        </Grid>
-    </Grid>
+    </Border>
 </UserControl>

@@ -6,16 +6,30 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Windows.Input;
 using System.Windows.Media;
+using static Quizzer.Views.GameViews.Sub.PlayerResultContext;
 
 namespace Quizzer.Views.GameViews.Sub
 {
     public class PlayerResultContext : UcViewModelBase
     {
+        public enum ScoreSuggestion
+        {
+            None,
+            Right,
+            Wrong,
+            Correction
+        }
+
         private Player? currentBuzzerWinner;
         private Player player = null!;
+        private ScoreSuggestion suggestion;
+        private QuestionResult result = null!;
 
-        public GameGridCoordinate Coordinate { get; set; } = null!;
+        public PlayersResultViewModel PlayersResultViewModel { get; set; } = null!;
+
+        public GameGridCoordinate? Coordinate => PlayersResultViewModel?.Coordinate;
 
         public Player Player
         {
@@ -28,9 +42,16 @@ namespace Quizzer.Views.GameViews.Sub
             }
         }
 
-        public QuestionResult Result { get; set; } = null!;
-
-        public QuestionBase? Question => Coordinate?.QuestionBase;
+        public QuestionResult Result
+        {
+            get => result;
+            set
+            {
+                result = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ActualScore));
+            }
+        }
 
         public Player? CurrentBuzzerWinner
         {
@@ -57,5 +78,173 @@ namespace Quizzer.Views.GameViews.Sub
 
             return Brushes.Black;
         }
+
+        public ScoreSuggestion Suggestion
+        {
+            get => suggestion;
+            set
+            {
+                suggestion = value;
+                OnPropertyChanged();
+
+                CurrentScoreManipulation = suggestion switch
+                {
+                    ScoreSuggestion.Right => Coordinate?.CurrentPoints ?? 0,
+                    ScoreSuggestion.Wrong => Coordinate?.CurrentMinusPoints * -1 ?? 0,
+                    _ => 0,
+                };
+
+                if (value == ScoreSuggestion.Right)
+                    CorrectAnswered = true;
+                else if (value == ScoreSuggestion.Wrong)
+                    CorrectAnswered = false;
+
+                OnPropertyChanged(nameof(CanNotEditManipulation));
+            }
+        }
+
+        public bool CanNotEditManipulation => Suggestion != ScoreSuggestion.Correction;
+
+        public void SetManipulationToResult()
+        {
+            switch (Suggestion)
+            {
+                case ScoreSuggestion.Right:
+                    if (CurrentScoreManipulation < 0) throw new Exception("Invalid positiv score");
+                    Result.Score += CurrentScoreManipulation;
+                    Result.RightCount++;
+                    break;
+
+                case ScoreSuggestion.Wrong:
+                    if (CurrentScoreManipulation > 0) throw new Exception("Invalid negativ score");
+                    Result.WrongCount++;
+                    Result.MinusScore += CurrentScoreManipulation * -1;
+                    break;
+
+                case ScoreSuggestion.Correction:
+                    Result.CorrectionsCount++;
+                    Result.Correction += CurrentScoreManipulation;
+                    break;
+            }
+
+            Suggestion = ScoreSuggestion.None;
+            OnPropertyChanged(nameof(ActualScore));
+        }
+
+        public void RefreshUIOnModelSave()
+        {
+            OnPropertyChanged(nameof(Result));
+            OnPropertyChanged(nameof(CorrectAnswered));
+            OnPropertyChanged(nameof(ActualScore));
+            OnPropertyChanged(nameof(CurrentScoreManipulation));
+            OnPropertyChanged(nameof(NewScore));
+        }
+
+        public int CurrentScoreManipulation
+        {
+            get
+            {
+                return field;
+            }
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+
+                NewScore = Result.FinalScore + value;
+            }
+        }
+
+        public int NewScore
+        {
+            get
+            {
+                return field;
+            }
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool CorrectAnswered
+        {
+            get
+            {
+                return Result.CorrectAnswered;
+            }
+            set
+            {
+                Result.CorrectAnswered = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int ActualScore
+        {
+            get
+            {
+                return Result?.FinalScore ?? 0;
+            }
+        }
+
+        private RelayCommand? rightSuggestionCommand;
+        public ICommand RightSuggestionCommand => rightSuggestionCommand ??= new RelayCommand(RightSuggestion);
+
+        private void RightSuggestion(object? commandParameter)
+        {
+            Suggestion = ScoreSuggestion.Right;
+        }
+
+        private RelayCommand? wrongSuggestionCommand;
+        public ICommand WrongSuggestionCommand => wrongSuggestionCommand ??= new RelayCommand(WrongSuggestion);
+
+        private void WrongSuggestion(object? commandParameter)
+        {
+            Suggestion = ScoreSuggestion.Wrong;
+        }
+
+        private RelayCommand? noneSuggestionCommand;
+        public ICommand NoneSuggestionCommand => noneSuggestionCommand ??= new RelayCommand(NoneSuggestion);
+
+        private void NoneSuggestion(object? commandParameter)
+        {
+            Suggestion = ScoreSuggestion.None;
+        }
+
+        private RelayCommand? correctionSuggestionCommand;
+        public ICommand CorrectionSuggestionCommand => correctionSuggestionCommand ??= new RelayCommand(CorrectionSuggestion);
+
+        private void CorrectionSuggestion(object? commandParameter)
+        {
+            Suggestion = ScoreSuggestion.Correction;
+        }
+
+        //public int Score
+        //{
+        //    get
+        //    {
+        //        return Result.Score;
+        //    }
+        //    set
+        //    {
+        //        Result.Score = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
+
+        //public int MinusScore
+        //{
+        //    get
+        //    {
+        //        return Result.MinusScore;
+        //    }
+        //    set
+        //    {
+        //        Result.MinusScore = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
     }
 }

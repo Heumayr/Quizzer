@@ -12,7 +12,15 @@
         <local:PlayersResultViewModel></local:PlayersResultViewModel>
     </base:WindowBase.DataContext>
     <Grid Background="Black">
-        <ItemsControl ItemsSource="{Binding PlayerResultContextList}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" MinHeight="100"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+        </Grid.RowDefinitions>
+
+        <ItemsControl Grid.Column="0" Grid.Row="0" ItemsSource="{Binding PlayerResultContextList}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <UniformGrid Columns="{Binding Columns}" />
@@ -25,5 +33,10 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
+
+        <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Content="Save" Command="{Binding SaveCommand}"></Button>
+            <Button Content="Save and Close" Command="{Binding SaveAndCloseCommand}"></Button>
+        </StackPanel>
     </Grid>
 </base:WindowBase>

@@ -22,11 +22,17 @@ namespace Quizzer.DataModels.Models.Base
 
         public bool CorrectAnswered { get; set; }
 
+        public int RightCount { get; set; }
+        public int WrongCount { get; set; }
+        public int CorrectionsCount { get; set; }
+
         public int Score { get; set; }
 
         public int MinusScore { get; set; }
 
-        public int FinalScore => Score - MinusScore;
+        public int Correction { get; set; }
+
+        public int FinalScore => Score + Correction - MinusScore;
 
         public QuestionBase QuestionBase { get; set; } = null!;
 

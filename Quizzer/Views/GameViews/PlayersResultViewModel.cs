@@ -2,10 +2,12 @@
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.Views.GameViews.Sub;
+using Quizzer.Views.StaticRessources;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Quizzer.Views.GameViews
 {
@@ -14,7 +16,7 @@ namespace Quizzer.Views.GameViews
         private List<PlayerResultContext> playerResultContextList = new();
         private Player? currentBuzzerWinner;
 
-        private GameGridCoordinate? Coordinate { get; set; }
+        public GameGridCoordinate? Coordinate { get; private set; }
 
         public int Columns => PlayerResultContextList.Count();
 
@@ -88,7 +90,7 @@ namespace Quizzer.Views.GameViews
 
                 var newContext = new PlayerResultContext()
                 {
-                    Coordinate = Coordinate,
+                    PlayersResultViewModel = this,
                     Player = player,
                     Result = result
                 };
@@ -102,10 +104,48 @@ namespace Quizzer.Views.GameViews
 
         public override async Task VMSaveAsync()
         {
+            try
+            {
+                using var ctrl = new QuestionResultsController();
+                foreach (var ctx in PlayerResultContextList)
+                {
+                    ctx.SetManipulationToResult();
+
+                    await ctrl.UpsertAsync(ctx.Result);
+                }
+
+                await ctrl.SaveChangesAsync();
+
+                foreach (var ctx in PlayerResultContextList)
+                {
+                    ctx.RefreshUIOnModelSave();
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
         }
 
         protected override async Task OnloadAsync()
         {
+        }
+
+        private AsyncRelayCommand? saveCommand;
+        public ICommand SaveCommand => saveCommand ??= new AsyncRelayCommand(SaveAsync);
+
+        private async Task SaveAsync(object? commandParameter)
+        {
+            await VMSaveAsync();
+        }
+
+        private AsyncRelayCommand? saveAndCloseCommand;
+        public ICommand SaveAndCloseCommand => saveAndCloseCommand ??= new AsyncRelayCommand(SaveAndCloseAsync);
+
+        private async Task SaveAndCloseAsync(object? commandParameter)
+        {
+            await VMSaveAsync();
+            Window?.Close();
         }
     }
 }
