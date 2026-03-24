@@ -32,18 +32,10 @@ namespace Quizzer.Logic.Controller.TypedControllers
             if (Context != null && (action & Actions.WriteActions) > 0)
             {
                 if (entity.Game != null)
-                {
                     entity.GameId = entity.Game.Id;
 
-                    entity.Game = null!;
-                }
-
                 if (entity.QuestionBase != null)
-                {
                     entity.QuestionBaseId = entity.QuestionBase.Id;
-
-                    entity.QuestionBase = null!;
-                }
 
                 if (entity.QuestionBaseId == Guid.Empty)
                     entity.QuestionBaseId = null;

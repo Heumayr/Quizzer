@@ -7,7 +7,7 @@ using System.Text;
 namespace Quizzer.DataModels.Models.Base
 {
     [Table(nameof(Header), Schema = "base")]
-    public class Header : ModelBase
+    public class Header : ModelBase<Header>
     {
         public Guid GameId { get; set; }
 
@@ -15,5 +15,19 @@ namespace Quizzer.DataModels.Models.Base
         public int Index { get; set; } = 0;
 
         public Game? Game { get; set; }
+
+        public override Header CloneWithoutReferences(bool copyIdentity = true)
+        {
+            var clone = new Header
+            {
+                GameId = GameId,
+                HeaderType = HeaderType,
+                Index = Index,
+                Game = null
+            };
+
+            CopyBaseValuesTo(clone, copyIdentity);
+            return clone;
+        }
     }
 }

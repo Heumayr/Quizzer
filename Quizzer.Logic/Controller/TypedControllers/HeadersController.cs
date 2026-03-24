@@ -29,8 +29,6 @@ namespace Quizzer.Logic.Controller.TypedControllers
                 if (entity.Game != null)
                 {
                     entity.GameId = entity.Game.Id;
-
-                    entity.Game = null!;
                 }
             }
 

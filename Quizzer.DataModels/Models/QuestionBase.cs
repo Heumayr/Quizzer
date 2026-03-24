@@ -9,7 +9,7 @@ using System.Text;
 namespace Quizzer.DataModels.Models
 {
     [Table(nameof(QuestionBase), Schema = "question")]
-    public class QuestionBase : ModelBase
+    public class QuestionBase : ModelBase<QuestionBase>
     {
         public virtual string DesignationShort { get; set; } = string.Empty;
 
@@ -135,6 +135,38 @@ namespace Quizzer.DataModels.Models
             }
 
             OrderedSteps = result.ToArray();
+        }
+
+        protected virtual QuestionBase CreateCloneInstance()
+        {
+            return new QuestionBase();
+        }
+
+        public override QuestionBase CloneWithoutReferences(bool copyIdentity = true)
+        {
+            var clone = CreateCloneInstance();
+            CopyQuestionBaseValuesTo(clone, copyIdentity);
+            return clone;
+        }
+
+        protected void CopyQuestionBaseValuesTo(QuestionBase target, bool copyIdentity = true)
+        {
+            CopyBaseValuesTo(target, copyIdentity);
+
+            target.DesignationShort = DesignationShort;
+            target.QuestionText = QuestionText;
+            target.CategoryId = CategoryId;
+            target.Points = Points;
+            target.MinusPoints = MinusPoints;
+            target.Notes = Notes;
+            target.Difficulty = Difficulty;
+            target.WarnOnResultStep = WarnOnResultStep;
+            target.WarnOnFinishStep = WarnOnFinishStep;
+            target.UseRandomSequenceOnNonFinishSteps = UseRandomSequenceOnNonFinishSteps;
+
+            target.Steps = new List<QuestionStepResource>();
+            target.Category = null;
+            target.OrderedSteps = [];
         }
     }
 }

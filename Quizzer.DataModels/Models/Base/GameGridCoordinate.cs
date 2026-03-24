@@ -10,7 +10,7 @@ using System.Text;
 namespace Quizzer.DataModels.Models.Base
 {
     [Table(nameof(GameGridCoordinate), Schema = "base")]
-    public class GameGridCoordinate : ModelBase
+    public class GameGridCoordinate : ModelBase<GameGridCoordinate>
     {
         private QuestionBase? question;
 
@@ -89,5 +89,27 @@ namespace Quizzer.DataModels.Models.Base
 
         [NotMapped]
         public string DisplayMaster => !string.IsNullOrEmpty(QuestionBase?.DesignationShort) ? $"{QuestionBase?.DesignationShort}" : DisplayBuild;
+
+        public override GameGridCoordinate CloneWithoutReferences(bool copyIdentity = true)
+        {
+            var clone = new GameGridCoordinate
+            {
+                X = X,
+                Y = Y,
+                Z = Z,
+                Phase = Phase,
+                QuestionBaseId = QuestionBaseId,
+                GameId = GameId,
+                IsDone = IsDone,
+                CurrentPoints = CurrentPoints,
+                CurrentMinusPoints = CurrentMinusPoints,
+                QuestionBase = null,
+                QuestionResults = new List<QuestionResult>(),
+                Game = null!
+            };
+
+            CopyBaseValuesTo(clone, copyIdentity);
+            return clone;
+        }
     }
 }

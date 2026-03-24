@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Quizzer.DataModels.Models.Base
 {
     [Table(nameof(Player), Schema = "base")]
-    public class Player : ModelBase
+    public class Player : ModelBase<Player>
     {
         public event EventHandler<PlayerConnection>? PlayerConnectionChanged;
 
@@ -48,6 +48,20 @@ namespace Quizzer.DataModels.Models.Base
             if (DisplayName.Length > 0) return DisplayName;
 
             return Designation;
+        }
+
+        public override Player CloneWithoutReferences(bool copyIdentity = true)
+        {
+            var clone = new Player
+            {
+                DisplayName = DisplayName,
+                CurrentQuestionResults = new List<QuestionResult>(),
+                UserPictureFileName = UserPictureFileName,
+                ConnectionState = ConnectionState
+            };
+
+            CopyBaseValuesTo(clone, copyIdentity);
+            return clone;
         }
     }
 }

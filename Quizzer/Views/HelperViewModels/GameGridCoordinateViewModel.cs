@@ -1,4 +1,5 @@
 ﻿using Quizzer.Base;
+using Quizzer.DataModels;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
@@ -7,6 +8,7 @@ using Quizzer.Views.HelperViewModels;
 using Quizzer.Views.StaticRessources;
 using System;
 using System.ComponentModel;
+using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -143,8 +145,32 @@ namespace Quizzer.ViewModels
                 OnPropertyChanged(nameof(IsDone));
                 OnPropertyChanged(nameof(IsDoneBrush));
                 OnPropertyChanged(nameof(IsDoneTextBrush));
+                OnPropertyChanged(nameof(WinnerEntries));
+                OnPropertyChanged(nameof(PlayerGridColums));
+                OnPropertyChanged(nameof(HasWinners));
+                OnPropertyChanged(nameof(ShowWinners));
+                OnPropertyChanged(nameof(ShowFailed));
+                OnPropertyChanged(nameof(ShowDefaultContent));
             }
         }
+
+        public WinnerDisplayItem[] WinnerEntries =>
+                Coordinate.QuestionResults
+                .Where(r => r.CorrectAnswered && r.Player != null)
+                .Select(r => new WinnerDisplayItem(r.Player))
+                .ToArray();
+
+        public int PlayerGridColums => WinnerEntries.Length <= 0
+            ? 1
+            : (int)Math.Ceiling(Math.Sqrt(WinnerEntries.Length));
+
+        public bool HasWinners => WinnerEntries.Length > 0;
+
+        public bool ShowWinners => IsDone && HasWinners;
+
+        public bool ShowFailed => IsDone && !HasWinners;
+
+        public bool ShowDefaultContent => !IsDone;
 
         public Brush IsDoneBrush => IsDone ? StaticResources.CellImageBrushIsDone : StaticResources.CellImageBrush;
         public Brush HoverBrush => StaticResources.CellHoverImageBrush;
@@ -185,6 +211,15 @@ namespace Quizzer.ViewModels
         {
             // WPF treats string.Empty as "everything changed"
             OnPropertyChanged(string.Empty);
+            OnPropertyChanged(nameof(IsDone));
+            OnPropertyChanged(nameof(IsDoneBrush));
+            OnPropertyChanged(nameof(IsDoneTextBrush));
+            OnPropertyChanged(nameof(WinnerEntries));
+            OnPropertyChanged(nameof(PlayerGridColums));
+            OnPropertyChanged(nameof(HasWinners));
+            OnPropertyChanged(nameof(ShowWinners));
+            OnPropertyChanged(nameof(ShowFailed));
+            OnPropertyChanged(nameof(ShowDefaultContent));
         }
 
         private void HookQuestion(QuestionBase? q)
@@ -225,5 +260,36 @@ namespace Quizzer.ViewModels
         {
             throw new NotImplementedException();
         }
+
+        public void RefreshWinnerUI()
+        {
+            OnPropertyChanged(nameof(IsDone));
+            OnPropertyChanged(nameof(IsDoneBrush));
+            OnPropertyChanged(nameof(IsDoneTextBrush));
+            OnPropertyChanged(nameof(WinnerEntries));
+            OnPropertyChanged(nameof(PlayerGridColums));
+            OnPropertyChanged(nameof(HasWinners));
+            OnPropertyChanged(nameof(ShowWinners));
+            OnPropertyChanged(nameof(ShowFailed));
+            OnPropertyChanged(nameof(ShowDefaultContent));
+        }
+    }
+
+    public class WinnerDisplayItem
+    {
+        public WinnerDisplayItem(Player player)
+        {
+            Player = player;
+        }
+
+        public Player Player { get; }
+
+        public string DisplayName => string.IsNullOrEmpty(Player?.DisplayName)
+            ? Player?.Designation ?? string.Empty
+            : Player.DisplayName;
+
+        public string PlayerImagePath => string.IsNullOrEmpty(Player?.UserPictureFileName)
+            ? Settings.PlaceholderPlayerImagePath
+            : Path.Combine(Settings.FilePathQuizzer, Player.UserPictureFileName);
     }
 }

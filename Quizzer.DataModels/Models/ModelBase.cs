@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace Quizzer.DataModels.Models
 {
@@ -14,5 +12,27 @@ namespace Quizzer.DataModels.Models
 
         [Timestamp]
         public byte[]? RowVersion { get; set; }
+    }
+
+    public interface ICloneWithoutReferences<out TEntity>
+    {
+        TEntity CloneWithoutReferences(bool copyIdentity = false);
+    }
+
+    public abstract class ModelBase<TEntity> : ModelBase, ICloneWithoutReferences<TEntity>
+    where TEntity : ModelBase
+    {
+        public abstract TEntity CloneWithoutReferences(bool copyIdentity = true);
+
+        protected void CopyBaseValuesTo(TEntity target, bool copyIdentity = true)
+        {
+            if (copyIdentity)
+            {
+                target.Id = Id;
+                target.RowVersion = RowVersion?.ToArray();
+            }
+
+            target.Designation = Designation;
+        }
     }
 }

@@ -13,8 +13,13 @@ namespace Quizzer.DataModels.Models.QuestionTypes
         public override QuestionType Typ { get; protected set; } = QuestionType.Default;
 
         public override bool WarnOnResultStep { get; set; } = false;
-        public override bool UseRandomSequenceOnNonFinishSteps { get; set; } = true;
+        public override bool UseRandomSequenceOnNonFinishSteps { get; set; } = false;
 
         public override FinishType DefaultFinishType { get; protected set; } = FinishType.AllPreviousSteps;
+
+        protected override QuestionBase CreateCloneInstance()
+        {
+            return new DefaultQuestion();
+        }
     }
 }

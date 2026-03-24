@@ -1,65 +1,30 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.Extensions.Options;
+using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.Logic.Context;
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
-using Quizzer.DataModels.Enumerations;
 using System.Collections.Concurrent;
 
 namespace Quizzer.Logic.Controller
 {
-    /// <summary>
-    /// Implements the default behavior of a controller for a specific entity.
-    /// </summary>
-    /// <typeparam name="TEntity">The type of the entity.</typeparam>
     public abstract class GenericController<TEntity> : ControllerBase
-        where TEntity : ModelBase, new()
+        where TEntity : ModelBase, ICloneWithoutReferences<TEntity>, new()
     {
-        protected ConcurrentDictionary<Guid, object?> _PrivateModelCache = new ConcurrentDictionary<Guid, object?>();
+        protected readonly ConcurrentDictionary<Guid, object?> _PrivateModelCache = new();
 
         private DbSet<TEntity>? entitySet;
 
-        /// <summary>
-        /// Creates a new data context.
-        /// </summary>
         protected GenericController()
         {
         }
 
-        /// <summary>
-        /// Uses the data context and authentication token of another controller.
-        /// </summary>
-        /// <param name="other">The other controller to copy the context and session token from.</param>
         protected GenericController(ControllerBase other) : base(other)
         {
         }
 
-        /// <summary>
-        /// Selects the data set by the generic type.
-        /// </summary>
-        public DbSet<TEntity> EntitySet
-        {
-            get
-            {
-                if (entitySet == null)
-                {
-                    if (Context != null)
-                        entitySet = Context.GetDbSet<TEntity>();
-                    else
-                    {
-                        using var tempContext = new DataContext();
+        internal DataContext CurrentContext => Context ??= new DataContext();
 
-                        entitySet = tempContext.GetDbSet<TEntity>();
-                    }
-                }
-
-                return entitySet;
-            }
-        }
+        public DbSet<TEntity> EntitySet => entitySet ??= CurrentContext.GetDbSet<TEntity>();
 
         protected virtual Task<TEntity> BeforeActionAsync(TEntity entity, Actions action)
         {
@@ -76,128 +41,192 @@ namespace Quizzer.Logic.Controller
             return query;
         }
 
-        /// <summary>
-        /// Adds an entity to the data set.
-        /// </summary>
-        /// <param name="entity">The entity to insert.</param>
-        /// <returns>The entity entry of the inserted entity.</returns>
+        protected virtual IQueryable<TEntity> CreateReadQuery(Actions action)
+        {
+            return SetQueryAttributes(EntitySet.AsNoTracking().AsQueryable(), action);
+        }
+
+        protected virtual IQueryable<TEntity> CreateWriteQuery(Actions action)
+        {
+            return SetQueryAttributes(EntitySet.AsQueryable(), action);
+        }
+
+        protected virtual TEntity CloneForEf(TEntity entity, bool copyIdentity = true, bool clearRowVersion = false)
+        {
+            var clone = entity.CloneWithoutReferences(copyIdentity);
+
+            if (clearRowVersion)
+                clone.RowVersion = null;
+
+            return clone;
+        }
+
+        protected virtual void ApplyConcurrencyOriginalValue(TEntity source, TEntity target)
+        {
+            if (source.RowVersion == null)
+                return;
+
+            var property = CurrentContext.Entry(target).Property<byte[]?>(nameof(ModelBase.RowVersion));
+            property.OriginalValue = source.RowVersion.ToArray();
+            property.IsModified = false;
+        }
+
+        protected virtual async Task<TEntity?> FindForWriteAsync(
+            Guid id,
+            Actions action,
+            Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null)
+        {
+            var local = EntitySet.Local.FirstOrDefault(e => e.Id == id);
+            if (local != null)
+                return local;
+
+            IQueryable<TEntity> query = CreateWriteQuery(action);
+
+            if (include != null)
+                query = include(query);
+
+            return await query.FirstOrDefaultAsync(e => e.Id == id).ConfigureAwait(false);
+        }
+
         public virtual async ValueTask<EntityEntry<TEntity>> InsertAsync(TEntity entity)
         {
-            return await EntitySet.AddAsync(await BeforeActionAsync(entity, Actions.Insert)).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(entity);
+
+            var working = await BeforeActionAsync(entity, Actions.Insert).ConfigureAwait(false);
+
+            if (working.Id == Guid.Empty)
+                working.Id = Guid.NewGuid();
+
+            var prepared = CloneForEf(working, copyIdentity: true, clearRowVersion: true);
+
+            var entry = await EntitySet.AddAsync(prepared).ConfigureAwait(false);
+
+            await AfterActionAsync(entry.Entity, Actions.Insert).ConfigureAwait(false);
+
+            return entry;
         }
 
-        /// <summary>
-        /// Gets an entity from the database by id.
-        /// </summary>
-        /// <param name="id">The id of the searched entity.</param>
-        /// <returns>The entity if found, otherwise null.</returns>
         public virtual async ValueTask<TEntity?> GetAsync(Guid? id)
         {
-            var query = EntitySet.AsQueryable();
+            if (!id.HasValue || id.Value == Guid.Empty)
+                return null;
 
-            query = SetQueryAttributes(query, Actions.Get);
+            var entity = await CreateReadQuery(Actions.Get)
+                .FirstOrDefaultAsync(e => e.Id == id.Value)
+                .ConfigureAwait(false);
 
-            var entity = await query.FirstOrDefaultAsync(e => e.Id == id).ConfigureAwait(false);
+            if (entity == null)
+                return null;
 
-            if (entity != null)
-                _ = await AfterActionAsync(entity, Actions.Get).ConfigureAwait(false);
-
-            return entity;
+            return await AfterActionAsync(entity, Actions.Get).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Gets all entries in the database. Must be restricted.
-        /// </summary>
-        /// <returns>An array with all entries.</returns>
         public virtual async Task<TEntity[]> GetAllAsync()
         {
-            var query = EntitySet.AsNoTracking().AsQueryable();
+            var entities = await CreateReadQuery(Actions.GetAll)
+                .ToListAsync()
+                .ConfigureAwait(false);
 
-            query = SetQueryAttributes(query, Actions.GetAll);
-
-            var entities = await query.ToListAsync().ConfigureAwait(false);
+            var result = new List<TEntity>(entities.Count);
 
             foreach (var entity in entities)
             {
-                _ = await AfterActionAsync(entity, Actions.GetAll).ConfigureAwait(false);
+                result.Add(await AfterActionAsync(entity, Actions.GetAll).ConfigureAwait(false));
             }
 
-            return entities.ToArray();
+            return result.ToArray();
         }
 
-        /// <summary>
-        /// Updates a specific entity.
-        /// </summary>
-        /// <param name="entity">The updated entity.</param>
-        /// <returns>The updated entity.</returns>
-        public virtual Task<TEntity> UpdateAsync(TEntity entity)
+        public virtual async Task<TEntity> UpdateAsync(TEntity entity)
         {
-            return Task.Run(async () =>
+            ArgumentNullException.ThrowIfNull(entity);
+
+            if (entity.Id == Guid.Empty)
+                throw new InvalidOperationException("Update requires a valid Id.");
+
+            var working = await BeforeActionAsync(entity, Actions.Update).ConfigureAwait(false);
+            var prepared = CloneForEf(working, copyIdentity: true, clearRowVersion: false);
+
+            var existing = await FindForWriteAsync(prepared.Id, Actions.Update).ConfigureAwait(false);
+
+            if (existing == null)
             {
-                return EntitySet.Update(await BeforeActionAsync(entity, Actions.Update).ConfigureAwait(false)).Entity;
-            });
+                var entry = CurrentContext.Attach(prepared);
+                entry.State = EntityState.Modified;
+
+                ApplyConcurrencyOriginalValue(working, entry.Entity);
+
+                await AfterActionAsync(entry.Entity, Actions.Update).ConfigureAwait(false);
+                return entry.Entity;
+            }
+
+            CurrentContext.Entry(existing).CurrentValues.SetValues(prepared);
+            ApplyConcurrencyOriginalValue(working, existing);
+
+            await AfterActionAsync(existing, Actions.Update).ConfigureAwait(false);
+            return existing;
         }
 
-        /// <summary>
-        /// Removes an entry from the database by id.
-        /// </summary>
-        /// <param name="id">The id of the entity to remove.</param>
-        /// <returns>True if removing was successful, otherwise false.</returns>
         public virtual async Task<bool> DeleteAsync(Guid? id)
         {
-            var entity = await GetAsync(id).ConfigureAwait(false);
+            if (!id.HasValue || id.Value == Guid.Empty)
+                return false;
+
+            var entity = await FindForWriteAsync(id.Value, Actions.Delete).ConfigureAwait(false);
 
             if (entity == null)
                 return false;
 
             await BeforeActionAsync(entity, Actions.Delete).ConfigureAwait(false);
 
-            //delete
             EntitySet.Remove(entity);
-
-            //soft delete
-            //entity.Deleted = DateTime.Now;
-            //EntitySet.Update(entity);
 
             await AfterActionAsync(entity, Actions.Delete).ConfigureAwait(false);
 
             return true;
         }
 
-        /// <summary>
-        /// Removes multiple entries from the database by their ids.
-        /// </summary>
-        /// <param name="ids">The ids of the entities to remove.</param>
-        /// <returns>True if all removals were successful, otherwise false.</returns>
         public virtual async Task<bool> DeleteAsync(IEnumerable<Guid> ids)
         {
-            foreach (var id in ids)
+            var idList = ids?
+                .Where(x => x != Guid.Empty)
+                .Distinct()
+                .ToList() ?? new List<Guid>();
+
+            if (idList.Count == 0)
+                return true;
+
+            var entities = new List<TEntity>(idList.Count);
+
+            foreach (var id in idList)
             {
-                if (!await DeleteAsync(id).ConfigureAwait(false))
+                var entity = await FindForWriteAsync(id, Actions.Delete).ConfigureAwait(false);
+                if (entity == null)
                     return false;
+
+                entities.Add(entity);
+            }
+
+            foreach (var entity in entities)
+            {
+                await BeforeActionAsync(entity, Actions.Delete).ConfigureAwait(false);
+            }
+
+            EntitySet.RemoveRange(entities);
+
+            foreach (var entity in entities)
+            {
+                await AfterActionAsync(entity, Actions.Delete).ConfigureAwait(false);
             }
 
             return true;
         }
 
-        /// <summary>
-        /// Saves all changes in the current data context.
-        /// </summary>
-        /// <returns>The number of state entries written to the database.</returns>
         public virtual async Task<int> SaveChangesAsync()
         {
-            if (Context == null)
-                return 0;
-
-            var result = await Context.SaveChangesAsync().ConfigureAwait(false);
-
-            return result;
+            return await CurrentContext.SaveChangesAsync().ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Gets the number of entries in the database.
-        /// </summary>
-        /// <returns>The number of entries.</returns>
         public virtual async Task<int> CountAsync()
         {
             return await EntitySet.CountAsync().ConfigureAwait(false);
@@ -205,67 +234,52 @@ namespace Quizzer.Logic.Controller
 
         public virtual async Task<IEnumerable<TEntity>> UpsertAsync(IEnumerable<TEntity> entities)
         {
-            var toSaves = entities.ToList();
+            ArgumentNullException.ThrowIfNull(entities);
 
-            foreach (var toSave in toSaves)
+            var result = new List<TEntity>();
+
+            foreach (var entity in entities)
             {
-                await UpsertAsync(toSave);
+                var upserted = await UpsertAsync(entity).ConfigureAwait(false);
+                result.Add(upserted.Entity);
             }
 
-            return toSaves;
+            return result;
         }
 
         public virtual async Task<(TEntity Entity, bool Created)> UpsertAsync(
-                TEntity entity,
-                Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null)
+            TEntity entity,
+            Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null)
         {
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            ArgumentNullException.ThrowIfNull(entity);
 
-            // If your ModelBase.Id is Guid
-            var id = entity.Id;
-
-            // No Id => treat as insert
-            if (id == Guid.Empty)
+            if (entity.Id == Guid.Empty)
             {
-                // ensure it has an id if you don't use DB-generated GUIDs
-                entity.Id = Guid.NewGuid();
-
-                entity = await BeforeActionAsync(entity, Actions.Insert).ConfigureAwait(false);
-                await EntitySet.AddAsync(entity).ConfigureAwait(false);
-                entity = await AfterActionAsync(entity, Actions.Insert).ConfigureAwait(false);
-
-                return (entity, true);
+                var entry = await InsertAsync(entity).ConfigureAwait(false);
+                return (entry.Entity, true);
             }
 
-            // Try to find existing
-            IQueryable<TEntity> query = EntitySet.AsQueryable();
-            query = SetQueryAttributes(query, Actions.Get);
+            var existing = await FindForWriteAsync(entity.Id, Actions.Update, include).ConfigureAwait(false);
 
-            if (include != null)
-                query = include(query);
-
-            var existing = await query.FirstOrDefaultAsync(e => e.Id == id).ConfigureAwait(false);
-
-            // Not found => insert (with provided Id)
             if (existing == null)
             {
-                entity = await BeforeActionAsync(entity, Actions.Insert).ConfigureAwait(false);
-                await EntitySet.AddAsync(entity).ConfigureAwait(false);
-                entity = await AfterActionAsync(entity, Actions.Insert).ConfigureAwait(false);
+                var workingInsert = await BeforeActionAsync(entity, Actions.Insert).ConfigureAwait(false);
+                var preparedInsert = CloneForEf(workingInsert, copyIdentity: true, clearRowVersion: true);
 
-                return (entity, true);
+                var entry = await EntitySet.AddAsync(preparedInsert).ConfigureAwait(false);
+
+                await AfterActionAsync(entry.Entity, Actions.Insert).ConfigureAwait(false);
+
+                return (entry.Entity, true);
             }
 
-            // Found => update (copy values into tracked entity)
-            entity = await BeforeActionAsync(entity, Actions.Update).ConfigureAwait(false);
+            var workingUpdate = await BeforeActionAsync(entity, Actions.Update).ConfigureAwait(false);
+            var preparedUpdate = CloneForEf(workingUpdate, copyIdentity: true, clearRowVersion: false);
 
-            // If existing is tracked, this updates it safely
-            Context!.Entry(existing).CurrentValues.SetValues(entity);
+            CurrentContext.Entry(existing).CurrentValues.SetValues(preparedUpdate);
+            ApplyConcurrencyOriginalValue(workingUpdate, existing);
 
-            // If you want to update owned/child collections, you must handle that per-entity
-            // (generic update of collections is not safe).
-
-            entity = await AfterActionAsync(existing, Actions.Update).ConfigureAwait(false);
+            await AfterActionAsync(existing, Actions.Update).ConfigureAwait(false);
 
             return (existing, false);
         }

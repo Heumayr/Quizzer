@@ -14,7 +14,7 @@ namespace Quizzer.Views.BuzzerViews
 {
     public class BuzzerControlsViewModel : UcViewModelBase, IDisposable
     {
-        public Action<Player?, int>? WinnerDeclared { get; set; }
+        public Func<Player?, int, Task>? WinnerDeclared { get; set; }
 
         private BuzzerServerViewModel? BuzzerServerViewModel { get; set; }
 
@@ -65,9 +65,10 @@ namespace Quizzer.Views.BuzzerViews
         {
             try
             {
-                await Application.Current.Dispatcher.InvokeAsync(() =>
+                await Application.Current.Dispatcher.InvokeAsync(async () =>
                 {
-                    WinnerDeclared?.Invoke(player, round);
+                    if (WinnerDeclared != null)
+                        await WinnerDeclared.Invoke(player, round);
                 });
             }
             catch (Exception ex)

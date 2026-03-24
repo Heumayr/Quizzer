@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:Quizzer.Views.GameViews.QuestionViews"
              xmlns:base="clr-namespace:Quizzer.Base"
              mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="800" Background="Black" Foreground="WhiteSmoke">
+             d:DesignHeight="450" d:DesignWidth="345" Background="Black" Foreground="WhiteSmoke">
     <UserControl.Resources>
         <base:EqualityMultiConverter x:Key="EqualityMultiConverter" />
     </UserControl.Resources>
@@ -51,6 +51,7 @@
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Notes:" VerticalAlignment="Center" />
                 <TextBox Grid.Column="1"
+                       IsReadOnly="True"
                        Text="{Binding QuestionNotes, Mode=OneWay}"
                        Margin="5,0,0,0"
                        AcceptsReturn="True"
@@ -60,7 +61,7 @@
                        MinHeight="60"
                        MaxHeight="200"
                        HorizontalAlignment="Stretch"
-               VerticalAlignment="Top" />
+                       VerticalAlignment="Top" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5,10,0,0">
                 <Button Content="Start" Command="{Binding StartStepCommnad}" />

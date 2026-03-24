@@ -5,6 +5,8 @@
              xmlns:base="clr-namespace:Quizzer.Base"
              x:Name="root">
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
         <Style x:Key="CellBorderStyle" TargetType="Border">
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="4" />
@@ -21,35 +23,108 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <Style x:Key="CenteredLabelStyle" TargetType="Label">
+            <Setter Property="Padding" Value="3" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
     </UserControl.Resources>
+
     <Border Style="{StaticResource CellBorderStyle}">
         <Border.InputBindings>
             <MouseBinding MouseAction="LeftClick"
-                       Command="{Binding ElementName=root, Path=Command}"
-                       CommandParameter="{Binding ElementName=root, Path=CommandParameter}" />
+                          Command="{Binding ElementName=root, Path=Command}"
+                          CommandParameter="{Binding ElementName=root, Path=CommandParameter}" />
         </Border.InputBindings>
 
-        <Border Margin="2" Padding="6" BorderThickness="0" Background="Transparent">
+        <Border Margin="2"
+                Padding="6"
+                BorderThickness="0"
+                Background="Transparent">
             <Grid>
+                <!-- Default content while not done -->
                 <StackPanel HorizontalAlignment="Center"
-                    VerticalAlignment="Center">
-                    <StackPanel.Resources>
-                        <Style TargetType="Label">
-                            <Setter Property="Padding" Value="3" />
-                            <Setter Property="Margin" Value="0" />
-                            <!-- center text inside each label -->
-                            <Setter Property="HorizontalContentAlignment" Value="Center" />
-                            <Setter Property="VerticalContentAlignment" Value="Center" />
-                        </Style>
-                    </StackPanel.Resources>
+                            VerticalAlignment="Center"
+                            Visibility="{Binding ShowDefaultContent, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Label Style="{StaticResource CenteredLabelStyle}"
+                           FontSize="18"
+                           Foreground="{Binding IsDoneTextBrush}"
+                           Content="{Binding DisplayCoordsFull}" />
 
-                    <Label FontSize="18" Foreground="{Binding IsDoneTextBrush}" Content="{Binding DisplayCoordsFull}" />
-                    <Label FontSize="12" Foreground="{Binding IsDoneTextBrush}" Content="{Binding PointsDisplay}"
+                    <Label Style="{StaticResource CenteredLabelStyle}"
+                           FontSize="12"
+                           Foreground="{Binding IsDoneTextBrush}"
+                           Content="{Binding PointsDisplay}"
                            base:AutoFitLabel.IsEnabled="True"
                            base:AutoFitLabel.MinFontSize="6"
                            base:AutoFitLabel.MaxFontSize="22"
                            base:AutoFitLabel.WrapText="False" />
                 </StackPanel>
+
+                <!-- Winners -->
+                <ItemsControl ItemsSource="{Binding WinnerEntries}"
+                              Visibility="{Binding ShowWinners, Converter={StaticResource BoolToVisibilityConverter}}"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="{Binding PlayerGridColums}" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="2"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <Border Grid.Row="0"
+                                        Margin="1"
+                                        CornerRadius="4"
+                                        ClipToBounds="True"
+                                        BorderBrush="#AA000000"
+                                        BorderThickness="1"
+                                        Background="#22000000"
+                                        MinWidth="24"
+                                        MinHeight="24">
+                                    <Image Source="{Binding PlayerImagePath}"
+                                           Stretch="UniformToFill" />
+                                </Border>
+
+                                <Label Grid.Row="1"
+                                       Margin="1,3,1,0"
+                                       Padding="1"
+                                       Content="{Binding DisplayName}"
+                                       Foreground="{Binding DataContext.IsDoneTextBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                       HorizontalContentAlignment="Center"
+                                       VerticalContentAlignment="Center"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       base:AutoFitLabel.IsEnabled="True"
+                                       base:AutoFitLabel.MinFontSize="6"
+                                       base:AutoFitLabel.MaxFontSize="14"
+                                       base:AutoFitLabel.WrapText="True" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Failed -->
+                <Viewbox Visibility="{Binding ShowFailed, Converter={StaticResource BoolToVisibilityConverter}}"
+                         Stretch="Uniform">
+                    <TextBlock Text="Failed"
+                               Foreground="{Binding IsDoneTextBrush}"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               TextAlignment="Center" />
+                </Viewbox>
             </Grid>
         </Border>
     </Border>

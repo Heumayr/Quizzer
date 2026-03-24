@@ -10,7 +10,7 @@ namespace Quizzer.DataModels.Models.Base
 {
     [Table(nameof(QuestionResult), Schema = "question")]
     [Index(nameof(PlayerId), nameof(QuestionBaseId), nameof(GameId), nameof(GameGridCoordinateId), IsUnique = true)]
-    public class QuestionResult : ModelBase
+    public class QuestionResult : ModelBase<QuestionResult>
     {
         public Guid PlayerId { get; set; }
 
@@ -41,5 +41,30 @@ namespace Quizzer.DataModels.Models.Base
         public Player Player { get; set; } = null!;
 
         public GameGridCoordinate GameGridCoordinate { get; set; } = null!;
+
+        public override QuestionResult CloneWithoutReferences(bool copyIdentity = true)
+        {
+            var clone = new QuestionResult
+            {
+                PlayerId = PlayerId,
+                QuestionBaseId = QuestionBaseId,
+                GameId = GameId,
+                GameGridCoordinateId = GameGridCoordinateId,
+                CorrectAnswered = CorrectAnswered,
+                RightCount = RightCount,
+                WrongCount = WrongCount,
+                CorrectionsCount = CorrectionsCount,
+                Score = Score,
+                MinusScore = MinusScore,
+                Correction = Correction,
+                QuestionBase = null!,
+                Game = null!,
+                Player = null!,
+                GameGridCoordinate = null!
+            };
+
+            CopyBaseValuesTo(clone, copyIdentity);
+            return clone;
+        }
     }
 }

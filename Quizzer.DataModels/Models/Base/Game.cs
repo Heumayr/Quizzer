@@ -13,7 +13,7 @@ using System.Text;
 namespace Quizzer.DataModels.Models.Base
 {
     [Table(nameof(Game), Schema = "base")]
-    public class Game : ModelBase
+    public class Game : ModelBase<Game>
     {
         public bool Restart { get; set; } = false;
 
@@ -78,6 +78,34 @@ namespace Quizzer.DataModels.Models.Base
             {
                 coord.RaisePhase();
             }
+        }
+
+        public override Game CloneWithoutReferences(bool copyIdentity = true)
+        {
+            var clone = new Game
+            {
+                Restart = Restart,
+                State = State,
+                Height = Height,
+                Width = Width,
+                Depth = Depth,
+                CellHeight = CellHeight,
+                CellWidth = CellWidth,
+                DifficultyMultiplier = DifficultyMultiplier,
+                DifficultyAddition = DifficultyAddition,
+                DifficultyMinusMultiplier = DifficultyMinusMultiplier,
+                DifficultyMinusAddition = DifficultyMinusAddition,
+                PhaseMultiplier = PhaseMultiplier,
+                PhaseAddition = PhaseAddition,
+                CurrentRound = CurrentRound,
+                Headers = new List<Header>(),
+                GameGridCoordinates = new List<GameGridCoordinate>(),
+                QuestionResults = new List<QuestionResult>(),
+                PlayerXGames = new List<PlayerXGame>()
+            };
+
+            CopyBaseValuesTo(clone, copyIdentity);
+            return clone;
         }
     }
 }

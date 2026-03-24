@@ -16,6 +16,8 @@ namespace Quizzer.Views.GameViews
         private List<PlayerResultContext> playerResultContextList = new();
         private Player? currentBuzzerWinner;
 
+        public List<QuestionResult> Results => PlayerResultContextList.Select(x => x.Result).ToList();
+
         public GameGridCoordinate? Coordinate { get; private set; }
 
         public int Columns => PlayerResultContextList.Count();
@@ -80,13 +82,18 @@ namespace Quizzer.Views.GameViews
                         PlayerId = player.Id,
                         GameId = Coordinate.GameId,
                         GameGridCoordinateId = Coordinate.Id,
-                        QuestionBaseId = Coordinate.QuestionBaseId.Value
+                        QuestionBaseId = Coordinate.QuestionBaseId.Value,
                     };
 
                     await ctrlResults.InsertAsync(result);
                     await ctrlResults.SaveChangesAsync();
                     results.Add(result);
                 }
+
+                result.Player = player;
+                result.Game = Coordinate.Game;
+                result.QuestionBase = Coordinate.QuestionBase!;
+                result.GameGridCoordinate = Coordinate;
 
                 var newContext = new PlayerResultContext()
                 {
@@ -145,6 +152,20 @@ namespace Quizzer.Views.GameViews
         private async Task SaveAndCloseAsync(object? commandParameter)
         {
             await VMSaveAsync();
+            Window?.Close();
+        }
+
+        public bool IsDoneAndShowFinishState { get; private set; }
+
+        private AsyncRelayCommand? saveIsDoneFinishStateCommand;
+        public ICommand SaveIsDoneFinishStateCommand => saveIsDoneFinishStateCommand ??= new AsyncRelayCommand(SaveIsDoneFinishStateAsync);
+
+        private async Task SaveIsDoneFinishStateAsync(object? commandParameter)
+        {
+            await VMSaveAsync();
+
+            IsDoneAndShowFinishState = true;
+
             Window?.Close();
         }
     }

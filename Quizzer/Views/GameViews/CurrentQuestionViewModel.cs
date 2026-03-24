@@ -1,4 +1,5 @@
 ﻿using LocalBuzzer.Service;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 using Quizzer.Base;
 using Quizzer.DataModels;
@@ -13,6 +14,7 @@ using Quizzer.Views.StaticRessources;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
@@ -101,6 +103,8 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(CurrentStepContext));
             OnPropertyChanged(nameof(FinishStepContext));
             OnPropertyChanged(nameof(NextStepContext));
+
+            OnPropertyChanged(nameof(IsDone));
         }
 
         protected override Task OnClosed()
@@ -140,13 +144,46 @@ namespace Quizzer.Views.GameViews
 
         public GameGridCoordinate? Coordinate { get; set; }
 
+        public bool IsDone
+        {
+            get
+            {
+                return Coordinate?.IsDone ?? false;
+            }
+            set
+            {
+                Coordinate?.IsDone = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsDoneBrush));
+            }
+        }
+
+        public Brush IsDoneBrush
+        {
+            get
+            {
+                if (IsDone)
+                {
+                    return Brushes.DarkRed;
+                }
+
+                return Brushes.Black;
+            }
+        }
+
         public QuestionBase? Question => Coordinate?.QuestionBase;
 
         public BuzzerServerViewModel? BuzzerServerViewModel => StaticRessources.StaticManager.BuzzerServerViewModel;
 
-        public override Task VMSaveAsync()
+        public override async Task VMSaveAsync()
         {
-            return Task.CompletedTask;
+            if (Coordinate == null)
+                return;
+
+            using var ctrl = new GameGridCoordinatesController();
+
+            await ctrl.UpdateAsync(Coordinate);
+            await ctrl.SaveChangesAsync();
         }
 
         public string QuestionType => Question?.Typ.DescriptionOrString() ?? String.Empty;
@@ -340,6 +377,19 @@ namespace Quizzer.Views.GameViews
             NextStep = Question.GetNextStep(CurrentStep);
         }
 
+        private AsyncRelayCommand? saveIsDoneFinishStateCommand;
+        public ICommand SaveIsDoneFinishStateCommand => saveIsDoneFinishStateCommand ??= new AsyncRelayCommand(SaveIsDoneFinishStateAsync);
+
+        private async Task SaveIsDoneFinishStateAsync(object? commandParameter)
+        {
+            IsDone = true;
+
+            await VMSaveAsync();
+
+            CurrentStep = finishStep;
+            NextStep = null;
+        }
+
         #region Buzzer
 
         private string buzzerState = string.Empty;
@@ -355,25 +405,38 @@ namespace Quizzer.Views.GameViews
         }
 
         private AsyncRelayCommand? openResultsCommand;
+
         public ICommand OpenResultsCommand => openResultsCommand ??= new AsyncRelayCommand(OpenResultsAsync);
 
         private async Task OpenResultsAsync(object? commandParameter)
         {
-            OpenResults(null, Coordinate?.Game.CurrentRound ?? 0);
+            await OpenResultsAsync(null, Coordinate?.Game.CurrentRound ?? 0);
         }
 
-        private void OnWinnerDeclared(Player? player, int round)
+        private async Task OnWinnerDeclared(Player? player, int round)
         {
-            OpenResults(player, round);
+            await OpenResultsAsync(player, round);
         }
 
-        private void OpenResults(Player? winner, int round)
+        private async Task OpenResultsAsync(Player? winner, int round)
         {
             PlayersResultViewModel?.CurrentBuzzerWinner = winner;
 
             var resultWindow = new PlayersResultView();
             resultWindow.DataContext = PlayersResultViewModel;
             resultWindow.ShowDialog();
+
+            var newResults = PlayersResultViewModel?.Results;
+
+            if (newResults == null || Coordinate == null || newResults.Count == 0 || Coordinate.Game.Players.Count() != newResults.Count)
+                throw new Exception("Invalid result state");
+
+            Coordinate.QuestionResults = newResults;
+
+            if (PlayersResultViewModel?.IsDoneAndShowFinishState ?? false)
+            {
+                await SaveIsDoneFinishStateAsync(null);
+            }
         }
 
         #endregion Buzzer

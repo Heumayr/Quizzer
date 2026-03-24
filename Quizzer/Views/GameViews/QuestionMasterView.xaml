@@ -30,22 +30,23 @@
             <typed:MultipleChoiceStepView IsMasterView="True" />
         </DataTemplate>
     </Window.Resources>
-    <Grid Background="Black">
+    <Grid Background="{Binding IsDoneBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto"></ColumnDefinition>
+            <ColumnDefinition Width="auto" MaxWidth="345"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
 
         <StackPanel Grid.Row="0" Grid.Column="0">
-            <questions:CurrentQuestionView ></questions:CurrentQuestionView>
+            <questions:CurrentQuestionView Width="335" ></questions:CurrentQuestionView>
         </StackPanel>
 
         <StackPanel Grid.Row="1" Grid.Column="0">
             <Button Content="Results" Command="{Binding OpenResultsCommand}"></Button>
+            <Button Content="Save IsDone Finish" Command="{Binding SaveIsDoneFinishStateCommand}" Background="DarkGreen"></Button>
         </StackPanel>
 
         <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" MinWidth="200" ClipToBounds="True">

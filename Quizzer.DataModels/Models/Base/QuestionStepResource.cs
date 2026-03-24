@@ -8,7 +8,7 @@ using System.Text;
 namespace Quizzer.DataModels.Models.Base
 {
     [Table(nameof(QuestionStepResource), Schema = "question")]
-    public class QuestionStepResource : ModelBase
+    public class QuestionStepResource : ModelBase<QuestionStepResource>
     {
         public Guid QuestionBaseId { get; set; }
 
@@ -46,6 +46,29 @@ namespace Quizzer.DataModels.Models.Base
         public override string ToString()
         {
             return $"{SequenceNumber}-{Designation}";
+        }
+
+        public override QuestionStepResource CloneWithoutReferences(bool copyIdentity = true)
+        {
+            var clone = new QuestionStepResource
+            {
+                QuestionBaseId = QuestionBaseId,
+                GroupKey = GroupKey,
+                IsResult = IsResult,
+                IsFinish = IsFinish,
+                SequenceNumber = SequenceNumber,
+                StepText = StepText,
+                FinishType = FinishType,
+                ResourceFileName = ResourceFileName,
+                ResourceTyp = ResourceTyp,
+                Froms = new List<StepXStep>(),
+                Tos = new List<StepXStep>(),
+                QuestionViewKey = QuestionViewKey,
+                IsStart = IsStart
+            };
+
+            CopyBaseValuesTo(clone, copyIdentity);
+            return clone;
         }
     }
 }

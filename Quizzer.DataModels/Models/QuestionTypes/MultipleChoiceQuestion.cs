@@ -18,5 +18,10 @@ namespace Quizzer.DataModels.Models.QuestionTypes
         public override bool UseRandomSequenceOnNonFinishSteps { get; set; } = true;
 
         public override FinishType DefaultFinishType { get; protected set; } = FinishType.AllPreviousSteps;
+
+        protected override QuestionBase CreateCloneInstance()
+        {
+            return new MultipleChoiceQuestion();
+        }
     }
 }
