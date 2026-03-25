@@ -20,9 +20,10 @@ namespace Quizzer.Views.HelperViewModels
             public List<HeaderEntryViewModel> RowHeaderVMs { get; set; } = new();
         }
 
-        public static async Task<GameGridVMs> RebuildCells(Game game,
-            CellView cellView,
-            bool lockHeader = false)
+        public static async Task<GameGridVMs> RebuildCells(
+    Game game,
+    CellView cellView,
+    bool lockHeader = false)
         {
             var result = new GameGridVMs();
 
@@ -31,73 +32,121 @@ namespace Quizzer.Views.HelperViewModels
             int h = game.Height;
             int w = game.Width;
 
-            //if (h <= 0 || w <= 0)
-            //{
-            //    //clear model too when invalid
-            //    game.GameGridCoordinates.Clear();
-            //    game.Columns.Clear();
-            //    game.Rows.Clear();
-            //    return;
-            //}
-
             using var ctrlHeader = new HeadersController();
+            using var ctrlCoords = new GameGridCoordinatesController();
+
+            // -------------------------------------------------
+            // 1) Delete headers outside current bounds
+            // -------------------------------------------------
+            var headersToDelete = game.Headers
+                .Where(hd =>
+                    (hd.HeaderType == HeaderType.Column && (hd.Index < 1 || hd.Index > w)) ||
+                    (hd.HeaderType == HeaderType.Row && (hd.Index < 1 || hd.Index > h)))
+                .ToList();
+
+            foreach (var header in headersToDelete)
+            {
+                await ctrlHeader.DeleteAsync(header.Id); // ggf. auf DeleteAsync(header.Id) anpassen
+                game.Headers.Remove(header);
+            }
+
+            if (headersToDelete.Count > 0)
+            {
+                await ctrlHeader.SaveChangesAsync();
+            }
+
+            // -------------------------------------------------
+            // 2) Delete coordinates outside current bounds
+            // -------------------------------------------------
+            var coordsToDelete = game.GameGridCoordinates
+                .Where(c => c.Y < 0 || c.Y >= h || c.X < 0 || c.X >= w)
+                .ToList();
+
+            foreach (var coord in coordsToDelete)
+            {
+                await ctrlCoords.DeleteAsync(coord.Id); // ggf. auf DeleteAsync(coord.Id) anpassen
+                game.GameGridCoordinates.Remove(coord);
+            }
+
+            if (coordsToDelete.Count > 0)
+            {
+                await ctrlCoords.SaveChangesAsync();
+            }
+
+            // -------------------------------------------------
+            // 3) Ensure column headers exist
+            // -------------------------------------------------
             for (int i = 1; i <= w; i++)
             {
                 var found = game.Columns.FirstOrDefault(c => c.Index == i);
                 if (found == null)
                 {
-                    var inserted = await ctrlHeader.InsertAsync(new()
+                    var inserted = await ctrlHeader.InsertAsync(new Header()
                     {
                         GameId = game.Id,
                         HeaderType = HeaderType.Column,
                         Index = i,
                         Designation = i.ToString()
                     });
+
                     await ctrlHeader.SaveChangesAsync();
 
                     found = inserted?.Entity;
-
-                    if (found == null) throw new Exception("Not able to find cloumn header.");
+                    if (found == null)
+                        throw new Exception("Not able to find column header.");
 
                     game.Headers.Add(found);
                 }
 
                 result.ColumnHeaderVMs.Add(new HeaderEntryViewModel(found, isColumnHeader: true, lockHeader));
             }
-            result.ColumnHeaderVMs = result.ColumnHeaderVMs.OrderBy(c => c.Index).ToList();
 
+            result.ColumnHeaderVMs = result.ColumnHeaderVMs
+                .OrderBy(c => c.Index)
+                .ToList();
+
+            // -------------------------------------------------
+            // 4) Ensure row headers exist
+            // -------------------------------------------------
             for (int i = 1; i <= h; i++)
             {
-                var found = game.Rows.FirstOrDefault(c => c.Index == i);
+                var found = game.Rows.FirstOrDefault(r => r.Index == i);
                 if (found == null)
                 {
-                    var inserted = await ctrlHeader.InsertAsync(new()
+                    var inserted = await ctrlHeader.InsertAsync(new Header()
                     {
                         GameId = game.Id,
                         HeaderType = HeaderType.Row,
                         Index = i,
                         Designation = i.ToString()
                     });
+
                     await ctrlHeader.SaveChangesAsync();
 
                     found = inserted?.Entity;
-
-                    if (found == null) throw new Exception("Not able to find cloumn header.");
+                    if (found == null)
+                        throw new Exception("Not able to find row header.");
 
                     game.Headers.Add(found);
                 }
 
                 result.RowHeaderVMs.Add(new HeaderEntryViewModel(found, isColumnHeader: false, lockHeader));
             }
-            result.RowHeaderVMs = result.RowHeaderVMs.OrderBy(c => c.Index).ToList();
 
-            // 5) Map remaining coords and ensure full matrix exists
+            result.RowHeaderVMs = result.RowHeaderVMs
+                .OrderBy(r => r.Index)
+                .ToList();
+
+            // -------------------------------------------------
+            // 5) Build map from remaining coords
+            // -------------------------------------------------
             var map = game.GameGridCoordinates
                 .GroupBy(c => (c.Y, c.X))
                 .ToDictionary(g => g.Key, g => g.First());
 
-            using var ctrlCoords = new GameGridCoordinatesController();
-
+            // -------------------------------------------------
+            // 6) Ensure full matrix exists
+            // -------------------------------------------------
             for (int y = 0; y < h; y++)
             {
                 for (int x = 0; x < w; x++)
@@ -111,6 +160,7 @@ namespace Quizzer.Views.HelperViewModels
                             QuestionBaseId = null,
                             GameId = game.Id,
                         });
+
                         await ctrlCoords.SaveChangesAsync();
 
                         cell = inserted?.Entity ?? throw new Exception("Cell could not be inserted");
@@ -119,12 +169,16 @@ namespace Quizzer.Views.HelperViewModels
                         map[(y, x)] = cell;
                     }
 
-                    var cellVM = new GameGridCoordinateViewModel(cell);
-                    cellVM.CellView = cellView;
-                    cellVM.ColumnHeader = result.ColumnHeaderVMs.FirstOrDefault(c => c.Index == x + 1);
-                    cellVM.RowHeader = result.RowHeaderVMs.FirstOrDefault(r => r.Index == y + 1);
-                    cell.Game = game; // set reference for easier access in VM
+                    cell.Game = game;
                     cell.CalculateAndSetCurrentPoints();
+
+                    var cellVM = new GameGridCoordinateViewModel(cell)
+                    {
+                        CellView = cellView,
+                        ColumnHeader = result.ColumnHeaderVMs.FirstOrDefault(c => c.Index == x + 1),
+                        RowHeader = result.RowHeaderVMs.FirstOrDefault(r => r.Index == y + 1)
+                    };
+
                     result.CellVMs.Add(cellVM);
                 }
             }

@@ -16,6 +16,8 @@ namespace Quizzer.DataModels
         public static string AudioPlaceholderFile => Path.Combine(FilePathQuizzer, "AudioPlaceholderFile.png");
         public static string BackgroundImagePath => Path.Combine(FilePathQuizzer, "Background.png");
         public static string PlaceholderPlayerImagePath => Path.Combine(FilePathQuizzer, "PlaceholderPlayer.png");
+        public static string PlayerCardBackgroundImagePath => Path.Combine(FilePathQuizzer, "PlayerCardBackground.png");
+        public static string PlayerCardBackgroundWinnerImagePath => Path.Combine(FilePathQuizzer, "PlayerCardBackgroundWinner.png");
 
         public static string CellBackgroundImagePath => Path.Combine(FilePathQuizzer, "CellBackground.png");
         public static string CellBackgroundHoverImagePath => Path.Combine(FilePathQuizzer, "CellBackgroundHover.png");

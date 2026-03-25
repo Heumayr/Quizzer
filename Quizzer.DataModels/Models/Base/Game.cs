@@ -47,7 +47,8 @@ namespace Quizzer.DataModels.Models.Base
 
         public List<GameGridCoordinate> GameGridCoordinates { get; set; } = new();
 
-        public List<QuestionResult> QuestionResults { get; set; } = new();
+        [NotMapped]
+        public IEnumerable<QuestionResult> QuestionResults => GameGridCoordinates.SelectMany(x => x.QuestionResults);
 
         public List<PlayerXGame> PlayerXGames { get; set; } = new();
 
@@ -100,7 +101,6 @@ namespace Quizzer.DataModels.Models.Base
                 CurrentRound = CurrentRound,
                 Headers = new List<Header>(),
                 GameGridCoordinates = new List<GameGridCoordinate>(),
-                QuestionResults = new List<QuestionResult>(),
                 PlayerXGames = new List<PlayerXGame>()
             };
 

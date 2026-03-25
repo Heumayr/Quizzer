@@ -7,6 +7,7 @@ using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.ViewModels;
 using Quizzer.Views.BuzzerViews;
 using Quizzer.Views.GameViews.QuestionViews;
+using Quizzer.Views.GameViews.Sub;
 using Quizzer.Views.HelperViewModels;
 using Quizzer.Views.StaticRessources;
 using System;
@@ -27,6 +28,8 @@ namespace Quizzer.Views.GameViews
         private List<Window> OpenGamePlayerViews = new();
 
         public GamePlayerViewModel GamePlayerViewModel { get; private set; } = new();
+
+        public StatsContext StatsContext { get; private set; } = new();
 
         private BuzzerServerView? buzzerServerView = null;
 
@@ -157,6 +160,8 @@ namespace Quizzer.Views.GameViews
 
         public override async Task VMSaveAsync()
         {
+            //TODO: Überarbeiten ... was muss gespeichert werden
+
             if (Game == null) return;
 
             using var ctrlGams = new GamesController();
@@ -230,7 +235,37 @@ namespace Quizzer.Views.GameViews
             Game = dbGame;
             StaticManager.BuzzerServerViewModel.Game = Game;
             await OnModelChangedAsync();
+
+            InitStatContext(Game);
+
             return Game;
+        }
+
+        public bool IsGameFinished => Game?.GameGridCoordinates.All(c => c.IsDone) ?? false;
+
+        private void InitStatContext(Game game)
+        {
+            StatsContext.PlayerStatsContextList.Clear();
+            StatsContext.Game = game;
+
+            if (game.Players.Count() == 0)
+            {
+                return;
+            }
+
+            foreach (var player in game.Players)
+            {
+                var context = new PlayerStatsContext()
+                {
+                    Game = game,
+                    Player = player,
+                    StatsContext = StatsContext
+                };
+
+                StatsContext.PlayerStatsContextList.Add(context);
+            }
+
+            StatsContext.UpdateScore(IsGameFinished);
         }
 
         private async Task OnModelChangedAsync()
@@ -288,6 +323,8 @@ namespace Quizzer.Views.GameViews
             qMaster.ShowDialog();
 
             cell.RefreshFromModel();
+
+            StatsContext.UpdateScore(IsGameFinished);
         }
 
         public int Height

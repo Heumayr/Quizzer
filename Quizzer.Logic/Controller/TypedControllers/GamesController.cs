@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Quizzer.DataModels.Enumerations;
+using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Quizzer.Logic.Controller.TypedControllers
 {
@@ -21,9 +23,9 @@ namespace Quizzer.Logic.Controller.TypedControllers
         {
             if (action == Actions.Get)
             {
-                query = query.Include(q => q.Headers)
-                 .Include(q => q.QuestionResults)
+                query = query.AsNoTracking().Include(q => q.Headers)
                  .Include(q => q.GameGridCoordinates).ThenInclude(t => t.QuestionBase).ThenInclude(q => q!.Category)
+                 .Include(q => q.GameGridCoordinates).ThenInclude(t => t.QuestionResults)
                  .Include(q => q.PlayerXGames).ThenInclude(t => t.Player);
             }
 
@@ -37,6 +39,18 @@ namespace Quizzer.Logic.Controller.TypedControllers
 
         protected override Task<Game> AfterActionAsync(Game entity, Actions action)
         {
+            if (action == Actions.Get)
+            {
+                foreach (var result in entity.QuestionResults)
+                {
+                    // set up references after load
+                    result.Game = entity;
+                    result.Player = entity.Players.FirstOrDefault(p => p.Id == result.PlayerId)!; //must be existend!
+                    result.GameGridCoordinate = entity.GameGridCoordinates.FirstOrDefault(c => c.Id == result.GameGridCoordinateId)!; //must be existend!
+                    result.QuestionBase = result.GameGridCoordinate.QuestionBase!; //must be existend!
+                }
+            }
+
             return base.AfterActionAsync(entity, action);
         }
     }

@@ -154,6 +154,56 @@ namespace Quizzer.Views
             GameGridVMs = await GridBuilder.RebuildCells(Game, CellView.Build, Game.State != GameState.Building);
         }
 
+        private CancellationTokenSource? rebuildGridCts;
+        private readonly SemaphoreSlim rebuildGridLock = new(1, 1);
+
+        private void RequestGridRebuild()
+        {
+            rebuildGridCts?.Cancel();
+            rebuildGridCts?.Dispose();
+
+            rebuildGridCts = new CancellationTokenSource();
+            var token = rebuildGridCts.Token;
+
+            _ = RequestGridRebuildAsync(token);
+        }
+
+        private async Task RequestGridRebuildAsync(CancellationToken token)
+        {
+            try
+            {
+                // debounce, damit bei mehreren schnellen Änderungen
+                // nicht dauernd neu aufgebaut wird
+                await Task.Delay(200, token);
+
+                await rebuildGridLock.WaitAsync(token);
+                try
+                {
+                    token.ThrowIfCancellationRequested();
+
+                    if (Game == null)
+                        return;
+
+                    GameGridVMs = await GridBuilder.RebuildCells(
+                        Game,
+                        CellView.Build,
+                        Game.State != GameState.Building);
+                }
+                finally
+                {
+                    rebuildGridLock.Release();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // ok, neuer Rebuild wurde angefordert
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Grid rebuild failed");
+            }
+        }
+
         public bool Restart
         {
             get => Game?.Restart ?? false;
@@ -267,6 +317,8 @@ namespace Quizzer.Views
 
                 Game.Height = value;
                 OnPropertyChanged();
+
+                RequestGridRebuild();
             }
         }
 
@@ -280,6 +332,8 @@ namespace Quizzer.Views
 
                 Game.Width = value;
                 OnPropertyChanged();
+
+                RequestGridRebuild();
             }
         }
 

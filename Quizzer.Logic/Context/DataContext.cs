@@ -39,8 +39,14 @@ namespace Quizzer.Logic.Context
 
             modelBuilder.Entity<QuestionResult>()
                 .HasOne(qr => qr.GameGridCoordinate)
-                .WithMany()
+                .WithMany(c => c.QuestionResults)
                 .HasForeignKey(qr => qr.GameGridCoordinateId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<QuestionResult>()
+                .HasOne(qr => qr.Game)
+                .WithMany(g => g.QuestionResults)
+                .HasForeignKey(qr => qr.GameId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             base.OnModelCreating(modelBuilder);

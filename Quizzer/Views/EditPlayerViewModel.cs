@@ -128,7 +128,13 @@ namespace Quizzer.Views
             if (result != true || string.IsNullOrWhiteSpace(dialog.FileName))
                 return;
 
-            var file = FileHelper.HandleSelectedResourceFile(dialog.FileName, rootFolder, Player.Id.ToString());
+            var file = FileHelper.HandleSelectedResourceFile(dialog.FileName, rootFolder, Player.Id.ToString(), true, true);
+
+            if (file.Type != ResourceType.Image)
+            {
+                MessageBox.Show("Filetye is not an Image.", "Wrong resource type");
+                return;
+            }
 
             Player.UserPictureFileName = file.Filename;
 

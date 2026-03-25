@@ -96,9 +96,9 @@
                 <Setter Property="Background" Value="Transparent" />
             </Style>
 
-            <Style TargetType="ContentPresenter">
+            <!--<Style TargetType="ContentPresenter">
                 <Setter Property="TextElement.Foreground" Value="{StaticResource ForegroundBrush}" />
-            </Style>
+            </Style>-->
 
             <!-- Items controls -->
             <Style TargetType="ListBox">

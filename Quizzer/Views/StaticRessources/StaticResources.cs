@@ -38,5 +38,23 @@ namespace Quizzer.Views.StaticRessources
         {
             Stretch = Stretch.Fill
         };
+
+        public static readonly Brush PlayerPlaceHolderImageBrush = new ImageBrush(
+            new BitmapImage(new Uri(Settings.PlaceholderPlayerImagePath, UriKind.Absolute)))
+        {
+            Stretch = Stretch.Fill
+        };
+
+        public static readonly Brush PlayerCardImageBrush = new ImageBrush(
+            new BitmapImage(new Uri(Settings.PlayerCardBackgroundImagePath, UriKind.Absolute)))
+        {
+            Stretch = Stretch.Fill
+        };
+
+        public static readonly Brush PlayerCardWinnerImageBrush = new ImageBrush(
+            new BitmapImage(new Uri(Settings.PlayerCardBackgroundWinnerImagePath, UriKind.Absolute)))
+        {
+            Stretch = Stretch.Fill
+        };
     }
 }

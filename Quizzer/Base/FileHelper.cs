@@ -1,14 +1,17 @@
 ﻿using Quizzer.DataModels.Enumerations;
 using SkiaSharp;
 using System.IO;
-using System.Text;
-using System.Windows.Media.Imaging;
 
 namespace Quizzer.Base
 {
     public static class FileHelper
     {
-        public static (string Filename, ResourceType Type) HandleSelectedResourceFile(string sourceFilePath, string rootFolder, string uniqueFileName = "")
+        public static (string Filename, ResourceType Type) HandleSelectedResourceFile(
+            string sourceFilePath,
+            string rootFolder,
+            string uniqueFileName = "",
+            bool allowOverride = false,
+            bool cutSquare = false)
         {
             if (!File.Exists(sourceFilePath))
                 throw new FileNotFoundException("Selected file does not exist.", sourceFilePath);
@@ -22,69 +25,130 @@ namespace Quizzer.Base
 
             if (detectedType == ResourceType.Image)
             {
-                targetFileName = CreateUniqueFileName(rootFolder, Path.GetFileNameWithoutExtension(sourceFilePath), ".png");
+                targetFileName = CreateTargetFileName(
+                    rootFolder,
+                    Path.GetFileNameWithoutExtension(sourceFilePath),
+                    ".png",
+                    uniqueFileName,
+                    allowOverride);
+
                 targetFilePath = Path.Combine(rootFolder, targetFileName);
 
-                SaveAsPng(sourceFilePath, targetFilePath);
+                SaveAsPng(sourceFilePath, targetFilePath, allowOverride, cutSquare);
             }
             else
             {
                 var originalFileName = Path.GetFileName(sourceFilePath);
-                targetFileName = CreateUniqueFileName(rootFolder, Path.GetFileNameWithoutExtension(originalFileName), Path.GetExtension(originalFileName));
+
+                targetFileName = CreateTargetFileName(
+                    rootFolder,
+                    Path.GetFileNameWithoutExtension(originalFileName),
+                    Path.GetExtension(originalFileName),
+                    uniqueFileName,
+                    allowOverride);
+
                 targetFilePath = Path.Combine(rootFolder, targetFileName);
 
-                File.Copy(sourceFilePath, targetFilePath, overwrite: false);
+                if (File.Exists(targetFilePath) && !allowOverride)
+                    throw new IOException($"File already exists: {targetFilePath}");
+
+                File.Copy(sourceFilePath, targetFilePath, overwrite: allowOverride);
             }
 
             return (targetFileName, detectedType);
         }
 
-        public static void SaveAsPng(string sourceFilePath, string targetFilePath)
+        public static void SaveAsPng(
+            string sourceFilePath,
+            string targetFilePath,
+            bool allowOverride = false,
+            bool cutSquare = false)
         {
-            var extension = Path.GetExtension(sourceFilePath).ToLowerInvariant();
+            if (File.Exists(targetFilePath) && !allowOverride)
+                throw new IOException($"File already exists: {targetFilePath}");
 
-            if (extension == ".webp")
-            {
-                SaveWebpAsPng(sourceFilePath, targetFilePath);
-                return;
-            }
+            using var bitmap = LoadBitmap(sourceFilePath);
 
-            var bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.UriSource = new Uri(sourceFilePath, UriKind.Absolute);
-            bitmap.EndInit();
-            bitmap.Freeze();
+            if (bitmap == null)
+                throw new InvalidOperationException("Image could not be loaded.");
 
-            var encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(bitmap));
-
-            using var stream = File.Create(targetFilePath);
-            encoder.Save(stream);
+            using var finalBitmap = cutSquare ? CropToMaxSquare(bitmap) : CopyBitmap(bitmap);
+            SaveBitmapAsPng(finalBitmap, targetFilePath, allowOverride);
         }
 
-        public static void SaveWebpAsPng(string sourceFilePath, string targetFilePath)
+        public static void SaveWebpAsPng(
+            string sourceFilePath,
+            string targetFilePath,
+            bool allowOverride = false,
+            bool cutSquare = false)
+        {
+            SaveAsPng(sourceFilePath, targetFilePath, allowOverride, cutSquare);
+        }
+
+        private static SKBitmap LoadBitmap(string sourceFilePath)
         {
             using var input = File.OpenRead(sourceFilePath);
             using var codec = SKCodec.Create(input);
 
             if (codec == null)
-                throw new InvalidOperationException("WEBP konnte nicht gelesen werden.");
+                throw new InvalidOperationException("Image could not be read.");
 
             var info = codec.Info
                 .WithColorType(SKColorType.Rgba8888)
                 .WithAlphaType(SKAlphaType.Unpremul);
 
-            using var bitmap = new SKBitmap(info);
+            var bitmap = new SKBitmap(info);
             var result = codec.GetPixels(info, bitmap.GetPixels());
 
             if (result != SKCodecResult.Success && result != SKCodecResult.IncompleteInput)
-                throw new InvalidOperationException($"WEBP konnte nicht dekodiert werden: {result}");
+            {
+                bitmap.Dispose();
+                throw new InvalidOperationException($"Image could not be decoded: {result}");
+            }
 
+            return bitmap;
+        }
+
+        private static SKBitmap CropToMaxSquare(SKBitmap source)
+        {
+            var size = Math.Min(source.Width, source.Height);
+            var x = (source.Width - size) / 2;
+            var y = (source.Height - size) / 2;
+
+            var cropped = new SKBitmap(size, size, source.ColorType, source.AlphaType);
+
+            using var canvas = new SKCanvas(cropped);
+            var sourceRect = new SKRectI(x, y, x + size, y + size);
+            var destRect = new SKRect(0, 0, size, size);
+
+            canvas.DrawBitmap(source, sourceRect, destRect);
+            canvas.Flush();
+
+            return cropped;
+        }
+
+        private static SKBitmap CopyBitmap(SKBitmap source)
+        {
+            var copy = new SKBitmap(source.Width, source.Height, source.ColorType, source.AlphaType);
+
+            using var canvas = new SKCanvas(copy);
+            canvas.DrawBitmap(source, 0, 0);
+            canvas.Flush();
+
+            return copy;
+        }
+
+        private static void SaveBitmapAsPng(SKBitmap bitmap, string targetFilePath, bool allowOverride)
+        {
             using var image = SKImage.FromBitmap(bitmap);
             using var data = image.Encode(SKEncodedImageFormat.Png, 100);
 
-            using var output = File.OpenWrite(targetFilePath);
+            using var output = new FileStream(
+                targetFilePath,
+                allowOverride ? FileMode.Create : FileMode.CreateNew,
+                FileAccess.Write,
+                FileShare.None);
+
             data.SaveTo(output);
         }
 
@@ -110,10 +174,21 @@ namespace Quizzer.Base
             };
         }
 
-        public static string CreateUniqueFileName(string targetFolder, string fileNameWithoutExtension, string extension, string uniqueFileName = "")
+        public static string CreateTargetFileName(
+            string targetFolder,
+            string fileNameWithoutExtension,
+            string extension,
+            string uniqueFileName = "",
+            bool allowOverride = false)
         {
-            if (!string.IsNullOrEmpty(uniqueFileName))
-                return $"{uniqueFileName}{extension}";
+            if (!string.IsNullOrWhiteSpace(uniqueFileName))
+            {
+                var preferredName = $"{uniqueFileName}{extension}";
+                var preferredPath = Path.Combine(targetFolder, preferredName);
+
+                if (allowOverride || !File.Exists(preferredPath))
+                    return preferredName;
+            }
 
             return $"{fileNameWithoutExtension}_{Guid.NewGuid()}{extension}";
         }
