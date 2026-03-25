@@ -32,9 +32,20 @@ namespace Quizzer.Logic.Controller.TypedControllers
             return base.SetQueryAttributes(query, action);
         }
 
-        protected override Task<Game> BeforeActionAsync(Game entity, Actions action)
+        protected override async Task<Game> BeforeActionAsync(Game entity, Actions action)
         {
-            return base.BeforeActionAsync(entity, action);
+            if ((action & Actions.DeleteActions) > 0)
+            {
+                using var ctrlPlayerXGame = new PlayerXGamesController(this);
+                using var ctrlResults = new QuestionResultsController(this);
+                using var ctrlCoordinate = new GameGridCoordinatesController(this);
+
+                await ctrlPlayerXGame.DeleteByGameIdAsync(entity.Id);
+                await ctrlResults.DeleteByGameIdAsync(entity.Id);
+                await ctrlCoordinate.DeleteByGameIdAsync(entity.Id);
+            }
+
+            return await base.BeforeActionAsync(entity, action);
         }
 
         protected override Task<Game> AfterActionAsync(Game entity, Actions action)
