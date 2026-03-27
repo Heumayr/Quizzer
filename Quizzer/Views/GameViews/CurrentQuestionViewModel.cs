@@ -78,7 +78,7 @@ namespace Quizzer.Views.GameViews
             //Buzzer
             if (BuzzerControlsViewModel != null)
             {
-                await BuzzerControlsViewModel.ResetRoundAsync(null);
+                await BuzzerControlsViewModel.ResetRoundAsync(Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None);
                 BuzzerControlsViewModel.WinnerDeclared = OnWinnerDeclared;
             }
         }

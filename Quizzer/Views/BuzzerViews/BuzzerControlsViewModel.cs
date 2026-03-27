@@ -54,7 +54,12 @@ namespace Quizzer.Views.BuzzerViews
             if (BuzzerServerViewModel is null || BuzzerController is null || Game is null)
                 throw new Exception("Invalid Server State");
 
-            await BuzzerController.ResetRoundAsync(Game.CurrentRound);
+            var buzzerLayout = BuzzerControlsLayout.None;
+
+            if (commandParameter is BuzzerControlsLayout bcl)
+                buzzerLayout = bcl;
+
+            await BuzzerController.ResetRoundAsync(Game.CurrentRound, buzzerLayout);
         }
 
         public void OnAssigned(string name)
