@@ -1,4 +1,5 @@
 ﻿using LocalBuzzer.Service.Base;
+using LocalBuzzer.Service.Base.States;
 using LocalBuzzer.Service.Hubs.Accessors;
 using Microsoft.AspNetCore.SignalR;
 using Quizzer.DataModels.Enumerations;
@@ -8,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml.Linq;
+using static LocalBuzzer.Service.Base.States.BuzzerKeySelector;
 
 namespace LocalBuzzer.Service.Hubs
 {
@@ -16,14 +18,14 @@ namespace LocalBuzzer.Service.Hubs
         private static int _counter;
         private static readonly ConcurrentDictionary<string, Player> PlayerByConn = new();
 
-        private readonly BuzzerState _state;
+        private readonly LayoutStateManager _stateManager;
         private readonly BuzzerEventBus _bus;
 
         private readonly GameAccessor _gameAccessor;
 
-        public BuzzerHub(BuzzerState state, BuzzerEventBus bus, GameAccessor gameAccessor)
+        public BuzzerHub(LayoutStateManager stateManager, BuzzerEventBus bus, GameAccessor gameAccessor)
         {
-            _state = state;
+            _stateManager = stateManager;
             _bus = bus;
             _gameAccessor = gameAccessor;
         }
@@ -52,7 +54,7 @@ namespace LocalBuzzer.Service.Hubs
             Interlocked.Increment(ref _counter);
 
             await Clients.Caller.SendAsync("Assigned",
-                player.CalculatedDisplayName, _state.Round, _state.Locked, _state.Winner);
+                player.CalculatedDisplayName, _stateManager.Round, _stateManager.CurrentState?.Locked ?? true, _stateManager.CurrentState?.BuzzerStateInfo);
 
             await base.OnConnectedAsync();
         }
@@ -70,21 +72,37 @@ namespace LocalBuzzer.Service.Hubs
 
         public async Task Buzz()
         {
+            if (_stateManager.CurrentState is not BuzzerState buzz)
+                return;
+
             PlayerByConn.TryGetValue(Context.ConnectionId, out var player);
             var name = player?.CalculatedDisplayName ?? "Unknown";
 
-            if (_state.TryBuzz(player))
+            if (buzz.TryBuzz(player))
             {
-                _bus.OnWinner(player, _state.Round);
-                await Clients.All.SendAsync("Winner", name, _state.Round);
+                _bus.OnWinner(player, _stateManager.Round);
+                await Clients.All.SendAsync("BuzzerWinner", name, _stateManager.Round);
             }
         }
 
-        public async Task ResetRound(int round)
+        public async Task SelectionResults(SelectionResult results)
         {
-            _ = _state.Reset(round);
-            _bus.OnReset(round);
-            await Clients.All.SendAsync("Reset", round);
+            if (_stateManager.CurrentState is not BuzzerKeySelector keySelector || results.PlayerId == Guid.Empty) return;
+
+            PlayerByConn.TryGetValue(Context.ConnectionId, out var player);
+
+            if (results.PlayerId != player?.Id) return;
+
+            results.Player = player;
+            keySelector.SetSelectedKeys(results);
+            _bus.OnPlayerSelectedKeys(results);
+
+            if (keySelector.Locked)
+            {
+                _stateManager.LockAll();
+                await Clients.All.SendAsync("LockAll");
+                _bus.OnAllPlayersSelectedKeys(keySelector.KeyResultsForPlayer);
+            }
         }
     }
 }

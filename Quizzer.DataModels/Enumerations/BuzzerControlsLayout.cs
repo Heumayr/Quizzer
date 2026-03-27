@@ -6,8 +6,9 @@ namespace Quizzer.DataModels.Enumerations
 {
     public enum BuzzerControlsLayout
     {
-        Buzzer = 0,
-        MulitpleChoice = 1,
-        Input = 2,
+        None = 0,
+        Buzzer = 1,
+        KeySelect = 2,
+        Input = 3,
     }
 }

@@ -1,4 +1,5 @@
 ﻿using LocalBuzzer.Service.Base;
+using LocalBuzzer.Service.Base.States;
 using LocalBuzzer.Service.Hubs;
 using LocalBuzzer.Service.Hubs.Accessors;
 using Microsoft.AspNetCore.Builder;
@@ -52,7 +53,7 @@ namespace LocalBuzzer.Service
                 builder.WebHost.UseUrls($"http://{options.BindAddress}:{options.Port}");
 
                 builder.Services.AddSingleton(new PhysicalFileProvider(options.WebRootPath));
-                builder.Services.AddSingleton<BuzzerState>();
+                builder.Services.AddSingleton<LayoutStateManager>();
                 builder.Services.AddSingleton<BuzzerEventBus>();
                 builder.Services.AddSingleton<GameAccessor>();
                 builder.Services.AddSignalR();
@@ -73,10 +74,10 @@ namespace LocalBuzzer.Service
 
                     var eventBus = app.Services.GetRequiredService<BuzzerEventBus>();
                     var buzzerHubContext = app.Services.GetRequiredService<IHubContext<BuzzerHub>>();
-                    var state = app.Services.GetRequiredService<BuzzerState>();
+                    var stateManager = app.Services.GetRequiredService<LayoutStateManager>();
 
                     BuzzerController?.Dispose();
-                    BuzzerController = new BuzzerController(eventBus, buzzerHubContext, state);
+                    BuzzerController = new BuzzerController(eventBus, buzzerHubContext, stateManager);
 
                     await app.StartAsync(ct);
 

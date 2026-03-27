@@ -19,6 +19,8 @@ namespace Quizzer.DataModels.Models.QuestionTypes
 
         public override FinishType DefaultFinishType { get; protected set; } = FinishType.AllPreviousSteps;
 
+        public override BuzzerControlsLayout BuzzerControlsLayout { get; set; } = BuzzerControlsLayout.KeySelect;
+
         protected override QuestionBase CreateCloneInstance()
         {
             return new MultipleChoiceQuestion();

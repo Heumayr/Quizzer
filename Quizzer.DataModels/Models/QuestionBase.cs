@@ -35,6 +35,16 @@ namespace Quizzer.DataModels.Models
 
         public virtual bool UseRandomSequenceOnNonFinishSteps { get; set; } = false;
 
+        #region Buzzer
+
+        public virtual BuzzerControlsLayout BuzzerControlsLayout { get; set; } = BuzzerControlsLayout.Buzzer;
+
+        public virtual int BuzzerMaxAllowedKeySelect { get; set; } = 1;
+
+        public virtual bool ShowTextOnKeySelect { get; set; } = true;
+
+        #endregion Buzzer
+
         public List<QuestionStepResource> Steps { get; set; } = new List<QuestionStepResource>();
 
         public Category? Category { get; set; }
