@@ -8,8 +8,8 @@
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 
         <Style x:Key="CellBorderStyle" TargetType="Border">
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="2" />
             <Setter Property="Padding" Value="3" />
             <Setter Property="Margin" Value="1" />
             <Setter Property="Background" Value="{Binding IsDoneBrush}" />
@@ -19,7 +19,7 @@
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="{Binding HoverBrush}" />
                     <Setter Property="BorderBrush" Value="Black" />
-                    <Setter Property="BorderThickness" Value="1" />
+                    <Setter Property="BorderThickness" Value="0" />
                 </Trigger>
             </Style.Triggers>
         </Style>

@@ -12,6 +12,8 @@ namespace Quizzer.Logic.Controller
     {
         protected readonly ConcurrentDictionary<Guid, object?> _PrivateModelCache = new();
 
+        private readonly ConcurrentDictionary<Guid, TEntity> _PendingWriteBack = new();
+
         private DbSet<TEntity>? entitySet;
 
         protected GenericController()
@@ -63,12 +65,38 @@ namespace Quizzer.Logic.Controller
 
         protected virtual void ApplyConcurrencyOriginalValue(TEntity source, TEntity target)
         {
+            var property = CurrentContext.Entry(target).Property<byte[]?>(nameof(ModelBase.RowVersion));
+            property.IsModified = false;
+
             if (source.RowVersion == null)
                 return;
 
-            var property = CurrentContext.Entry(target).Property<byte[]?>(nameof(ModelBase.RowVersion));
             property.OriginalValue = source.RowVersion.ToArray();
-            property.IsModified = false;
+        }
+
+        protected virtual void RegisterWriteBack(TEntity original, TEntity tracked)
+        {
+            if (tracked.Id == Guid.Empty)
+                return;
+
+            _PendingWriteBack[tracked.Id] = original;
+        }
+
+        protected virtual void WriteBackGeneratedValues()
+        {
+            foreach (var entry in CurrentContext.ChangeTracker.Entries<TEntity>())
+            {
+                if (entry.Entity.Id == Guid.Empty)
+                    continue;
+
+                if (_PendingWriteBack.TryGetValue(entry.Entity.Id, out var original))
+                {
+                    original.Id = entry.Entity.Id;
+                    original.RowVersion = entry.Entity.RowVersion?.ToArray();
+                }
+            }
+
+            _PendingWriteBack.Clear();
         }
 
         protected virtual async Task<TEntity?> FindForWriteAsync(
@@ -100,6 +128,8 @@ namespace Quizzer.Logic.Controller
             var prepared = CloneForEf(working, copyIdentity: true, clearRowVersion: true);
 
             var entry = await EntitySet.AddAsync(prepared).ConfigureAwait(false);
+
+            RegisterWriteBack(entity, entry.Entity);
 
             await AfterActionAsync(entry.Entity, Actions.Insert).ConfigureAwait(false);
 
@@ -155,6 +185,7 @@ namespace Quizzer.Logic.Controller
                 entry.State = EntityState.Modified;
 
                 ApplyConcurrencyOriginalValue(working, entry.Entity);
+                RegisterWriteBack(entity, entry.Entity);
 
                 await AfterActionAsync(entry.Entity, Actions.Update).ConfigureAwait(false);
                 return entry.Entity;
@@ -162,6 +193,7 @@ namespace Quizzer.Logic.Controller
 
             CurrentContext.Entry(existing).CurrentValues.SetValues(prepared);
             ApplyConcurrencyOriginalValue(working, existing);
+            RegisterWriteBack(entity, existing);
 
             await AfterActionAsync(existing, Actions.Update).ConfigureAwait(false);
             return existing;
@@ -224,7 +256,9 @@ namespace Quizzer.Logic.Controller
 
         public virtual async Task<int> SaveChangesAsync()
         {
-            return await CurrentContext.SaveChangesAsync().ConfigureAwait(false);
+            var result = await CurrentContext.SaveChangesAsync().ConfigureAwait(false);
+            WriteBackGeneratedValues();
+            return result;
         }
 
         public virtual async Task<int> CountAsync()
@@ -264,9 +298,14 @@ namespace Quizzer.Logic.Controller
             if (existing == null)
             {
                 var workingInsert = await BeforeActionAsync(entity, Actions.Insert).ConfigureAwait(false);
+                if (workingInsert.Id == Guid.Empty)
+                    workingInsert.Id = Guid.NewGuid();
+
                 var preparedInsert = CloneForEf(workingInsert, copyIdentity: true, clearRowVersion: true);
 
                 var entry = await EntitySet.AddAsync(preparedInsert).ConfigureAwait(false);
+
+                RegisterWriteBack(entity, entry.Entity);
 
                 await AfterActionAsync(entry.Entity, Actions.Insert).ConfigureAwait(false);
 
@@ -278,6 +317,7 @@ namespace Quizzer.Logic.Controller
 
             CurrentContext.Entry(existing).CurrentValues.SetValues(preparedUpdate);
             ApplyConcurrencyOriginalValue(workingUpdate, existing);
+            RegisterWriteBack(entity, existing);
 
             await AfterActionAsync(existing, Actions.Update).ConfigureAwait(false);
 

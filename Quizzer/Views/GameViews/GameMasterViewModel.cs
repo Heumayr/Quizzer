@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics.Eventing.Reader;
 using System.Text;
 using System.Windows;
 using System.Windows.Data;
@@ -33,19 +34,10 @@ namespace Quizzer.Views.GameViews
 
         private BuzzerServerView? buzzerServerView = null;
 
-        private string backgroundImagePath = Settings.BackgroundImagePath;
         public Brush HeaderColumnBrush { get; set; } = StaticResources.HeaderColumnImageBrush;
         public Brush HeaderRowBrush { get; set; } = StaticResources.HeaderRowImageBrush;
 
-        public string BackgroundImagePath
-        {
-            get => backgroundImagePath;
-            set
-            {
-                backgroundImagePath = value;
-                OnPropertyChanged();
-            }
-        }
+        public Brush PlayGroundBackGroundBrush => StaticResources.PlayGroundBackGround;
 
         public GameMasterViewModel()
         {
@@ -56,6 +48,7 @@ namespace Quizzer.Views.GameViews
         {
             await OnModelChangedAsync();
             GamePlayerViewModel.Game = Game;
+            GamePlayerViewModel.GameMasterViewModel = this;
         }
 
         protected override Task OnClosed()
@@ -160,21 +153,15 @@ namespace Quizzer.Views.GameViews
 
         public override async Task VMSaveAsync()
         {
-            //TODO: Überarbeiten ... was muss gespeichert werden
-
             if (Game == null) return;
 
-            using var ctrlGams = new GamesController();
-            await ctrlGams.UpsertAsync(Game);
-            await ctrlGams.SaveChangesAsync();
+            using var ctrlGames = new GamesController();
+            await ctrlGames.UpsertAsync(Game);
+            await ctrlGames.SaveChangesAsync();
 
-            using var ctrlCells = new GameGridCoordinatesController();
-            await ctrlCells.UpsertAsync(Game.GameGridCoordinates.Where(c => c.QuestionBase != null || c.QuestionBaseId != Guid.Empty));
+            using var ctrlCells = new GameGridCoordinatesController(ctrlGames);
+            await ctrlCells.UpsertAsync(Game.GameGridCoordinates);
             await ctrlCells.SaveChangesAsync();
-
-            using var ctrlResults = new QuestionResultsController();
-            await ctrlResults.UpsertAsync(Game.QuestionResults.Where(c => c.QuestionBase != null || c.QuestionBaseId != Guid.Empty));
-            await ctrlResults.SaveChangesAsync();
         }
 
         private Game? Game
@@ -234,11 +221,23 @@ namespace Quizzer.Views.GameViews
 
             Game = dbGame;
             StaticManager.BuzzerServerViewModel.Game = Game;
+
+            await SetPhaseAndSetCoordinatesPhaseAsync(null);
             await OnModelChangedAsync();
 
             InitStatContext(Game);
 
             return Game;
+        }
+
+        public int GamePhase
+        {
+            get => Game?.Phase ?? -1;
+            set
+            {
+                Game?.Phase = value;
+                OnPropertyChanged();
+            }
         }
 
         public bool IsGameFinished => Game?.GameGridCoordinates.All(c => c.IsDone) ?? false;
@@ -247,6 +246,7 @@ namespace Quizzer.Views.GameViews
         {
             StatsContext.PlayerStatsContextList.Clear();
             StatsContext.Game = game;
+            StatsContext.GameMasterViewModel = this;
 
             if (game.Players.Count() == 0)
             {
@@ -259,7 +259,8 @@ namespace Quizzer.Views.GameViews
                 {
                     Game = game,
                     Player = player,
-                    StatsContext = StatsContext
+                    StatsContext = StatsContext,
+                    GameMasterViewModel = this
                 };
 
                 StatsContext.PlayerStatsContextList.Add(context);
@@ -272,7 +273,7 @@ namespace Quizzer.Views.GameViews
         {
             OnPropertyChanged(nameof(Game));
             OnPropertyChanged(nameof(Players));
-
+            OnPropertyChanged(nameof(GamePhase));
             OnPropertyChanged(nameof(Height));
             OnPropertyChanged(nameof(Width));
             OnPropertyChanged(nameof(CellHeight));
@@ -374,6 +375,95 @@ namespace Quizzer.Views.GameViews
             };
             OpenGamePlayerViews.Add(window);
             window.Show();
+        }
+
+        public string ToggleStatsButtonText
+        {
+            get => field;
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+            }
+        } = "Show Stats";
+
+        private bool showStats = false;
+
+        private RelayCommand? togglePlayerStatsViewCommand;
+        public ICommand TogglePlayerStatsViewCommand => togglePlayerStatsViewCommand ??= new RelayCommand(TogglePlayerStatsView);
+
+        private void TogglePlayerStatsView(object? commandParameter)
+        {
+            showStats = !showStats;
+            ToggleStatsButtonText = showStats ? "Hide Stats" : "Show Stats";
+            GamePlayerViewModel.SetShowPlayerStats(showStats);
+        }
+
+        private int statsRowHeight = 1;
+
+        public string StatsRowHeight
+        {
+            get => field;
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+            }
+        } = "*";
+
+        private RelayCommand? changeViewCommand;
+        public ICommand ChangeViewCommand => changeViewCommand ??= new RelayCommand(ChangeView);
+
+        private void ChangeView(object? commandParameter)
+        {
+            if (statsRowHeight == 1)
+            {
+                statsRowHeight = 4;
+            }
+            else
+            {
+                statsRowHeight = 1;
+            }
+
+            StatsRowHeight = $"{statsRowHeight}*";
+        }
+
+        private AsyncRelayCommand? raiseGamePhaseCommand;
+        public ICommand RaiseGamePhaseCommand => raiseGamePhaseCommand ??= new AsyncRelayCommand(RaiseGamePhaseAsync);
+
+        private async Task RaiseGamePhaseAsync(object? commandParameter)
+        {
+            if (Game == null) return;
+            Game.RaisePhase();
+            await SaveAndRefreshAfterPhaseChangeAsync();
+        }
+
+        private AsyncRelayCommand? lowerGamePhaseCommand;
+        public ICommand LowerGamePhaseCommand => lowerGamePhaseCommand ??= new AsyncRelayCommand(LowerGamePhaseAsync);
+
+        private async Task LowerGamePhaseAsync(object? commandParameter)
+        {
+            if (Game == null) return;
+            Game.LowerPhase();
+            await SaveAndRefreshAfterPhaseChangeAsync();
+        }
+
+        private async Task SetPhaseAndSetCoordinatesPhaseAsync(object? commandParameter)
+        {
+            if (Game == null) return;
+
+            Game.SetPhaseAndSetCoordinatesPhase(Game.Phase);
+            await SaveAndRefreshAfterPhaseChangeAsync();
+        }
+
+        private async Task SaveAndRefreshAfterPhaseChangeAsync()
+        {
+            await VMSaveAsync();
+            foreach (var cell in GameGridVMs.CellVMs)
+            {
+                cell.RefreshFromModel();
+            }
+            OnPropertyChanged(nameof(GamePhase));
         }
     }
 }

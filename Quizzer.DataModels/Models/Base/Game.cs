@@ -43,6 +43,34 @@ namespace Quizzer.DataModels.Models.Base
 
         public int CurrentRound { get; set; } = 1;
 
+        public int Phase { get; set; } = 1;
+
+        public void RaisePhase()
+        {
+            Phase++;
+            SetPhaseAndSetCoordinatesPhase(Phase);
+        }
+
+        public void LowerPhase()
+        {
+            Phase--;
+            SetPhaseAndSetCoordinatesPhase(Phase);
+        }
+
+        public void SetPhaseAndSetCoordinatesPhase(int phase)
+        {
+            if (phase < 1) phase = 1;
+
+            Phase = phase;
+
+            if (GameGridCoordinates.Count == 0) return;
+
+            foreach (var coord in GameGridCoordinates)
+            {
+                coord.SetPhase(phase);
+            }
+        }
+
         public List<Header> Headers { get; set; } = new();
 
         public List<GameGridCoordinate> GameGridCoordinates { get; set; } = new();
@@ -71,16 +99,6 @@ namespace Quizzer.DataModels.Models.Base
             }
         }
 
-        public void RaisePhase()
-        {
-            if (GameGridCoordinates.Count == 0) return;
-
-            foreach (var coord in GameGridCoordinates)
-            {
-                coord.RaisePhase();
-            }
-        }
-
         public override Game CloneWithoutReferences(bool copyIdentity = true)
         {
             var clone = new Game
@@ -99,6 +117,7 @@ namespace Quizzer.DataModels.Models.Base
                 PhaseMultiplier = PhaseMultiplier,
                 PhaseAddition = PhaseAddition,
                 CurrentRound = CurrentRound,
+                Phase = Phase,
                 Headers = new List<Header>(),
                 GameGridCoordinates = new List<GameGridCoordinate>(),
                 PlayerXGames = new List<PlayerXGame>()

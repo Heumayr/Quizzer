@@ -236,7 +236,8 @@ namespace Quizzer.Views.QuestionTypes
 
         private AsyncRelayCommand? openStepCommand;
         private ObservableCollection<Category> categories = new();
-        private bool warnOnResultStep;
+
+        //private bool warnOnResultStep;
         private ObservableCollection<QuestionStepResource> steps = new();
 
         public ICommand OpenStepCommand => openStepCommand ??= new AsyncRelayCommand(OpenStepAsync);

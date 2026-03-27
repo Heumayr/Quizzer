@@ -5,50 +5,88 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Quizzer.Views.GameViews.Sub"
              mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="340">
-    <!--<UserControl.DataContext>
-        <local:PlayerStatsContext></local:PlayerStatsContext>
-    </UserControl.DataContext>-->
-    <Border BorderThickness="2" BorderBrush="Transparent" CornerRadius="2" Background="{Binding BackgroundBrush}" Padding="15">
-        <Grid MinHeight="50" MinWidth="50" Background="Transparent" HorizontalAlignment="Center">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"></ColumnDefinition>
-            </Grid.ColumnDefinitions>
+             d:DesignHeight="340" d:DesignWidth="220"
+             Width="220"
+             Height="340">
+
+    <Border BorderThickness="2"
+            BorderBrush="Transparent"
+            CornerRadius="2"
+            Background="{Binding BackgroundBrush}"
+            Padding="12">
+
+        <Grid Background="Transparent">
             <Grid.RowDefinitions>
-                <RowDefinition Height="auto"></RowDefinition>
-                <RowDefinition Height="auto"></RowDefinition>
-                <RowDefinition Height="auto"></RowDefinition>
-                <RowDefinition Height="auto"></RowDefinition>
-                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="34" />
+                <RowDefinition Height="44" />
+                <RowDefinition Height="10" />
+                <RowDefinition Height="140" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center">
-                <TextBlock FontSize="18" Foreground="Wheat"  FontWeight="ExtraBlack" Text="{Binding Player.Designation}"></TextBlock>
-            </Grid>
+            <!-- placement -->
+            <TextBlock Text="{Binding PlacementText}"
+                       Foreground="#C8A96B"
+                       FontWeight="Bold"
+                       FontSize="24"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Top"
+                       Panel.ZIndex="100"
+                       Margin="0,0,4,0" />
 
-            <Grid Grid.Row="1"  Grid.Column="0" HorizontalAlignment="Center">
-                <TextBlock FontSize="18" Foreground="Wheat"  FontWeight="DemiBold" Text="{Binding Player.DisplayName}"></TextBlock>
-            </Grid>
+            <!-- designation -->
+            <TextBlock Grid.Row="0"
+                    Text="{Binding Player.Designation}"
+                    FontSize="24"
+                    Foreground="{Binding DesignationBrush}"
+                    FontWeight="DemiBold"
+                    TextAlignment="Center"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    TextWrapping="Wrap" />
 
-            <Border Grid.Row="2" Margin="5" Grid.Column="0" Width="80" Height="80" BorderThickness="3" CornerRadius="10" BorderBrush="#333333">
+            <!-- display name -->
+            <TextBlock Grid.Row="1"
+                       Text="{Binding Player.DisplayName}"
+                       FontSize="28"
+                       Foreground="Wheat"
+                       FontWeight="ExtraBold"
+                       TextAlignment="Center"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextWrapping="Wrap" />
+
+            <!-- image -->
+            <Border Grid.Row="3"
+                    Width="130"
+                    Height="130"
+                    Margin="0,6,0,6"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    BorderThickness="3"
+                    CornerRadius="12"
+                    BorderBrush="#333333">
                 <Border.Background>
                     <ImageBrush ImageSource="{Binding PlayerImagePath}"
-                     Stretch="Uniform" />
+                                Stretch="UniformToFill" />
                 </Border.Background>
             </Border>
 
-            <Grid Grid.Row="3" Grid.Column="0" x:Name="ScoreGrid">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"></ColumnDefinition>
-                    <ColumnDefinition Width="*"></ColumnDefinition>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"></RowDefinition>
-                </Grid.RowDefinitions>
-
-                <TextBlock Grid.Column="0" Grid.Row="0" Foreground="Wheat" FontWeight="ExtraBold" FontSize="20" Text="Score: "></TextBlock>
-                <TextBlock Grid.Column="1" Grid.Row="0" Foreground="Wheat" FontWeight="ExtraBold" FontSize="20" Text="{Binding ActualScore, Mode=OneWay}"  HorizontalAlignment="Left"></TextBlock>
-            </Grid>
+            <!-- score -->
+            <StackPanel Grid.Row="4"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Margin="0,0,0,0">
+                <TextBlock Foreground="AntiqueWhite"
+                           FontWeight="ExtraBold"
+                           FontSize="24"
+                           Text="Score: " />
+                <TextBlock Foreground="AntiqueWhite"
+                           FontWeight="ExtraBold"
+                           FontSize="24"
+                           Text="{Binding ActualScore}" />
+            </StackPanel>
         </Grid>
     </Border>
 </UserControl>

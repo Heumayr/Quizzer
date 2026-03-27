@@ -21,23 +21,31 @@
                 base:MatrixGridBehavior.CellHeight="{Binding DataContext.CellHeight, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
         </ItemsPanelTemplate>
     </base:WindowBase.Resources>
-    <Grid>
-        <Grid.Background>
-            <ImageBrush ImageSource="{Binding BackgroundImagePath}"
-             Stretch="UniformToFill" />
-        </Grid.Background>
+    <Grid Background="{Binding PlayGroundBackGroundBrush}">
 
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="7*" />
-            <RowDefinition Height="2*" />
+            <RowDefinition Height="4*" />
+            <RowDefinition Height="{Binding StatsRowHeight}" />
         </Grid.RowDefinitions>
         <StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="0">
             <Button Content="Buzzer Server" Command="{Binding BuzzerServerCommand}" />
             <Button Content="Open Player View" Command="{Binding OpenGamePlayerViewCommand}" />
+            <Button Content="Change View" Command="{Binding ChangeViewCommand}" />
+            <Button  Content="{Binding ToggleStatsButtonText}" Command="{Binding TogglePlayerStatsViewCommand}" />
+            <StackPanel Height="30"></StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+                <Label FontWeight="Bold" Content="Phase: "></Label>
+                <TextBlock FontWeight="Bold" Text="{Binding GamePhase}"></TextBlock>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Raise" Command="{Binding RaiseGamePhaseCommand}" />
+                <Button Content="Lower" Command="{Binding LowerGamePhaseCommand}" />
+            </StackPanel>
         </StackPanel>
         <Viewbox Visibility="{Binding ShowGameGridView}" Margin="5" Grid.Column="1" Grid.Row="0"
               Stretch="Uniform"
@@ -54,7 +62,7 @@
                     </ItemsControl.ItemContainerStyle>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border CornerRadius="10"
+                            <Border CornerRadius="2"
                                     Background="{Binding DataContext.HeaderColumnBrush, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                     SnapsToDevicePixels="True"
                                     Margin="3">
@@ -90,7 +98,7 @@
                     </ItemsControl.ItemContainerStyle>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border CornerRadius="10"
+                            <Border CornerRadius="2"
                                     Background="{Binding DataContext.HeaderRowBrush, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                     SnapsToDevicePixels="True"
                                     Margin="3">

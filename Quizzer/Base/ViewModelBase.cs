@@ -17,7 +17,7 @@ namespace Quizzer.Base
 
         public EditResultState ResultState { get; set; } = EditResultState.None;
 
-        public event EventHandler? VMSaved;
+        //public event EventHandler? VMSaved;
 
         public Window? Window
         {

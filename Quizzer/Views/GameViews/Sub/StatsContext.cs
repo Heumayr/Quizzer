@@ -18,6 +18,16 @@ namespace Quizzer.Views.GameViews.Sub
 
         public List<Player> Winners { get; set; } = new List<Player>();
 
+        public GameMasterViewModel? GameMasterViewModel { get; set; }
+
+        public bool IsGameFinished => GameMasterViewModel?.IsGameFinished ?? false;
+
+        public Visibility ShowNormalStatsView =>
+            IsGameFinished ? Visibility.Collapsed : Visibility.Visible;
+
+        public Visibility ShowFinishedStatsView =>
+            IsGameFinished ? Visibility.Visible : Visibility.Collapsed;
+
         public Game Game
         {
             get => game;
@@ -37,6 +47,9 @@ namespace Quizzer.Views.GameViews.Sub
             {
                 playerStatsContextList = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(Columns));
+                OnPropertyChanged(nameof(FirstPlacePlayers));
+                OnPropertyChanged(nameof(OtherPlayers));
             }
         }
 
@@ -56,6 +69,13 @@ namespace Quizzer.Views.GameViews.Sub
 
                 item.UpdateScore();
             }
+
+            OnPropertyChanged(nameof(FirstPlacePlayers));
+            OnPropertyChanged(nameof(OtherPlayers));
+            OnPropertyChanged(nameof(Columns));
+            OnPropertyChanged(nameof(IsGameFinished));
+            OnPropertyChanged(nameof(ShowNormalStatsView));
+            OnPropertyChanged(nameof(ShowFinishedStatsView));
         }
 
         private void CalculateAndSetWinners()
@@ -63,6 +83,7 @@ namespace Quizzer.Views.GameViews.Sub
             if (PlayerStatsContextList == null || PlayerStatsContextList.Count == 0)
             {
                 Winners = new List<Player>();
+                OnPropertyChanged(nameof(Winners));
                 return;
             }
 
@@ -70,18 +91,21 @@ namespace Quizzer.Views.GameViews.Sub
                 .OrderByDescending(x => x.ActualScore)
                 .ToList();
 
-            int currentPlacement = 0;
             int? lastScore = null;
 
-            foreach (var context in orderedStats)
+            for (int i = 0; i < orderedStats.Count; i++)
             {
+                var context = orderedStats[i];
+
                 if (lastScore == null || context.ActualScore != lastScore.Value)
                 {
-                    currentPlacement++;
+                    context.Placement = i + 1;
                     lastScore = context.ActualScore;
                 }
-
-                context.Placement = currentPlacement;
+                else
+                {
+                    context.Placement = orderedStats[i - 1].Placement;
+                }
             }
 
             int bestScore = orderedStats.First().ActualScore;
@@ -90,6 +114,33 @@ namespace Quizzer.Views.GameViews.Sub
                 .Where(x => x.ActualScore == bestScore)
                 .Select(x => x.Player)
                 .ToList();
+
+            OnPropertyChanged(nameof(Winners));
+            OnPropertyChanged(nameof(IsGameFinished));
+            OnPropertyChanged(nameof(ShowNormalStatsView));
+            OnPropertyChanged(nameof(ShowFinishedStatsView));
         }
+
+        public void RefreshFinishState()
+        {
+            OnPropertyChanged(nameof(IsGameFinished));
+            OnPropertyChanged(nameof(ShowNormalStatsView));
+            OnPropertyChanged(nameof(ShowFinishedStatsView));
+        }
+
+        public List<PlayerStatsContext> FirstPlacePlayers =>
+             PlayerStatsContextList
+                .Where(x => x.Placement == 1)
+                .OrderByDescending(x => x.ActualScore)
+                .ThenBy(x => x.Player.DisplayName)
+                .ToList();
+
+        public List<PlayerStatsContext> OtherPlayers =>
+            PlayerStatsContextList
+                .Where(x => x.Placement > 1)
+                .OrderBy(x => x.Placement)
+                .ThenByDescending(x => x.ActualScore)
+                .ThenBy(x => x.Player.DisplayName)
+                .ToList();
     }
 }

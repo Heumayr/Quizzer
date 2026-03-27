@@ -64,6 +64,24 @@ namespace Quizzer.DataModels.Models.Base
             CalculateAndSetCurrentPoints();
         }
 
+        public void LowerPhase()
+        {
+            if (IsDone) return;
+
+            Phase--;
+            if (Phase < 1) Phase = 1;
+
+            CalculateAndSetCurrentPoints();
+        }
+
+        public void SetPhase(int phase)
+        {
+            if (IsDone) return;
+
+            Phase = phase;
+            CalculateAndSetCurrentPoints();
+        }
+
         public QuestionBase? QuestionBase
         {
             get => question;

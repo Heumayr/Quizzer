@@ -2,6 +2,7 @@
 using Quizzer.DataModels;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Views.GameViews.QuestionViews;
+using Quizzer.Views.GameViews.Sub;
 using Quizzer.Views.StaticRessources;
 using System.ComponentModel;
 using System.Windows;
@@ -21,21 +22,46 @@ namespace Quizzer.Views.GameViews
 
         private QuestionStepViewContext? questionStepViewContext;
         private string questionText = string.Empty;
-        private Visibility showQuestionText;
+        private Visibility showPlayerStats = Visibility.Collapsed;
 
-        private string backgroundImagePath = Settings.BackgroundImagePath;
         public Brush HeaderColumnBrush { get; set; } = StaticResources.HeaderColumnImageBrush;
         public Brush HeaderRowBrush { get; set; } = StaticResources.HeaderRowImageBrush;
 
-        public string BackgroundImagePath
+        public Brush PlayGroundBackGroundBrush => StaticResources.PlayGroundBackGround;
+
+        public GameMasterViewModel? GameMasterViewModel { get; set; }
+
+        public StatsContext StatsContext => GameMasterViewModel?.StatsContext ?? new();
+
+        public bool IsGameFinished => GameMasterViewModel?.IsGameFinished ?? false;
+
+        public Visibility ShowPlayerStats
         {
-            get => backgroundImagePath;
+            get => showPlayerStats;
             set
             {
-                backgroundImagePath = value;
+                showPlayerStats = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(ShowMainContent));
+                OnPropertyChanged(nameof(ShowBottomStats));
+                OnPropertyChanged(nameof(ShowFullscreenStats));
             }
         }
+
+        public Visibility ShowMainContent =>
+            ShowPlayerStats == Visibility.Visible && IsGameFinished
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+
+        public Visibility ShowBottomStats =>
+            ShowPlayerStats == Visibility.Visible && !IsGameFinished
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
+        public Visibility ShowFullscreenStats =>
+            ShowPlayerStats == Visibility.Visible && IsGameFinished
+                ? Visibility.Visible
+                : Visibility.Collapsed;
 
         public GameGridVMs GameGridVMs
         {
@@ -203,6 +229,22 @@ namespace Quizzer.Views.GameViews
                 showQuestionView = value;
                 OnPropertyChanged();
             }
+        }
+
+        public void SetShowPlayerStats(bool show)
+        {
+            if (show)
+            {
+                ShowPlayerStats = Visibility.Visible;
+                return;
+            }
+
+            ShowPlayerStats = Visibility.Collapsed;
+
+            OnPropertyChanged(nameof(IsGameFinished));
+            OnPropertyChanged(nameof(ShowMainContent));
+            OnPropertyChanged(nameof(ShowBottomStats));
+            OnPropertyChanged(nameof(ShowFullscreenStats));
         }
 
         public void SetView(object? viewContent)

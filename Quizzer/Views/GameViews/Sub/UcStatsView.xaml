@@ -6,30 +6,79 @@
              xmlns:local="clr-namespace:Quizzer.Views.GameViews.Sub"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <!--<UserControl.DataContext>
-        <local:StatsContext></local:StatsContext>
-    </UserControl.DataContext>-->
+
     <Grid Background="Transparent">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition></ColumnDefinition>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto" MinHeight="100"></RowDefinition>
-            <RowDefinition Height="auto"></RowDefinition>
-        </Grid.RowDefinitions>
 
-        <ItemsControl Grid.Column="0" Grid.Row="0" ItemsSource="{Binding PlayerStatsContextList}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Columns="{Binding Columns}" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
+        <!-- normal view -->
+        <Grid Visibility="{Binding ShowNormalStatsView}">
+            <ItemsControl ItemsSource="{Binding PlayerStatsContextList}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="{Binding Columns}" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
 
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <local:UcPlayerStatsView />
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Viewbox Stretch="Uniform" Margin="8">
+                            <local:UcPlayerStatsView Width="220" Height="340" />
+                        </Viewbox>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+
+        <!-- finished view -->
+        <StackPanel Visibility="{Binding ShowFinishedStatsView}"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center">
+
+            <!-- winners row -->
+            <ItemsControl ItemsSource="{Binding FirstPlacePlayers}"
+                          HorizontalAlignment="Center"
+                          Margin="0,0,0,30">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Center" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="20,0,20,0"
+                                Width="{Binding CardWidth}"
+                                Height="{Binding CardHeight}">
+                            <Viewbox Stretch="Fill">
+                                <local:UcPlayerStatsView Width="220" Height="340" />
+                            </Viewbox>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- others row -->
+            <ItemsControl ItemsSource="{Binding OtherPlayers}"
+                          HorizontalAlignment="Center">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="12,0,12,0"
+                                Width="{Binding CardWidth}"
+                                Height="{Binding CardHeight}">
+                            <Viewbox Stretch="Fill">
+                                <local:UcPlayerStatsView Width="220" Height="340" />
+                            </Viewbox>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
     </Grid>
 </UserControl>
