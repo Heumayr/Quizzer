@@ -108,21 +108,28 @@ body {
 
 /* ===== KeySelect layout ===== */
 .layout-keyselect {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: 1fr auto;
     gap: 12px;
     height: 100%;
+    min-height: 0;
 }
 
 .keys-wrap {
-    flex: 1 1 auto;
-    min-height: 0;
+    --grid-size: 2;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(var(--grid-size), 1fr);
+    grid-template-rows: repeat(var(--grid-size), 1fr);
     gap: 12px;
+    min-height: 0;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .key-btn {
+    width: 100%;
+    height: 100%;
     min-height: 64px;
     border: 0;
     border-radius: 16px;
@@ -131,15 +138,29 @@ body {
     background: #243047;
     color: #fff;
     cursor: pointer;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 12px;
+    word-break: break-word;
 }
 
     .key-btn.selected {
         background: #1f6feb;
     }
 
-    .key-btn:disabled {
+    .key-btn:disabled:not(.selected) {
         background: #2a3345;
         opacity: .7;
+        cursor: not-allowed;
+    }
+
+    .key-btn.selected:disabled {
+        background: #1f6feb;
+        color: #fff;
+        opacity: 1;
         cursor: not-allowed;
     }
 
@@ -153,6 +174,7 @@ body {
     background: #16a34a;
     color: #fff;
     cursor: pointer;
+    width: 100%;
 }
 
     .commit-btn:disabled {

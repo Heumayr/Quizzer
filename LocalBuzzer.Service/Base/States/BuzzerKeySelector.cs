@@ -23,6 +23,7 @@ namespace LocalBuzzer.Service.Base.States
             public bool ShowDesignations { get; set; } = true;
             public Dictionary<string, string> KeysAndDesignations { get; set; } = new();
             public int MaxAllowedSelections { get; set; } = 1;
+            public Guid? QuestionId { get; set; } = null;
         }
 
         public sealed class SelectionResult

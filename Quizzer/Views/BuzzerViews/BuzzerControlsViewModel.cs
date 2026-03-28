@@ -94,13 +94,14 @@ namespace Quizzer.Views.BuzzerViews
             }
         }
 
-        public async Task SetKeySelectorDictionary(Dictionary<string, string>? keySelectorDic, int maxAllowedSelections = 1, bool ShowDesignations = true)
+        public async Task SetKeySelectorDictionary(Dictionary<string, string>? keySelectorDic, int maxAllowedSelections = 1, bool ShowDesignations = true, Guid? questionId = null)
         {
             var info = new BuzzerKeySelectorInfo()
             {
                 MaxAllowedSelections = maxAllowedSelections,
                 KeysAndDesignations = keySelectorDic ?? new(),
-                ShowDesignations = true
+                ShowDesignations = true,
+                QuestionId = questionId
             };
 
             BuzzerController?.StateManager.BuzzerKeySelector.Infos = info;

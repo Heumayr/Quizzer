@@ -93,23 +93,24 @@ namespace Quizzer.Views.GameViews
 
                 case BuzzerControlsLayout.Buzzer:
                     BuzzerControlsViewModel.WinnerDeclared = OnWinnerDeclared;
+
+                    if (!Coordinate.IsDone)
+                    {
+                        await BuzzerControlsViewModel.ResetRoundAsync(CurrentBuzzerLayout);
+                    }
                     break;
 
                 case BuzzerControlsLayout.KeySelect:
                     await BuzzerControlsViewModel.SetKeySelectorDictionary(
                         Question?.Steps.GetKeyDictionary(),
                         Question?.BuzzerMaxAllowedKeySelect ?? 1,
-                        Question?.ShowTextOnKeySelect ?? true);
+                        Question?.ShowTextOnKeySelect ?? true,
+                        Question?.Id);
 
                     break;
 
                 case BuzzerControlsLayout.Input:
                     break;
-            }
-
-            if (!Coordinate.IsDone)
-            {
-                await BuzzerControlsViewModel.ResetRoundAsync(CurrentBuzzerLayout);
             }
         }
 

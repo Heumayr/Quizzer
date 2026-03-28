@@ -16,12 +16,12 @@ namespace Quizzer.Extentions
 
                 foreach (var item in resources)
                 {
-                    if (string.IsNullOrEmpty(item.GroupKey) || keyDictionary.ContainsKey(item.GroupKey))
+                    if (string.IsNullOrEmpty(item.QuestionViewKey) || keyDictionary.ContainsKey(item.QuestionViewKey))
                         continue;
 
                     var designation = string.IsNullOrEmpty(item.Designation) ? item.StepText : item.Designation;
 
-                    keyDictionary[item.GroupKey] = designation;
+                    keyDictionary[item.QuestionViewKey] = designation;
                 }
 
                 return keyDictionary;
