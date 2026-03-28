@@ -37,7 +37,7 @@
         <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
             <Button Content="Save" Command="{Binding SaveCommand}"></Button>
             <Button Content="Save and Close" Command="{Binding SaveAndCloseCommand}"></Button>
-            <Button Content="Save IsDone Finish" Command="{Binding SaveIsDoneFinishStateCommand}" Background="DarkGreen"></Button>
+            <Button Content="Save IsDone Finish" Command="{Binding SaveIsDoneFinishStateCommand}" Background="DarkRed"></Button>
         </StackPanel>
     </Grid>
 </base:WindowBase>

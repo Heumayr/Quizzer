@@ -1,4 +1,5 @@
 ﻿using LocalBuzzer.Service;
+using LocalBuzzer.Service.Base.States;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 using Quizzer.Base;
@@ -12,8 +13,10 @@ using Quizzer.Views.BuzzerViews;
 using Quizzer.Views.GameViews.QuestionViews;
 using Quizzer.Views.StaticRessources;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
@@ -43,6 +46,8 @@ namespace Quizzer.Views.GameViews
             }
         }
 
+        private PlayersResultView? _resultWindow;
+
         public CurrentQuestionViewModel()
         {
             //StaticManager.BuzzerServerViewModel.PlayerConnectionStateChanged += OnPlayerConnectionStateChanged;
@@ -71,6 +76,10 @@ namespace Quizzer.Views.GameViews
             FinishStep = Coordinate.QuestionBase?.OrderedSteps.FirstOrDefault(s => s.IsFinish);
 
             PlayersResultViewModel = new PlayersResultViewModel();
+
+            //_resultWindow = new PlayersResultView();
+            //_resultWindow.DataContext = PlayersResultViewModel;
+
             await PlayersResultViewModel.SetCoordinateAsync(Coordinate);
 
             await OnModeldChanged();
@@ -107,6 +116,9 @@ namespace Quizzer.Views.GameViews
                         Question?.ShowTextOnKeySelect ?? true,
                         Question?.Id);
 
+                    BuzzerControlsViewModel.PlayerSelectedKeys = OnPlayerSelectedKeys;
+                    BuzzerControlsViewModel.AllPlayersSelectedKeys = OnAllPlayersSelectedKeys;
+
                     break;
 
                 case BuzzerControlsLayout.Input:
@@ -114,12 +126,29 @@ namespace Quizzer.Views.GameViews
             }
         }
 
+        private async Task OnAllPlayersSelectedKeys(ConcurrentDictionary<Guid, BuzzerKeySelector.SelectionResult> dictionary)
+        {
+            PlayersResultViewModel?.SelectionResultsDic = dictionary;
+            await OpenResultsAsync();
+        }
+
+        private async Task OnPlayerSelectedKeys(BuzzerKeySelector.SelectionResult result)
+        {
+            PlayersResultViewModel?.SetSelectionResult(result);
+            await OpenResultsAsync();
+        }
+
         private async Task ClearBuzzerLayouts()
         {
             if (BuzzerControlsViewModel != null)
             {
+                //buzzer
                 BuzzerControlsViewModel.WinnerDeclared = null;
+
+                //kex select
                 await BuzzerControlsViewModel.SetKeySelectorDictionary(null);
+                BuzzerControlsViewModel.PlayerSelectedKeys = null;
+                BuzzerControlsViewModel.AllPlayersSelectedKeys = null;
 
                 await BuzzerControlsViewModel.ResetRoundAsync(null);
             }
@@ -456,21 +485,34 @@ namespace Quizzer.Views.GameViews
 
         private async Task OpenResultsAsync(object? commandParameter)
         {
-            await OpenResultsAsync(null, Coordinate?.Game.CurrentRound ?? 0);
+            await OpenResultsAsync();
         }
 
         private async Task OnWinnerDeclared(Player? player, int round)
         {
-            await OpenResultsAsync(player, round);
+            PlayersResultViewModel?.CurrentBuzzerWinner = player;
+
+            await OpenResultsAsync();
         }
 
-        private async Task OpenResultsAsync(Player? winner, int round)
+        private async Task OpenResultsAsync()
         {
-            PlayersResultViewModel?.CurrentBuzzerWinner = winner;
+            if (_resultWindow == null)
+            {
+                _resultWindow = new PlayersResultView
+                {
+                    DataContext = PlayersResultViewModel
+                };
+                _resultWindow.Closed += (_, _) => _resultWindow = null;
+                _resultWindow.Show();
+            }
+            else
+            {
+                if (_resultWindow.WindowState == WindowState.Minimized)
+                    _resultWindow.WindowState = WindowState.Normal;
 
-            var resultWindow = new PlayersResultView();
-            resultWindow.DataContext = PlayersResultViewModel;
-            resultWindow.ShowDialog();
+                _resultWindow.Activate();
+            }
 
             var newResults = PlayersResultViewModel?.Results;
 

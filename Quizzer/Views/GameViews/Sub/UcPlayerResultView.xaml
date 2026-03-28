@@ -22,6 +22,7 @@
                 <RowDefinition Height="auto"></RowDefinition>
                 <RowDefinition Height="auto"></RowDefinition>
                 <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center">
@@ -67,7 +68,7 @@
 
                 <Grid Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Button Content="Right" Command="{Binding RightSuggestionCommand}"></Button>
+                        <Button Content="Right" Background="DarkGreen" Command="{Binding RightSuggestionCommand}"></Button>
                         <Button Content="Wrong" Command="{Binding WrongSuggestionCommand}"></Button>
                         <Button Content="None" Command="{Binding NoneSuggestionCommand}"></Button>
                         <Button Content="Correction" Command="{Binding CorrectionSuggestionCommand}"></Button>
@@ -75,7 +76,56 @@
                 </Grid>
             </Grid>
 
-            <Grid Grid.Row="4" Grid.Column="0" HorizontalAlignment="Right">
+            <StackPanel Grid.Row="4" Visibility="{Binding ShowKeySelections}">
+
+                <TextBlock Text="Key Selections"
+               Margin="6,6,6,2"
+               FontSize="16"
+               FontWeight="Bold"
+               Foreground="White" />
+
+                <ItemsControl ItemsSource="{Binding KeyViews}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="6"
+                        Padding="10"
+                        CornerRadius="8">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="DarkRed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsCorrect}" Value="True">
+                                                <Setter Property="Background" Value="DarkGreen" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Key}"
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center" />
+
+                                    <TextBlock Text="{Binding Designation}"
+                                   Foreground="White"
+                                   TextWrapping="Wrap"
+                                   HorizontalAlignment="Center"
+                                   Visibility="{Binding ShowDesignationVisibility}" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <Grid Grid.Row="5" Grid.Column="0" HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Buzzered:"></Label>
                     <CheckBox IsEnabled="False" IsChecked="{Binding IsBuzzerWinner, Mode=OneWay}" VerticalAlignment="Center"></CheckBox>

@@ -6,8 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using static LocalBuzzer.Service.Base.States.BuzzerKeySelector;
 using static Quizzer.Views.GameViews.Sub.PlayerResultContext;
 
 namespace Quizzer.Views.GameViews.Sub
@@ -53,6 +55,84 @@ namespace Quizzer.Views.GameViews.Sub
             }
         }
 
+        public SelectionResult? SelectionResult
+        {
+            get => field;
+            set
+            {
+                if (value != null && value.PlayerId != Player.Id)
+                    throw new Exception("Invalid player for selection result");
+
+                field = value;
+                OnPropertyChanged();
+                CompareResults(value?.SelectedKeys);
+            }
+        }
+
+        private void CompareResults(List<string>? selectedKeys)
+        {
+            var keyViews = new List<KeyView>();
+            var question = PlayersResultViewModel?.Coordinate?.QuestionBase;
+
+            if (selectedKeys == null || question == null || selectedKeys.Count == 0)
+            {
+                KeyViews = keyViews;
+                ShowKeySelections = Visibility.Collapsed;
+                OnPropertyChanged(nameof(KeyViews));
+                OnPropertyChanged(nameof(ShowKeySelections));
+                return;
+            }
+
+            foreach (var key in selectedKeys)
+            {
+                if (string.IsNullOrEmpty(key))
+                    continue;
+
+                var step = question.Steps.FirstOrDefault(s => s.QuestionViewKey == key);
+
+                var keyView = new KeyView
+                {
+                    Key = key,
+                    Designation = step?.Designation ?? step?.StepText,
+                    IsCorrect = step != null && step.IsResult,
+                    ShowDesignation = true
+                };
+
+                keyViews.Add(keyView);
+            }
+
+            KeyViews = keyViews;
+
+            //alle richtig
+            if (keyViews.All(k => k.IsCorrect) && question.BuzzerMaxAllowedKeySelect == keyViews.Count)
+            {
+                Suggestion = ScoreSuggestion.Right;
+            }
+            else
+            {
+                Suggestion = ScoreSuggestion.None;
+            }
+
+            ShowKeySelections = Visibility.Visible;
+            OnPropertyChanged(nameof(KeyViews));
+            OnPropertyChanged(nameof(ShowKeySelections));
+        }
+
+        public class KeyView
+        {
+            public string Key { get; set; } = string.Empty;
+
+            public string? Designation { get; set; }
+
+            public bool IsCorrect { get; set; }
+
+            public bool ShowDesignation { get; set; } = false;
+
+            public Visibility ShowDesignationVisibility => ShowDesignation ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public List<KeyView> KeyViews { get; set; } = new();
+
         public Player? CurrentBuzzerWinner
         {
             get => currentBuzzerWinner;
@@ -64,6 +144,8 @@ namespace Quizzer.Views.GameViews.Sub
                 OnPropertyChanged(nameof(BackgroundBrush));
             }
         }
+
+        public Visibility ShowKeySelections { get; set; } = Visibility.Collapsed;
 
         public bool IsBuzzerWinner => CurrentBuzzerWinner != null && Player.Id == CurrentBuzzerWinner.Id;
 

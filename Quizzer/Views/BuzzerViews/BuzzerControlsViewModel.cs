@@ -4,6 +4,7 @@ using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Views.StaticRessources;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
@@ -16,6 +17,10 @@ namespace Quizzer.Views.BuzzerViews
     public class BuzzerControlsViewModel : UcViewModelBase, IDisposable
     {
         public Func<Player?, int, Task>? WinnerDeclared { get; set; }
+
+        public Func<SelectionResult, Task>? PlayerSelectedKeys;
+
+        public Func<ConcurrentDictionary<Guid, SelectionResult>, Task>? AllPlayersSelectedKeys;
 
         private BuzzerServerViewModel? BuzzerServerViewModel { get; set; }
 
@@ -31,13 +36,22 @@ namespace Quizzer.Views.BuzzerViews
             StaticManager.BuzzerServerViewModel.PlayerConnectionStateChanged += OnPlayerConnectionStateChanged;
 
             var ctrl = viewModel._server?.BuzzerController;
+
+            //guard
             ctrl?.EventBus.RoundReset -= OnReset;
             ctrl?.EventBus.WinnerDeclared -= OnBuzzerWinner;
             ctrl?.EventBus.ClientAssigned -= OnAssigned;
 
+            ctrl?.EventBus.PlayerSelectedKeys -= OnPlayerSelectedKeys;
+            ctrl?.EventBus.AllPlayersSelectedKeys -= OnAllPlayerSelectedKeys;
+
+            //add
             ctrl?.EventBus.RoundReset += OnReset;
             ctrl?.EventBus.WinnerDeclared += OnBuzzerWinner;
             ctrl?.EventBus.ClientAssigned += OnAssigned;
+
+            ctrl?.EventBus.PlayerSelectedKeys += OnPlayerSelectedKeys;
+            ctrl?.EventBus.AllPlayersSelectedKeys += OnAllPlayerSelectedKeys;
 
             BuzzerServerViewModel = viewModel;
         }
@@ -53,15 +67,22 @@ namespace Quizzer.Views.BuzzerViews
 
         public async Task ResetRoundAsync(object? commandParameter)
         {
-            if (BuzzerServerViewModel is null || BuzzerController is null || Game is null)
-                throw new Exception("Invalid Server State");
+            try
+            {
+                if (BuzzerServerViewModel is null || BuzzerController is null || Game is null)
+                    throw new Exception("Invalid Server State");
 
-            var buzzerLayout = BuzzerControlsLayout.None;
+                var buzzerLayout = BuzzerControlsLayout.None;
 
-            if (commandParameter is BuzzerControlsLayout bcl)
-                buzzerLayout = bcl;
+                if (commandParameter is BuzzerControlsLayout bcl)
+                    buzzerLayout = bcl;
 
-            await BuzzerController.ResetRoundAsync(Game.CurrentRound, buzzerLayout);
+                await BuzzerController.ResetRoundAsync(Game.CurrentRound, buzzerLayout);
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
         }
 
         public void OnAssigned(string displayName, Guid guid)
@@ -70,6 +91,38 @@ namespace Quizzer.Views.BuzzerViews
             {
                 // UI updates here
             });
+        }
+
+        public async void OnPlayerSelectedKeys(SelectionResult selectionResult)
+        {
+            try
+            {
+                await RunOnUiAsync(async () =>
+                {
+                    if (PlayerSelectedKeys != null)
+                        await PlayerSelectedKeys.Invoke(selectionResult);
+                });
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
+        }
+
+        public async void OnAllPlayerSelectedKeys(ConcurrentDictionary<Guid, SelectionResult> selectionResultsDic)
+        {
+            try
+            {
+                await RunOnUiAsync(async () =>
+                {
+                    if (AllPlayersSelectedKeys != null)
+                        await AllPlayersSelectedKeys.Invoke(selectionResultsDic);
+                });
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
         }
 
         public async void OnBuzzerWinner(Player? player, int round)
@@ -117,6 +170,9 @@ namespace Quizzer.Views.BuzzerViews
             ctrl?.EventBus.RoundReset -= OnReset;
             ctrl?.EventBus.WinnerDeclared -= OnBuzzerWinner;
             ctrl?.EventBus.ClientAssigned -= OnAssigned;
+
+            ctrl?.EventBus.PlayerSelectedKeys -= OnPlayerSelectedKeys;
+            ctrl?.EventBus.AllPlayersSelectedKeys -= OnAllPlayerSelectedKeys;
 
             BuzzerServerViewModel = null;
         }

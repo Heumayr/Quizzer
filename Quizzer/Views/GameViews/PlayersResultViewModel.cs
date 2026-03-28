@@ -4,10 +4,12 @@ using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.Views.GameViews.Sub;
 using Quizzer.Views.StaticRessources;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Controls;
 using System.Windows.Input;
+using static LocalBuzzer.Service.Base.States.BuzzerKeySelector;
 
 namespace Quizzer.Views.GameViews
 {
@@ -45,6 +47,38 @@ namespace Quizzer.Views.GameViews
                 playerResultContextList = value;
                 OnPropertyChanged();
             }
+        }
+
+        public ConcurrentDictionary<Guid, SelectionResult>? SelectionResultsDic
+        {
+            get => field;
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+
+                foreach (var ctx in PlayerResultContextList)
+                {
+                    SelectionResult? result = null;
+
+                    value?.TryGetValue(ctx.Player.Id, out result);
+
+                    ctx.SelectionResult = result;
+                }
+            }
+        }
+
+        public void SetSelectionResult(SelectionResult selectionResult)
+        {
+            if (selectionResult == null)
+                return;
+
+            var ctx = PlayerResultContextList.FirstOrDefault(ctx => ctx.Player.Id == selectionResult.PlayerId);
+
+            if (ctx == null)
+                return;
+
+            ctx.SelectionResult = selectionResult;
         }
 
         public async Task SetCoordinateAsync(GameGridCoordinate coordinate)
