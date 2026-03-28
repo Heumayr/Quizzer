@@ -7,13 +7,7 @@ using System.Text;
 
 namespace Quizzer.Base
 {
-    public class UcViewModelBase : INotifyPropertyChanged
+    public class UcViewModelBase : ViewCommonBase, INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 }

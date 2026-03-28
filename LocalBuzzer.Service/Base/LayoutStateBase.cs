@@ -2,51 +2,42 @@
 using LocalBuzzer.Service.Hubs.Accessors;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Quizzer.DataModels.Models.Buzzer;
 
 namespace LocalBuzzer.Service.Base
 {
     public sealed class LayoutStateManager
     {
-        public List<IBuzzerLayoutState> States { get; set; } = new();
+        public List<IBuzzerLayoutState> States { get; } = new();
 
-        public BuzzerControlsLayout CurrentLayout
-        {
-            get => field;
-            private set
-            {
-                field = value;
-            }
-        } = BuzzerControlsLayout.None;
-
-        public int Round { get; set; }
-
+        public BuzzerControlsLayout CurrentLayout { get; private set; } = BuzzerControlsLayout.None;
+        public int Round { get; private set; }
         public IBuzzerLayoutState? CurrentState { get; private set; }
 
-        public BuzzerState BuzzerState { get; private set; }
-        public BuzzerKeySelector BuzzerKeySelector { get; private set; }
+        public bool AllLocked { get; private set; }
+
+        public BuzzerState BuzzerState { get; }
+        public BuzzerKeySelector BuzzerKeySelector { get; }
 
         private readonly GameAccessor _gameAccessor;
 
         public LayoutStateManager(GameAccessor gameAccessor)
         {
+            _gameAccessor = gameAccessor;
+
             BuzzerState = new(gameAccessor);
             BuzzerKeySelector = new(gameAccessor);
 
             States.Add(BuzzerState);
             States.Add(BuzzerKeySelector);
-
-            _gameAccessor = gameAccessor;
         }
 
         public void ResetLayouts(int round, BuzzerControlsLayout layout = BuzzerControlsLayout.None)
         {
             CurrentLayout = layout;
             Round = round;
+            AllLocked = false;
 
-            //only one must be active!
             CurrentState = States.SingleOrDefault(s => s.BuzzerControlsLayout == layout);
 
             foreach (var state in States)
@@ -65,9 +56,24 @@ namespace LocalBuzzer.Service.Base
             foreach (var state in States)
             {
                 if (state == CurrentState) continue;
-
                 state.LockAll();
             }
+
+            AllLocked = true;
+        }
+
+        public ClientLayoutStateDto CreateClientState(Player? player = null)
+        {
+            return new ClientLayoutStateDto
+            {
+                PlayerName = player?.CalculatedDisplayName,
+                Round = Round,
+                Layout = CurrentLayout,
+                CurrentLayoutLocked = CurrentState?.Locked ?? true,
+                AllLocked = AllLocked,
+                LayoutInfo = CurrentState?.BuzzerStateInfo,
+                Winner = BuzzerState.Winner?.CalculatedDisplayName
+            };
         }
     }
 }

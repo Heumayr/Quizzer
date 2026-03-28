@@ -76,12 +76,55 @@ namespace Quizzer.Views.GameViews
             await OnModeldChanged();
 
             //Buzzer
-            if (BuzzerControlsViewModel != null)
+            await PrepareBuzzerlayoutAsync();
+        }
+
+        private async Task PrepareBuzzerlayoutAsync()
+        {
+            if (BuzzerControlsViewModel == null || Coordinate == null)
+                return;
+
+            var layout = Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None;
+
+            switch (layout)
             {
-                await BuzzerControlsViewModel.ResetRoundAsync(Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None);
-                BuzzerControlsViewModel.WinnerDeclared = OnWinnerDeclared;
+                case BuzzerControlsLayout.None:
+                    break;
+
+                case BuzzerControlsLayout.Buzzer:
+                    BuzzerControlsViewModel.WinnerDeclared = OnWinnerDeclared;
+                    break;
+
+                case BuzzerControlsLayout.KeySelect:
+                    await BuzzerControlsViewModel.SetKeySelectorDictionary(
+                        Question?.Steps.GetKeyDictionary(),
+                        Question?.BuzzerMaxAllowedKeySelect ?? 1,
+                        Question?.ShowTextOnKeySelect ?? true);
+
+                    break;
+
+                case BuzzerControlsLayout.Input:
+                    break;
+            }
+
+            if (!Coordinate.IsDone)
+            {
+                await BuzzerControlsViewModel.ResetRoundAsync(CurrentBuzzerLayout);
             }
         }
+
+        private async Task ClearBuzzerLayouts()
+        {
+            if (BuzzerControlsViewModel != null)
+            {
+                BuzzerControlsViewModel.WinnerDeclared = null;
+                await BuzzerControlsViewModel.SetKeySelectorDictionary(null);
+
+                await BuzzerControlsViewModel.ResetRoundAsync(null);
+            }
+        }
+
+        public BuzzerControlsLayout CurrentBuzzerLayout => Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None;
 
         private async Task OnModeldChanged()
         {
@@ -107,11 +150,13 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(IsDone));
         }
 
-        protected override Task OnClosed()
+        protected override async Task OnClosed()
         {
             GamePlayerViewModel?.SetView(null);
 
-            return base.OnClosed();
+            await ClearBuzzerLayouts();
+
+            await base.OnClosed();
         }
 
         //private Brush backgroundBrush = Brushes.DarkGray;

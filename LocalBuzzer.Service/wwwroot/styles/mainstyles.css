@@ -1,10 +1,18 @@
 ﻿/* ===== Base ===== */
-html, body {
+html,
+body {
     height: 100%;
     margin: 0;
     font-family: system-ui, sans-serif;
     background: #0b0f19;
     color: #fff;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow: hidden;
 }
 
 /* ===== Top bar ===== */
@@ -14,6 +22,7 @@ html, body {
     justify-content: space-between;
     gap: 12px;
     opacity: .9;
+    flex: 0 0 auto;
 }
 
 #name {
@@ -24,7 +33,7 @@ html, body {
     text-align: right;
 }
 
-/* ===== Inline error in top bar ===== */
+/* ===== Inline error ===== */
 #error_display {
     flex: 1 1 auto;
     min-width: 0;
@@ -46,21 +55,133 @@ html, body {
         display: block;
     }
 
-/* ===== Main BUZZ button (IMPORTANT: scoped!) ===== */
-#buzz {
-    height: calc(100% - 110px);
-    margin: 12px;
-    width: calc(100% - 24px);
-    border: 0;
-    border-radius: 24px;
-    font-size: 44px;
-    font-weight: 900;
-    background: #1f6feb;
-    color: #fff;
+/* ===== Layout host ===== */
+#layout_host {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 12px;
+    box-sizing: border-box;
+    width: 100%;
 }
 
-    #buzz:disabled {
+.layout {
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ===== Empty layout ===== */
+.layout-empty {
+    height: 100%;
+    display: grid;
+    place-items: center;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* ===== Buzzer layout ===== */
+.layout-buzzer {
+    height: 100%;
+}
+
+    .layout-buzzer .buzz-btn {
+        height: 100%;
+        width: 100%;
+        border: 0;
+        border-radius: 24px;
+        font-size: 44px;
+        font-weight: 900;
+        background: #1f6feb;
+        color: #fff;
+        cursor: pointer;
+        box-sizing: border-box;
+    }
+
+        .layout-buzzer .buzz-btn:disabled {
+            background: #2a3345;
+            opacity: .7;
+            cursor: not-allowed;
+        }
+
+/* ===== KeySelect layout ===== */
+.layout-keyselect {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+}
+
+.keys-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+}
+
+.key-btn {
+    min-height: 64px;
+    border: 0;
+    border-radius: 16px;
+    font-size: 20px;
+    font-weight: 800;
+    background: #243047;
+    color: #fff;
+    cursor: pointer;
+}
+
+    .key-btn.selected {
+        background: #1f6feb;
+    }
+
+    .key-btn:disabled {
         background: #2a3345;
+        opacity: .7;
+        cursor: not-allowed;
+    }
+
+.commit-btn {
+    flex: 0 0 auto;
+    min-height: 56px;
+    border: 0;
+    border-radius: 16px;
+    font-size: 20px;
+    font-weight: 800;
+    background: #16a34a;
+    color: #fff;
+    cursor: pointer;
+}
+
+    .commit-btn:disabled {
+        background: #2a3345;
+        opacity: .7;
+        cursor: not-allowed;
+    }
+
+/* ===== Input layout ===== */
+.layout-input {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+}
+
+.input-field {
+    min-height: 56px;
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 16px;
+    padding: 0 16px;
+    font-size: 20px;
+    background: rgba(255,255,255,.06);
+    color: #fff;
+    outline: none;
+    box-sizing: border-box;
+}
+
+    .input-field:disabled {
         opacity: .7;
     }
 
@@ -75,7 +196,7 @@ html, body {
     flex-direction: column;
     gap: 10px;
     width: calc(100vw - 24px);
-    max-width: 700px; /* a bit wider so it doesn't look cramped on desktop */
+    max-width: 700px;
     pointer-events: none;
 }
 
@@ -84,9 +205,8 @@ html, body {
     pointer-events: auto;
     width: 100%;
     box-sizing: border-box;
-    position: relative; /* for absolute close button */
-    padding: 12px 44px 12px 14px; /* room for close button */
-
+    position: relative;
+    padding: 12px 44px 12px 14px;
     border-radius: 16px;
     font-size: 14px;
     line-height: 1.25;
@@ -110,9 +230,8 @@ html, body {
         word-break: normal;
     }
 
-    /* ===== Close button (RESET so it is NOT affected by #buzz / generic button rules) ===== */
     .toast .toast-close {
-        all: unset; /* nukes inherited button styling */
+        all: unset;
         position: absolute;
         top: 3px;
         right: 3px;
@@ -133,7 +252,6 @@ html, body {
             background: rgba(255,255,255,.08);
         }
 
-    /* ===== Toast variants ===== */
     .toast.debug {
         background: rgba(59,130,246,.18);
         border-color: rgba(59,130,246,.45);

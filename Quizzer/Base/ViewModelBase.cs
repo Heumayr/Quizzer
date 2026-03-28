@@ -11,7 +11,7 @@ using System.Windows;
 
 namespace Quizzer.Base
 {
-    public abstract class ViewModelBase : INotifyPropertyChanged
+    public abstract class ViewModelBase : ViewCommonBase, INotifyPropertyChanged
     {
         private Window? window;
 
@@ -66,13 +66,6 @@ namespace Quizzer.Base
             {
                 ExceptionManager.HandleException(ex);
             }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        public virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public virtual async Task InitializeAsync()

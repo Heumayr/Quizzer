@@ -1,11 +1,7 @@
 ﻿using LocalBuzzer.Service.Hubs.Accessors;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Net.Sockets;
-using System.Text;
 
 namespace LocalBuzzer.Service.Base.States
 {
@@ -22,30 +18,33 @@ namespace LocalBuzzer.Service.Base.States
 
         public bool Locked { get; set; }
 
-        public class BuzzerKeySelectorInfo()
+        public sealed class BuzzerKeySelectorInfo
         {
             public bool ShowDesignations { get; set; } = true;
-            public ConcurrentDictionary<string, string> KeysAndDesignations { get; private set; } = new();
+            public Dictionary<string, string> KeysAndDesignations { get; set; } = new();
+            public int MaxAllowedSelections { get; set; } = 1;
         }
 
-        public class SelectionResult
+        public sealed class SelectionResult
         {
             public Guid PlayerId { get; set; } = Guid.Empty;
-
             public Player? Player { get; set; }
-
             public List<string> SelectedKeys { get; set; } = new();
-
-            public bool CommittedResult { get; set; } = false;
+            public bool CommittedResult { get; set; }
         }
 
         public BuzzerKeySelectorInfo Infos { get; set; } = new();
 
-        public ConcurrentDictionary<Guid, SelectionResult> KeyResultsForPlayer { get; private set; } = new();
+        public ConcurrentDictionary<Guid, SelectionResult> KeyResultsForPlayer { get; } = new();
 
         public int MaxAllowedKeySelectPerPlayer { get; set; } = 1;
 
-        public object BuzzerStateInfo => Infos;
+        public object BuzzerStateInfo => new BuzzerKeySelectorInfo
+        {
+            ShowDesignations = Infos.ShowDesignations,
+            KeysAndDesignations = Infos.KeysAndDesignations,
+            MaxAllowedSelections = MaxAllowedKeySelectPerPlayer
+        };
 
         public void SetSelectedKeys(SelectionResult results)
         {
@@ -54,7 +53,7 @@ namespace LocalBuzzer.Service.Base.States
 
             lock (this)
             {
-                if (results.SelectedKeys.Count() > MaxAllowedKeySelectPerPlayer)
+                if (results.SelectedKeys.Count > MaxAllowedKeySelectPerPlayer)
                 {
                     results.SelectedKeys.Clear();
                     results.CommittedResult = false;
@@ -64,7 +63,7 @@ namespace LocalBuzzer.Service.Base.States
                     results.CommittedResult = true;
                 }
 
-                KeyResultsForPlayer.AddOrUpdate(results.Player.Id, k => results, (k, o) => results);
+                KeyResultsForPlayer.AddOrUpdate(results.Player.Id, _ => results, (_, _) => results);
 
                 var playersCount = _gameAccessor.GetGame?.Invoke()?.Players?.Count() ?? 0;
 
@@ -74,17 +73,14 @@ namespace LocalBuzzer.Service.Base.States
                     return;
                 }
 
-                Locked = KeyResultsForPlayer.All(v => v.Value.CommittedResult) && KeyResultsForPlayer.Count() == playersCount;
+                Locked = KeyResultsForPlayer.Count == playersCount
+                      && KeyResultsForPlayer.All(v => v.Value.CommittedResult);
             }
         }
 
         public void Reset()
         {
-            foreach (var key in KeyResultsForPlayer.Keys)
-            {
-                KeyResultsForPlayer[key] = new();
-            }
-
+            KeyResultsForPlayer.Clear();
             Locked = false;
         }
 
@@ -92,17 +88,15 @@ namespace LocalBuzzer.Service.Base.States
         {
             Infos.KeysAndDesignations.Clear();
             KeyResultsForPlayer.Clear();
-
-            Locked = false;
             Infos.ShowDesignations = true;
+            Locked = true;
         }
 
         public void LockAll()
         {
             foreach (var item in KeyResultsForPlayer)
-            {
                 item.Value.CommittedResult = true;
-            }
+
             Locked = true;
         }
     }

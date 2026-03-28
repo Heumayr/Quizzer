@@ -1,141 +1,155 @@
-﻿const nameEl = document.getElementById('name');
-const statusEl = document.getElementById('status');
-const btn = document.getElementById('buzz');
-const errorEl = document.getElementById('error_display');
-let locked = false;
+﻿import { Layouts } from "./constants.js";
+import { dom, resolvePlayerId, showError, getErrMsg, toast } from "./helpers.js";
+import { LayoutManager } from "./layoutManager.js";
+import { BuzzerLayout } from "./layouts/buzzerLayout.js";
+import { KeySelectLayout } from "./layouts/keySelectLayout.js";
+import { InputLayout } from "./layouts/inputLayout.js";
 
-// ---- cookie helpers ----
-const COOKIE_NAME = "playerId";
-const COOKIE_DAYS = 365;
+const state = {
+    playerId: null,
+    playerName: "—",
+    round: 0,
+    currentLayout: Layouts.None,
+    layoutInfo: null,
+    currentLayoutLocked: true,
+    allLocked: false,
+    winner: null,
+    conn: null
+};
 
-function setCookie(name, value, days) {
-    const expires = new Date(Date.now() + days * 864e5).toUTCString();
-    document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; Expires=${expires}; Path=/; SameSite=Lax`;
+const layoutManager = new LayoutManager(state);
+
+function buildContext() {
+    return {
+        host: dom.host,
+        playerId: state.playerId,
+        playerName: state.playerName,
+        round: state.round,
+        currentLayout: state.currentLayout,
+        layoutInfo: state.layoutInfo,
+        currentLayoutLocked: state.currentLayoutLocked,
+        allLocked: state.allLocked,
+        winner: state.winner
+    };
 }
 
-function getCookie(name) {
-    const key = encodeURIComponent(name) + "=";
-    return document.cookie
-        .split(";")
-        .map(s => s.trim())
-        .find(s => s.startsWith(key))
-        ?.slice(key.length) ?? null;
-}
-
-function isGuid(s) {
-    // simple GUID v4-ish / general GUID format check
-    return typeof s === "string" &&
-        /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(s.trim());
-}
-
-// ---- resolve id: URL -> cookie -> prompt ----
-function resolvePlayerId() {
-    const params = new URLSearchParams(location.search);
-    const urlIdRaw = params.get("id");
-    const urlId = urlIdRaw?.trim() ?? null;
-
-    if (urlId && isGuid(urlId)) {
-        setCookie(COOKIE_NAME, urlId, COOKIE_DAYS);
-        return urlId;
+function buildStatusText() {
+    if (state.winner) {
+        return `Runde ${state.round}: Gewinner: ${state.winner}`;
     }
 
-    const cookieIdRaw = getCookie(COOKIE_NAME);
-    const cookieId = cookieIdRaw ? decodeURIComponent(cookieIdRaw).trim() : null;
-
-    if (cookieId && isGuid(cookieId)) {
-        return cookieId;
+    switch (state.currentLayout) {
+        case Layouts.Buzzer:
+            return `Runde ${state.round}: bereit`;
+        case Layouts.KeySelect:
+            return `Runde ${state.round}: Auswahl treffen`;
+        case Layouts.Input:
+            return `Runde ${state.round}: Eingabe erwartet`;
+        default:
+            return `Runde ${state.round}: kein Layout aktiv`;
     }
-
-    // blocking popup: user must provide a GUID or we won't connect
-    const input = prompt("Player-ID (GUID) fehlt. Bitte einfügen:", "");
-    const typed = input?.trim() ?? "";
-
-    if (typed && isGuid(typed)) {
-        setCookie(COOKIE_NAME, typed, COOKIE_DAYS);
-        return typed;
-    }
-
-    return null;
 }
 
-// ---- error display helpers ----
-function showError(msg) {
-    errorEl.textContent = msg ?? "";
-    errorEl.classList.toggle("show", !!msg);
-}
+function applyServerState(serverState) {
+    const previousLayout = state.currentLayout;
 
-function getErrMsg(e) {
-    const m = e?.message ?? String(e ?? "");
-    // make it nicer: keep only HubException text if present
-    const match = m.match(/HubException:\s*(.*)$/);
-    return (match ? match[1] : m).trim();
-}
+    state.playerName = serverState.playerName ?? state.playerName;
+    state.round = serverState.round ?? state.round;
+    state.currentLayout = serverState.layout ?? Layouts.None;
+    state.layoutInfo = serverState.layoutInfo ?? null;
+    state.currentLayoutLocked = serverState.currentLayoutLocked ?? true;
+    state.allLocked = serverState.allLocked ?? false;
+    state.winner = serverState.winner ?? null;
 
-// ---- toast integration (expects show_toast from earlier snippet) ----
-function toast(type, msg) {
-    if (typeof window.show_toast === "function") {
-        window.show_toast(type, msg);
+    dom.name.textContent = state.playerName || "—";
+    dom.status.textContent = buildStatusText();
+
+    const context = buildContext();
+
+    if (previousLayout !== state.currentLayout) {
+        layoutManager.switchTo(state.currentLayout, context);
+    } else {
+        layoutManager.update(context);
     }
+}
+
+function registerLayouts() {
+    layoutManager.register(Layouts.Buzzer, new BuzzerLayout({
+        buzz: async () => {
+            try {
+                await state.conn.invoke("Buzz");
+            } catch (e) {
+                const m = getErrMsg(e);
+                showError(m);
+                toast("error", m);
+            }
+        }
+    }));
+
+    layoutManager.register(Layouts.KeySelect, new KeySelectLayout({
+        submitSelection: async (payload) => {
+            try {
+                await state.conn.invoke("SelectionResults", payload);
+            } catch (e) {
+                const m = getErrMsg(e);
+                showError(m);
+                toast("error", m);
+            }
+        }
+    }));
+
+    layoutManager.register(Layouts.Input, new InputLayout({
+        submitInput: async (payload) => {
+            try {
+                await state.conn.invoke("SubmitInput", payload);
+            } catch (e) {
+                const m = getErrMsg(e);
+                showError(m);
+                toast("error", m);
+            }
+        }
+    }));
 }
 
 async function start() {
-    btn.disabled = true;
-    statusEl.textContent = "Verbinde…";
+    dom.status.textContent = "Verbinde…";
 
-    const id = resolvePlayerId();
-    if (!id) {
-        statusEl.textContent = "Nicht verbunden: keine gültige Player-ID.";
-        nameEl.textContent = "—";
+    state.playerId = resolvePlayerId();
+    if (!state.playerId) {
         const m = "Nicht verbunden: keine gültige Player-ID.";
+        dom.name.textContent = "—";
+        dom.status.textContent = m;
         showError(m);
         toast("error", m);
-        return; // do NOT connect
+        return;
     }
 
+    registerLayouts();
+
     const conn = new signalR.HubConnectionBuilder()
-        .withUrl(`/hub?playerid=${encodeURIComponent(id)}`)
+        .withUrl(`/hub?playerid=${encodeURIComponent(state.playerId)}`)
         .withAutomaticReconnect()
         .build();
 
-    conn.on("Assigned", (name, round, isLocked, winner) => {
-        showError(""); // clear any previous errors
-        nameEl.textContent = name;
-        locked = isLocked;
-        statusEl.textContent = winner ? `Runde ${round}: ${winner}` : `Runde ${round}: bereit`;
-        btn.disabled = locked;
+    state.conn = conn;
 
-        // optional small toast on (re)assign
-        toast("info", `${name} verbunden`);
-    });
-
-    conn.on("Winner", (winner, round) => {
+    conn.on("Assigned", (serverState) => {
         showError("");
-        locked = true;
-        statusEl.textContent = `Runde ${round}: Gewinner: ${winner}`;
-        btn.disabled = true;
-        toast("warning", `Runde ${round}: Gewinner: ${winner}`);
+        applyServerState(serverState);
+        toast("info", `${state.playerName} verbunden`);
     });
 
-    conn.on("Reset", (round) => {
+    conn.on("StateChanged", (serverState) => {
         showError("");
-        locked = false;
-        statusEl.textContent = `Runde ${round}: bereit`;
-        btn.disabled = false;
-        toast("info", `Runde ${round}: bereit`);
-    });
+        applyServerState(serverState);
 
-    conn.onreconnecting(() => {
-        const m = "Verbindung verloren… reconnecting";
-        statusEl.textContent = m;
-        btn.disabled = true;
-        toast("warning", m);
-    });
+        if (state.allLocked || state.currentLayoutLocked) {
+            layoutManager.lockCurrent();
+        }
 
-    conn.onreconnected(() => {
-        const m = "Wieder verbunden";
-        statusEl.textContent = m;
-        toast("info", m);
-        // button state will be corrected by next Assigned/Reset/Winner
+        if (state.winner) {
+            toast("warning", `Runde ${state.round}: Gewinner: ${state.winner}`);
+        }
     });
 
     conn.on("Error", (errorMessage) => {
@@ -143,38 +157,35 @@ async function start() {
         toast("error", errorMessage);
     });
 
+    conn.onreconnecting(() => {
+        dom.status.textContent = "Verbindung verloren… reconnecting";
+        layoutManager.lockCurrent();
+        toast("warning", "Verbindung verloren… reconnecting");
+    });
+
+    conn.onreconnected(() => {
+        dom.status.textContent = "Wieder verbunden";
+        toast("info", "Wieder verbunden");
+    });
+
     conn.onclose((closeErr) => {
         const m = closeErr ? getErrMsg(closeErr) : "Verbindung geschlossen.";
         showError(m);
-        statusEl.textContent = "Nicht verbunden: Verbindung geschlossen.";
-        btn.disabled = true;
+        dom.status.textContent = "Nicht verbunden: Verbindung geschlossen.";
+        layoutManager.lockCurrent();
         toast("error", m);
-    });
-
-    btn.addEventListener('click', async () => {
-        try {
-            await conn.invoke("Buzz");
-        } catch (e) {
-            console.error("Buzz failed", e);
-            statusEl.textContent = "Buzz failed";
-            const m = getErrMsg(e);
-            showError(m);
-            toast("error", m);
-        }
     });
 
     try {
         await conn.start();
-        showError("");                 // clear on success
-        statusEl.textContent = "Bereit";
-        btn.disabled = locked;
+        showError("");
+        dom.status.textContent = "Bereit";
         toast("debug", "Bereit");
     } catch (e) {
-        console.error("Connect failed", e);
         const m = getErrMsg(e);
-        showError(m);                  // <-- THIS is what you want
-        statusEl.textContent = "Nicht verbunden: Verbindung fehlgeschlagen.";
-        btn.disabled = true;
+        showError(m);
+        dom.status.textContent = "Nicht verbunden: Verbindung fehlgeschlagen.";
+        layoutManager.lockCurrent();
         toast("error", m);
     }
 }

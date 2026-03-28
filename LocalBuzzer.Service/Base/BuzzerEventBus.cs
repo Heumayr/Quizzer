@@ -11,7 +11,7 @@ namespace LocalBuzzer.Service.Base
 {
     public sealed class BuzzerEventBus
     {
-        public event Action<string>? ClientAssigned;
+        public event Action<string, Guid>? ClientAssigned;
 
         public event Action<Player?, int>? WinnerDeclared;
 
@@ -21,7 +21,7 @@ namespace LocalBuzzer.Service.Base
 
         public event Action<ConcurrentDictionary<Guid, SelectionResult>>? AllPlayersSelectedKeys;
 
-        public void OnAssigned(string name) => ClientAssigned?.Invoke(name);
+        public void OnAssigned(string name, Guid playerId) => ClientAssigned?.Invoke(name, playerId);
 
         public void OnWinner(Player? player, int round) => WinnerDeclared?.Invoke(player, round);
 

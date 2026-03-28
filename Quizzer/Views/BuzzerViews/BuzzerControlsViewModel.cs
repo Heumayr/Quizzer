@@ -9,6 +9,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using static LocalBuzzer.Service.Base.States.BuzzerKeySelector;
 
 namespace Quizzer.Views.BuzzerViews
 {
@@ -19,6 +20,7 @@ namespace Quizzer.Views.BuzzerViews
         private BuzzerServerViewModel? BuzzerServerViewModel { get; set; }
 
         public BuzzerController? BuzzerController => BuzzerServerViewModel?._server?.BuzzerController;
+
         public Game? Game => BuzzerServerViewModel?.Game;
 
         public Brush BackgroundBrush => BuzzerServerViewModel?.BackgroundBrush ?? Brushes.DarkGray;
@@ -30,11 +32,11 @@ namespace Quizzer.Views.BuzzerViews
 
             var ctrl = viewModel._server?.BuzzerController;
             ctrl?.EventBus.RoundReset -= OnReset;
-            ctrl?.EventBus.WinnerDeclared -= OnWinner;
+            ctrl?.EventBus.WinnerDeclared -= OnBuzzerWinner;
             ctrl?.EventBus.ClientAssigned -= OnAssigned;
 
             ctrl?.EventBus.RoundReset += OnReset;
-            ctrl?.EventBus.WinnerDeclared += OnWinner;
+            ctrl?.EventBus.WinnerDeclared += OnBuzzerWinner;
             ctrl?.EventBus.ClientAssigned += OnAssigned;
 
             BuzzerServerViewModel = viewModel;
@@ -62,24 +64,46 @@ namespace Quizzer.Views.BuzzerViews
             await BuzzerController.ResetRoundAsync(Game.CurrentRound, buzzerLayout);
         }
 
-        public void OnAssigned(string name)
+        public void OnAssigned(string displayName, Guid guid)
         {
+            RunOnUi(() =>
+            {
+                // UI updates here
+            });
         }
 
-        public async void OnWinner(Player? player, int round)
+        public async void OnBuzzerWinner(Player? player, int round)
         {
             try
             {
-                await Application.Current.Dispatcher.InvokeAsync(async () =>
+                await RunOnUiAsync(async () =>
                 {
                     if (WinnerDeclared != null)
                         await WinnerDeclared.Invoke(player, round);
                 });
+
+                //await Application.Current.Dispatcher.InvokeAsync(async () =>
+                //{
+                //    if (WinnerDeclared != null)
+                //        await WinnerDeclared.Invoke(player, round);
+                //});
             }
             catch (Exception ex)
             {
                 ExceptionManager.HandleException(ex);
             }
+        }
+
+        public async Task SetKeySelectorDictionary(Dictionary<string, string>? keySelectorDic, int maxAllowedSelections = 1, bool ShowDesignations = true)
+        {
+            var info = new BuzzerKeySelectorInfo()
+            {
+                MaxAllowedSelections = maxAllowedSelections,
+                KeysAndDesignations = keySelectorDic ?? new(),
+                ShowDesignations = true
+            };
+
+            BuzzerController?.StateManager.BuzzerKeySelector.Infos = info;
         }
 
         public void OnReset(int round)
@@ -90,7 +114,7 @@ namespace Quizzer.Views.BuzzerViews
         {
             var ctrl = BuzzerServerViewModel?._server?.BuzzerController;
             ctrl?.EventBus.RoundReset -= OnReset;
-            ctrl?.EventBus.WinnerDeclared -= OnWinner;
+            ctrl?.EventBus.WinnerDeclared -= OnBuzzerWinner;
             ctrl?.EventBus.ClientAssigned -= OnAssigned;
 
             BuzzerServerViewModel = null;

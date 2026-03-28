@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -316,7 +317,28 @@ namespace Quizzer.Views.BuzzerViews
                 Owner = Application.Current?.MainWindow
             };
 
+            win.Loaded += (o, e) =>
+            {
+                _server?.BuzzerController?.EventBus.ClientAssigned += (name, playerId) => PlayerAssigend(player, win, name, playerId);
+            };
+
+            win.Closed += (o, e) =>
+            {
+                _server?.BuzzerController?.EventBus.ClientAssigned -= (name, playerId) => PlayerAssigend(player, win, name, playerId);
+            };
+
             win.Show();
+        }
+
+        public void PlayerAssigend(Player player, Window win, string displayname, Guid playerId)
+        {
+            RunOnUi(() =>
+            {
+                if (playerId == player.Id && player.ConnectionState == PlayerConnection.Connected)
+                {
+                    win.Close();
+                }
+            });
         }
 
         private static BitmapImage CreateQrBitmap(string payload)
