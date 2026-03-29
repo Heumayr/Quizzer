@@ -59,6 +59,12 @@ namespace Quizzer.Views.StaticRessources
         public static readonly Brush HeaderRowImageBrush =
             CreateImageBrushOrBlack(Settings.HeaderRowBackgroundImagePath);
 
+        public static readonly Brush ChoiceBackgroundImageBrush =
+            CreateImageBrushOrBlack(Settings.ChoiceBackgroundImagePath, Stretch.Fill);
+
+        public static readonly Brush ChoiceBackgroundResultImageBrush =
+            CreateImageBrushOrBlack(Settings.ChoiceBackgroundResultImagePath, Stretch.Fill);
+
         public static readonly Brush PlayerPlaceHolderImageBrush =
             CreateImageBrushOrBlack(Settings.PlaceholderPlayerImagePath);
 

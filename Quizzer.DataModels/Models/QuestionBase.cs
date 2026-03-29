@@ -45,6 +45,12 @@ namespace Quizzer.DataModels.Models
 
         #endregion Buzzer
 
+        #region view
+
+        public virtual StepDisplayLayoutMode StepDisplayLayoutMode { get; set; } = StepDisplayLayoutMode.Vertical;
+
+        #endregion view
+
         public List<QuestionStepResource> Steps { get; set; } = new List<QuestionStepResource>();
 
         public Category? Category { get; set; }
@@ -171,10 +177,18 @@ namespace Quizzer.DataModels.Models
             target.Points = Points;
             target.MinusPoints = MinusPoints;
             target.Notes = Notes;
+            target.Typ = Typ;
+            target.DefaultFinishType = DefaultFinishType;
             target.Difficulty = Difficulty;
             target.WarnOnResultStep = WarnOnResultStep;
             target.WarnOnFinishStep = WarnOnFinishStep;
             target.UseRandomSequenceOnNonFinishSteps = UseRandomSequenceOnNonFinishSteps;
+
+            target.BuzzerControlsLayout = BuzzerControlsLayout;
+            target.BuzzerMaxAllowedKeySelect = BuzzerMaxAllowedKeySelect;
+            target.StepDisplayLayoutMode = StepDisplayLayoutMode;
+
+            target.ShowTextOnKeySelect = ShowTextOnKeySelect;
 
             target.Steps = new List<QuestionStepResource>();
             target.Category = null;

@@ -321,9 +321,10 @@ namespace Quizzer.Views.GameViews
                     Owner = this,
                     Step = CurrentStep,
                     IsMasterView = true,
+                    DisplayLayoutMode = Question?.StepDisplayLayoutMode ?? StepDisplayLayoutMode.Vertical
                 };
 
-                GamePlayerViewModel?.SetView(QuestionStepViewContext.CloneForDifferentView(current, false));
+                GamePlayerViewModel?.SetView(QuestionStepViewContext.CloneForDifferentView(current, false, Question?.StepDisplayLayoutMode ?? StepDisplayLayoutMode.Vertical));
                 return current;
             }
         }
@@ -333,6 +334,7 @@ namespace Quizzer.Views.GameViews
             Owner = this,
             Step = FinishStep,
             IsMasterView = true,
+            DisplayLayoutMode = Question?.StepDisplayLayoutMode ?? StepDisplayLayoutMode.Vertical,
         };
 
         public QuestionStepViewContext NextStepContext => new()
@@ -340,6 +342,7 @@ namespace Quizzer.Views.GameViews
             Owner = this,
             Step = NextStep,
             IsMasterView = true,
+            DisplayLayoutMode = Question?.StepDisplayLayoutMode ?? StepDisplayLayoutMode.Vertical,
         };
 
         public ObservableCollection<QuestionStepResource> SelectedSteps { get; set; } = new();

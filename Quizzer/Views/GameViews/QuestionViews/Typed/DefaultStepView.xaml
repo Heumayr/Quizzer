@@ -8,88 +8,73 @@
              d:DesignHeight="450" d:DesignWidth="800">
 
     <Grid ClipToBounds="True">
-        <!-- shown when DataContext != null -->
-        <Grid ClipToBounds="True">
-            <!--<Grid.Style>
-                <Style TargetType="Grid">
-                    <Setter Property="Visibility" Value="Visible" />
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding}" Value="{x:Null}">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Grid.Style>-->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
+        <!-- Result -->
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="left"
+                    Visibility="{Binding MasterViewVisibility}"
+                    Margin="4">
+            <Label Content="Result:" />
+            <CheckBox VerticalContentAlignment="Center"
+                      IsEnabled="False"
+                      IsChecked="{Binding Step.IsResult}" />
+        </StackPanel>
+
+        <!-- Finish -->
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="left"
+                    Visibility="{Binding MasterViewVisibility}"
+                    Margin="4">
+            <Label Content="Finish:" />
+            <CheckBox VerticalContentAlignment="Center"
+                      IsEnabled="False"
+                      IsChecked="{Binding Step.IsFinish}" />
+        </StackPanel>
+
+        <!-- Main content area -->
+        <Grid Grid.Row="2" ClipToBounds="True">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="{Binding StepTextColumnWidth}" />
+                <ColumnDefinition Width="{Binding ResourceColumnWidth}" />
             </Grid.ColumnDefinitions>
 
-            <!-- linke Seite -->
-            <Grid Grid.Column="0" Margin="4" ClipToBounds="True">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-
-                <StackPanel Visibility="{Binding MasterViewVisibility}" Grid.Row="0" Orientation="Horizontal" x:Name="StackPanleIsResult">
-                    <Label Content="Result:" />
-                    <CheckBox VerticalContentAlignment="Center"
-                              IsEnabled="False"
-                              IsChecked="{Binding Step.IsResult}" />
-                </StackPanel>
-
-                <StackPanel Visibility="{Binding MasterViewVisibility}" Grid.Row="1" Orientation="Horizontal" x:Name="StackPanleIsFinish">
-                    <Label Content="Finish:" />
-                    <CheckBox VerticalContentAlignment="Center"
-                              IsEnabled="False"
-                              IsChecked="{Binding Step.IsFinish}" />
-                </StackPanel>
-
-                <Grid Grid.Row="2" ClipToBounds="True">
-                    <Viewbox Stretch="Uniform"
-                             StretchDirection="Both"
-                             HorizontalAlignment="Stretch"
-                             VerticalAlignment="Stretch">
-                        <TextBlock Text="{Binding Step.StepText}"
-                                   Foreground="WhiteSmoke"
-                                   TextWrapping="Wrap"
-                                   TextAlignment="Center" />
-                    </Viewbox>
-                </Grid>
+            <!-- Step text -->
+            <Grid Grid.Column="0"
+                  Margin="4"
+                  ClipToBounds="True"
+                  Visibility="{Binding HasStepTextVisibility}">
+                <Viewbox Stretch="Uniform"
+                         StretchDirection="Both"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         Margin="10">
+                    <TextBlock Text="{Binding Step.StepText}"
+                               Foreground="WhiteSmoke"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center" />
+                </Viewbox>
             </Grid>
 
-            <!-- rechte Seite -->
-            <Grid Grid.Column="1" Margin="4" ClipToBounds="True">
+            <!-- Resource -->
+            <Grid Grid.Column="1"
+                  Margin="4"
+                  ClipToBounds="True"
+                  Visibility="{Binding HasResourceVisibility}">
                 <local:ResourceViewerControl
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
                     DataContext="{Binding Step}"
                     RootFolder="{Binding DataContext.ResourceRootFolder, RelativeSource={RelativeSource AncestorType=UserControl}}"
                     IsMasterView="{Binding DataContext.IsMasterView, RelativeSource={RelativeSource AncestorType=UserControl}}"
                     AudioPlaceholderFile="{Binding DataContext.AudioPlaceholderFile, RelativeSource={RelativeSource AncestorType=UserControl}}" />
             </Grid>
         </Grid>
-
-        <!-- shown when DataContext == null -->
-
-        <!--<Grid>
-            <Grid.Style>
-                <Style TargetType="Grid">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding}" Value="{x:Null}">
-                            <Setter Property="Visibility" Value="Visible" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Grid.Style>
-
-            <StackPanel>
-                <Label Content="Empty" Foreground="DarkRed" />
-            </StackPanel>
-        </Grid>-->
     </Grid>
 </local:UserControlStepViewBase>

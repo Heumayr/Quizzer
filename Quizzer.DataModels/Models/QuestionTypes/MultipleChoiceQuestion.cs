@@ -21,6 +21,8 @@ namespace Quizzer.DataModels.Models.QuestionTypes
 
         public override BuzzerControlsLayout BuzzerControlsLayout { get; set; } = BuzzerControlsLayout.KeySelect;
 
+        public override StepDisplayLayoutMode StepDisplayLayoutMode { get; set; } = StepDisplayLayoutMode.Grid;
+
         protected override QuestionBase CreateCloneInstance()
         {
             return new MultipleChoiceQuestion();

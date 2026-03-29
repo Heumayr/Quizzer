@@ -30,94 +30,105 @@
             <typed:MultipleChoiceStepView IsMasterView="True" />
         </DataTemplate>
     </Window.Resources>
-    <Grid Background="{Binding IsDoneBrush}">
+
+    <Grid>
+        <Grid.Background>
+            <ImageBrush ImageSource="{Binding BackgroundImagePath}"
+             Stretch="UniformToFill" />
+        </Grid.Background>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto" MaxWidth="345"></ColumnDefinition>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-        </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="0" Grid.Column="0">
-            <questions:CurrentQuestionView Width="335" ></questions:CurrentQuestionView>
-        </StackPanel>
+        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Background="Black" MaxHeight="100" ClipToBounds="True">
+            <Viewbox Margin="5" Stretch="Uniform">
+                <TextBlock Text="{Binding Question.QuestionText}"
+                 Foreground="WhiteSmoke"
+                 FontWeight="SemiBold"
+                 TextWrapping="Wrap"
+                 TextAlignment="Left"
+                 VerticalAlignment="Center"
+                 HorizontalAlignment="Center" />
+            </Viewbox>
+        </Grid>
 
-        <StackPanel Grid.Row="1" Grid.Column="0">
-            <Button Content="Results" Command="{Binding OpenResultsCommand}"></Button>
-            <Button Content="Save IsDone Finish" Command="{Binding SaveIsDoneFinishStateCommand}" Background="DarkGreen"></Button>
-        </StackPanel>
-
-        <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" MinWidth="200" ClipToBounds="True">
-            <Grid.Background>
-                <ImageBrush ImageSource="{Binding BackgroundImagePath}"
-                     Stretch="UniformToFill" />
-            </Grid.Background>
-
+        <Grid  Grid.Row="1" Grid.Column="0" MinWidth="200" ClipToBounds="True">
             <Grid.RowDefinitions>
-                <RowDefinition Height="100" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="30"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
             </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="Current Step" Foreground="DarkGreen" FontWeight="Bold" FontSize="14" />
+            <ContentControl Grid.Row="1"
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch"
+          HorizontalContentAlignment="Stretch"
+          VerticalContentAlignment="Stretch"
+          Content="{Binding CurrentStepContext}"
+          ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
+        </Grid>
 
-            <Grid Grid.Row="0" Grid.Column="0" Background="Black" MaxHeight="100" ClipToBounds="True">
-                <Viewbox Margin="5" Stretch="Uniform">
-                    <TextBlock Text="{Binding Question.QuestionText}"
-                     Foreground="WhiteSmoke"
-                     FontWeight="SemiBold"
-                     TextWrapping="Wrap"
-                     TextAlignment="Left"
-                     VerticalAlignment="Center"
-                     HorizontalAlignment="Center" />
-                </Viewbox>
-            </Grid>
+        <Grid  Grid.Row="1" Grid.Column="1" MinWidth="200"  ClipToBounds="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="Next Step" FontWeight="Bold" FontSize="14" />
+            <ContentControl Grid.Row="1"
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch"
+          HorizontalContentAlignment="Stretch"
+          VerticalContentAlignment="Stretch"
+          Content="{Binding NextStepContext}"
+          ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
+        </Grid>
 
-            <Grid  Grid.Row="1" Grid.Column="0" MinWidth="200" ClipToBounds="True">
+        <Grid  Grid.Row="2" Grid.Column="0" MinWidth="200" ClipToBounds="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="Finish Step" FontWeight="Bold" FontSize="14" />
+            <ContentControl Grid.Row="1"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                HorizontalContentAlignment="Stretch"
+                VerticalContentAlignment="Stretch"
+                Content="{Binding FinishStepContext}"
+                ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
+        </Grid>
+
+        <Grid Grid.Row="2" Grid.Column="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="auto"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="30"></RowDefinition>
+                    <RowDefinition Height="auto"></RowDefinition>
                     <RowDefinition Height="*"></RowDefinition>
                 </Grid.RowDefinitions>
-                <Label Grid.Row="0" Content="Current Step" Foreground="DarkGreen" FontWeight="Bold" FontSize="14" />
-                <ContentControl Grid.Row="1"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Content="{Binding CurrentStepContext}"
-                    ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
-            </Grid>
 
-            <Grid  Grid.Row="2" Grid.Column="0" MinWidth="200"  ClipToBounds="True">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="30"></RowDefinition>
-                    <RowDefinition Height="*"></RowDefinition>
-                </Grid.RowDefinitions>
-                <Label Grid.Row="0" Content="Next Step" Foreground="DarkBlue" FontWeight="Bold" FontSize="14" />
-                <ContentControl Grid.Row="1"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Content="{Binding NextStepContext}"
-                    ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
-            </Grid>
+                <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+                    <Border BorderBrush="WhiteSmoke">
+                        <buzzerServer:BuzzerControlsView Background="{Binding BackgroundBrush}" DataContext="{Binding BuzzerControlsViewModel}"></buzzerServer:BuzzerControlsView>
+                    </Border>
+                </Grid>
 
-            <Grid Grid.Row="3" Grid.Column="0">
-                <Border BorderBrush="WhiteSmoke">
-                    <buzzerServer:BuzzerControlsView Background="{Binding BackgroundBrush}" DataContext="{Binding BuzzerControlsViewModel}"></buzzerServer:BuzzerControlsView>
-                </Border>
-            </Grid>
+                <Grid Grid.Row="1" Grid.Column="0">
+                    <questions:CurrentQuestionView Width="335" ></questions:CurrentQuestionView>
+                </Grid>
 
-            <Grid  Grid.Row="4" Grid.Column="0" MinWidth="200" ClipToBounds="True">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="30"></RowDefinition>
-                    <RowDefinition Height="*"></RowDefinition>
-                </Grid.RowDefinitions>
-                <Label Grid.Row="0" Content="Finish Step" Foreground="DarkRed" FontWeight="Bold" FontSize="14" />
-                <ContentControl Grid.Row="1"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Content="{Binding FinishStepContext}"
-                    ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
+                <StackPanel Grid.Row="1" Grid.Column="1" Background="{Binding IsDoneBrush}">
+                    <Button Content="Results" Command="{Binding OpenResultsCommand}"></Button>
+                    <Button Content="Save IsDone Finish" Command="{Binding SaveIsDoneFinishStateCommand}" Background="DarkGreen"></Button>
+                </StackPanel>
             </Grid>
         </Grid>
     </Grid>
