@@ -165,25 +165,35 @@ namespace Quizzer.Views.GameViews.QuestionViews
 
         public QuestionType QuestionType => Question?.Typ ?? default;
 
-        // stabile Slot-Liste:
-        // Anzahl bleibt immer gleich = MaxDisplayStepCount
-        // noch nicht sichtbare Steps werden als Hidden-Slots geliefert
+        private StepDisplayItem[] displaySteps = [];
+
         public StepDisplayItem[] DisplaySteps
         {
-            get
+            get => displaySteps;
+            private set
             {
-                if (LayoutReferenceSteps.Length == 0)
-                    return [];
-
-                int currentSequence = Step?.SequenceNumber ?? int.MinValue;
-
-                return LayoutReferenceSteps
-                    .Select(s => new StepDisplayItem(
-                        this,
-                        s,
-                        s.SequenceNumber <= currentSequence))
-                    .ToArray();
+                displaySteps = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayStepCount));
             }
+        }
+
+        private void RebuildDisplaySteps()
+        {
+            if (LayoutReferenceSteps.Length == 0)
+            {
+                DisplaySteps = [];
+                return;
+            }
+
+            int currentSequence = Step?.SequenceNumber ?? int.MinValue;
+
+            DisplaySteps = LayoutReferenceSteps
+                .Select(s => new StepDisplayItem(
+                    this,
+                    s,
+                    s.SequenceNumber <= currentSequence))
+                .ToArray();
         }
 
         public StepDisplayLayoutMode DisplayLayoutMode
@@ -259,10 +269,10 @@ namespace Quizzer.Views.GameViews.QuestionViews
 
         private void NotifyDisplayStepLayoutChanged()
         {
-            OnPropertyChanged(nameof(DisplaySteps));
-            OnPropertyChanged(nameof(DisplayStepCount));
             OnPropertyChanged(nameof(LayoutReferenceSteps));
             OnPropertyChanged(nameof(MaxDisplayStepCount));
+
+            RebuildDisplaySteps();
 
             OnPropertyChanged(nameof(VerticalLayoutRows));
             OnPropertyChanged(nameof(VerticalLayoutColumns));

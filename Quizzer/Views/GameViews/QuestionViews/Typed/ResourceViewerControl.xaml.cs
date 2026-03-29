@@ -1,15 +1,23 @@
 ﻿using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.Views.GameViews.QuestionViews.Typed.Media;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
 namespace Quizzer.Views.GameViews.QuestionViews.Typed
 {
     public partial class ResourceViewerControl : UserControlStepViewBase
     {
+        private string? _currentFullPath;
+        private string? _lastRefreshKey;
+
+        private static readonly Dictionary<string, BitmapImage> _imageCache = new();
+
         public ResourceViewerControl()
         {
             InitializeComponent();
@@ -29,34 +37,6 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
                 typeof(ResourceViewerControl),
                 new PropertyMetadata(null, OnRootFolderChanged));
 
-        private static void OnRootFolderChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d is ResourceViewerControl ctrl)
-            {
-                ctrl.RefreshView();
-            }
-        }
-
-        private void ResourceViewerControl_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (e.OldValue is INotifyPropertyChanged oldNpc)
-                oldNpc.PropertyChanged -= Step_PropertyChanged;
-
-            if (e.NewValue is INotifyPropertyChanged newNpc)
-                newNpc.PropertyChanged += Step_PropertyChanged;
-
-            //RefreshView();
-        }
-
-        private void Step_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(QuestionStepResource.ResourceFileName) ||
-                e.PropertyName == nameof(QuestionStepResource.ResourceTyp))
-            {
-                RefreshView();
-            }
-        }
-
         public string? AudioPlaceholderFile
         {
             get => (string?)GetValue(AudioPlaceholderFileProperty);
@@ -70,19 +50,58 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
                 typeof(ResourceViewerControl),
                 new PropertyMetadata(null, OnAudioPlaceholderFileChanged));
 
+        private static void OnRootFolderChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is ResourceViewerControl ctrl)
+                ctrl.RefreshView();
+        }
+
         private static void OnAudioPlaceholderFileChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is ResourceViewerControl ctrl)
                 ctrl.RefreshView();
         }
 
+        private void ResourceViewerControl_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.OldValue is INotifyPropertyChanged oldNpc)
+                oldNpc.PropertyChanged -= Step_PropertyChanged;
+
+            if (e.NewValue is INotifyPropertyChanged newNpc)
+                newNpc.PropertyChanged += Step_PropertyChanged;
+
+            RefreshView();
+        }
+
+        private void Step_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(QuestionStepResource.ResourceFileName) ||
+                e.PropertyName == nameof(QuestionStepResource.ResourceTyp))
+            {
+                RefreshView();
+            }
+        }
+
         public override void RefreshView()
         {
-            ResetView();
             SetMasterVisibility();
 
             if (DataContext is not QuestionStepResource step)
+            {
+                ResetView();
+                _currentFullPath = null;
+                _lastRefreshKey = null;
                 return;
+            }
+
+            var refreshKey = $"{RootFolder}|{step.ResourceTyp}|{step.ResourceFileName}|{AudioPlaceholderFile}|{IsMasterView}";
+            if (_lastRefreshKey == refreshKey)
+                return;
+
+            _lastRefreshKey = refreshKey;
+
+            ResetView();
+            _currentFullPath = null;
 
             if (string.IsNullOrWhiteSpace(step.ResourceFileName))
                 return;
@@ -91,9 +110,10 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
                 return;
 
             var fullPath = Path.Combine(RootFolder, step.ResourceFileName);
-
             if (!File.Exists(fullPath))
                 return;
+
+            _currentFullPath = fullPath;
 
             switch (step.ResourceTyp)
             {
@@ -124,7 +144,14 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
             AudioPlaceholder.Source = null;
             AudioPlaceholder.Visibility = Visibility.Collapsed;
 
-            MediaPlayer.Stop();
+            try
+            {
+                MediaPlayer.Stop();
+            }
+            catch
+            {
+            }
+
             MediaPlayer.Source = null;
             MediaPlayer.Visibility = Visibility.Collapsed;
 
@@ -147,12 +174,17 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
 
         private void ShowImage(string fullPath)
         {
-            var image = new BitmapImage();
-            image.BeginInit();
-            image.CacheOption = BitmapCacheOption.OnLoad;
-            image.UriSource = new Uri(fullPath, UriKind.Absolute);
-            image.EndInit();
-            image.Freeze();
+            if (!_imageCache.TryGetValue(fullPath, out var image))
+            {
+                image = new BitmapImage();
+                image.BeginInit();
+                image.CacheOption = BitmapCacheOption.OnLoad;
+                image.UriSource = new Uri(fullPath, UriKind.Absolute);
+                image.EndInit();
+                image.Freeze();
+
+                _imageCache[fullPath] = image;
+            }
 
             ImgPreview.Source = image;
             ImgPreview.Visibility = Visibility.Visible;
@@ -165,12 +197,17 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
 
             if (!string.IsNullOrWhiteSpace(AudioPlaceholderFile) && File.Exists(AudioPlaceholderFile))
             {
-                var image = new BitmapImage();
-                image.BeginInit();
-                image.CacheOption = BitmapCacheOption.OnLoad;
-                image.UriSource = new Uri(AudioPlaceholderFile, UriKind.Absolute);
-                image.EndInit();
-                image.Freeze();
+                if (!_imageCache.TryGetValue(AudioPlaceholderFile, out var image))
+                {
+                    image = new BitmapImage();
+                    image.BeginInit();
+                    image.CacheOption = BitmapCacheOption.OnLoad;
+                    image.UriSource = new Uri(AudioPlaceholderFile, UriKind.Absolute);
+                    image.EndInit();
+                    image.Freeze();
+
+                    _imageCache[AudioPlaceholderFile] = image;
+                }
 
                 AudioPlaceholder.Source = image;
                 AudioPlaceholder.Visibility = Visibility.Visible;
@@ -200,6 +237,20 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
         private void Stop_Click(object sender, RoutedEventArgs e)
         {
             MediaPlayer.Stop();
+        }
+
+        private void Preview_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (DataContext is not QuestionStepResource step)
+                return;
+
+            if (step.ResourceTyp != ResourceType.Image && step.ResourceTyp != ResourceType.Video)
+                return;
+
+            if (string.IsNullOrWhiteSpace(_currentFullPath) || !File.Exists(_currentFullPath))
+                return;
+
+            MediaPreviewCoordinator.ShowOnAll(_currentFullPath, step.ResourceTyp);
         }
     }
 }

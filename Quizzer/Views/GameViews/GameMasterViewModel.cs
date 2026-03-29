@@ -7,6 +7,7 @@ using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.ViewModels;
 using Quizzer.Views.BuzzerViews;
 using Quizzer.Views.GameViews.QuestionViews;
+using Quizzer.Views.GameViews.QuestionViews.Typed.Media;
 using Quizzer.Views.GameViews.Sub;
 using Quizzer.Views.HelperViewModels;
 using Quizzer.Views.StaticRessources;
@@ -27,6 +28,8 @@ namespace Quizzer.Views.GameViews
     public class GameMasterViewModel : ViewModelBase
     {
         private List<Window> OpenGamePlayerViews = new();
+
+        private List<Window> WindowsForMediaHanel = new();
 
         public GamePlayerViewModel GamePlayerViewModel { get; private set; } = new();
 
@@ -49,12 +52,19 @@ namespace Quizzer.Views.GameViews
             await OnModelChangedAsync();
             GamePlayerViewModel.Game = Game;
             GamePlayerViewModel.GameMasterViewModel = this;
+
+            if (Window != null)
+                WindowsForMediaHanel.Add(this.Window);
+
+            MediaPreviewCoordinator.SetOwnerWindows(WindowsForMediaHanel);
         }
 
         protected override Task OnClosed()
         {
             try
             {
+                MediaPreviewCoordinator.SetOwnerWindows(new List<Window>());
+
                 foreach (var gpv in OpenGamePlayerViews)
                 {
                     try
@@ -374,6 +384,9 @@ namespace Quizzer.Views.GameViews
                 DataContext = GamePlayerViewModel
             };
             OpenGamePlayerViews.Add(window);
+            WindowsForMediaHanel.Add(window);
+
+            MediaPreviewCoordinator.SetOwnerWindows(WindowsForMediaHanel);
             window.Show();
         }
 

@@ -4,8 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Quizzer.Views.GameViews.QuestionViews.Typed"
+             xmlns:qv="clr-namespace:Quizzer.DataModels.Enumerations;assembly=Quizzer.DataModels"
              mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450"
+             d:DesignWidth="800">
 
     <UserControl.Resources>
 
@@ -15,128 +17,234 @@
         </Style>
 
         <DataTemplate x:Key="StepItemTemplate">
-            <Border Margin="6"
-                CornerRadius="3"
-                Background="{Binding RowBackground}"
-                Visibility="{Binding SlotVisibility}"
-                ClipToBounds="True">
+            <Border Margin="8"
+                    Padding="24,16"
+                    CornerRadius="3"
+                    Background="{Binding RowBackground}"
+                    Visibility="{Binding SlotVisibility}"
+                    Opacity="{Binding SlotOpacity}"
+                    IsHitTestVisible="{Binding SlotHitTestVisible}"
+                    ClipToBounds="True"
+                    SnapsToDevicePixels="True"
+                    UseLayoutRounding="True">
 
-                <Border Padding="40, 50, 50, 20">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="2*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-                        <!-- Key -->
-                        <TextBlock Grid.Column="0"
-                           Margin="0,0,0,0"
-                           Text="{Binding QuestionViewKey}"
-                           FontSize="75"
-                           FontWeight="Bold"
-                           Foreground="Wheat"
-                           TextAlignment="Center"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center" />
-
-                        <!-- Text -->
-                        <Viewbox Grid.Column="1"
-                             Margin="10,0"
-                             Stretch="Uniform"
-                             VerticalAlignment="Center">
-                            <TextBlock Text="{Binding DisplayText}"
-                                   FontSize="82"
-                                   Foreground="WhiteSmoke"
-                                   TextWrapping="Wrap"
-                                   TextAlignment="Center"
-                                   VerticalAlignment="Center"
-                                   HorizontalAlignment="Left" />
+                    <!-- Key -->
+                    <Grid Grid.Column="0">
+                        <Viewbox Width="72"
+                                 Height="72"
+                                 Stretch="Uniform"
+                                 StretchDirection="DownOnly"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center">
+                            <TextBlock Text="{Binding QuestionViewKey}"
+                                       FontSize="56"
+                                       FontWeight="Bold"
+                                       Foreground="Wheat"
+                                       TextAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center" />
                         </Viewbox>
-
-                        <!-- Media -->
-                        <Border Grid.Column="2"
-                            Margin="0,0,0,0"
-                            Visibility="{Binding HasResourceVisibility}"
-                            VerticalAlignment="Center"
-                            MaxWidth="200">
-                            <local:ResourceViewerControl
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Stretch"
-                                DataContext="{Binding Step}"
-                                RootFolder="{Binding DataContext.ResourceRootFolder, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
-                                IsMasterView="{Binding DataContext.IsMasterView, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
-                                AudioPlaceholderFile="{Binding DataContext.AudioPlaceholderFile, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}" />
-                        </Border>
                     </Grid>
-                </Border>
+
+                    <!-- Content -->
+                    <Grid Grid.Column="1" Margin="16,0,0,0">
+
+                        <!-- text + media -->
+                        <Grid Visibility="{Binding TextAndMediaVisibility}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="220" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0"
+                                       Text="{Binding DisplayText}"
+                                       FontSize="38"
+                                       FontWeight="SemiBold"
+                                       Foreground="WhiteSmoke"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Left"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left" />
+
+                            <Border Grid.Column="2"
+                                    Width="220"
+                                    Height="220"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                <local:ResourceViewerControl
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch"
+                                    DataContext="{Binding Step}"
+                                    RootFolder="{Binding DataContext.ResourceRootFolder, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
+                                    IsMasterView="{Binding DataContext.IsMasterView, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
+                                    AudioPlaceholderFile="{Binding DataContext.AudioPlaceholderFile, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}" />
+                            </Border>
+                        </Grid>
+
+                        <!-- text only -->
+                        <Grid Visibility="{Binding TextOnlyVisibility}">
+                            <TextBlock Text="{Binding DisplayText}"
+                                       FontSize="44"
+                                       FontWeight="SemiBold"
+                                       Foreground="WhiteSmoke"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Left"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left"
+                                       MaxWidth="900" />
+                        </Grid>
+
+                        <!-- media only -->
+                        <Grid Visibility="{Binding MediaOnlyVisibility}">
+                            <Border 
+                                    Margin="0, 15, 0, 0"
+                                    Width="700"
+                                    Height="300"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                <local:ResourceViewerControl
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch"
+                                    DataContext="{Binding Step}"
+                                    RootFolder="{Binding DataContext.ResourceRootFolder, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
+                                    IsMasterView="{Binding DataContext.IsMasterView, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
+                                    AudioPlaceholderFile="{Binding DataContext.AudioPlaceholderFile, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}" />
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </Grid>
             </Border>
         </DataTemplate>
 
+        <DataTemplate x:Key="VerticalLayoutTemplate">
+            <ItemsControl ItemsSource="{Binding DisplaySteps}"
+                          ItemTemplate="{StaticResource StepItemTemplate}"
+                          ItemContainerStyle="{StaticResource StretchItemContainerStyle}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="{Binding VerticalLayoutRows}"
+                                     Columns="{Binding VerticalLayoutColumns}" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </DataTemplate>
+
+        <DataTemplate x:Key="HorizontalLayoutTemplate">
+            <ItemsControl ItemsSource="{Binding DisplaySteps}"
+                          ItemTemplate="{StaticResource StepItemTemplate}"
+                          ItemContainerStyle="{StaticResource StretchItemContainerStyle}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="{Binding HorizontalLayoutRows}"
+                                     Columns="{Binding HorizontalLayoutColumns}" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </DataTemplate>
+
+        <DataTemplate x:Key="GridOnlyLayoutTemplate">
+            <ItemsControl ItemsSource="{Binding DisplaySteps}"
+                          ItemTemplate="{StaticResource StepItemTemplate}"
+                          ItemContainerStyle="{StaticResource StretchItemContainerStyle}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="{Binding DisplayGridRows}"
+                                     Columns="{Binding DisplayGridColumns}" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </DataTemplate>
+
+        <!-- only ONE active answer layout -->
         <DataTemplate x:Key="MultipleChoiceLayoutTemplate">
             <Grid ClipToBounds="True">
+                <ContentControl Content="{Binding}"
+                                HorizontalContentAlignment="Stretch"
+                                VerticalContentAlignment="Stretch">
+                    <ContentControl.Style>
+                        <Style TargetType="ContentControl">
+                            <Setter Property="ContentTemplate"
+                                    Value="{StaticResource GridOnlyLayoutTemplate}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding DisplayLayoutMode}"
+                                             Value="{x:Static qv:StepDisplayLayoutMode.Vertical}">
+                                    <Setter Property="ContentTemplate"
+                                            Value="{StaticResource VerticalLayoutTemplate}" />
+                                </DataTrigger>
 
-                <!-- Vertikal: feste Slots -->
-                <ItemsControl ItemsSource="{Binding DisplaySteps}"
-                              ItemTemplate="{StaticResource StepItemTemplate}"
-                              ItemContainerStyle="{StaticResource StretchItemContainerStyle}"
-                              Visibility="{Binding VerticalLayoutVisibility}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <UniformGrid Rows="{Binding VerticalLayoutRows}"
-                                         Columns="{Binding VerticalLayoutColumns}" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
+                                <DataTrigger Binding="{Binding DisplayLayoutMode}"
+                                             Value="{x:Static qv:StepDisplayLayoutMode.Horizontal}">
+                                    <Setter Property="ContentTemplate"
+                                            Value="{StaticResource HorizontalLayoutTemplate}" />
+                                </DataTrigger>
 
-                <!-- Horizontal: feste Slots -->
-                <ItemsControl ItemsSource="{Binding DisplaySteps}"
-                              ItemTemplate="{StaticResource StepItemTemplate}"
-                              ItemContainerStyle="{StaticResource StretchItemContainerStyle}"
-                              Visibility="{Binding HorizontalLayoutVisibility}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <UniformGrid Rows="{Binding HorizontalLayoutRows}"
-                                         Columns="{Binding HorizontalLayoutColumns}" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
-
-                <!-- Grid: feste Slots -->
-                <ItemsControl ItemsSource="{Binding DisplaySteps}"
-                              ItemTemplate="{StaticResource StepItemTemplate}"
-                              ItemContainerStyle="{StaticResource StretchItemContainerStyle}"
-                              Visibility="{Binding GridLayoutVisibility}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <UniformGrid Rows="{Binding DisplayGridRows}"
-                                         Columns="{Binding DisplayGridColumns}" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
+                                <DataTrigger Binding="{Binding DisplayLayoutMode}"
+                                             Value="{x:Static qv:StepDisplayLayoutMode.Grid}">
+                                    <Setter Property="ContentTemplate"
+                                            Value="{StaticResource GridOnlyLayoutTemplate}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ContentControl.Style>
+                </ContentControl>
             </Grid>
+        </DataTemplate>
+
+        <!-- player host -->
+        <DataTemplate x:Key="PlayerHostTemplate">
+            <Grid ClipToBounds="True">
+                <ContentControl Content="{Binding}"
+                                HorizontalContentAlignment="Stretch"
+                                VerticalContentAlignment="Stretch"
+                                ContentTemplate="{StaticResource MultipleChoiceLayoutTemplate}" />
+            </Grid>
+        </DataTemplate>
+
+        <!-- master host -->
+        <DataTemplate x:Key="MasterHostTemplate">
+            <Viewbox Stretch="Uniform"
+                     StretchDirection="DownOnly">
+                <Border Width="1600"
+                        Height="900"
+                        ClipToBounds="True">
+                    <ContentControl Content="{Binding}"
+                                    HorizontalContentAlignment="Stretch"
+                                    VerticalContentAlignment="Stretch"
+                                    ContentTemplate="{StaticResource MultipleChoiceLayoutTemplate}" />
+                </Border>
+            </Viewbox>
         </DataTemplate>
     </UserControl.Resources>
 
-    <Grid ClipToBounds="True">
+    <Grid ClipToBounds="True"
+          SnapsToDevicePixels="True"
+          UseLayoutRounding="True">
 
-        <!-- PlayerView -->
-        <Grid Visibility="{Binding FillAvailableVisibility}"
-              ClipToBounds="True">
-            <ContentControl Content="{Binding}"
-                            ContentTemplate="{StaticResource MultipleChoiceLayoutTemplate}" />
-        </Grid>
-
-        <!-- MasterView -->
-        <Viewbox Visibility="{Binding EmbeddedScaledVisibility}"
-                 Stretch="Uniform"
-                 StretchDirection="DownOnly">
-            <Border Width="1600"
-                    Height="900"
-                    ClipToBounds="True">
-                <ContentControl Content="{Binding}"
-                                ContentTemplate="{StaticResource MultipleChoiceLayoutTemplate}" />
-            </Border>
-        </Viewbox>
+        <!-- only ONE active top-level branch -->
+        <ContentControl Content="{Binding}"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        VerticalContentAlignment="Stretch">
+            <ContentControl.Style>
+                <Style TargetType="ContentControl">
+                    <Setter Property="ContentTemplate"
+                            Value="{StaticResource PlayerHostTemplate}" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsMasterView}" Value="True">
+                            <Setter Property="ContentTemplate"
+                                    Value="{StaticResource MasterHostTemplate}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ContentControl.Style>
+        </ContentControl>
     </Grid>
 </local:UserControlStepViewBase>

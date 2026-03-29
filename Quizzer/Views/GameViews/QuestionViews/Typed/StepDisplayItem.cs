@@ -1,9 +1,6 @@
 ﻿using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Views.StaticRessources;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows;
 using System.Windows.Media;
 
@@ -27,19 +24,29 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
 
         public bool IsVisibleSlot { get; }
 
-        // Hidden reserviert Platz, rendert aber nichts
-        public Visibility SlotVisibility =>
-            IsVisibleSlot ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility SlotVisibility => Visibility.Visible;
+        public double SlotOpacity => IsVisibleSlot ? 1.0 : 0.0;
+        public bool SlotHitTestVisible => IsVisibleSlot;
 
         public string QuestionViewKey =>
             IsVisibleSlot ? Step.QuestionViewKey : string.Empty;
 
-        public string DisplayText =>
-            IsVisibleSlot
-                ? (!string.IsNullOrWhiteSpace(Step.StepText)
-                    ? Step.StepText
-                    : Step.Designation)
-                : string.Empty;
+        public string DisplayText
+        {
+            get
+            {
+                if (!IsVisibleSlot)
+                    return string.Empty;
+
+                if (!string.IsNullOrWhiteSpace(Step.StepText))
+                    return Step.StepText;
+
+                return Step.Designation ?? string.Empty;
+            }
+        }
+
+        public bool HasText =>
+            IsVisibleSlot && !string.IsNullOrWhiteSpace(DisplayText);
 
         public bool HasResource =>
             IsVisibleSlot &&
@@ -49,10 +56,14 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
         public Visibility HasResourceVisibility =>
             HasResource ? Visibility.Visible : Visibility.Collapsed;
 
-        public GridLength MediaColumnWidth =>
-            HasResource
-                ? new GridLength(1, GridUnitType.Auto)
-                : new GridLength(0);
+        public Visibility TextOnlyVisibility =>
+            HasText && !HasResource ? Visibility.Visible : Visibility.Collapsed;
+
+        public Visibility MediaOnlyVisibility =>
+            !HasText && HasResource ? Visibility.Visible : Visibility.Collapsed;
+
+        public Visibility TextAndMediaVisibility =>
+            HasText && HasResource ? Visibility.Visible : Visibility.Collapsed;
 
         public Brush ChoiceBackgroundBrush => StaticResources.ChoiceBackgroundImageBrush;
         public Brush ChoiceBackgroundResultBrush => StaticResources.ChoiceBackgroundResultImageBrush;

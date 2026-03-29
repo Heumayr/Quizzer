@@ -23,11 +23,9 @@
         <!-- IMAGE -->
         <Border x:Name="ImageContainer"
                 Grid.Row="1"
-                BorderBrush="black"
-                BorderThickness="1"
                 Padding="4"
-                Background="Black"
-                Visibility="Collapsed">
+                Visibility="Collapsed"
+                MouseLeftButtonUp="Preview_MouseLeftButtonUp">
             <Image x:Name="ImgPreview"
                    Stretch="Uniform"
                    Visibility="Collapsed" />
@@ -44,21 +42,19 @@
 
             <Border x:Name="MediaPlayerBorder"
                     Grid.Row="0"
-                    BorderBrush="Black"
-                    BorderThickness="3"
                     CornerRadius="3"
                     Padding="4"
-                    Background="Black"
-                    Visibility="Collapsed">
+                    Visibility="Collapsed"
+                    MouseLeftButtonUp="Preview_MouseLeftButtonUp">
                 <Grid>
                     <Image x:Name="AudioPlaceholder"
                           Stretch="Uniform"
                           Visibility="Collapsed" />
 
                     <MediaElement x:Name="MediaPlayer"
-                         LoadedBehavior="Manual"
-                         UnloadedBehavior="Manual"
-                         Stretch="Uniform" />
+                                  LoadedBehavior="Manual"
+                                  UnloadedBehavior="Manual"
+                                  Stretch="Uniform" />
                 </Grid>
             </Border>
 
@@ -83,10 +79,7 @@
         <Border Grid.Row="1"
                 x:Name="DocumentContainer"
                 Visibility="Collapsed"
-                BorderBrush="black"
-                BorderThickness="1"
-                Padding="12"
-                Background="Black">
+                Padding="12">
             <TextBlock Text="Dokument kann hier nicht direkt angezeigt werden."
                        TextWrapping="Wrap" />
         </Border>
