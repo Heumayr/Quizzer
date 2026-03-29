@@ -320,9 +320,10 @@ namespace Quizzer.Views.GameViews
                 {
                     Owner = this,
                     Step = CurrentStep,
+                    IsMasterView = true,
                 };
 
-                GamePlayerViewModel?.SetView(current);
+                GamePlayerViewModel?.SetView(QuestionStepViewContext.CloneForDifferentView(current, false));
                 return current;
             }
         }
@@ -330,13 +331,15 @@ namespace Quizzer.Views.GameViews
         public QuestionStepViewContext FinishStepContext => new()
         {
             Owner = this,
-            Step = FinishStep
+            Step = FinishStep,
+            IsMasterView = true,
         };
 
         public QuestionStepViewContext NextStepContext => new()
         {
             Owner = this,
-            Step = NextStep
+            Step = NextStep,
+            IsMasterView = true,
         };
 
         public ObservableCollection<QuestionStepResource> SelectedSteps { get; set; } = new();

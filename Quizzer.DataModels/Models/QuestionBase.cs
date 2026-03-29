@@ -112,7 +112,8 @@ namespace Quizzer.DataModels.Models
                 finishSteps.Add(new QuestionStepResource
                 {
                     FinishType = DefaultFinishType,
-                    IsFinish = true
+                    IsFinish = true,
+                    Id = Guid.NewGuid()
                 });
             }
 
@@ -120,7 +121,8 @@ namespace Quizzer.DataModels.Models
             {
                 startSteps.Add(new QuestionStepResource
                 {
-                    IsStart = true
+                    IsStart = true,
+                    Id = Guid.NewGuid()
                 });
             }
 

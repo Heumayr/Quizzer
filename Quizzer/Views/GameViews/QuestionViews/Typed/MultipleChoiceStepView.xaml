@@ -11,10 +11,12 @@
 
         <Viewbox Grid.Row="1" Grid.Column="1">
             <local:ResourceViewerControl
-                DataContext="{Binding Step}"
-                RootFolder="{Binding DataContext.ResourceRootFolder, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                IsMasterView="{Binding IsMasterView, RelativeSource={RelativeSource AncestorType=local:MultipleChoiceStepView}}"
-                AudioPlaceholderFile="{Binding DataContext.AudioPlaceholderFile, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                 HorizontalAlignment="Stretch"
+                 VerticalAlignment="Stretch"
+                 DataContext="{Binding Step}"
+                 RootFolder="{Binding DataContext.ResourceRootFolder, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                 IsMasterView="{Binding DataContext.IsMasterView, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                 AudioPlaceholderFile="{Binding DataContext.AudioPlaceholderFile, RelativeSource={RelativeSource AncestorType=UserControl}}" />
         </Viewbox>
     </Grid>
 </local:UserControlStepViewBase>

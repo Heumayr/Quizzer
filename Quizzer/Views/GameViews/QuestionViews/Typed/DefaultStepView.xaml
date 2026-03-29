@@ -10,7 +10,7 @@
     <Grid ClipToBounds="True">
         <!-- shown when DataContext != null -->
         <Grid ClipToBounds="True">
-            <Grid.Style>
+            <!--<Grid.Style>
                 <Style TargetType="Grid">
                     <Setter Property="Visibility" Value="Visible" />
                     <Style.Triggers>
@@ -19,7 +19,7 @@
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
-            </Grid.Style>
+            </Grid.Style>-->
 
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -34,14 +34,14 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Orientation="Horizontal" x:Name="StackPanleIsResult">
+                <StackPanel Visibility="{Binding MasterViewVisibility}" Grid.Row="0" Orientation="Horizontal" x:Name="StackPanleIsResult">
                     <Label Content="Result:" />
                     <CheckBox VerticalContentAlignment="Center"
                               IsEnabled="False"
                               IsChecked="{Binding Step.IsResult}" />
                 </StackPanel>
 
-                <StackPanel Grid.Row="1" Orientation="Horizontal" x:Name="StackPanleIsFinish">
+                <StackPanel Visibility="{Binding MasterViewVisibility}" Grid.Row="1" Orientation="Horizontal" x:Name="StackPanleIsFinish">
                     <Label Content="Finish:" />
                     <CheckBox VerticalContentAlignment="Center"
                               IsEnabled="False"
@@ -68,13 +68,14 @@
                     VerticalAlignment="Stretch"
                     DataContext="{Binding Step}"
                     RootFolder="{Binding DataContext.ResourceRootFolder, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                    IsMasterView="{Binding IsMasterView, RelativeSource={RelativeSource AncestorType=local:DefaultStepView}}"
+                    IsMasterView="{Binding DataContext.IsMasterView, RelativeSource={RelativeSource AncestorType=UserControl}}"
                     AudioPlaceholderFile="{Binding DataContext.AudioPlaceholderFile, RelativeSource={RelativeSource AncestorType=UserControl}}" />
             </Grid>
         </Grid>
 
         <!-- shown when DataContext == null -->
-        <Grid>
+
+        <!--<Grid>
             <Grid.Style>
                 <Style TargetType="Grid">
                     <Setter Property="Visibility" Value="Collapsed" />
@@ -89,6 +90,6 @@
             <StackPanel>
                 <Label Content="Empty" Foreground="DarkRed" />
             </StackPanel>
-        </Grid>
+        </Grid>-->
     </Grid>
 </local:UserControlStepViewBase>

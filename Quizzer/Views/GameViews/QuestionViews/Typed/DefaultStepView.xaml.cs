@@ -23,12 +23,12 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
             InitializeComponent();
         }
 
-        public override void RefreshView()
-        {
-            StackPanleIsResult.Visibility = IsMasterView ? Visibility.Visible : Visibility.Collapsed;
-            StackPanleIsFinish.Visibility = IsMasterView ? Visibility.Visible : Visibility.Collapsed;
+        //public override void RefreshView()
+        //{
+        //    StackPanleIsResult.Visibility = IsMasterView ? Visibility.Visible : Visibility.Collapsed;
+        //    StackPanleIsFinish.Visibility = IsMasterView ? Visibility.Visible : Visibility.Collapsed;
 
-            base.RefreshView();
-        }
+        //    base.RefreshView();
+        //}
     }
 }
