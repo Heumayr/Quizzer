@@ -97,10 +97,10 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed.Media
         }
 
         private static void ShowInternal(
-            IEnumerable<Window> owners,
-            string filePath,
-            ResourceType resourceType,
-            int count)
+         IEnumerable<Window> owners,
+         string filePath,
+         ResourceType resourceType,
+         int count)
         {
             if (resourceType != ResourceType.Image && resourceType != ResourceType.Video)
                 return;
@@ -109,7 +109,7 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed.Media
                 return;
 
             var ownerList = owners
-                .Where(w => w != null)
+                .Where(w => w != null && w.IsLoaded)
                 .Distinct()
                 .Take(Math.Max(1, count))
                 .ToList();
@@ -118,7 +118,6 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed.Media
                 return;
 
             CloseAllInternal();
-
             activeGroupId = Guid.NewGuid();
 
             for (int i = 0; i < ownerList.Count; i++)
@@ -132,25 +131,30 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed.Media
                     resourceType,
                     isControlWindow);
 
-                preview.Owner = owner;
                 preview.WindowStartupLocation = WindowStartupLocation.Manual;
                 preview.WindowState = WindowState.Normal;
                 preview.SizeToContent = SizeToContent.Manual;
 
-                Rect bounds = ScreenHelper.GetMonitorBoundsDip(owner, useWorkArea: false);
-
-                preview.Left = bounds.Left;
-                preview.Top = bounds.Top;
-                preview.Width = bounds.Width;
-                preview.Height = bounds.Height;
-
                 preview.Closed += Preview_Closed;
-
                 ActiveWindows.Add(preview);
-            }
 
-            foreach (var preview in ActiveWindows.ToList())
                 preview.Show();
+
+                // control window: respect taskbar
+                // pure display windows: use full monitor
+                ScreenHelper.MoveToMonitor(
+                    preview,
+                    owner,
+                    useWorkArea: isControlWindow);
+
+                preview.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    ScreenHelper.MoveToMonitor(
+                        preview,
+                        owner,
+                        useWorkArea: isControlWindow);
+                }), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            }
         }
 
         private static void Preview_Closed(object? sender, EventArgs e)

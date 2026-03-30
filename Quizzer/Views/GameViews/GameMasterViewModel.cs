@@ -52,11 +52,16 @@ namespace Quizzer.Views.GameViews
             await OnModelChangedAsync();
             GamePlayerViewModel.Game = Game;
             GamePlayerViewModel.GameMasterViewModel = this;
+        }
 
+        protected override Task OnWindow_SourceInitializedAsync()
+        {
             if (Window != null)
-                WindowsForMediaHanel.Add(this.Window);
-
-            MediaPreviewCoordinator.SetOwnerWindows(WindowsForMediaHanel);
+            {
+                WindowsForMediaHanel.Add(Window);
+                MediaPreviewCoordinator.SetOwnerWindows(WindowsForMediaHanel);
+            }
+            return base.OnWindow_SourceInitializedAsync();
         }
 
         protected override Task OnClosed()
@@ -383,10 +388,15 @@ namespace Quizzer.Views.GameViews
             {
                 DataContext = GamePlayerViewModel
             };
-            OpenGamePlayerViews.Add(window);
-            WindowsForMediaHanel.Add(window);
 
-            MediaPreviewCoordinator.SetOwnerWindows(WindowsForMediaHanel);
+            window.ContentRendered += (s, e) =>
+            {
+                WindowsForMediaHanel.Add(window);
+                MediaPreviewCoordinator.SetOwnerWindows(WindowsForMediaHanel);
+            };
+
+            OpenGamePlayerViews.Add(window);
+
             window.Show();
         }
 

@@ -16,6 +16,8 @@ namespace Quizzer.Base
 
         private static readonly WindowPlacementStore PlacementStore = new("Quizzer");
 
+        public virtual bool UsePlacementPersistence => true;
+
         public string? PlacementKey { get; set; }
 
         private bool _restored;
@@ -127,7 +129,9 @@ namespace Quizzer.Base
 
         private async void WindowBase_Loaded(object sender, RoutedEventArgs e)
         {
-            RestorePlacement();
+            if (UsePlacementPersistence)
+                RestorePlacement();
+
             QueueApplyChrome();
 
             if (DataContext is ViewModelBase vm)
@@ -212,6 +216,9 @@ namespace Quizzer.Base
 
         private void SavePlacement()
         {
+            if (!UsePlacementPersistence)
+                return;
+
             Rect bounds = WindowState == WindowState.Normal
                 ? new Rect(Left, Top, Width, Height)
                 : RestoreBounds;
@@ -231,6 +238,9 @@ namespace Quizzer.Base
 
         private void SavePlacementThrottled()
         {
+            if (!UsePlacementPersistence)
+                return;
+
             if (!_restored) return;
 
             var now = DateTime.UtcNow;

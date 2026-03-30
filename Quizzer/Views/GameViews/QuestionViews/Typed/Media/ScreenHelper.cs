@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Media;
+using System.Windows.Interop;
 
 namespace Quizzer.Views.GameViews.QuestionViews.Typed.Media
 {
     public static class ScreenHelper
     {
-        [StructLayout(LayoutKind.Sequential)]
-        private struct POINT
-        {
-            public int X;
-            public int Y;
-        }
-
         [StructLayout(LayoutKind.Sequential)]
         private struct RECT
         {
@@ -34,13 +27,27 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed.Media
 
         private const uint MONITOR_DEFAULTTONEAREST = 2;
 
+        private const uint SWP_NOZORDER = 0x0004;
+        private const uint SWP_NOACTIVATE = 0x0010;
+        private const uint SWP_SHOWWINDOW = 0x0040;
+
         [DllImport("user32.dll")]
-        private static extern IntPtr MonitorFromPoint(POINT pt, uint dwFlags);
+        private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
 
-        public static Rect GetMonitorBoundsDip(Window referenceWindow, bool useWorkArea = false)
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SetWindowPos(
+            IntPtr hWnd,
+            IntPtr hWndInsertAfter,
+            int X,
+            int Y,
+            int cx,
+            int cy,
+            uint uFlags);
+
+        public static Rect GetMonitorBoundsPx(Window referenceWindow, bool useWorkArea = false)
         {
             if (referenceWindow == null)
             {
@@ -51,13 +58,17 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed.Media
                     SystemParameters.PrimaryScreenHeight);
             }
 
-            Point centerDip = new(
-                referenceWindow.Left + (referenceWindow.Width / 2.0),
-                referenceWindow.Top + (referenceWindow.Height / 2.0));
+            IntPtr hwnd = new WindowInteropHelper(referenceWindow).Handle;
+            if (hwnd == IntPtr.Zero)
+            {
+                return new Rect(
+                    0,
+                    0,
+                    SystemParameters.PrimaryScreenWidth,
+                    SystemParameters.PrimaryScreenHeight);
+            }
 
-            POINT centerPx = ToDevicePixels(referenceWindow, centerDip);
-
-            IntPtr monitor = MonitorFromPoint(centerPx, MONITOR_DEFAULTTONEAREST);
+            IntPtr monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
 
             MONITORINFO info = new();
             info.cbSize = Marshal.SizeOf<MONITORINFO>();
@@ -71,53 +82,34 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed.Media
                     SystemParameters.PrimaryScreenHeight);
             }
 
-            RECT raw = useWorkArea ? info.rcWork : info.rcMonitor;
-
-            return ToDipRect(referenceWindow, raw);
-        }
-
-        private static POINT ToDevicePixels(Window window, Point pointDip)
-        {
-            PresentationSource? source = PresentationSource.FromVisual(window);
-
-            if (source?.CompositionTarget != null)
-            {
-                Matrix toDevice = source.CompositionTarget.TransformToDevice;
-                Point pointPx = toDevice.Transform(pointDip);
-
-                return new POINT
-                {
-                    X = (int)Math.Round(pointPx.X),
-                    Y = (int)Math.Round(pointPx.Y)
-                };
-            }
-
-            return new POINT
-            {
-                X = (int)Math.Round(pointDip.X),
-                Y = (int)Math.Round(pointDip.Y)
-            };
-        }
-
-        private static Rect ToDipRect(Window window, RECT rectPx)
-        {
-            PresentationSource? source = PresentationSource.FromVisual(window);
-
-            if (source?.CompositionTarget != null)
-            {
-                Matrix fromDevice = source.CompositionTarget.TransformFromDevice;
-
-                Point topLeft = fromDevice.Transform(new Point(rectPx.Left, rectPx.Top));
-                Point bottomRight = fromDevice.Transform(new Point(rectPx.Right, rectPx.Bottom));
-
-                return new Rect(topLeft, bottomRight);
-            }
+            var raw = useWorkArea ? info.rcWork : info.rcMonitor;
 
             return new Rect(
-                rectPx.Left,
-                rectPx.Top,
-                rectPx.Right - rectPx.Left,
-                rectPx.Bottom - rectPx.Top);
+                raw.Left,
+                raw.Top,
+                raw.Right - raw.Left,
+                raw.Bottom - raw.Top);
+        }
+
+        public static void MoveToMonitor(Window targetWindow, Window referenceWindow, bool useWorkArea = false)
+        {
+            if (targetWindow == null || referenceWindow == null)
+                return;
+
+            IntPtr targetHwnd = new WindowInteropHelper(targetWindow).Handle;
+            if (targetHwnd == IntPtr.Zero)
+                return;
+
+            Rect bounds = GetMonitorBoundsPx(referenceWindow, useWorkArea);
+
+            SetWindowPos(
+                targetHwnd,
+                IntPtr.Zero,
+                (int)bounds.Left,
+                (int)bounds.Top,
+                (int)bounds.Width,
+                (int)bounds.Height,
+                SWP_NOZORDER | SWP_NOACTIVATE | SWP_SHOWWINDOW);
         }
     }
 }

@@ -12,6 +12,8 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed.Media
     /// </summary>
     public partial class MediaPreviewWindow : WindowBase
     {
+        public override bool UsePlacementPersistence => false;
+
         public Guid GroupId { get; }
         public string FilePath { get; }
         public ResourceType ResourceType { get; }

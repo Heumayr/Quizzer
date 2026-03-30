@@ -28,11 +28,47 @@ namespace Quizzer.Base
                 {
                     window?.Closed -= Window_Closed;
                     window?.Loaded -= Window_Loaded;
+                    window?.SourceInitialized -= Window_SourceInitialized;
+                    window?.ContentRendered -= Window_ContentRendered;
                     window = value;
+                    window?.SourceInitialized += Window_SourceInitialized;
+                    window?.ContentRendered += Window_ContentRendered;
                     window?.Loaded += Window_Loaded;
                     window?.Closed += Window_Closed;
                 }
             }
+        }
+
+        private async void Window_ContentRendered(object? sender, EventArgs e)
+        {
+            try
+            {
+                await OnWindow_ContentRenderedAsync();
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
+        }
+
+        protected virtual async Task OnWindow_ContentRenderedAsync()
+        {
+        }
+
+        private async void Window_SourceInitialized(object? sender, EventArgs e)
+        {
+            try
+            {
+                await OnWindow_SourceInitializedAsync();
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
+        }
+
+        protected virtual async Task OnWindow_SourceInitializedAsync()
+        {
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
