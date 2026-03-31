@@ -31,6 +31,24 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
         public string QuestionViewKey =>
             IsVisibleSlot ? Step.QuestionViewKey : string.Empty;
 
+        public string QuestionViewKeyTyped =>
+            IsVisibleSlot ? GetViewKeyTyped() : string.Empty;
+
+        private string GetViewKeyTyped()
+        {
+            switch (owner.Question?.QuestionViewKeyType)
+            {
+                case QuestionViewKeyType.Alphabetical:
+                    return $"{Step.QuestionViewKey}:";
+
+                case QuestionViewKeyType.Numerical:
+                    return $"{Step.QuestionViewKey}.";
+
+                default:
+                    return Step.QuestionViewKey;
+            }
+        }
+
         public string DisplayText
         {
             get
@@ -65,12 +83,17 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
         public Visibility TextAndMediaVisibility =>
             HasText && HasResource ? Visibility.Visible : Visibility.Collapsed;
 
-        public Brush ChoiceBackgroundBrush => StaticResources.ChoiceBackgroundImageBrush;
-        public Brush ChoiceBackgroundResultBrush => StaticResources.ChoiceBackgroundResultImageBrush;
+        public Brush GridBackgroundBrush => StaticResources.ChoiceBackgroundImageBrush;
+        public Brush GridBackgroundResultBrush => StaticResources.ChoiceBackgroundResultImageBrush;
 
-        public Brush RowBackground =>
+        public Brush GridBackground =>
             IsVisibleSlot && ((owner.IsMasterView && Step.IsResult) || owner.Step?.IsFinish == true && Step.IsResult)
-                ? ChoiceBackgroundResultBrush
-                : ChoiceBackgroundBrush;
+                ? GridBackgroundResultBrush
+                : GridBackgroundBrush;
+
+        public Brush VerticalBackground =>
+           IsVisibleSlot && ((owner.IsMasterView && Step.IsResult) || owner.Step?.IsFinish == true && Step.IsResult)
+               ? Brushes.Black
+               : Brushes.Transparent;
     }
 }

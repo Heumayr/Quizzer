@@ -14,6 +14,8 @@ namespace Quizzer.DataModels.Helpers
             return type switch
             {
                 QuestionType.MultipleChoice => new MultipleChoiceQuestion(),
+                QuestionType.Properties => new PropertiesQuestion(),
+                QuestionType.Appreciate => new AppreciateQestion(),
                 _ => new DefaultQuestion()
             };
         }

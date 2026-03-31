@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Quizzer.Logic.Context;
 
@@ -11,9 +12,11 @@ using Quizzer.Logic.Context;
 namespace Quizzer.Logic.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260331171258_PropAppre")]
+    partial class PropAppre
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -475,13 +478,6 @@ namespace Quizzer.Logic.Migrations
                     b.UseTptMappingStrategy();
                 });
 
-            modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.AppreciateQestion", b =>
-                {
-                    b.HasBaseType("Quizzer.DataModels.Models.QuestionBase");
-
-                    b.ToTable("AppreciateQestion", "question");
-                });
-
             modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.DefaultQuestion", b =>
                 {
                     b.HasBaseType("Quizzer.DataModels.Models.QuestionBase");
@@ -494,13 +490,6 @@ namespace Quizzer.Logic.Migrations
                     b.HasBaseType("Quizzer.DataModels.Models.QuestionBase");
 
                     b.ToTable("MultipleChoiceQuestion", "question");
-                });
-
-            modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.PropertiesQuestion", b =>
-                {
-                    b.HasBaseType("Quizzer.DataModels.Models.QuestionBase");
-
-                    b.ToTable("PropertiesQuestion", "question");
                 });
 
             modelBuilder.Entity("Quizzer.DataModels.Models.Base.GameGridCoordinate", b =>
@@ -620,15 +609,6 @@ namespace Quizzer.Logic.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.AppreciateQestion", b =>
-                {
-                    b.HasOne("Quizzer.DataModels.Models.QuestionBase", null)
-                        .WithOne()
-                        .HasForeignKey("Quizzer.DataModels.Models.QuestionTypes.AppreciateQestion", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.DefaultQuestion", b =>
                 {
                     b.HasOne("Quizzer.DataModels.Models.QuestionBase", null)
@@ -643,15 +623,6 @@ namespace Quizzer.Logic.Migrations
                     b.HasOne("Quizzer.DataModels.Models.QuestionBase", null)
                         .WithOne()
                         .HasForeignKey("Quizzer.DataModels.Models.QuestionTypes.MultipleChoiceQuestion", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.PropertiesQuestion", b =>
-                {
-                    b.HasOne("Quizzer.DataModels.Models.QuestionBase", null)
-                        .WithOne()
-                        .HasForeignKey("Quizzer.DataModels.Models.QuestionTypes.PropertiesQuestion", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

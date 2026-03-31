@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Quizzer.DataModels.Enumerations;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,7 +7,31 @@ namespace Quizzer.DataModels.Helpers
 {
     public class Helper
     {
-        public static string GetNextAlphabeticalEntry(string current)
+        public static string GetNextViewKey(string current, QuestionViewKeyType keyType)
+        {
+            switch (keyType)
+            {
+                case QuestionViewKeyType.Alphabetical:
+                    return GetNextAlphabeticalEntry(current);
+
+                case QuestionViewKeyType.Numerical:
+                    return GetNextNumber(current);
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(keyType), "Unsupported key type.");
+            }
+        }
+
+        private static string GetNextNumber(string current)
+        {
+            if (string.IsNullOrWhiteSpace(current))
+                return "1";
+            if (int.TryParse(current, out int number))
+                return (number + 1).ToString();
+            throw new ArgumentException("Input must be a valid integer.", nameof(current));
+        }
+
+        private static string GetNextAlphabeticalEntry(string current)
         {
             if (string.IsNullOrWhiteSpace(current))
                 return "A";

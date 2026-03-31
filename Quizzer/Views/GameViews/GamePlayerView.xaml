@@ -33,6 +33,14 @@
             <typed:MultipleChoiceStepView IsMasterView="False" />
         </DataTemplate>
 
+        <DataTemplate x:Key="PropertiesStepTemplate">
+            <typed:PropertiesStepView IsMasterView="False" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="AppreciateStepTemplate">
+            <typed:AppreciateStepView IsMasterView="False" />
+        </DataTemplate>
+
         <base:BottomStatsRowHeightConverter x:Key="BottomStatsRowHeightConverter" />
         <base:MainContentRowHeightConverter x:Key="MainContentRowHeightConverter" />
     </base:WindowBase.Resources>

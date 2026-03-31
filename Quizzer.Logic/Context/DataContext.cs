@@ -65,6 +65,8 @@ namespace Quizzer.Logic.Context
         public DbSet<QuestionBase> QuestionBases { get; set; }
         public DbSet<DefaultQuestion> DefaultQuestions { get; set; }
         public DbSet<MultipleChoiceQuestion> MultipleChoiceQuestions { get; set; }
+        public DbSet<PropertiesQuestion> PropertiesQuestions { get; set; }
+        public DbSet<AppreciateQestion> AppreciateQestions { get; set; }
         public DbSet<StepXStep> StepXSteps { get; set; }
 
         /// <summary>

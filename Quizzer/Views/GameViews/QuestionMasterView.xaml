@@ -29,6 +29,14 @@
         <DataTemplate x:Key="MultipleChoiceStepTemplate">
             <typed:MultipleChoiceStepView IsMasterView="True" />
         </DataTemplate>
+
+        <DataTemplate x:Key="PropertiesStepTemplate">
+            <typed:PropertiesStepView IsMasterView="True" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="AppreciateStepTemplate">
+            <typed:AppreciateStepView IsMasterView="True" />
+        </DataTemplate>
     </Window.Resources>
 
     <Grid>

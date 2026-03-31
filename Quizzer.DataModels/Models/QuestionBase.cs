@@ -4,54 +4,58 @@ using Quizzer.DataModels.Models.Base;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
+using System.Linq;
 
 namespace Quizzer.DataModels.Models
 {
     [Table(nameof(QuestionBase), Schema = "question")]
     public class QuestionBase : ModelBase<QuestionBase>
     {
-        public virtual string DesignationShort { get; set; } = string.Empty;
+        public string DesignationShort { get; set; } = string.Empty;
 
-        public virtual string QuestionText { get; set; } = string.Empty;
+        public string QuestionText { get; set; } = string.Empty;
 
-        public virtual Guid CategoryId { get; set; }
+        public Guid CategoryId { get; set; }
 
-        public virtual int Points { get; set; }
+        public int Points { get; set; }
 
-        public virtual int MinusPoints { get; set; }
+        public int MinusPoints { get; set; }
 
-        public virtual string Notes { get; set; } = string.Empty;
+        public bool UseProportionalPointsPerStep { get; set; } = false;
 
-        public virtual QuestionType Typ { get; protected set; }
+        public string Notes { get; set; } = string.Empty;
 
-        public virtual FinishType DefaultFinishType { get; protected set; } = FinishType.None;
+        public QuestionType Typ { get; protected set; }
 
-        public virtual Difficulty Difficulty { get; set; } = Difficulty.Level1;
+        public FinishType DefaultFinishType { get; protected set; } = FinishType.None;
 
-        public virtual bool WarnOnResultStep { get; set; } = true;
+        public Difficulty Difficulty { get; set; } = Difficulty.Level1;
 
-        public virtual bool WarnOnFinishStep { get; set; } = true;
+        public bool WarnOnResultStep { get; set; } = true;
 
-        public virtual bool UseRandomSequenceOnNonFinishSteps { get; set; } = false;
+        public bool WarnOnFinishStep { get; set; } = true;
+
+        public bool UseRandomSequenceOnNonFinishSteps { get; set; } = false;
+
+        public QuestionViewKeyType QuestionViewKeyType { get; set; } = QuestionViewKeyType.Alphabetical;
 
         #region Buzzer
 
-        public virtual BuzzerControlsLayout BuzzerControlsLayout { get; set; } = BuzzerControlsLayout.Buzzer;
+        public BuzzerControlsLayout BuzzerControlsLayout { get; set; } = BuzzerControlsLayout.Buzzer;
 
-        public virtual int BuzzerMaxAllowedKeySelect { get; set; } = 1;
+        public int BuzzerMaxAllowedKeySelect { get; set; } = 1;
 
-        public virtual bool ShowTextOnKeySelect { get; set; } = true;
+        public bool ShowTextOnKeySelect { get; set; } = true;
 
         #endregion Buzzer
 
-        #region view
+        #region View
 
-        public virtual StepDisplayLayoutMode StepDisplayLayoutMode { get; set; } = StepDisplayLayoutMode.Vertical;
+        public StepDisplayLayoutMode StepDisplayLayoutMode { get; set; } = StepDisplayLayoutMode.Vertical;
 
-        #endregion view
+        #endregion View
 
-        public List<QuestionStepResource> Steps { get; set; } = new List<QuestionStepResource>();
+        public List<QuestionStepResource> Steps { get; set; } = new();
 
         public Category? Category { get; set; }
 
@@ -67,23 +71,16 @@ namespace Quizzer.DataModels.Models
                 return OrderedSteps.First();
 
             var seq = currentStep.SequenceNumber;
-
             return OrderedSteps.FirstOrDefault(s => s.SequenceNumber > seq);
         }
 
         public QuestionStepResource? GetStepBehind(QuestionStepResource? currentStep = null)
         {
-            if (!OrderedSteps.Any())
+            if (!OrderedSteps.Any() || currentStep == null)
                 return null;
-
-            if (currentStep == null)
-                return null;
-
-            var reverse = OrderedSteps.Reverse();
 
             var seq = currentStep.SequenceNumber;
-
-            return reverse.FirstOrDefault(s => s.SequenceNumber < seq);
+            return OrderedSteps.Reverse().FirstOrDefault(s => s.SequenceNumber < seq);
         }
 
         public void CalculateOrderdSteps()
@@ -132,10 +129,10 @@ namespace Quizzer.DataModels.Models
                 });
             }
 
-            var ordered = startSteps.Concat(normalSteps.Concat(finishSteps)).ToList();
+            var ordered = startSteps.Concat(normalSteps).Concat(finishSteps).ToList();
 
             var nextSequenceNumber = 0;
-            var currentKey = Helpers.Helper.GetNextAlphabeticalEntry("");
+            var currentKey = Helpers.Helper.GetNextViewKey(string.Empty, QuestionViewKeyType);
 
             foreach (var step in ordered)
             {
@@ -144,11 +141,10 @@ namespace Quizzer.DataModels.Models
                 if (!step.IsStart && !step.IsFinish)
                 {
                     step.QuestionViewKey = currentKey;
-                    currentKey = Helpers.Helper.GetNextAlphabeticalEntry(currentKey);
+                    currentKey = Helpers.Helper.GetNextViewKey(currentKey, QuestionViewKeyType);
                 }
 
                 result.Add(step);
-
                 nextSequenceNumber += 10;
             }
 
@@ -176,6 +172,7 @@ namespace Quizzer.DataModels.Models
             target.CategoryId = CategoryId;
             target.Points = Points;
             target.MinusPoints = MinusPoints;
+            target.UseProportionalPointsPerStep = UseProportionalPointsPerStep;
             target.Notes = Notes;
             target.Typ = Typ;
             target.DefaultFinishType = DefaultFinishType;
@@ -183,12 +180,13 @@ namespace Quizzer.DataModels.Models
             target.WarnOnResultStep = WarnOnResultStep;
             target.WarnOnFinishStep = WarnOnFinishStep;
             target.UseRandomSequenceOnNonFinishSteps = UseRandomSequenceOnNonFinishSteps;
+            target.QuestionViewKeyType = QuestionViewKeyType;
 
             target.BuzzerControlsLayout = BuzzerControlsLayout;
             target.BuzzerMaxAllowedKeySelect = BuzzerMaxAllowedKeySelect;
-            target.StepDisplayLayoutMode = StepDisplayLayoutMode;
-
             target.ShowTextOnKeySelect = ShowTextOnKeySelect;
+
+            target.StepDisplayLayoutMode = StepDisplayLayoutMode;
 
             target.Steps = new List<QuestionStepResource>();
             target.Category = null;

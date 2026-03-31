@@ -267,6 +267,20 @@ namespace Quizzer.Views.GameViews.QuestionViews
             }
         }
 
+        public QuestionStepResource? FinishStep =>
+              Owner?.QuestionOrderedSteps?
+               .FirstOrDefault(s => s.IsFinish);
+
+        public StepDisplayItem? FinishDisplayItem =>
+            FinishStep == null
+                ? null
+                : new StepDisplayItem(this, FinishStep, true);
+
+        public Visibility FinishStepColumnVisibility =>
+            Step?.IsFinish == true && FinishDisplayItem != null
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
         private void NotifyDisplayStepLayoutChanged()
         {
             OnPropertyChanged(nameof(LayoutReferenceSteps));
@@ -284,6 +298,10 @@ namespace Quizzer.Views.GameViews.QuestionViews
             OnPropertyChanged(nameof(VerticalLayoutVisibility));
             OnPropertyChanged(nameof(HorizontalLayoutVisibility));
             OnPropertyChanged(nameof(GridLayoutVisibility));
+
+            OnPropertyChanged(nameof(FinishStep));
+            OnPropertyChanged(nameof(FinishDisplayItem));
+            OnPropertyChanged(nameof(FinishStepColumnVisibility));
         }
 
         public static QuestionStepViewContext CloneForDifferentView(QuestionStepViewContext original, bool isMasterView, StepDisplayLayoutMode layoutMode)

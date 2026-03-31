@@ -19,9 +19,9 @@ namespace Quizzer.DataModels.Models.Base
 
         public GameState State { get; set; } = GameState.Building;
 
-        public int Height { get; set; } = 10;
+        public int Height { get; set; } = 5;
 
-        public int Width { get; set; } = 10;
+        public int Width { get; set; } = 5;
 
         public int Depth { get; set; } = 0;
 
@@ -33,13 +33,13 @@ namespace Quizzer.DataModels.Models.Base
 
         public int DifficultyAddition { get; set; } = 0;
 
-        public double DifficultyMinusMultiplier { get; set; } = 0.5;
+        public double DifficultyMinusMultiplier { get; set; } = 0.1;
 
         public int DifficultyMinusAddition { get; set; } = 0;
 
         public double PhaseMultiplier { get; set; } = 1;
 
-        public int PhaseAddition { get; set; }
+        public int PhaseAddition { get; set; } = 0;
 
         public int CurrentRound { get; set; } = 1;
 

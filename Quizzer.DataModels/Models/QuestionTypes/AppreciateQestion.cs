@@ -3,22 +3,23 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Quizzer.DataModels.Models.QuestionTypes
 {
-    [Table(nameof(DefaultQuestion), Schema = "question")]
-    public sealed class DefaultQuestion : QuestionBase
+    [Table(nameof(AppreciateQestion), Schema = "question")]
+    public class AppreciateQestion : QuestionBase
     {
-        public DefaultQuestion()
+        public AppreciateQestion()
         {
             Points = 100;
             MinusPoints = 100;
-            Typ = QuestionType.Default;
+            Typ = QuestionType.Appreciate;
             WarnOnResultStep = false;
             UseRandomSequenceOnNonFinishSteps = false;
             DefaultFinishType = FinishType.AllPreviousSteps;
+            BuzzerControlsLayout = BuzzerControlsLayout.Input;
         }
 
         protected override QuestionBase CreateCloneInstance()
         {
-            return new DefaultQuestion();
+            return new AppreciateQestion();
         }
     }
 }

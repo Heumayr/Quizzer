@@ -1,4 +1,4 @@
-﻿<local:UserControlStepViewBase x:Class="Quizzer.Views.GameViews.QuestionViews.Typed.MultipleChoiceStepView"
+﻿<local:UserControlStepViewBase x:Class="Quizzer.Views.GameViews.QuestionViews.Typed.PropertiesStepView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -16,11 +16,12 @@
             <Setter Property="VerticalAlignment" Value="Stretch" />
         </Style>
 
+        <!-- Linke Seite: normaler Antwort-Step -->
         <DataTemplate x:Key="StepItemTemplate">
             <Border Margin="8"
                     Padding="24,16"
                     CornerRadius="3"
-                    Background="{Binding GridBackground}"
+                    Background="{Binding VerticalBackground}"
                     Visibility="{Binding SlotVisibility}"
                     Opacity="{Binding SlotOpacity}"
                     IsHitTestVisible="{Binding SlotHitTestVisible}"
@@ -31,6 +32,7 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="16" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
@@ -41,8 +43,8 @@
                                  Stretch="Uniform"
                                  StretchDirection="DownOnly"
                                  HorizontalAlignment="Center"
-                                 VerticalAlignment="Center">
-                            <TextBlock Text="{Binding QuestionViewKey}"
+                                 VerticalAlignment="Top">
+                            <TextBlock Text="{Binding QuestionViewKeyTyped}"
                                        FontSize="56"
                                        FontWeight="Bold"
                                        Foreground="Wheat"
@@ -52,10 +54,10 @@
                         </Viewbox>
                     </Grid>
 
-                    <!-- Content -->
-                    <Grid Grid.Column="1" Margin="16,0,0,0">
+                    <!-- Text / Media -->
+                    <Grid Grid.Column="2">
 
-                        <!-- text + media -->
+                        <!-- Text + Media -->
                         <Grid Visibility="{Binding TextAndMediaVisibility}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -71,7 +73,7 @@
                                        TextWrapping="Wrap"
                                        TextAlignment="Left"
                                        VerticalAlignment="Center"
-                                       HorizontalAlignment="Left" />
+                                       HorizontalAlignment="Stretch" />
 
                             <Border Grid.Column="2"
                                     Width="220"
@@ -88,7 +90,7 @@
                             </Border>
                         </Grid>
 
-                        <!-- text only -->
+                        <!-- nur Text -->
                         <Grid Visibility="{Binding TextOnlyVisibility}">
                             <TextBlock Text="{Binding DisplayText}"
                                        FontSize="44"
@@ -97,11 +99,10 @@
                                        TextWrapping="Wrap"
                                        TextAlignment="Left"
                                        VerticalAlignment="Center"
-                                       HorizontalAlignment="Left"
-                                       MaxWidth="900" />
+                                       HorizontalAlignment="Stretch" />
                         </Grid>
 
-                        <!-- media only -->
+                        <!-- nur Media -->
                         <Grid Visibility="{Binding MediaOnlyVisibility}">
                             <Border Margin="0,15,0,0"
                                     Width="700"
@@ -122,32 +123,121 @@
             </Border>
         </DataTemplate>
 
-        <DataTemplate x:Key="GridOnlyLayoutTemplate">
-            <ItemsControl ItemsSource="{Binding DisplaySteps}"
-                          ItemTemplate="{StaticResource StepItemTemplate}"
-                          ItemContainerStyle="{StaticResource StretchItemContainerStyle}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <UniformGrid Rows="{Binding DisplayGridRows}"
-                                     Columns="{Binding DisplayGridColumns}" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-            </ItemsControl>
+        <!-- Rechte Seite: Finish-Step -->
+        <DataTemplate x:Key="FinishStepTemplate">
+            <Border Margin="8"
+                    Padding="24,16"
+                    CornerRadius="3"
+                    Background="{Binding VerticalBackground}"
+                    ClipToBounds="True"
+                    SnapsToDevicePixels="True"
+                    UseLayoutRounding="True">
+
+                <Grid>
+
+                    <!-- Text + Media -->
+                    <Grid Visibility="{Binding TextAndMediaVisibility}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="16" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0"
+                                   Text="{Binding DisplayText}"
+                                   FontSize="38"
+                                   FontWeight="SemiBold"
+                                   Foreground="WhiteSmoke"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Left"
+                                   VerticalAlignment="Top"
+                                   HorizontalAlignment="Stretch" />
+
+                        <Border Grid.Row="2"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch">
+                            <local:ResourceViewerControl
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                DataContext="{Binding Step}"
+                                RootFolder="{Binding DataContext.ResourceRootFolder, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
+                                IsMasterView="{Binding DataContext.IsMasterView, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
+                                AudioPlaceholderFile="{Binding DataContext.AudioPlaceholderFile, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}" />
+                        </Border>
+                    </Grid>
+
+                    <!-- nur Text -->
+                    <Grid Visibility="{Binding TextOnlyVisibility}">
+                        <TextBlock Text="{Binding DisplayText}"
+                                   FontSize="44"
+                                   FontWeight="SemiBold"
+                                   Foreground="WhiteSmoke"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Left"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Stretch" />
+                    </Grid>
+
+                    <!-- nur Media -->
+                    <Grid Visibility="{Binding MediaOnlyVisibility}">
+                        <Border HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch">
+                            <local:ResourceViewerControl
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                DataContext="{Binding Step}"
+                                RootFolder="{Binding DataContext.ResourceRootFolder, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
+                                IsMasterView="{Binding DataContext.IsMasterView, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
+                                AudioPlaceholderFile="{Binding DataContext.AudioPlaceholderFile, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}" />
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
         </DataTemplate>
 
+        <!-- Vertical: links Liste, rechts Finish -->
+        <DataTemplate x:Key="VerticalLayoutTemplate">
+            <Grid ClipToBounds="True"
+                  Margin="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Linke Spalte -->
+                <Viewbox Grid.Column="0" ClipToBounds="True" Stretch="Uniform" HorizontalAlignment="Left">
+                    <ItemsControl ItemsSource="{Binding DisplaySteps}"
+                                  ItemTemplate="{StaticResource StepItemTemplate}"
+                                  ItemContainerStyle="{StaticResource StretchItemContainerStyle}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </Viewbox>
+
+                <!-- Rechte Spalte nur wenn aktueller Step Finish ist -->
+                <ContentControl Grid.Column="1"
+                                Margin="16,0,0,0"
+                                Visibility="{Binding FinishStepColumnVisibility}"
+                                Content="{Binding FinishDisplayItem}"
+                                ContentTemplate="{StaticResource FinishStepTemplate}" />
+            </Grid>
+        </DataTemplate>
+
+        <!-- Alles außer Vertical -->
         <DataTemplate x:Key="NotSupportedTemplate">
-            <Grid ClipToBounds="True">
+            <Grid>
                 <TextBlock Text="Not Supported"
                            Foreground="WhiteSmoke"
                            FontSize="32"
                            FontWeight="SemiBold"
                            HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           TextAlignment="Center" />
+                           VerticalAlignment="Center" />
             </Grid>
         </DataTemplate>
 
-        <!-- only ONE active answer layout -->
         <DataTemplate x:Key="LayoutTemplate">
             <Grid ClipToBounds="True">
                 <ContentControl Content="{Binding}"
@@ -159,21 +249,9 @@
                                     Value="{StaticResource NotSupportedTemplate}" />
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding DisplayLayoutMode}"
-                                             Value="{x:Static qv:StepDisplayLayoutMode.Grid}">
-                                    <Setter Property="ContentTemplate"
-                                            Value="{StaticResource GridOnlyLayoutTemplate}" />
-                                </DataTrigger>
-
-                                <DataTrigger Binding="{Binding DisplayLayoutMode}"
                                              Value="{x:Static qv:StepDisplayLayoutMode.Vertical}">
                                     <Setter Property="ContentTemplate"
-                                            Value="{StaticResource NotSupportedTemplate}" />
-                                </DataTrigger>
-
-                                <DataTrigger Binding="{Binding DisplayLayoutMode}"
-                                             Value="{x:Static qv:StepDisplayLayoutMode.Horizontal}">
-                                    <Setter Property="ContentTemplate"
-                                            Value="{StaticResource NotSupportedTemplate}" />
+                                            Value="{StaticResource VerticalLayoutTemplate}" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -182,7 +260,7 @@
             </Grid>
         </DataTemplate>
 
-        <!-- player host -->
+        <!-- Player Host -->
         <DataTemplate x:Key="PlayerHostTemplate">
             <Grid ClipToBounds="True">
                 <ContentControl Content="{Binding}"
@@ -192,7 +270,7 @@
             </Grid>
         </DataTemplate>
 
-        <!-- master host -->
+        <!-- Master Host -->
         <DataTemplate x:Key="MasterHostTemplate">
             <Viewbox Stretch="Uniform"
                      StretchDirection="DownOnly">

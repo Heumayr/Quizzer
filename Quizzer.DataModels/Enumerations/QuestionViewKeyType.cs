@@ -4,11 +4,9 @@ using System.Text;
 
 namespace Quizzer.DataModels.Enumerations
 {
-    public enum QuestionType
+    public enum QuestionViewKeyType
     {
-        Default = 0,
-        MultipleChoice = 1,
-        Properties = 2,
-        Appreciate = 3,
+        Alphabetical = 0,
+        Numerical = 1,
     }
 }
