@@ -8,7 +8,9 @@
              d:DesignHeight="340" d:DesignWidth="220"
              Width="220"
              Height="340">
-
+    <!--<UserControl.DataContext>
+        <local:PlayerStatsContext></local:PlayerStatsContext>
+    </UserControl.DataContext>-->
     <Border BorderThickness="2"
             BorderBrush="Transparent"
             CornerRadius="2"
@@ -25,7 +27,7 @@
             </Grid.RowDefinitions>
 
             <!-- placement -->
-            <TextBlock Text="{Binding PlacementText}"
+            <TextBlock Visibility="{Binding NotAlternativTextVisibility}" Text="{Binding PlacementText}"
                        Foreground="#C8A96B"
                        FontWeight="Bold"
                        FontSize="24"
@@ -73,7 +75,7 @@
             </Border>
 
             <!-- score -->
-            <StackPanel Grid.Row="4"
+            <StackPanel Visibility="{Binding NotAlternativTextVisibility}" Grid.Row="4"
                         Orientation="Horizontal"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
@@ -87,6 +89,13 @@
                            FontSize="24"
                            Text="{Binding ActualScore}" />
             </StackPanel>
+
+            <TextBlock Grid.Row="4" Visibility="{Binding AlternativTextVisibility}" Foreground="AntiqueWhite"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontWeight="ExtraBold"
+                   FontSize="24"
+                   Text="{Binding AlternativText}" />
         </Grid>
     </Border>
 </UserControl>

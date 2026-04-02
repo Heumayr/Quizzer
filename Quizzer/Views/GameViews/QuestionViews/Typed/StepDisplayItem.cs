@@ -85,6 +85,7 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
 
         public Brush GridBackgroundBrush => StaticResources.ChoiceBackgroundImageBrush;
         public Brush GridBackgroundResultBrush => StaticResources.ChoiceBackgroundResultImageBrush;
+        public Brush HorizontalBackgroundBrush => StaticResources.HorizontalBackgroundImageBrush;
 
         public Brush GridBackground =>
             IsVisibleSlot && ((owner.IsMasterView && Step.IsResult) || owner.Step?.IsFinish == true && Step.IsResult)
@@ -93,7 +94,7 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
 
         public Brush VerticalBackground =>
            IsVisibleSlot && ((owner.IsMasterView && Step.IsResult) || owner.Step?.IsFinish == true && Step.IsResult)
-               ? Brushes.Black
-               : Brushes.Transparent;
+               ? Brushes.Transparent
+               : HorizontalBackgroundBrush;
     }
 }

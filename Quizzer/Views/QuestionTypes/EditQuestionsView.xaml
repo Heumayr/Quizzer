@@ -48,7 +48,7 @@
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120"  Content="Category:" VerticalAlignment="Center" />
                 <ComboBox ItemsSource="{Binding Categories}"
-                          SelectedItem="{Binding Path=SelectedCategory, UpdateSourceTrigger=PropertyChanged}"
+                          SelectedItem="{Binding Path=SelectedCategory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           DisplayMemberPath="Designation"
                           MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>

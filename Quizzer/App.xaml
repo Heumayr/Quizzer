@@ -168,41 +168,45 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="ComboBox">
                             <Grid SnapsToDevicePixels="True">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="30" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.ColumnSpan="2"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" />
+
+                                <ContentPresenter Grid.Column="0"
+                                      Margin="6,2,4,2"
+                                      VerticalAlignment="Center"
+                                      HorizontalAlignment="Left"
+                                      IsHitTestVisible="False"
+                                      RecognizesAccessKey="True"
+                                      Content="{TemplateBinding SelectionBoxItem}"
+                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                      ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                      ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}" />
+
                                 <ToggleButton x:Name="ToggleButton"
+                                  Grid.Column="1"
                                   Focusable="False"
                                   IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
                                   ClickMode="Press"
                                   Background="{TemplateBinding Background}"
                                   BorderBrush="{TemplateBinding BorderBrush}"
-                                  BorderThickness="{TemplateBinding BorderThickness}">
+                                  BorderThickness="1,0,0,0">
                                     <ToggleButton.Template>
                                         <ControlTemplate TargetType="ToggleButton">
                                             <Border x:Name="ToggleBorder"
                                         Background="{TemplateBinding Background}"
                                         BorderBrush="{TemplateBinding BorderBrush}"
                                         BorderThickness="{TemplateBinding BorderThickness}">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="30" />
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <ContentPresenter Grid.Column="0"
-                                                          Margin="6,2,4,2"
-                                                          VerticalAlignment="Center"
-                                                          HorizontalAlignment="Left"
-                                                          RecognizesAccessKey="True" />
-
-                                                    <Border Grid.Column="1"
-                                                        Background="{TemplateBinding Background}"
-                                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                                        BorderThickness="1,0,0,0">
-                                                        <Path HorizontalAlignment="Center"
-                                                          VerticalAlignment="Center"
-                                                          Fill="{StaticResource ForegroundBrush}"
-                                                          Data="M 0 0 L 4 4 L 8 0 Z" />
-                                                    </Border>
-                                                </Grid>
+                                                <Path HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Fill="{StaticResource ForegroundBrush}"
+                                          Data="M 0 0 L 4 4 L 8 0 Z" />
                                             </Border>
 
                                             <ControlTemplate.Triggers>
@@ -219,13 +223,6 @@
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </ToggleButton.Template>
-
-                                    <ContentPresenter Margin="0"
-                                          VerticalAlignment="Stretch"
-                                          HorizontalAlignment="Stretch"
-                                          Content="{TemplateBinding SelectionBoxItem}"
-                                          ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                          ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}" />
                                 </ToggleButton>
 
                                 <Popup x:Name="PART_Popup"

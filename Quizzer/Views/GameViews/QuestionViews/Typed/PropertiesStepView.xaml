@@ -43,7 +43,7 @@
                                  Stretch="Uniform"
                                  StretchDirection="DownOnly"
                                  HorizontalAlignment="Center"
-                                 VerticalAlignment="Top">
+                                 VerticalAlignment="Center">
                             <TextBlock Text="{Binding QuestionViewKeyTyped}"
                                        FontSize="56"
                                        FontWeight="Bold"
@@ -138,22 +138,14 @@
                     <!-- Text + Media -->
                     <Grid Visibility="{Binding TextAndMediaVisibility}">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="16" />
                             <RowDefinition Height="*" />
+                            <RowDefinition Height="16" />
+                            <RowDefinition Height="auto" />
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0"
-                                   Text="{Binding DisplayText}"
-                                   FontSize="38"
-                                   FontWeight="SemiBold"
-                                   Foreground="WhiteSmoke"
-                                   TextWrapping="Wrap"
-                                   TextAlignment="Left"
-                                   VerticalAlignment="Top"
-                                   HorizontalAlignment="Stretch" />
+                      
 
-                        <Border Grid.Row="2"
+                        <Border Grid.Row="0"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch">
                             <local:ResourceViewerControl
@@ -164,6 +156,18 @@
                                 IsMasterView="{Binding DataContext.IsMasterView, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
                                 AudioPlaceholderFile="{Binding DataContext.AudioPlaceholderFile, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}" />
                         </Border>
+
+                        <TextBlock Grid.Row="2"
+                             Text="{Binding DisplayText}"
+                             Background="Black"
+                             Padding="5,0,5,10"
+                             FontSize="38"
+                             FontWeight="SemiBold"
+                             Foreground="Wheat"
+                             TextWrapping="Wrap"
+                             TextAlignment="Center"
+                             VerticalAlignment="Top"
+                             HorizontalAlignment="Stretch" />
                     </Grid>
 
                     <!-- nur Text -->
@@ -171,9 +175,11 @@
                         <TextBlock Text="{Binding DisplayText}"
                                    FontSize="44"
                                    FontWeight="SemiBold"
-                                   Foreground="WhiteSmoke"
+                                   Padding="5,0,5,10"
+                                   Background="Black"
+                                   Foreground="Wheat"
                                    TextWrapping="Wrap"
-                                   TextAlignment="Left"
+                                   TextAlignment="Center"
                                    VerticalAlignment="Center"
                                    HorizontalAlignment="Stretch" />
                     </Grid>

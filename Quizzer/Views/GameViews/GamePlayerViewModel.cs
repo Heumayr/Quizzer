@@ -278,5 +278,194 @@ namespace Quizzer.Views.GameViews
         {
             OnGameModelChanged();
         }
+
+        #region Current Buzzer Winner
+
+        private CancellationTokenSource? currentBuzzerWinnerResetCts;
+        private readonly Dictionary<Window, Window> currentBuzzerWinnerWindows = new();
+
+        private List<Window>? OpenPlayerViewVindows => GameMasterViewModel?.OpenGamePlayerViews;
+        private Player? currentBuzzerWinner;
+
+        public Player? CurrentBuzzerWinner
+        {
+            get => currentBuzzerWinner;
+            set
+            {
+                if (ReferenceEquals(currentBuzzerWinner, value))
+                    return;
+
+                currentBuzzerWinner = value;
+                OnPropertyChanged();
+
+                if (currentBuzzerWinner != null)
+                    ShowCurrentBuzzerWinnerWindows(currentBuzzerWinner);
+                else
+                    CloseCurrentBuzzerWinnerWindows();
+
+                ScheduleCurrentBuzzerWinnerReset();
+            }
+        }
+
+        private void ShowCurrentBuzzerWinnerWindows(Player? player)
+        {
+            if (player == null)
+            {
+                return;
+            }
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                CloseCurrentBuzzerWinnerWindows();
+
+                var owners = OpenPlayerViewVindows?
+                    .Where(IsUsableWindow)
+                    .Distinct()
+                    .ToList();
+
+                if (owners == null || owners.Count == 0)
+                    return;
+
+                var statsVm = CreateWinnerStatsViewModel(player);
+
+                foreach (var owner in owners)
+                {
+                    if (statsVm == null)
+                        continue;
+
+                    var content = new UcPlayerStatsView
+                    {
+                        DataContext = statsVm
+                    };
+
+                    var popup = new Window
+                    {
+                        Owner = owner,
+                        WindowStyle = WindowStyle.None,
+                        ResizeMode = ResizeMode.NoResize,
+                        AllowsTransparency = true,
+                        Background = Brushes.Transparent,
+                        ShowInTaskbar = false,
+                        ShowActivated = false,
+                        Topmost = true,
+                        SizeToContent = SizeToContent.WidthAndHeight,
+                        Content = content
+                    };
+
+                    CenterWindowOnOwner(owner, popup);
+
+                    currentBuzzerWinnerWindows[owner] = popup;
+                    popup.Show();
+                }
+            });
+        }
+
+        private static bool IsUsableWindow(Window? window)
+        {
+            if (window == null)
+                return false;
+
+            if (window.Dispatcher == null)
+                return false;
+
+            if (window.Dispatcher.HasShutdownStarted || window.Dispatcher.HasShutdownFinished)
+                return false;
+
+            if (!window.IsLoaded)
+                return false;
+
+            return true;
+        }
+
+        private static void CenterWindowOnOwner(Window owner, Window popup)
+        {
+            popup.WindowStartupLocation = WindowStartupLocation.Manual;
+
+            popup.Loaded += (_, __) =>
+            {
+                var ownerWidth = owner.ActualWidth;
+                var ownerHeight = owner.ActualHeight;
+
+                if (ownerWidth <= 0 || ownerHeight <= 0)
+                    return;
+
+                popup.Left = owner.Left + (ownerWidth - popup.ActualWidth) / 2;
+                popup.Top = owner.Top + (ownerHeight - popup.ActualHeight) / 2;
+            };
+        }
+
+        private PlayerStatsContext? CreateWinnerStatsViewModel(Player player)
+        {
+            if (Game == null)
+                return null;
+
+            var context = new PlayerStatsContext()
+            {
+                Game = Game,
+                Player = player,
+                StatsContext = StatsContext,
+                GameMasterViewModel = GameMasterViewModel,
+                AlternativText = $"Schnellster{Environment.NewLine}Buzzer! 🏆",
+            };
+
+            return context;
+        }
+
+        private void CloseCurrentBuzzerWinnerWindows()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                foreach (var popup in currentBuzzerWinnerWindows.Values.ToList())
+                {
+                    try
+                    {
+                        if (popup != null)
+                            popup.Close();
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                currentBuzzerWinnerWindows.Clear();
+            });
+        }
+
+        private void ScheduleCurrentBuzzerWinnerReset()
+        {
+            currentBuzzerWinnerResetCts?.Cancel();
+            currentBuzzerWinnerResetCts?.Dispose();
+            currentBuzzerWinnerResetCts = null;
+
+            if (CurrentBuzzerWinner == null)
+                return;
+
+            var cts = new CancellationTokenSource();
+            currentBuzzerWinnerResetCts = cts;
+
+            _ = ResetCurrentBuzzerWinnerAsync(cts.Token);
+        }
+
+        private async Task ResetCurrentBuzzerWinnerAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    if (!cancellationToken.IsCancellationRequested)
+                        CurrentBuzzerWinner = null;
+                });
+            }
+            catch (TaskCanceledException)
+            {
+            }
+        }
+
+        #endregion Current Buzzer Winner
     }
 }

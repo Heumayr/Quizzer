@@ -27,9 +27,9 @@ namespace Quizzer.Views.GameViews
 {
     public class GameMasterViewModel : ViewModelBase
     {
-        private List<Window> OpenGamePlayerViews = new();
+        public List<Window> OpenGamePlayerViews { get; private set; } = new();
 
-        private List<Window> WindowsForMediaHanel = new();
+        private List<Window> WindowsForMediaHandle = new();
 
         public GamePlayerViewModel GamePlayerViewModel { get; private set; } = new();
 
@@ -58,8 +58,8 @@ namespace Quizzer.Views.GameViews
         {
             if (Window != null)
             {
-                WindowsForMediaHanel.Add(Window);
-                MediaPreviewCoordinator.SetOwnerWindows(WindowsForMediaHanel);
+                WindowsForMediaHandle.Add(Window);
+                MediaPreviewCoordinator.SetOwnerWindows(WindowsForMediaHandle);
             }
             return base.OnWindow_SourceInitializedAsync();
         }
@@ -391,8 +391,8 @@ namespace Quizzer.Views.GameViews
 
             window.ContentRendered += (s, e) =>
             {
-                WindowsForMediaHanel.Add(window);
-                MediaPreviewCoordinator.SetOwnerWindows(WindowsForMediaHanel);
+                WindowsForMediaHandle.Add(window);
+                MediaPreviewCoordinator.SetOwnerWindows(WindowsForMediaHandle);
             };
 
             OpenGamePlayerViews.Add(window);

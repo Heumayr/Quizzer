@@ -24,6 +24,8 @@ namespace Quizzer.Views.GameViews
 
         public int Columns => PlayerResultContextList.Count();
 
+        public GamePlayerViewModel? GamePlayerViewModel { get; set; }
+
         public Player? CurrentBuzzerWinner
         {
             get => currentBuzzerWinner;
@@ -36,6 +38,8 @@ namespace Quizzer.Views.GameViews
                 {
                     context.CurrentBuzzerWinner = value;
                 }
+
+                GamePlayerViewModel?.CurrentBuzzerWinner = value;
             }
         }
 

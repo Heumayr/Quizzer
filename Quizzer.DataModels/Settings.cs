@@ -25,8 +25,10 @@ namespace Quizzer.DataModels
         public static string HeaderColumnBackgroundImagePath => Path.Combine(FilePathQuizzer, "HeaderColumnBackground.png");
         public static string HeaderRowBackgroundImagePath => Path.Combine(FilePathQuizzer, "HeaderRowBackground.png");
 
-        public static string ChoiceBackgroundImagePath => Path.Combine(FilePathQuizzer, "ChoiceBackground.png");
-        public static string ChoiceBackgroundResultImagePath => Path.Combine(FilePathQuizzer, "ChoiceBackgroundResult.png");
+        public static string GridBackgroundImagePath => Path.Combine(FilePathQuizzer, "GridBackground.png");
+        public static string GridBackgroundResultImagePath => Path.Combine(FilePathQuizzer, "GridBackgroundResult.png");
+
+        public static string HorizontalBackgroundImagePath => Path.Combine(FilePathQuizzer, "HorizontalBackground.png");
 
         public static string ConnectionString { get; set; } = string.Empty;
 

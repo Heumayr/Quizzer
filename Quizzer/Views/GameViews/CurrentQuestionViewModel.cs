@@ -76,7 +76,7 @@ namespace Quizzer.Views.GameViews
             FinishStep = Coordinate.QuestionBase?.OrderedSteps.FirstOrDefault(s => s.IsFinish);
 
             PlayersResultViewModel = new PlayersResultViewModel();
-
+            PlayersResultViewModel.GamePlayerViewModel = GamePlayerViewModel;
             //_resultWindow = new PlayersResultView();
             //_resultWindow.DataContext = PlayersResultViewModel;
 
@@ -509,7 +509,14 @@ namespace Quizzer.Views.GameViews
                 {
                     DataContext = PlayersResultViewModel
                 };
-                _resultWindow.Closed += (_, _) => _resultWindow = null;
+                _resultWindow.Closed += async (_, _) =>
+                {
+                    if (PlayersResultViewModel?.IsDoneAndShowFinishState ?? false)
+                    {
+                        await SaveIsDoneFinishStateAsync(null);
+                    }
+                    _resultWindow = null;
+                };
                 _resultWindow.Show();
             }
             else
@@ -526,11 +533,6 @@ namespace Quizzer.Views.GameViews
                 throw new Exception("Invalid result state");
 
             Coordinate.QuestionResults = newResults;
-
-            if (PlayersResultViewModel?.IsDoneAndShowFinishState ?? false)
-            {
-                await SaveIsDoneFinishStateAsync(null);
-            }
         }
 
         #endregion Buzzer

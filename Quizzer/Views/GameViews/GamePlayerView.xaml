@@ -192,5 +192,38 @@
                 <sub:UcStatsView DataContext="{Binding StatsContext}" />
             </Viewbox>
         </Grid>
+
+        <!-- CURRENT BUZZER PLAYER OVERLAY -->
+        <!--<Grid Grid.RowSpan="2"
+              Panel.ZIndex="999"
+              IsHitTestVisible="False">
+            <Border HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Padding="30,16"
+                    CornerRadius="10"
+                    Background="#AA000000"
+                    BorderBrush="WhiteSmoke"
+                    BorderThickness="2">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentBuzzerWinner}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+
+                <Viewbox Stretch="Uniform">
+                    <TextBlock Text="{Binding CurrentBuzzerPlayer.DisplayName}"
+                               Foreground="WhiteSmoke"
+                               FontWeight="Bold"
+                               TextAlignment="Center"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center" />
+                </Viewbox>
+            </Border>
+        </Grid>-->
     </Grid>
 </base:WindowBase>

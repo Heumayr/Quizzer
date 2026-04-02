@@ -4,7 +4,9 @@ using Quizzer.DataModels.Models.Base;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using static Quizzer.Views.GameViews.Sub.PlayerResultContext;
@@ -16,6 +18,21 @@ namespace Quizzer.Views.GameViews.Sub
         private Player player = null!;
         private Game game = null!;
         private int placement;
+
+        public string? AlternativText
+        {
+            get => field;
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(AlternativTextVisibility));
+                OnPropertyChanged(nameof(NotAlternativTextVisibility));
+            }
+        }
+
+        public Visibility AlternativTextVisibility => AlternativText != null ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility NotAlternativTextVisibility => AlternativText != null ? Visibility.Collapsed : Visibility.Visible;
 
         public GameMasterViewModel? GameMasterViewModel { get; set; }
         public bool IsGameFinished => GameMasterViewModel?.IsGameFinished ?? false;
@@ -76,7 +93,7 @@ namespace Quizzer.Views.GameViews.Sub
             _ => 250
         };
 
-        public StatsContext StatsContext { get; set; } = null!;
+        public StatsContext? StatsContext { get; set; } = null;
 
         public Player Player
         {
@@ -106,7 +123,7 @@ namespace Quizzer.Views.GameViews.Sub
 
         private Brush GetBackgroundBrush()
         {
-            if (StatsContext.Winners.Select(p => p.Id).Contains(Player.Id))
+            if (StatsContext != null && StatsContext.Winners.Select(p => p.Id).Contains(Player.Id))
                 return StaticRessources.StaticResources.PlayerCardWinnerImageBrush;
 
             return StaticRessources.StaticResources.PlayerCardImageBrush;
