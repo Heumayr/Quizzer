@@ -341,6 +341,7 @@ namespace Quizzer.Views.GameViews
                     var popup = new Window
                     {
                         Owner = owner,
+                        WindowStartupLocation = WindowStartupLocation.CenterOwner,
                         WindowStyle = WindowStyle.None,
                         ResizeMode = ResizeMode.NoResize,
                         AllowsTransparency = true,
@@ -352,7 +353,7 @@ namespace Quizzer.Views.GameViews
                         Content = content
                     };
 
-                    CenterWindowOnOwner(owner, popup);
+                    //CenterWindowOnOwner(owner, popup);
 
                     currentBuzzerWinnerWindows[owner] = popup;
                     popup.Show();
@@ -377,22 +378,22 @@ namespace Quizzer.Views.GameViews
             return true;
         }
 
-        private static void CenterWindowOnOwner(Window owner, Window popup)
-        {
-            popup.WindowStartupLocation = WindowStartupLocation.Manual;
+        //private static void CenterWindowOnOwner(Window owner, Window popup)
+        //{
+        //    popup.WindowStartupLocation = WindowStartupLocation.Manual;
 
-            popup.Loaded += (_, __) =>
-            {
-                var ownerWidth = owner.ActualWidth;
-                var ownerHeight = owner.ActualHeight;
+        //    popup.Loaded += (_, __) =>
+        //    {
+        //        var ownerWidth = owner.ActualWidth;
+        //        var ownerHeight = owner.ActualHeight;
 
-                if (ownerWidth <= 0 || ownerHeight <= 0)
-                    return;
+        //        if (ownerWidth <= 0 || ownerHeight <= 0)
+        //            return;
 
-                popup.Left = owner.Left + (ownerWidth - popup.ActualWidth) / 2;
-                popup.Top = owner.Top + (ownerHeight - popup.ActualHeight) / 2;
-            };
-        }
+        //        popup.Left = owner.Left + (ownerWidth - popup.ActualWidth) / 2;
+        //        popup.Top = owner.Top + (ownerHeight - popup.ActualHeight) / 2;
+        //    };
+        //}
 
         private PlayerStatsContext? CreateWinnerStatsViewModel(Player player)
         {
