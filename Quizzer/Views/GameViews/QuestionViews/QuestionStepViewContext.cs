@@ -45,10 +45,21 @@ namespace Quizzer.Views.GameViews.QuestionViews
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(HasStepTextVisibility));
                 OnPropertyChanged(nameof(HasResourceVisibility));
+
+                OnPropertyChanged(nameof(FinishColumnColumnWidthFinishStep));
+                OnPropertyChanged(nameof(FinishColumnColumnWidthSteps));
+
                 OnPropertyChanged(nameof(StepTextColumnWidth));
                 OnPropertyChanged(nameof(ResourceColumnWidth));
+
+                OnPropertyChanged(nameof(StepTextRowHeight));
+                OnPropertyChanged(nameof(ResourceRowHeight));
+
                 OnPropertyChanged(nameof(PreviousSteps));
                 OnPropertyChanged(nameof(NextSteps));
+
+                OnPropertyChanged(nameof(TextForgroundBrush));
+                OnPropertyChanged(nameof(TextBackgroundBrush));
 
                 NotifyDisplayStepLayoutChanged();
             }
@@ -71,6 +82,10 @@ namespace Quizzer.Views.GameViews.QuestionViews
                 NotifyDisplayStepLayoutChanged();
             }
         } = false;
+
+
+        public Brush TextForgroundBrush => Step?.IsResult == true ? Brushes.Wheat : Brushes.WhiteSmoke;
+        public Brush TextBackgroundBrush => Step?.IsResult == true ? Brushes.Black : Brushes.Transparent;
 
         public Visibility FillAvailableVisibility =>
             IsMasterView ? Visibility.Collapsed : Visibility.Visible;
@@ -95,6 +110,30 @@ namespace Quizzer.Views.GameViews.QuestionViews
         public Visibility HasResourceVisibility =>
             HasResource ? Visibility.Visible : Visibility.Collapsed;
 
+
+        public GridLength FinishColumnColumnWidthSteps
+        {
+            get
+            {
+                if (Step?.IsFinish == true)
+                    return new GridLength(2, GridUnitType.Star);
+
+                return new GridLength(1, GridUnitType.Star);    
+            }
+        }
+
+        public GridLength FinishColumnColumnWidthFinishStep
+        {
+            get
+            {
+                if (Step?.IsFinish == true)
+                    return new GridLength(3, GridUnitType.Star);
+
+                return new GridLength(0);
+            }
+        }
+
+
         public GridLength StepTextColumnWidth
         {
             get
@@ -115,6 +154,34 @@ namespace Quizzer.Views.GameViews.QuestionViews
             {
                 if (HasStepText && HasResource)
                     return new GridLength(1, GridUnitType.Auto);
+
+                if (HasResource)
+                    return new GridLength(1, GridUnitType.Star);
+
+                return new GridLength(0);
+            }
+        }
+
+        public GridLength StepTextRowHeight
+        {
+            get
+            {
+                if (HasStepText && HasResource)
+                    return new GridLength(1, GridUnitType.Star);
+
+                if (HasStepText)
+                    return new GridLength(1, GridUnitType.Star);
+
+                return new GridLength(0);
+            }
+        }
+
+        public GridLength ResourceRowHeight
+        {
+            get
+            {
+                if (HasStepText && HasResource)
+                    return new GridLength(5, GridUnitType.Star);
 
                 if (HasResource)
                     return new GridLength(1, GridUnitType.Star);

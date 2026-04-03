@@ -118,7 +118,12 @@
 
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Random Sequence:" VerticalAlignment="Center" />
-                <CheckBox VerticalContentAlignment="Center" IsChecked="{Binding Path=Question.UseRandomSequenceOnNonFinishSteps}" MinWidth="200" Margin="5,0,0,0" />
+                <CheckBox VerticalContentAlignment="Center" IsChecked="{Binding Path=Question.UseRandomSequenceOnNoneFinishSteps}" MinWidth="200" Margin="5,0,0,0" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Proportional Score Reduction on Steps:" VerticalAlignment="Center" />
+                <CheckBox VerticalContentAlignment="Center" IsChecked="{Binding Path=Question.UseProportionalScoreReductionOnStep}" MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5,10,0,0">

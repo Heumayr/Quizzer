@@ -31,7 +31,7 @@
 
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="auto" />
                         <ColumnDefinition Width="16" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
@@ -134,7 +134,6 @@
                     UseLayoutRounding="True">
 
                 <Grid>
-
                     <!-- Text + Media -->
                     <Grid Visibility="{Binding TextAndMediaVisibility}">
                         <Grid.RowDefinitions>
@@ -142,8 +141,6 @@
                             <RowDefinition Height="16" />
                             <RowDefinition Height="auto" />
                         </Grid.RowDefinitions>
-
-                      
 
                         <Border Grid.Row="0"
                                 HorizontalAlignment="Stretch"
@@ -206,8 +203,8 @@
             <Grid ClipToBounds="True"
                   Margin="4">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="{Binding FinishColumnColumnWidthSteps}" />
+                    <ColumnDefinition Width="{Binding FinishColumnColumnWidthFinishStep}" />
                 </Grid.ColumnDefinitions>
 
                 <!-- Linke Spalte -->
