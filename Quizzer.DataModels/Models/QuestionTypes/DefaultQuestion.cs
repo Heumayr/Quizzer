@@ -12,7 +12,7 @@ namespace Quizzer.DataModels.Models.QuestionTypes
             MinusPoints = 100;
             Typ = QuestionType.Default;
             WarnOnResultStep = false;
-            UseRandomSequenceOnNonFinishSteps = false;
+            UseRandomSequenceOnNoneFinishSteps = false;
             DefaultFinishType = FinishType.AllPreviousSteps;
         }
 

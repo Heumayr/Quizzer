@@ -134,13 +134,15 @@
                     </Border>
                 </Grid>
 
-                <Grid Grid.Row="1" Grid.Column="0">
-                    <questions:CurrentQuestionView Width="335" ></questions:CurrentQuestionView>
+                <Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <questions:CurrentQuestionView Width="auto" ></questions:CurrentQuestionView>
                 </Grid>
 
                 <StackPanel Grid.Row="1" Grid.Column="1" Background="{Binding IsDoneBrush}">
                     <Button Content="Results" Command="{Binding OpenResultsCommand}"></Button>
-                    <Button Content="Save IsDone Finish" Command="{Binding SaveIsDoneFinishStateCommand}" Background="DarkGreen"></Button>
+                    <Button Margin="0, 20, 0, 0" Content="Save/IsDone/Finish" Command="{Binding SaveIsDoneFinishStateCommand}" Background="DarkGreen"></Button>
+                    <Button Margin="0, 20, 0, 0" Content="Exit/Next Ch. P." Command="{Binding ExitSetNextChoosingPlayerCommand}" Background="DarkBlue"></Button>
+                    <Button Content="Exit" Command="{Binding ExitCommand}"></Button>
                 </StackPanel>
             </Grid>
         </Border>

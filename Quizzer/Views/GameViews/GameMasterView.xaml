@@ -31,22 +31,38 @@
             <RowDefinition Height="4*" />
             <RowDefinition Height="{Binding StatsRowHeight}" />
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="0">
-            <Button Content="Buzzer Server" Command="{Binding BuzzerServerCommand}" />
-            <Button Content="Open Player View" Command="{Binding OpenGamePlayerViewCommand}" />
-            <Button Content="Change View" Command="{Binding ChangeViewCommand}" />
-            <Button  Content="{Binding ToggleStatsButtonText}" Command="{Binding TogglePlayerStatsViewCommand}" />
-            <StackPanel Height="30"></StackPanel>
+        <Border Padding="20" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Background="Black" MaxWidth="200">
+            <StackPanel Orientation="Vertical" >
+                <Button Content="Buzzer Server" Command="{Binding BuzzerServerCommand}" />
+                <Button Content="Toggle Fullscreen" Command="{Binding ToggleFullScreenCommand}" />
+                <Button Content="Open Player View" Command="{Binding OpenGamePlayerViewCommand}" />
+                <Button Content="Change View" Command="{Binding ChangeViewCommand}" />
+                <Button Content="{Binding ToggleStatsButtonText}" Command="{Binding TogglePlayerStatsViewCommand}" />
+                <StackPanel Height="30"></StackPanel>
 
-            <StackPanel Orientation="Horizontal">
-                <Label FontWeight="Bold" Content="Phase: "></Label>
-                <TextBlock FontWeight="Bold" Text="{Binding GamePhase}"></TextBlock>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock FontWeight="Bold" Text="Round: "></TextBlock>
+                    <TextBlock FontWeight="Bold" Text="{Binding CurrentRound}" VerticalAlignment="Center"></TextBlock>
+                    <TextBlock Margin="15, 0, 0, 0" FontWeight="Bold" Text="Done: "></TextBlock>
+                    <TextBlock FontWeight="Bold" Text="{Binding GameGridCoordinatesDoneCount}" VerticalAlignment="Center"></TextBlock>
+                    <TextBlock FontWeight="Bold" Text="/"></TextBlock>
+                    <TextBlock FontWeight="Bold" Text="{Binding GameGridCoordinatesCount}" VerticalAlignment="Center"></TextBlock>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0, 10">
+                    <TextBlock FontWeight="Bold" Text="Phase: "></TextBlock>
+                    <TextBlock FontWeight="Bold" Text="{Binding GamePhase}" VerticalAlignment="Center"></TextBlock>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Raise" Command="{Binding RaiseGamePhaseCommand}" />
+                    <Button Content="Lower" Command="{Binding LowerGamePhaseCommand}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Vertical" Margin="0, 10">
+                    <TextBlock FontWeight="Bold" Text="Choosing Player: "></TextBlock>
+                    <TextBlock TextWrapping="Wrap" Margin="0, 10, 0, 0" FontWeight="ExtraBold" FontSize="18" Text="{Binding ChoosingPlayer}" VerticalAlignment="Center" TextAlignment="Center" Foreground="Wheat"></TextBlock>
+                </StackPanel>
             </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Button Content="Raise" Command="{Binding RaiseGamePhaseCommand}" />
-                <Button Content="Lower" Command="{Binding LowerGamePhaseCommand}" />
-            </StackPanel>
-        </StackPanel>
+        </Border>
         <Viewbox Visibility="{Binding ShowGameGridView}" Margin="5" Grid.Column="1" Grid.Row="0"
               Stretch="Uniform"
                HorizontalAlignment="Stretch"

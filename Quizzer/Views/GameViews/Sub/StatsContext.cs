@@ -53,7 +53,7 @@ namespace Quizzer.Views.GameViews.Sub
             }
         }
 
-        public void UpdateScore(bool calulateAndSetWinners)
+        public void UpdateScores(bool calulateAndSetWinners)
         {
             Winners.Clear();
 
@@ -70,6 +70,7 @@ namespace Quizzer.Views.GameViews.Sub
                 item.UpdateScore();
             }
 
+            OnPropertyChanged();
             OnPropertyChanged(nameof(FirstPlacePlayers));
             OnPropertyChanged(nameof(OtherPlayers));
             OnPropertyChanged(nameof(Columns));

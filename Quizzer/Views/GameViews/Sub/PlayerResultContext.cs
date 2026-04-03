@@ -30,8 +30,12 @@ namespace Quizzer.Views.GameViews.Sub
         private QuestionResult result = null!;
 
         public PlayersResultViewModel PlayersResultViewModel { get; set; } = null!;
+        public CurrentQuestionViewModel CurrentQuestionViewModel { get; set; } = null!;
 
         public GameGridCoordinate? Coordinate => PlayersResultViewModel?.Coordinate;
+
+        public int RegularStepCount => Coordinate?.QuestionBase?.OrderedSteps.Count(s => !s.IsStart && !s.IsFinish) ?? 0;
+        public int PreviousStepsCount => CurrentQuestionViewModel?.CurrentStepContext?.PreviousStepsCount ?? 0;
 
         public Player Player
         {
@@ -171,7 +175,7 @@ namespace Quizzer.Views.GameViews.Sub
 
                 CurrentScoreManipulation = suggestion switch
                 {
-                    ScoreSuggestion.Right => Coordinate?.CurrentPoints ?? 0,
+                    ScoreSuggestion.Right => GetCurrentPoints(),
                     ScoreSuggestion.Wrong => Coordinate?.CurrentMinusPoints * -1 ?? 0,
                     _ => 0,
                 };
@@ -182,6 +186,25 @@ namespace Quizzer.Views.GameViews.Sub
                     CorrectAnswered = false;
 
                 OnPropertyChanged(nameof(CanNotEditManipulation));
+            }
+        }
+
+        private int GetCurrentPoints()
+        {
+            if (Coordinate?.QuestionBase?.UseProportionalScoreReductionOnStep == true)
+            {
+                var regularStepCount = RegularStepCount;
+                var points = Coordinate?.CurrentPoints ?? 0;
+
+                if (regularStepCount <= 0 || points <= 0)
+                    return 0;
+
+                var reduction = points / RegularStepCount * PreviousStepsCount;
+                return points - reduction;
+            }
+            else
+            {
+                return Coordinate?.CurrentPoints ?? 0;
             }
         }
 

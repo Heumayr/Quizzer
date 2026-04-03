@@ -28,6 +28,7 @@ namespace Quizzer.Views.GameViews
     public class CurrentQuestionViewModel : ViewModelBase
     {
         public GamePlayerViewModel? GamePlayerViewModel { get; set; }
+        public GameMasterViewModel? GameMasterViewModel { get; set; }
 
         public PlayersResultViewModel? PlayersResultViewModel { get; set; }
 
@@ -75,8 +76,11 @@ namespace Quizzer.Views.GameViews
             NextStep = Coordinate.QuestionBase?.OrderedSteps.FirstOrDefault();
             FinishStep = Coordinate.QuestionBase?.OrderedSteps.FirstOrDefault(s => s.IsFinish);
 
-            PlayersResultViewModel = new PlayersResultViewModel();
-            PlayersResultViewModel.GamePlayerViewModel = GamePlayerViewModel;
+            PlayersResultViewModel = new PlayersResultViewModel
+            {
+                GamePlayerViewModel = GamePlayerViewModel,
+                CurrentQuestionViewModel = this
+            };
             //_resultWindow = new PlayersResultView();
             //_resultWindow.DataContext = PlayersResultViewModel;
 
@@ -86,6 +90,13 @@ namespace Quizzer.Views.GameViews
 
             //Buzzer
             await PrepareBuzzerlayoutAsync();
+
+            (Window as WindowBase)?.SetFullscreen(GameMasterViewModel?.IsFullScreen ?? false);
+        }
+
+        protected override Task OnWindow_ContentRenderedAsync()
+        {
+            return base.OnWindow_ContentRenderedAsync();
         }
 
         private async Task PrepareBuzzerlayoutAsync()
@@ -533,6 +544,27 @@ namespace Quizzer.Views.GameViews
                 throw new Exception("Invalid result state");
 
             Coordinate.QuestionResults = newResults;
+        }
+
+        public List<Player> CoordinateCorrectedAnsweredPlayers => Coordinate?.QuestionResults.Where(r => r.CorrectAnswered).Select(r => r.Player).ToList() ?? new List<Player>();
+
+        public bool SetNextChoosingPlayer { get; private set; } = false;
+
+        private RelayCommand? exitSetNextChoosingPlayerCommand;
+        public ICommand ExitSetNextChoosingPlayerCommand => exitSetNextChoosingPlayerCommand ??= new RelayCommand(ExitSetNextChoosingPlayer);
+
+        private void ExitSetNextChoosingPlayer(object? commandParameter)
+        {
+            SetNextChoosingPlayer = true;
+            Exit(null);
+        }
+
+        private RelayCommand? exitCommand;
+        public ICommand ExitCommand => exitCommand ??= new RelayCommand(Exit);
+
+        private void Exit(object? commandParameter)
+        {
+            Window?.Close();
         }
 
         #endregion Buzzer

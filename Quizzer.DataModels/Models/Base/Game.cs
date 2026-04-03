@@ -45,6 +45,37 @@ namespace Quizzer.DataModels.Models.Base
 
         public int Phase { get; set; } = 1;
 
+        public int SuggestedPhases { get; set; } = 3;
+
+        public Guid RegularChoosingPlayerId { get; set; } = Guid.Empty;
+        public Guid CurrentChoosingPlayerId { get; set; } = Guid.Empty;
+
+        [NotMapped]
+        public List<int> PhaseTrashholds { get; set; } = new();
+
+        public void CalculatetThreshold()
+        {
+            PhaseTrashholds.Clear();
+            if (GameGridCoordinates.Count == 0 || SuggestedPhases <= 0)
+            {
+                return;
+            }
+
+            var coordsCount = GameGridCoordinates.Count;
+            var span = (int)Math.Ceiling((double)coordsCount / SuggestedPhases);
+
+            var currTH = 0;
+            while (currTH < coordsCount)
+            {
+                currTH += span;
+
+                if (currTH < coordsCount)
+                {
+                    PhaseTrashholds.Add(currTH);
+                }
+            }
+        }
+
         public void RaisePhase()
         {
             Phase++;
@@ -118,6 +149,9 @@ namespace Quizzer.DataModels.Models.Base
                 PhaseAddition = PhaseAddition,
                 CurrentRound = CurrentRound,
                 Phase = Phase,
+                SuggestedPhases = SuggestedPhases,
+                RegularChoosingPlayerId = RegularChoosingPlayerId,
+                CurrentChoosingPlayerId = CurrentChoosingPlayerId,
                 Headers = new List<Header>(),
                 GameGridCoordinates = new List<GameGridCoordinate>(),
                 PlayerXGames = new List<PlayerXGame>()

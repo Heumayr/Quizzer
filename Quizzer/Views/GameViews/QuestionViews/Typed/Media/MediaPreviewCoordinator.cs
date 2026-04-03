@@ -9,6 +9,8 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed.Media
 {
     public static class MediaPreviewCoordinator
     {
+        public static bool FullScreenPreviewEnabled { get; set; } = false;
+
         private static readonly object SyncRoot = new();
 
         private static readonly List<Window> RegisteredOwners = new();
@@ -154,6 +156,8 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed.Media
                         owner,
                         useWorkArea: isControlWindow);
                 }), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+
+                preview.SetFullscreen(FullScreenPreviewEnabled);
             }
         }
 

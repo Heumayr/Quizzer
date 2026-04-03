@@ -241,8 +241,112 @@ namespace Quizzer.Views.GameViews
             await OnModelChangedAsync();
 
             InitStatContext(Game);
+            Game.CalculatetThreshold();
+            UpdateGameState();
+            InitChoosingPlayer();
 
+            await VMSaveAsync();
             return Game;
+        }
+
+        public string ChoosingPlayer => GetChoosingPlayerSignature();
+
+        private string GetChoosingPlayerSignature()
+        {
+            var result = $"Cant't be{Environment.NewLine}evaluated!";
+
+            if (Game == null) return result;
+
+            var player = Players.FirstOrDefault(p => p.Id == Game.CurrentChoosingPlayerId);
+
+            if (player != null)
+            {
+                result = $"{player.Designation}";
+                if (string.IsNullOrEmpty(player.DisplayName) == false)
+                {
+                    result += $"{Environment.NewLine}{player.DisplayName}";
+                }
+            }
+
+            return result;
+        }
+
+        public void InitChoosingPlayer()
+        {
+            if (Game == null) return;
+
+            var players = Players.ToArray();
+            var playerCount = Players.Count();
+
+            if (Game.RegularChoosingPlayerId == Guid.Empty && playerCount > 0)
+            {
+                var random = new Random();
+                Game.RegularChoosingPlayerId = players[random.Next(playerCount)].Id;
+            }
+
+            if (Game.CurrentChoosingPlayerId == Guid.Empty)
+                Game.CurrentChoosingPlayerId = Game.RegularChoosingPlayerId;
+
+            OnPropertyChanged(nameof(ChoosingPlayer));
+        }
+
+        public async Task SetNextChoosingPlayer(List<Player> cellWinners)
+        {
+            if (Game == null)
+                return;
+
+            if (cellWinners.Count > 0)
+            {
+                SetChoosingPlayerFromWinners(cellWinners);
+            }
+            else
+            {
+                SetNextRegularChoosingPlayer();
+            }
+
+            await VMSaveAsync();
+            OnPropertyChanged(nameof(ChoosingPlayer));
+        }
+
+        private void SetChoosingPlayerFromWinners(List<Player> winners)
+        {
+            if (Game == null)
+                return;
+
+            if (winners.Count == 1)
+            {
+                Game.CurrentChoosingPlayerId = winners[0].Id;
+                return;
+            }
+
+            var currentWinnerStillValid = winners.Any(w => w.Id == Game.CurrentChoosingPlayerId);
+            if (currentWinnerStillValid)
+                return;
+
+            var random = new Random();
+            Game.CurrentChoosingPlayerId = winners[random.Next(winners.Count)].Id;
+        }
+
+        private void SetNextRegularChoosingPlayer()
+        {
+            if (Game == null)
+                return;
+
+            var players = Players.ToArray();
+            if (players.Length == 0)
+                return;
+
+            var currentIndex = Array.FindIndex(players, p => p.Id == Game.RegularChoosingPlayerId);
+
+            if (currentIndex == -1)
+            {
+                Game.CurrentChoosingPlayerId = players[0].Id;
+                return;
+            }
+
+            var nextIndex = (currentIndex + 1) % players.Length;
+            Game.CurrentChoosingPlayerId = players[nextIndex].Id;
+            Game.RegularChoosingPlayerId = Game.CurrentChoosingPlayerId;
         }
 
         public int GamePhase
@@ -281,7 +385,7 @@ namespace Quizzer.Views.GameViews
                 StatsContext.PlayerStatsContextList.Add(context);
             }
 
-            StatsContext.UpdateScore(IsGameFinished);
+            StatsContext.UpdateScores(IsGameFinished);
         }
 
         private async Task OnModelChangedAsync()
@@ -319,16 +423,19 @@ namespace Quizzer.Views.GameViews
         }
 
         private ICommand? _cellClickCommand;
-        public ICommand CellClickCommand => _cellClickCommand ??= new RelayCommand<GameGridCoordinateViewModel>(OnCellClicked);
 
-        private void OnCellClicked(GameGridCoordinateViewModel? cell)
+        //public ICommand CellClickCommand => _cellClickCommand ??= new RelayCommand<GameGridCoordinateViewModel>(OnCellClicked);
+        public ICommand CellClickCommand => _cellClickCommand ??= new AsyncRelayCommand((p) => OnCellClickedAsync(p as GameGridCoordinateViewModel));
+
+        private async Task OnCellClickedAsync(GameGridCoordinateViewModel? cell)
         {
             if (cell == null || Game == null) return;
 
             var context = new CurrentQuestionViewModel()
             {
                 Coordinate = cell.Coordinate,
-                GamePlayerViewModel = GamePlayerViewModel
+                GamePlayerViewModel = GamePlayerViewModel,
+                GameMasterViewModel = this,
             };
 
             var qMaster = new QuestionMasterView()
@@ -340,7 +447,52 @@ namespace Quizzer.Views.GameViews
 
             cell.RefreshFromModel();
 
-            StatsContext.UpdateScore(IsGameFinished);
+            StatsContext.UpdateScores(IsGameFinished);
+
+            if (context.SetNextChoosingPlayer)
+            {
+                await SetNextChoosingPlayer(context.CoordinateCorrectedAnsweredPlayers);
+            }
+
+            UpdateGameState();
+        }
+
+        public int CurrentRound
+        {
+            get => Game?.CurrentRound ?? 0;
+            set
+            {
+                Game?.CurrentRound = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int GameGridCoordinatesCount => Game?.GameGridCoordinates.Count() ?? 0;
+        public int GameGridCoordinatesDoneCount => Game?.GameGridCoordinates.Count(c => c.IsDone) ?? 0;
+
+        private void UpdateGameState()
+        {
+            if (Game == null) return;
+
+            var tempCurrentRound = Game.CurrentRound;
+            CurrentRound = GameGridCoordinatesDoneCount + 1;
+
+            if (tempCurrentRound != CurrentRound && CurrentRound > tempCurrentRound)
+            {
+                if (Game.PhaseTrashholds.Contains(CurrentRound))
+                {
+                    var mbResult = MessageBox.Show("Phase Trashhold reached! Advancing to next phase.", "Phase Trashhold", MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                    if (mbResult == MessageBoxResult.Yes)
+                    {
+                        Game.RaisePhase();
+                        _ = SaveAndRefreshAfterPhaseChangeAsync();
+                    }
+                }
+            }
+
+            OnPropertyChanged(nameof(GameGridCoordinatesCount));
+            OnPropertyChanged(nameof(GameGridCoordinatesDoneCount));
         }
 
         public int Height
@@ -487,6 +639,25 @@ namespace Quizzer.Views.GameViews
                 cell.RefreshFromModel();
             }
             OnPropertyChanged(nameof(GamePhase));
+        }
+
+        private RelayCommand? toggleFullScreenCommand;
+        public ICommand ToggleFullScreenCommand => toggleFullScreenCommand ??= new RelayCommand(ToggleFullScreen);
+
+        public bool IsFullScreen { get; private set; } = false;
+
+        private void ToggleFullScreen(object? commandParameter)
+        {
+            IsFullScreen = !IsFullScreen;
+
+            foreach (var win in WindowsForMediaHandle)
+            {
+                if (win is not WindowBase winbase) continue;
+
+                winbase.SetFullscreen(IsFullScreen);
+            }
+
+            MediaPreviewCoordinator.FullScreenPreviewEnabled = IsFullScreen;
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Quizzer.DataModels.Models.QuestionTypes
             MinusPoints = 100;
             Typ = QuestionType.MultipleChoice;
             WarnOnResultStep = false;
-            UseRandomSequenceOnNonFinishSteps = true;
+            UseRandomSequenceOnNoneFinishSteps = true;
             DefaultFinishType = FinishType.AllPreviousSteps;
             BuzzerControlsLayout = BuzzerControlsLayout.KeySelect;
             StepDisplayLayoutMode = StepDisplayLayoutMode.Grid;

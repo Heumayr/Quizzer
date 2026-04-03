@@ -26,6 +26,8 @@ namespace Quizzer.Views.GameViews
 
         public GamePlayerViewModel? GamePlayerViewModel { get; set; }
 
+        public CurrentQuestionViewModel? CurrentQuestionViewModel { get; set; }
+
         public Player? CurrentBuzzerWinner
         {
             get => currentBuzzerWinner;
@@ -137,7 +139,8 @@ namespace Quizzer.Views.GameViews
                 {
                     PlayersResultViewModel = this,
                     Player = player,
-                    Result = result
+                    Result = result,
+                    CurrentQuestionViewModel = CurrentQuestionViewModel ?? throw new Exception("CurrentQuestionViewModel not set"),
                 };
 
                 contextList.Add(newContext);

@@ -48,15 +48,20 @@
                     TextWrapping="Wrap" />
 
             <!-- display name -->
-            <TextBlock Grid.Row="1"
-                       Text="{Binding Player.DisplayName}"
-                       FontSize="28"
-                       Foreground="Wheat"
-                       FontWeight="ExtraBold"
-                       TextAlignment="Center"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       TextWrapping="Wrap" />
+
+            <Viewbox Grid.Row="1" Stretch="Uniform">
+                <TextBlock
+                    Width="200"
+                    Text="{Binding Player.DisplayName}"
+                    FontSize="28"
+                    Foreground="Wheat"
+                    FontWeight="ExtraBold"
+                    TextAlignment="Center"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    TextWrapping="Wrap" />
+            </Viewbox>
+
 
             <!-- image -->
             <Border Grid.Row="3"

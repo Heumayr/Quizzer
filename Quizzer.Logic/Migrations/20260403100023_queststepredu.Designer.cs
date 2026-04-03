@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Quizzer.Logic.Context;
 
@@ -11,9 +12,11 @@ using Quizzer.Logic.Context;
 namespace Quizzer.Logic.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260403100023_queststepredu")]
+    partial class queststepredu
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,9 +57,6 @@ namespace Quizzer.Logic.Migrations
                     b.Property<double>("CellWidth")
                         .HasColumnType("float");
 
-                    b.Property<Guid>("CurrentChoosingPlayerId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<int>("CurrentRound")
                         .HasColumnType("int");
 
@@ -91,9 +91,6 @@ namespace Quizzer.Logic.Migrations
                     b.Property<double>("PhaseMultiplier")
                         .HasColumnType("float");
 
-                    b.Property<Guid>("RegularChoosingPlayerId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<bool>("Restart")
                         .HasColumnType("bit");
 
@@ -103,9 +100,6 @@ namespace Quizzer.Logic.Migrations
                         .HasColumnType("rowversion");
 
                     b.Property<int>("State")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SuggestedPhases")
                         .HasColumnType("int");
 
                     b.Property<int>("Width")

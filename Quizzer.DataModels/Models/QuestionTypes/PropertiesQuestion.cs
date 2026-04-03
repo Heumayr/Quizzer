@@ -12,8 +12,8 @@ namespace Quizzer.DataModels.Models.QuestionTypes
             MinusPoints = 100;
             Typ = QuestionType.Properties;
             WarnOnResultStep = false;
-            UseRandomSequenceOnNonFinishSteps = false;
-            UseProportionalPointsPerStep = true;
+            UseRandomSequenceOnNoneFinishSteps = false;
+            UseProportionalScoreReductionOnStep = true;
             DefaultFinishType = FinishType.AllPreviousSteps;
             BuzzerControlsLayout = BuzzerControlsLayout.Buzzer;
             StepDisplayLayoutMode = StepDisplayLayoutMode.Vertical;

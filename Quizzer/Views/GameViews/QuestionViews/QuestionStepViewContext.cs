@@ -155,6 +155,8 @@ namespace Quizzer.Views.GameViews.QuestionViews
                     .OrderBy(s => s.SequenceNumber)
                     .ToArray();
 
+        public int PreviousStepsCount => PreviousSteps.Length;
+
         public QuestionStepResource[] NextSteps =>
             Step == null
                 ? []

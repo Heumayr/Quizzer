@@ -12,7 +12,7 @@ namespace Quizzer.DataModels.Models.QuestionTypes
             MinusPoints = 100;
             Typ = QuestionType.Appreciate;
             WarnOnResultStep = false;
-            UseRandomSequenceOnNonFinishSteps = false;
+            UseRandomSequenceOnNoneFinishSteps = false;
             DefaultFinishType = FinishType.AllPreviousSteps;
             BuzzerControlsLayout = BuzzerControlsLayout.Input;
         }

@@ -21,7 +21,7 @@ namespace Quizzer.DataModels.Models
 
         public int MinusPoints { get; set; }
 
-        public bool UseProportionalPointsPerStep { get; set; } = false;
+        public bool UseProportionalScoreReductionOnStep { get; set; } = false;
 
         public string Notes { get; set; } = string.Empty;
 
@@ -35,7 +35,7 @@ namespace Quizzer.DataModels.Models
 
         public bool WarnOnFinishStep { get; set; } = true;
 
-        public bool UseRandomSequenceOnNonFinishSteps { get; set; } = false;
+        public bool UseRandomSequenceOnNoneFinishSteps { get; set; } = false;
 
         public QuestionViewKeyType QuestionViewKeyType { get; set; } = QuestionViewKeyType.Alphabetical;
 
@@ -97,7 +97,7 @@ namespace Quizzer.DataModels.Models
             var startSteps = Steps.Where(s => s.IsStart).ToList();
             var finishSteps = Steps.Where(s => s.IsFinish).ToList();
 
-            if (UseRandomSequenceOnNonFinishSteps)
+            if (UseRandomSequenceOnNoneFinishSteps)
             {
                 normalSteps = normalSteps
                     .OrderBy(_ => Random.Shared.Next())
@@ -172,14 +172,14 @@ namespace Quizzer.DataModels.Models
             target.CategoryId = CategoryId;
             target.Points = Points;
             target.MinusPoints = MinusPoints;
-            target.UseProportionalPointsPerStep = UseProportionalPointsPerStep;
+            target.UseProportionalScoreReductionOnStep = UseProportionalScoreReductionOnStep;
             target.Notes = Notes;
             target.Typ = Typ;
             target.DefaultFinishType = DefaultFinishType;
             target.Difficulty = Difficulty;
             target.WarnOnResultStep = WarnOnResultStep;
             target.WarnOnFinishStep = WarnOnFinishStep;
-            target.UseRandomSequenceOnNonFinishSteps = UseRandomSequenceOnNonFinishSteps;
+            target.UseRandomSequenceOnNoneFinishSteps = UseRandomSequenceOnNoneFinishSteps;
             target.QuestionViewKeyType = QuestionViewKeyType;
 
             target.BuzzerControlsLayout = BuzzerControlsLayout;
