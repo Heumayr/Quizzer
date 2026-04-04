@@ -3,12 +3,48 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Windows;
 
 namespace Quizzer.Views.GameViews.QuestionViews.Typed.Media
 {
     public static class MediaPreviewCoordinator
     {
+        public static object? StartedMedia { get; private set; }
+
+        public static void RegisterStartedMedia(object media)
+        {
+            if(StartedMedia != null)
+            {
+                StopRegisterdMedia();
+                StartedMedia = null;
+            }
+
+            StartedMedia = media;
+        }
+
+        public static void UnsignStartedMedia(object media)
+        {
+            if (StartedMedia == media)
+                StartedMedia = null;
+        }
+
+        public static void StopRegisterdMedia()
+        {
+            if (StartedMedia == null)
+                return;
+
+            if (StartedMedia is ResourceViewerControl rvc)
+            {
+                rvc.MediaPlayer.Stop();
+            }
+
+            //TODO Handle other registrations ... evt interface
+
+            StartedMedia = null;
+        }
+
+
         public static bool FullScreenPreviewEnabled { get; set; } = false;
 
         private static readonly object SyncRoot = new();

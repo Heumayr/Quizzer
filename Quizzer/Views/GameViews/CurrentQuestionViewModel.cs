@@ -11,6 +11,7 @@ using Quizzer.Extentions;
 using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.Views.BuzzerViews;
 using Quizzer.Views.GameViews.QuestionViews;
+using Quizzer.Views.GameViews.QuestionViews.Typed.Media;
 using Quizzer.Views.StaticRessources;
 using System;
 using System.Collections.Concurrent;
@@ -507,6 +508,8 @@ namespace Quizzer.Views.GameViews
 
         private async Task OnWinnerDeclared(Player? player, int round)
         {
+            MediaPreviewCoordinator.StopRegisterdMedia(); //TODO other events bounded to on buzzer
+
             PlayersResultViewModel?.CurrentBuzzerWinner = player;
 
             await OpenResultsAsync();

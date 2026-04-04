@@ -231,12 +231,14 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
 
         private void Start_Click(object sender, RoutedEventArgs e)
         {
+            MediaPreviewCoordinator.RegisterStartedMedia(this);
             MediaPlayer.Play();
         }
 
         private void Stop_Click(object sender, RoutedEventArgs e)
         {
             MediaPlayer.Stop();
+            MediaPreviewCoordinator.UnsignStartedMedia(this);
         }
 
         private void Preview_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
