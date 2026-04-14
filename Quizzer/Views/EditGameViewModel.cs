@@ -56,6 +56,20 @@ namespace Quizzer.Views
 
         private List<Player> AllPlayers { get; set; } = new();
 
+        private ObservableCollection<Player> ModeratorPlayers
+        {
+            get => field;
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+                ModeratorPlayersView = CollectionViewSource.GetDefaultView(field);
+                OnPropertyChanged(nameof(ModeratorPlayersView));
+            }
+        } = new();
+
+        public ICollectionView? ModeratorPlayersView { get; private set; }
+
         private ObservableCollection<Player> AvailablePlayers
         {
             get => availablePlayers;
@@ -409,6 +423,8 @@ namespace Quizzer.Views
             OnPropertyChanged(nameof(SelectedPlayer));
             OnPropertyChanged(nameof(CmbSelectedPlayer));
 
+            OnPropertyChanged(nameof(ModeratorPlayerId));
+
             await RebuildCellsAsync();
         }
 
@@ -481,10 +497,33 @@ namespace Quizzer.Views
             CalculatePlayerLists();
         }
 
+        public Guid ModeratorPlayerId
+        {
+            get => Game?.ModeratorPlayerId ?? Guid.Empty;
+            set
+            {
+                if (Game == null) return;
+                if (Game.ModeratorPlayerId == value) return;
+
+                Game.ModeratorPlayerId = value;
+                Game.Moderator = AllPlayers.FirstOrDefault(x => x.Id == value);
+
+                CalculatePlayerLists();
+                OnPropertyChanged();
+            }
+        }
+
         private void CalculatePlayerLists()
         {
-            AvailablePlayers = new ObservableCollection<Player>(AllPlayers.Where(p => Game != null && !Game.Players.Select(p => p.Id).Contains(p.Id)).ToList());
+            AvailablePlayers = new ObservableCollection<Player>(AllPlayers.Where(p => Game != null && Game.ModeratorPlayerId != p.Id && !Game.Players.Select(p => p.Id).Contains(p.Id)).ToList());
             GameAddedPlayers = new ObservableCollection<Player>(AllPlayers.Where(p => Game != null && Game.Players.Select(p => p.Id).Contains(p.Id)).ToList());
+
+            ModeratorPlayers = new ObservableCollection<Player>(AllPlayers.Where(p => Game != null && !Game.Players.Select(p => p.Id).Contains(p.Id)).ToList());
+
+            if (ModeratorPlayerId != Guid.Empty && Game != null && GameAddedPlayers.Select(p => p.Id).Contains(ModeratorPlayerId))
+            {
+                ModeratorPlayerId = Guid.Empty;
+            }
         }
 
         private AsyncRelayCommand? removePlayerCommand;

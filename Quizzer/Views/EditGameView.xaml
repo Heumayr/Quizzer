@@ -47,6 +47,10 @@
                 <Label MinWidth="120" Content="Designation:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" Text="{Binding Path=Designation}" MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Moderator:" VerticalAlignment="Center" />
+                <ComboBox ItemsSource="{Binding ModeratorPlayersView}" DisplayMemberPath="CalculatedDisplayName" SelectedValuePath="Id" SelectedValue="{Binding ModeratorPlayerId}" Width="200" Margin="0,8,10,8" />
+            </StackPanel>
             <StackPanel Orientation="Vertical">
                 <StackPanel Orientation="Horizontal" Margin="5">
                     <ComboBox ItemsSource="{Binding AvailablePlayersView}" DisplayMemberPath="CalculatedDisplayName" SelectedItem="{Binding CmbSelectedPlayer}" Width="200" Margin="0,8,10,8" />

@@ -195,19 +195,35 @@ namespace Quizzer.Views.GameViews
 
             if (dbGame == null)
             {
-                MessageBox.Show("No game found in Database");
+                MessageBox.Show("No game found in Database", "No Game", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return null;
             }
 
-            if (dbGame.Players.Count() == 0)
+            var errors = new List<string>();
+
+            if (dbGame.ModeratorPlayerId == null || dbGame.ModeratorPlayerId == Guid.Empty || dbGame.Moderator == null)
             {
-                MessageBox.Show("Cannot start the game without any players. Please add at least one player before starting.", "No Players", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return null;
+                errors.Add("Game must have a moderator set.");
+            }
+
+            if (!dbGame.Players.Any())
+            {
+                errors.Add("Cannot start the game without any players. Please add at least one player before starting.");
             }
 
             if (dbGame.GameGridCoordinates.Count == 0)
             {
-                MessageBox.Show("Cannot start the game without any questions assigned. Please assign at least one question to the grid before starting.", "No Questions", MessageBoxButton.OK, MessageBoxImage.Warning);
+                errors.Add("Cannot start the game without any questions assigned. Please assign at least one question to the grid before starting.");
+            }
+
+            if (errors.Any())
+            {
+                MessageBox.Show(
+                    string.Join(Environment.NewLine + Environment.NewLine, errors),
+                    "Game cannot be started",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+
                 return null;
             }
 

@@ -26,7 +26,8 @@ namespace Quizzer.Logic.Controller.TypedControllers
                 query = query.AsNoTracking().Include(q => q.Headers)
                  .Include(q => q.GameGridCoordinates).ThenInclude(t => t.QuestionBase).ThenInclude(q => q!.Category)
                  .Include(q => q.GameGridCoordinates).ThenInclude(t => t.QuestionResults)
-                 .Include(q => q.PlayerXGames).ThenInclude(t => t.Player);
+                 .Include(q => q.PlayerXGames).ThenInclude(t => t.Player)
+                 .Include(q => q.Moderator);
             }
 
             return base.SetQueryAttributes(query, action);

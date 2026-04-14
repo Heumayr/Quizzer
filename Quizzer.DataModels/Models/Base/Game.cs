@@ -47,6 +47,8 @@ namespace Quizzer.DataModels.Models.Base
 
         public int SuggestedPhases { get; set; } = 3;
 
+        public Guid? ModeratorPlayerId { get; set; }
+
         public Guid RegularChoosingPlayerId { get; set; } = Guid.Empty;
         public Guid CurrentChoosingPlayerId { get; set; } = Guid.Empty;
 
@@ -106,6 +108,9 @@ namespace Quizzer.DataModels.Models.Base
 
         public List<GameGridCoordinate> GameGridCoordinates { get; set; } = new();
 
+        [ForeignKey(nameof(ModeratorPlayerId))]
+        public Player? Moderator { get; set; }
+
         [NotMapped]
         public IEnumerable<QuestionResult> QuestionResults => GameGridCoordinates.SelectMany(x => x.QuestionResults);
 
@@ -150,6 +155,7 @@ namespace Quizzer.DataModels.Models.Base
                 CurrentRound = CurrentRound,
                 Phase = Phase,
                 SuggestedPhases = SuggestedPhases,
+                ModeratorPlayerId = ModeratorPlayerId,
                 RegularChoosingPlayerId = RegularChoosingPlayerId,
                 CurrentChoosingPlayerId = CurrentChoosingPlayerId,
                 Headers = new List<Header>(),
