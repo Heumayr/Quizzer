@@ -1,0 +1,337 @@
+using LocalBuzzer.Service;
+using LocalBuzzer.Service.Base;
+using LocalBuzzer.Service.Base.States;
+using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Quizzer.DataModels.Enumerations;
+using Quizzer.DataModels.Models.Base;
+using Quizzer.DataModels.Models.Buzzer;
+using System.Collections.Concurrent;
+
+namespace Quizzer.LogicUnitTests.LocalBuzzer
+{
+    /// <summary>
+    /// Der Buzzer-Server mit einem echten SignalR-Client - so, wie ein Telefon sich verbindet.
+    /// <para>
+    /// Bis hierher endeten die Buzzer-Tests am Zustandsobjekt. Damit war nicht geprueft, was
+    /// zwischen Hub und Browser tatsaechlich passiert: ob eine Verbindung zustande kommt, ob der
+    /// Spieler zugeordnet wird und ob das gewaehlte Layout beim Client ankommt.
+    /// </para>
+    /// </summary>
+    [TestClass]
+    public class BuzzerEndToEndUnitTests
+    {
+        /// <summary>Eigener Port, damit ein laufendes Spielfenster auf 5000 nicht stoert.</summary>
+        private const int TestPort = 5399;
+
+        private BuzzerServer server = null!;
+        private Game game = null!;
+        private Player anna = null!;
+        private Player bert = null!;
+
+        [TestInitialize]
+        public async Task StartServer()
+        {
+            anna = new Player { Id = Guid.NewGuid(), Designation = "Anna", DisplayName = "Anna" };
+            bert = new Player { Id = Guid.NewGuid(), Designation = "Bert", DisplayName = "Bert" };
+
+            game = new Game { Id = Guid.NewGuid(), Designation = "Testspiel" };
+
+            foreach (var player in new[] { anna, bert })
+            {
+                game.PlayerXGames.Add(new PlayerXGame
+                {
+                    Id = Guid.NewGuid(),
+                    GameId = game.Id,
+                    PlayerId = player.Id,
+                    Player = player,
+                });
+            }
+
+            server = new BuzzerServer { GetGame = () => game };
+
+            await server.StartAsync(new BuzzerServerOptions
+            {
+                Port = TestPort,
+                BindAddress = "127.0.0.1",
+            });
+
+            Assert.AreEqual(ServerState.Running, server.ServerState,
+                "Der Buzzer-Server ist nicht hochgekommen.");
+        }
+
+        [TestCleanup]
+        public async Task StopServer()
+        {
+            if (server != null)
+                await server.DisposeAsync();
+        }
+
+        /// <summary>Verbindet sich wie ein Telefon: mit playerid in der Abfrage.</summary>
+        private static async Task<(HubConnection Connection, List<ClientLayoutStateDto> States)>
+            ConnectAsync(Player player)
+        {
+            var states = new List<ClientLayoutStateDto>();
+
+            var connection = new HubConnectionBuilder()
+                .WithUrl($"http://127.0.0.1:{TestPort}/hub?playerid={player.Id}")
+                .Build();
+
+            connection.On<ClientLayoutStateDto>("StateChanged", dto =>
+            {
+                lock (states) states.Add(dto);
+            });
+
+            await connection.StartAsync();
+
+            return (connection, states);
+        }
+
+        private static async Task<bool> WaitForAsync(Func<bool> condition, int millis = 4000)
+        {
+            var until = DateTime.UtcNow.AddMilliseconds(millis);
+
+            while (DateTime.UtcNow < until)
+            {
+                if (condition())
+                    return true;
+
+                await Task.Delay(50);
+            }
+
+            return condition();
+        }
+
+        [TestMethod]
+        public async Task APhoneCanConnect()
+        {
+            var (connection, _) = await ConnectAsync(anna);
+
+            try
+            {
+                Assert.AreEqual(HubConnectionState.Connected, connection.State);
+            }
+            finally
+            {
+                await connection.DisposeAsync();
+            }
+        }
+
+        [TestMethod]
+        public async Task TheBuzzerLayoutReachesThePhone()
+        {
+            var (connection, states) = await ConnectAsync(anna);
+
+            try
+            {
+                await server.BuzzerController!.ResetRoundAsync(1, BuzzerControlsLayout.Buzzer);
+
+                Assert.IsTrue(await WaitForAsync(() =>
+                {
+                    lock (states) return states.Any(s => s.Layout == BuzzerControlsLayout.Buzzer);
+                }), "Das Buzzer-Layout ist nie beim Client angekommen.");
+            }
+            finally
+            {
+                await connection.DisposeAsync();
+            }
+        }
+
+        /// <summary>
+        /// Der Fall, den der Nutzer gemeldet hat: bei der Schaetzfrage kommt am Telefon nichts an.
+        /// </summary>
+        [TestMethod]
+        public async Task TheInputLayoutReachesThePhone()
+        {
+            var (connection, states) = await ConnectAsync(anna);
+
+            try
+            {
+                server.BuzzerController!.StateManager.BuzzerInputState.Infos = new()
+                {
+                    InputType = "number",
+                    Placeholder = "Wert in m",
+                };
+
+                await server.BuzzerController.ResetRoundAsync(1, BuzzerControlsLayout.Input);
+
+                Assert.IsTrue(await WaitForAsync(() =>
+                {
+                    lock (states) return states.Any(s => s.Layout == BuzzerControlsLayout.Input);
+                }), "Das Eingabe-Layout ist nie beim Client angekommen - "
+                  + "am Telefon bliebe der Bildschirm leer.");
+
+                ClientLayoutStateDto dto;
+                lock (states) dto = states.Last(s => s.Layout == BuzzerControlsLayout.Input);
+
+                Assert.IsFalse(dto.CurrentLayoutLocked,
+                    "Das Eingabefeld waere gesperrt - der Spieler koennte nichts eintippen.");
+                Assert.IsNotNull(dto.LayoutInfo,
+                    "Ohne LayoutInfo weiss der Browser nicht, ob Zahl oder Datum gefragt ist.");
+            }
+            finally
+            {
+                await connection.DisposeAsync();
+            }
+        }
+
+        [TestMethod]
+        public async Task ASubmittedValueArrivesAtTheServer()
+        {
+            var (connection, _) = await ConnectAsync(anna);
+
+            try
+            {
+                ConcurrentDictionary<Guid, BuzzerInputState.InputResult>? received = null;
+                server.BuzzerController!.EventBus.AllPlayersSubmittedInput += dic => received = dic;
+
+                await server.BuzzerController.ResetRoundAsync(1, BuzzerControlsLayout.Input);
+
+                await connection.InvokeAsync("SubmitInput", new
+                {
+                    playerId = anna.Id,
+                    value = "3798",
+                });
+
+                Assert.IsTrue(await WaitForAsync(() =>
+                    server.BuzzerController.StateManager.BuzzerInputState.InputsForPlayer.Count > 0),
+                    "Der eingetippte Wert ist nie am Server angekommen.");
+
+                var stored = server.BuzzerController.StateManager
+                    .BuzzerInputState.InputsForPlayer[anna.Id];
+
+                Assert.AreEqual("3798", stored.Value);
+                Assert.IsTrue(stored.CommittedResult);
+
+                // Nur ein Spieler von zweien hat abgegeben - die Runde bleibt offen.
+                Assert.IsNull(received, "Die Runde darf erst schliessen, wenn alle abgegeben haben.");
+            }
+            finally
+            {
+                await connection.DisposeAsync();
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenEveryoneHasSubmittedTheRoundCloses()
+        {
+            var (connA, _) = await ConnectAsync(anna);
+            var (connB, _) = await ConnectAsync(bert);
+
+            try
+            {
+                ConcurrentDictionary<Guid, BuzzerInputState.InputResult>? received = null;
+                server.BuzzerController!.EventBus.AllPlayersSubmittedInput += dic => received = dic;
+
+                await server.BuzzerController.ResetRoundAsync(1, BuzzerControlsLayout.Input);
+
+                await connA.InvokeAsync("SubmitInput", new { playerId = anna.Id, value = "3798" });
+                await connB.InvokeAsync("SubmitInput", new { playerId = bert.Id, value = "3500" });
+
+                Assert.IsTrue(await WaitForAsync(() => received != null),
+                    "Nach der letzten Abgabe muss die Runde schliessen.");
+
+                Assert.AreEqual(2, received!.Count);
+            }
+            finally
+            {
+                await connA.DisposeAsync();
+                await connB.DisposeAsync();
+            }
+        }
+
+        /// <summary>
+        /// Der Kern des gemeldeten Fehlers, hier als Regel festgehalten: Angaben zu setzen
+        /// reicht nicht. Solange niemand die Runde ausspielt, bleibt CurrentLayout auf None,
+        /// CurrentState null und jeder Spieler gesperrt - am Telefon sieht das aus, als
+        /// bestuende keine Verbindung.
+        /// </summary>
+        [TestMethod]
+        public async Task SettingTheInfosAloneReachesNobody()
+        {
+            var (connection, states) = await ConnectAsync(anna);
+
+            try
+            {
+                server.BuzzerController!.StateManager.BuzzerInputState.Infos = new()
+                {
+                    InputType = "number",
+                    Placeholder = "Wert in m",
+                };
+
+                await Task.Delay(300);
+
+                lock (states)
+                {
+                    Assert.IsFalse(states.Any(s => s.Layout == BuzzerControlsLayout.Input),
+                        "Ohne ResetRoundAsync darf nichts ankommen - genau das war der Fehler.");
+                }
+
+                Assert.AreEqual(BuzzerControlsLayout.None,
+                    server.BuzzerController.StateManager.CurrentLayout);
+                Assert.IsNull(server.BuzzerController.StateManager.CurrentState,
+                    "Ohne ausgespielte Runde gibt es keinen aktiven Zustand.");
+            }
+            finally
+            {
+                await connection.DisposeAsync();
+            }
+        }
+
+        [TestMethod]
+        [DataRow(BuzzerControlsLayout.Buzzer)]
+        [DataRow(BuzzerControlsLayout.KeySelect)]
+        [DataRow(BuzzerControlsLayout.Input)]
+        public async Task EveryLayoutUnlocksThePlayersWhenTheRoundIsPlayedOut(
+            BuzzerControlsLayout layout)
+        {
+            var (connection, states) = await ConnectAsync(anna);
+
+            try
+            {
+                await server.BuzzerController!.ResetRoundAsync(1, layout);
+
+                Assert.IsTrue(await WaitForAsync(() =>
+                {
+                    lock (states) return states.Any(s => s.Layout == layout);
+                }), $"{layout} ist nie beim Client angekommen.");
+
+                ClientLayoutStateDto dto;
+                lock (states) dto = states.Last(s => s.Layout == layout);
+
+                Assert.IsFalse(dto.CurrentLayoutLocked, $"{layout} kam gesperrt an.");
+                Assert.IsFalse(dto.AllLocked);
+            }
+            finally
+            {
+                await connection.DisposeAsync();
+            }
+        }
+
+        [TestMethod]
+        public async Task TheKeySelectLayoutReachesThePhone()
+        {
+            var (connection, states) = await ConnectAsync(anna);
+
+            try
+            {
+                server.BuzzerController!.StateManager.BuzzerKeySelector.Infos = new()
+                {
+                    KeysAndDesignations = new() { ["A"] = "Wien", ["B"] = "Graz" },
+                    MaxAllowedSelections = 1,
+                };
+
+                await server.BuzzerController.ResetRoundAsync(1, BuzzerControlsLayout.KeySelect);
+
+                Assert.IsTrue(await WaitForAsync(() =>
+                {
+                    lock (states) return states.Any(s => s.Layout == BuzzerControlsLayout.KeySelect);
+                }), "Das Tastenwahl-Layout ist nie beim Client angekommen.");
+            }
+            finally
+            {
+                await connection.DisposeAsync();
+            }
+        }
+    }
+}

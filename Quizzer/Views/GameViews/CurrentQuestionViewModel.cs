@@ -114,11 +114,6 @@ namespace Quizzer.Views.GameViews
 
                 case BuzzerControlsLayout.Buzzer:
                     BuzzerControlsViewModel.WinnerDeclared = OnWinnerDeclared;
-
-                    if (!Coordinate.IsDone)
-                    {
-                        await BuzzerControlsViewModel.ResetRoundAsync(CurrentBuzzerLayout);
-                    }
                     break;
 
                 case BuzzerControlsLayout.KeySelect:
@@ -134,8 +129,6 @@ namespace Quizzer.Views.GameViews
                     break;
 
                 case BuzzerControlsLayout.Input:
-                    // Bis hierher war dieser Zweig leer: das Eingabe-Layout erreichte die
-                    // Spieler nie, obwohl die Browser-Seite dafuer laengst fertig war.
                     if (Question is AppreciateQestion appreciate)
                     {
                         await BuzzerControlsViewModel.SetInputInfo(
@@ -146,6 +139,18 @@ namespace Quizzer.Views.GameViews
                     BuzzerControlsViewModel.AllPlayersSubmittedInput = OnAllPlayersSubmittedInput;
 
                     break;
+            }
+
+            // Erst das Ausspielen bringt das Layout auf die Telefone: nur ResetRoundAsync ruft
+            // StateManager.ResetLayouts und schickt StateChanged an alle Clients.
+            //
+            // Frueher stand das allein im Buzzer-Zweig. Bei Multiple Choice und bei der
+            // Schaetzfrage wurden die Angaben zwar gesetzt, aber nie verschickt - CurrentLayout
+            // blieb None, CurrentState null, und damit blieb jeder Spieler gesperrt. Am Telefon
+            // sah das aus, als bestuende keine Verbindung.
+            if (layout != BuzzerControlsLayout.None && !Coordinate.IsDone)
+            {
+                await BuzzerControlsViewModel.ResetRoundAsync(CurrentBuzzerLayout);
             }
         }
 
