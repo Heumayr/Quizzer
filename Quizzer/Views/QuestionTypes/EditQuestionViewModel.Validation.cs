@@ -47,6 +47,7 @@ namespace Quizzer.Views.QuestionTypes
 
             OnPropertyChanged(nameof(HasIssues));
             OnPropertyChanged(nameof(CanSave));
+            OnPropertyChanged(nameof(CanConvert));
             OnPropertyChanged(nameof(Profile));
             OnPropertyChanged(nameof(TypeDisplayName));
             OnPropertyChanged(nameof(TypeHelpText));

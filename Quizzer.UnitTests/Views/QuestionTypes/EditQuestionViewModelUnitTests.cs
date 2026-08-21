@@ -164,6 +164,24 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
                 + "leere Kategorienliste zugegriffen hat.");
         }
 
+        /// <summary>
+        /// Umwandeln braucht eine gespeicherte Frage - vorher gibt es nichts zu tauschen.
+        /// </summary>
+        [TestMethod]
+        public void ConvertingIsOnlyOfferedForASavedQuestion()
+        {
+            var vm = EditorFor(QuestionType.Default);
+            Assert.AreEqual(Guid.Empty, vm.Question!.Id);
+
+            Assert.IsFalse(vm.CanConvert);
+            Assert.IsFalse(vm.ConvertTypeCommand.CanExecute(null));
+
+            vm.Question.Id = Guid.NewGuid();
+            vm.Revalidate();
+
+            Assert.IsTrue(vm.CanConvert);
+        }
+
         [TestMethod]
         public void CancelCommand_MarksTheResultAsCancelled()
         {

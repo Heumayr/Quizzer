@@ -44,6 +44,9 @@
         <Border DockPanel.Dock="Bottom" Background="{StaticResource PanelBgBrush}"
                 BorderThickness="0,1,0,0" Padding="10,8">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="In anderen Typ umwandeln" Command="{Binding ConvertTypeCommand}"
+                        MinWidth="190" Margin="0,0,8,0"
+                        ToolTip="Behaelt Schritte, Medien und bisherige Ergebnisse. Nur fuer bereits gespeicherte Fragen." />
                 <Button Content="Abbrechen" Command="{Binding CancelCommand}"
                         MinWidth="110" Margin="0,0,8,0" />
                 <Button Content="Speichern" Command="{Binding SaveCommand}"

@@ -114,7 +114,7 @@ namespace Quizzer.Views.QuestionTypes
             await LoadModel(questionBase);
         }
 
-        private async Task LoadModel(QuestionBase questionBase)
+        internal async Task LoadModel(QuestionBase questionBase)
         {
             if (questionBase.Id == Guid.Empty)
             {
