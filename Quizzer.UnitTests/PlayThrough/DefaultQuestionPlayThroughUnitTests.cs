@@ -38,8 +38,8 @@ namespace Quizzer.UnitTests.PlayThrough
             TestEnvironment.ThrowIfAnythingWasSwallowed();
 
             Assert.IsNotNull(vm.Coordinate?.QuestionBase);
-            Assert.AreEqual(4, vm.Coordinate.QuestionBase.OrderedSteps.Length,
-                "Startschritt, zwei Hinweise, Aufloesung.");
+            Assert.AreEqual(3, vm.Coordinate.QuestionBase.OrderedSteps.Length,
+                "Zwei Hinweise und die Aufloesung - kein erfundener Startschritt mehr.");
             Assert.IsNotNull(vm.PlayersResultViewModel);
             Assert.AreEqual(2, vm.PlayersResultViewModel.Results.Count,
                 "Fuer jeden Mitspieler ein Ergebnis.");
@@ -64,9 +64,9 @@ namespace Quizzer.UnitTests.PlayThrough
             TestEnvironment.ThrowIfAnythingWasSwallowed();
 
             CollectionAssert.AreEqual(
-                new[] { string.Empty, "Hinweis 1", "Hinweis 2", "Aufloesung" },
+                new[] { "Hinweis 1", "Hinweis 2", "Aufloesung" },
                 visited.ToArray(),
-                "Der erste Schritt ist heute noch der erfundene leere Startschritt.");
+                "Die Frage beginnt mit dem ersten echten Hinweis, nicht mit einem leeren Bild.");
             Assert.IsTrue(vm.CurrentStep?.IsFinish);
         }
 
@@ -115,7 +115,6 @@ namespace Quizzer.UnitTests.PlayThrough
 
             await vm.StartStepCommnad!.ExecuteAsync(null);
             await vm.NextStepCommnad!.ExecuteAsync(null);
-            await vm.NextStepCommnad!.ExecuteAsync(null);
             Assert.AreEqual("Hinweis 2", vm.CurrentStep?.Designation);
 
             await vm.BackStepCommnad!.ExecuteAsync(null);
@@ -125,17 +124,16 @@ namespace Quizzer.UnitTests.PlayThrough
         }
 
         [TestMethod]
-        public async Task AQuestionWithoutSteps_OpensEmptyInsteadOfComplaining()
+        public async Task AQuestionWithoutHints_ShowsOnlyItsAnswer()
         {
-            // Haelt den heutigen Stand fest: es gibt keine Pruefung, die das verhindert.
             await using var world = await TestGameBuilder.CreateAsync(normalStepCount: 0);
             var vm = OpenOn(world);
 
             await vm.LoadForTestAsync();
 
             Assert.IsNotNull(vm.Coordinate?.QuestionBase);
-            Assert.AreEqual(2, vm.Coordinate.QuestionBase.OrderedSteps.Length,
-                "Nur der erfundene Startschritt und die Aufloesung.");
+            Assert.AreEqual(1, vm.Coordinate.QuestionBase.OrderedSteps.Length,
+                "Nur die Aufloesung - der QuestionValidator warnt beim Anlegen davor.");
         }
 
         [TestMethod]

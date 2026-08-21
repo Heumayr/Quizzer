@@ -191,14 +191,9 @@ namespace Quizzer.DataModels.Models
                 });
             }
 
-            if (startSteps.Count == 0)
-            {
-                startSteps.Add(new QuestionStepResource
-                {
-                    IsStart = true,
-                    Id = Guid.NewGuid()
-                });
-            }
+            // Frueher wurde hier ein leerer Startschritt erfunden, wenn keiner vorlag - und weil
+            // IsStart nicht gespeichert wurde, lag nie einer vor. Der erste Druck auf "Weiter"
+            // zeigte dadurch immer einen leeren Bildschirm. Wer ein Intro will, legt es jetzt an.
 
             var ordered = startSteps.Concat(normalSteps).Concat(finishSteps).ToList();
 

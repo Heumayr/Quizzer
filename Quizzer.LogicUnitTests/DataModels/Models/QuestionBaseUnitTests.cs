@@ -64,7 +64,7 @@ namespace Quizzer.LogicUnitTests.DataModels.Models
             question.CalculateOrderdSteps();
 
             CollectionAssert.AreEqual(
-                new[] { 0, 10, 20, 30 },
+                new[] { 0, 10, 20 },
                 question.OrderedSteps.Select(s => s.SequenceNumber).ToArray());
         }
 
@@ -90,23 +90,53 @@ namespace Quizzer.LogicUnitTests.DataModels.Models
         }
 
         /// <summary>
-        /// Haelt den HEUTIGEN Stand fest: ein Startschritt laesst sich nicht anlegen, weil IsStart
-        /// nicht gespeichert wird - deshalb erfindet CalculateOrderdSteps immer einen leeren.
-        /// Der erste Druck auf Weiter zeigt dadurch einen leeren Bildschirm.
-        /// Diese Zusicherung wird umgedreht, sobald IsStart eine echte Spalte ist.
+        /// Bis zum 21.08.2026 erfand CalculateOrderdSteps hier immer einen leeren Startschritt,
+        /// weil IsStart nicht gespeichert wurde - der erste Druck auf Weiter zeigte deshalb
+        /// einen leeren Bildschirm. Jetzt beginnt die Frage mit dem ersten echten Schritt.
         /// </summary>
         [TestMethod]
-        public void CalculateOrderdSteps_AlwaysInventsAnEmptyStartStep_KnownShortcoming()
+        public void CalculateOrderdSteps_WithoutAnAuthoredStartStep_BeginsWithTheFirstRealStep()
         {
             var question = QuestionWith(Step("hinweis", 10));
 
             question.CalculateOrderdSteps();
 
             var first = question.OrderedSteps.First();
-            Assert.IsTrue(first.IsStart);
-            Assert.AreEqual(string.Empty, first.StepText);
-            Assert.AreEqual(string.Empty, first.Designation);
-            Assert.IsFalse(question.Steps.Contains(first));
+            Assert.IsFalse(first.IsStart);
+            Assert.AreEqual("hinweis", first.Designation);
+            Assert.IsTrue(question.Steps.Contains(first),
+                "Kein erfundener Schritt mehr - alles Angezeigte gehoert der Frage.");
+        }
+
+        [TestMethod]
+        public void CalculateOrderdSteps_PutsAnAuthoredStartStepFirst()
+        {
+            var question = QuestionWith(Step("hinweis", 10));
+            var intro = Step("Intro", 5);
+            intro.IsStart = true;
+            question.Steps.Add(intro);
+
+            question.CalculateOrderdSteps();
+
+            Assert.AreEqual("Intro", question.OrderedSteps.First().Designation);
+            Assert.IsTrue(question.OrderedSteps.First().IsStart);
+        }
+
+        [TestMethod]
+        public void CalculateOrderdSteps_GivesTheStartStepNoAnswerKey()
+        {
+            var question = QuestionWith(Step("a", 10), Step("b", 20));
+            var intro = Step("Intro", 5);
+            intro.IsStart = true;
+            question.Steps.Add(intro);
+
+            question.CalculateOrderdSteps();
+
+            Assert.AreEqual(string.Empty, question.OrderedSteps.First().QuestionViewKey);
+            var keys = question.OrderedSteps
+                .Where(s => !s.IsStart && !s.IsFinish)
+                .Select(s => s.QuestionViewKey).ToArray();
+            CollectionAssert.AreEqual(new[] { "A", "B" }, keys);
         }
 
         [TestMethod]
@@ -117,7 +147,8 @@ namespace Quizzer.LogicUnitTests.DataModels.Models
             question.CalculateOrderdSteps();
 
             var keys = question.OrderedSteps.Select(s => s.QuestionViewKey).ToArray();
-            CollectionAssert.AreEqual(new[] { string.Empty, "A", "B", "C", string.Empty }, keys);
+            CollectionAssert.AreEqual(new[] { "A", "B", "C", string.Empty }, keys,
+                "Nur der Abschlussschritt bleibt ohne Antworttaste.");
         }
 
         [TestMethod]

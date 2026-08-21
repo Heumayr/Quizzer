@@ -7,7 +7,7 @@
         xmlns:base="clr-namespace:Quizzer.Base"
         xmlns:val="clr-namespace:Quizzer.Validators"
         mc:Ignorable="d"
-        Title="EditStepView" Height="450" Width="800">
+        Title="Schritt bearbeiten" Height="450" Width="800">
     <base:WindowBase.DataContext>
         <local:EditStepViewModel />
     </base:WindowBase.DataContext>
@@ -18,17 +18,17 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Save" Command="{Binding SaveCommand}" />
-            <Button Content="Save and Close" Command="{Binding SaveAndCloseCommand}" />
+            <Button Content="Speichern" Command="{Binding SaveCommand}" />
+            <Button Content="Speichern und schliessen" Command="{Binding SaveAndCloseCommand}" />
         </StackPanel>
 
         <StackPanel Grid.Column="1">
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Designation:" VerticalAlignment="Center" />
+                <Label MinWidth="150" Content="Bezeichnung:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" Text="{Binding Step.Designation}" MinWidth="200" Height="25" Margin="5,0,0,0"></TextBox>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Sequenz Number:" VerticalAlignment="Center" />
+                <Label MinWidth="150" Content="Reihenfolge:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" MinWidth="200" Margin="5,0,0,0">
                     <TextBox.Text>
                         <Binding Path="Step.SequenceNumber"
@@ -45,17 +45,25 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Is Result:" VerticalAlignment="Center" />
+                <Label MinWidth="150" Content="Ist Startschritt:" VerticalAlignment="Center"
+                       ToolTip="Intro der Frage. Laeuft als erstes und bekommt keine Antworttaste. Hoechstens einer je Frage." />
+                <CheckBox VerticalAlignment="Center" IsChecked="{Binding Path=Step.IsStart, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="150" Content="Ist Loesung:" VerticalAlignment="Center"
+                       ToolTip="Markiert diesen Schritt als richtige Antwort. Bei Multiple Choice entscheidet das ueber die Wertung." />
                 <CheckBox VerticalAlignment="Center" IsChecked="{Binding Path=Step.IsResult, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Is Finish:" VerticalAlignment="Center" />
+                <Label MinWidth="150" Content="Ist Abschluss:" VerticalAlignment="Center"
+                       ToolTip="Der Schritt, der die Frage beendet. Laeuft immer zuletzt." />
                 <CheckBox VerticalAlignment="Center" IsChecked="{Binding Path=Step.IsFinish, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Text:" VerticalAlignment="Center" />
+                <Label MinWidth="150" Content="Text:" VerticalAlignment="Center" />
                 <TextBox Grid.Column="1"
                     Text="{Binding Step.StepText, UpdateSourceTrigger=PropertyChanged}"
                     Margin="5,0,0,0"
@@ -70,25 +78,24 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Resource Filename:" VerticalAlignment="Center" />
+                <Label MinWidth="150" Content="Datei:" VerticalAlignment="Center" />
                 <TextBox IsEnabled="False" Height="25" VerticalContentAlignment="Center" Text="{Binding Path=Step.ResourceFileName, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" Margin="5,0,0,0" Width="350" />
-                <Button Content="Select" Command="{Binding SelectResourceCommnad}" />
+                <Button Content="Auswaehlen" Command="{Binding SelectResourceCommnad}" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120"  Content="Resource Typ:" VerticalAlignment="Center" />
+                <Label MinWidth="150"  Content="Medientyp:" VerticalAlignment="Center" />
                 <ComboBox ItemsSource="{Binding ResourceTyps}"
                     SelectedItem="{Binding Step.ResourceTyp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5,10,0,0">
                 <ComboBox MinWidth="200" Height="25" ItemsSource="{Binding CmbSource}" SelectedItem="{Binding CmbSelectedStep}"></ComboBox>
-                <Button Content="Add Step" Command="{Binding AddStepCommnad}" />
-                <Button Content="Remove Step" Command="{Binding RemoveStepCommnad}" Style="{StaticResource DangerButton}" />
+                <Button Content="Verknuepfung hinzufuegen" Command="{Binding AddStepCommnad}" />
+                <Button Content="Verknuepfung entfernen" Command="{Binding RemoveStepCommnad}" Style="{StaticResource DangerButton}" />
             </StackPanel>
             <DataGrid ItemsSource="{Binding Froms}" AutoGenerateColumns="True" Margin="5" CanUserAddRows="False" IsReadOnly="True"
-                    base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedStepXSteps}"
-                    base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenStepCommand}">
+                    base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedStepXSteps}">
             </DataGrid>
         </StackPanel>
     </Grid>

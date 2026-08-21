@@ -73,11 +73,15 @@ namespace Quizzer.DataModels.Models.Base
         public string QuestionViewKey { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gibt an, ob dieser Schritt der Start-Schritt ist (Intro der Frage).
-        /// Nicht in der Datenbank gespeichert; wird zur Laufzeit von
-        /// <c>QuestionBase.CalculateOrderdSteps()</c> gesetzt.
+        /// Gibt an, ob dieser Schritt das Intro der Frage ist. Startschritte tragen keinen
+        /// Anzeigeschluessel und laufen als erstes.
+        /// <para>
+        /// Bis zum 21.08.2026 war dies <c>[NotMapped]</c> und wurde an genau einer Stelle
+        /// gesetzt: auf einem Schritt, den <c>CalculateOrderdSteps</c> selbst erfunden hat.
+        /// Ein Startschritt liess sich also gar nicht anlegen, und jede Frage begann mit einem
+        /// leeren Bildschirm.
+        /// </para>
         /// </summary>
-        [NotMapped]
         public bool IsStart { get; set; }
 
         /// <summary>Gibt eine lesbare Darstellung des Schritts zurück: "[SequenceNumber]-[Designation]".</summary>
