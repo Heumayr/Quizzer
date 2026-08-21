@@ -18,6 +18,7 @@ namespace LocalBuzzer.Service.Base
 
         public BuzzerState BuzzerState { get; }
         public BuzzerKeySelector BuzzerKeySelector { get; }
+        public BuzzerInputState BuzzerInputState { get; }
 
         private readonly GameAccessor _gameAccessor;
 
@@ -27,9 +28,11 @@ namespace LocalBuzzer.Service.Base
 
             BuzzerState = new(gameAccessor);
             BuzzerKeySelector = new(gameAccessor);
+            BuzzerInputState = new(gameAccessor);
 
             States.Add(BuzzerState);
             States.Add(BuzzerKeySelector);
+            States.Add(BuzzerInputState);
         }
 
         public void ResetLayouts(int round, BuzzerControlsLayout layout = BuzzerControlsLayout.None)

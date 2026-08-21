@@ -11,7 +11,7 @@ using System.Windows.Media;
 
 namespace Quizzer.Views.GameViews.QuestionViews
 {
-    public class QuestionStepViewContext : UcViewModelBase
+    public partial class QuestionStepViewContext : UcViewModelBase
     {
         private CurrentQuestionViewModel owner = null!;
 
@@ -61,6 +61,8 @@ namespace Quizzer.Views.GameViews.QuestionViews
                 OnPropertyChanged(nameof(TextForgroundBrush));
                 OnPropertyChanged(nameof(TextBackgroundBrush));
 
+                RaiseAppreciateChanged();
+
                 NotifyDisplayStepLayoutChanged();
             }
         }
@@ -78,6 +80,8 @@ namespace Quizzer.Views.GameViews.QuestionViews
                 OnPropertyChanged(nameof(MasterViewVisibility));
                 OnPropertyChanged(nameof(FillAvailableVisibility));
                 OnPropertyChanged(nameof(EmbeddedScaledVisibility));
+
+                RaiseAppreciateChanged();
 
                 NotifyDisplayStepLayoutChanged();
             }

@@ -14,7 +14,7 @@ using static Quizzer.Views.GameViews.Sub.PlayerResultContext;
 
 namespace Quizzer.Views.GameViews.Sub
 {
-    public class PlayerResultContext : UcViewModelBase
+    public partial class PlayerResultContext : UcViewModelBase
     {
         public enum ScoreSuggestion
         {

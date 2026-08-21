@@ -14,7 +14,7 @@ using static LocalBuzzer.Service.Base.States.BuzzerKeySelector;
 
 namespace Quizzer.Views.BuzzerViews
 {
-    public class BuzzerControlsViewModel : UcViewModelBase, IDisposable
+    public partial class BuzzerControlsViewModel : UcViewModelBase, IDisposable
     {
         public Func<Player?, int, Task>? WinnerDeclared { get; set; }
 
@@ -52,6 +52,8 @@ namespace Quizzer.Views.BuzzerViews
 
             ctrl?.EventBus.PlayerSelectedKeys += OnPlayerSelectedKeys;
             ctrl?.EventBus.AllPlayersSelectedKeys += OnAllPlayerSelectedKeys;
+
+            SubscribeInputEvents(ctrl);
 
             BuzzerServerViewModel = viewModel;
         }
@@ -173,6 +175,8 @@ namespace Quizzer.Views.BuzzerViews
 
             ctrl?.EventBus.PlayerSelectedKeys -= OnPlayerSelectedKeys;
             ctrl?.EventBus.AllPlayersSelectedKeys -= OnAllPlayerSelectedKeys;
+
+            UnsubscribeInputEvents(ctrl);
 
             BuzzerServerViewModel = null;
         }

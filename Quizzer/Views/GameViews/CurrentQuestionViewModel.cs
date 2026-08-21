@@ -7,6 +7,7 @@ using Quizzer.DataModels;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.Extentions;
 using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.Views.BuzzerViews;
@@ -133,6 +134,17 @@ namespace Quizzer.Views.GameViews
                     break;
 
                 case BuzzerControlsLayout.Input:
+                    // Bis hierher war dieser Zweig leer: das Eingabe-Layout erreichte die
+                    // Spieler nie, obwohl die Browser-Seite dafuer laengst fertig war.
+                    if (Question is AppreciateQestion appreciate)
+                    {
+                        await BuzzerControlsViewModel.SetInputInfo(
+                            appreciate.ValueKind, appreciate.Unit, appreciate.Id);
+                    }
+
+                    BuzzerControlsViewModel.PlayerSubmittedInput = OnPlayerSubmittedInput;
+                    BuzzerControlsViewModel.AllPlayersSubmittedInput = OnAllPlayersSubmittedInput;
+
                     break;
             }
         }
@@ -160,6 +172,11 @@ namespace Quizzer.Views.GameViews
                 await BuzzerControlsViewModel.SetKeySelectorDictionary(null);
                 BuzzerControlsViewModel.PlayerSelectedKeys = null;
                 BuzzerControlsViewModel.AllPlayersSelectedKeys = null;
+
+                //schaetzfrage
+                BuzzerControlsViewModel.PlayerSubmittedInput = null;
+                BuzzerControlsViewModel.AllPlayersSubmittedInput = null;
+                ClearAppreciateOutcome();
 
                 await BuzzerControlsViewModel.ResetRoundAsync(null);
             }

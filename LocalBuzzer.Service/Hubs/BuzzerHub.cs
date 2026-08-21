@@ -6,6 +6,7 @@ using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using System.Collections.Concurrent;
 using static LocalBuzzer.Service.Base.States.BuzzerKeySelector;
+using static LocalBuzzer.Service.Base.States.BuzzerInputState;
 
 namespace LocalBuzzer.Service.Hubs
 {
@@ -75,6 +76,36 @@ namespace LocalBuzzer.Service.Hubs
             if (buzz.TryBuzz(player))
             {
                 _bus.OnWinner(player, _stateManager.Round);
+                await Clients.All.SendAsync("StateChanged", _stateManager.CreateClientState());
+            }
+        }
+
+        /// <summary>
+        /// Nimmt den Schaetzwert eines Spielers entgegen. Gegenstueck zu
+        /// <see cref="SelectionResults"/>; der Browser ruft das aus <c>inputLayout.js</c> auf.
+        /// </summary>
+        public async Task SubmitInput(InputResult result)
+        {
+            if (_stateManager.CurrentState is not BuzzerInputState inputState || result.PlayerId == Guid.Empty)
+                return;
+
+            if (!PlayerByConn.TryGetValue(Context.ConnectionId, out var player) || player == null)
+                return;
+
+            // Ein Spieler darf nur fuer sich selbst abgeben.
+            if (result.PlayerId != player.Id)
+                return;
+
+            result.Player = player;
+            inputState.SetInput(result);
+            _bus.OnPlayerSubmittedInput(result);
+
+            await Clients.All.SendAsync("StateChanged", _stateManager.CreateClientState());
+
+            if (inputState.Locked)
+            {
+                _stateManager.LockAll();
+                _bus.OnAllPlayersSubmittedInput(inputState.InputsForPlayer);
                 await Clients.All.SendAsync("StateChanged", _stateManager.CreateClientState());
             }
         }

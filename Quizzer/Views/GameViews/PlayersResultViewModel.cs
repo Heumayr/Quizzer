@@ -13,7 +13,7 @@ using static LocalBuzzer.Service.Base.States.BuzzerKeySelector;
 
 namespace Quizzer.Views.GameViews
 {
-    public class PlayersResultViewModel : ViewModelBase
+    public partial class PlayersResultViewModel : ViewModelBase
     {
         private List<PlayerResultContext> playerResultContextList = new();
         private Player? currentBuzzerWinner;
