@@ -497,9 +497,9 @@ namespace Quizzer.Views.GameViews
             {
                 if (Game.PhaseTrashholds.Contains(CurrentRound))
                 {
-                    var mbResult = MessageBox.Show("Phase Trashhold reached! Advancing to next phase.", "Phase Trashhold", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                    var advance = UserPrompt.Confirm("Punkteschwelle erreicht. Zur naechsten Phase wechseln?", "Phasenschwelle");
 
-                    if (mbResult == MessageBoxResult.Yes)
+                    if (advance)
                     {
                         Game.RaisePhase();
                         _ = SaveAndRefreshAfterPhaseChangeAsync();

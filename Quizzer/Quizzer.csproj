@@ -18,6 +18,11 @@
 		<Folder Include="Styles\" />
 	</ItemGroup>
 
+	<!-- Testnaehte (UiInvokerOverride, LoadForTestAsync, StaticManager.Reset) sind internal. -->
+	<ItemGroup>
+		<InternalsVisibleTo Include="Quizzer.UnitTests" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\LocalBuzzer.Service\LocalBuzzer.Service.csproj" />
 		<ProjectReference Include="..\Quizzer.DataModels\Quizzer.DataModels.csproj" />

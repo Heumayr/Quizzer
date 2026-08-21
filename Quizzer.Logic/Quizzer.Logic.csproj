@@ -15,4 +15,10 @@
     <ProjectReference Include="..\Quizzer.DataModels\Quizzer.DataModels.csproj" />
   </ItemGroup>
 
+  <!-- DataContext und ControllerBase.Context sind internal; die Tests brauchen sie. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Quizzer.LogicUnitTests" />
+    <InternalsVisibleTo Include="Quizzer.UnitTests" />
+  </ItemGroup>
+
 </Project>

@@ -108,6 +108,17 @@ namespace Quizzer.Base
         {
         }
 
+        /// <summary>
+        /// Nur fuer Tests: startet <see cref="OnloadAsync"/> ohne Fenster. Im laufenden Programm
+        /// haengt der Aufruf am <c>Loaded</c>-Ereignis des Fensters.
+        /// </summary>
+        internal Task LoadForTestAsync() => OnloadAsync();
+
+        /// <summary>
+        /// Nur fuer Tests: startet <see cref="OnClosed"/> ohne Fenster.
+        /// </summary>
+        internal Task ClosedForTestAsync() => OnClosed();
+
         public abstract Task VMSaveAsync();
     }
 }

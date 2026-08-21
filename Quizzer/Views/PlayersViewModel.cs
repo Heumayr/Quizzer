@@ -97,9 +97,7 @@ namespace Quizzer.Views
 
         private async Task RemovePlayerAsync(object? commandParameter)
         {
-            MessageBoxResult result = MessageBox.Show("Are you sure you want to remove the selected player(s)?", "Confirm Removal", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-            if (result != MessageBoxResult.Yes) return;
+            if (!UserPrompt.Confirm("Die ausgewaehlten Spieler wirklich entfernen?", "Entfernen bestaetigen")) return;
 
             if (SelectedPlayers == null || SelectedPlayers.Count == 0)
             {

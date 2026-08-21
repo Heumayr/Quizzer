@@ -122,9 +122,7 @@ namespace Quizzer.Views
                 return;
             }
 
-            MessageBoxResult result = MessageBox.Show("Are you sure you want to remove the selected game(s)?", "Confirm Removal", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-            if (result != MessageBoxResult.Yes) return;
+            if (!UserPrompt.Confirm("Die ausgewaehlten Spiele wirklich entfernen?", "Entfernen bestaetigen")) return;
 
             var toRemove = new List<Game>(SelectedGames);
             using var ctrl = new GamesController();

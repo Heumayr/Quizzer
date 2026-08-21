@@ -12,11 +12,26 @@ namespace Quizzer.Views.StaticRessources
 {
     public static class ExceptionManager
     {
+        /// <summary>
+        /// Was mit einer gefangenen Ausnahme geschieht. Im laufenden Programm ist das das
+        /// Fehlerfenster; Tests setzen hier einen Sammler ein, sonst wird jeder Fehler in ein
+        /// Fenster geschluckt und der Test bleibt gruen.
+        /// </summary>
+        public static Action<Exception> Handler { get; set; } = ShowExceptionWindow;
+
+        /// <summary>Setzt <see cref="Handler"/> auf das Fehlerfenster zurueck.</summary>
+        public static void ResetHandler() => Handler = ShowExceptionWindow;
+
         public static void HandleException(Exception ex)
         {
             if (ex == null)
                 return;
 
+            Handler(ex);
+        }
+
+        private static void ShowExceptionWindow(Exception ex)
+        {
             var window = new WindowBase();
 
             var contentPanel = new StackPanel();

@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Threading;
 
 namespace Quizzer.Base
 {
@@ -14,36 +13,25 @@ namespace Quizzer.Base
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        protected Dispatcher UiDispatcher { get; } = Application.Current.Dispatcher;
+        /// <summary>
+        /// Nur fuer Tests: liefert den zu verwendenden <see cref="IUiInvoker"/>. Ist der Wert
+        /// <c>null</c> (Regelfall), wird der WPF-Dispatcher benutzt.
+        /// </summary>
+        internal static Func<IUiInvoker>? UiInvokerOverride { get; set; }
 
-        protected void RunOnUi(Action action)
-        {
-            if (UiDispatcher.CheckAccess())
-            {
-                action();
-                return;
-            }
+        private IUiInvoker? uiInvoker;
 
-            UiDispatcher.Invoke(action);
-        }
+        /// <summary>
+        /// Der Weg auf den Oberflaechen-Thread. Wird erst beim ersten Zugriff aufgeloest - nicht
+        /// im Konstruktor, sonst koennte kein ViewModel ohne laufende Anwendung entstehen.
+        /// </summary>
+        protected IUiInvoker Ui => uiInvoker ??= UiInvokerOverride?.Invoke()
+            ?? new DispatcherUiInvoker(Application.Current.Dispatcher);
 
-        protected Task RunOnUiAsync(Action action)
-        {
-            if (UiDispatcher.CheckAccess())
-            {
-                action();
-                return Task.CompletedTask;
-            }
+        protected void RunOnUi(Action action) => Ui.Run(action);
 
-            return UiDispatcher.InvokeAsync(action).Task;
-        }
+        protected Task RunOnUiAsync(Action action) => Ui.RunAsync(action);
 
-        protected Task RunOnUiAsync(Func<Task> action)
-        {
-            if (UiDispatcher.CheckAccess())
-                return action();
-
-            return UiDispatcher.InvokeAsync(action).Task.Unwrap();
-        }
+        protected Task RunOnUiAsync(Func<Task> action) => Ui.RunAsync(action);
     }
 }

@@ -26,7 +26,7 @@ using System.Windows.Media;
 
 namespace Quizzer.Views.GameViews
 {
-    public class CurrentQuestionViewModel : ViewModelBase
+    public partial class CurrentQuestionViewModel : ViewModelBase
     {
         public GamePlayerViewModel? GamePlayerViewModel { get; set; }
         public GameMasterViewModel? GameMasterViewModel { get; set; }
@@ -48,7 +48,6 @@ namespace Quizzer.Views.GameViews
             }
         }
 
-        private PlayersResultView? _resultWindow;
 
         public CurrentQuestionViewModel()
         {
@@ -64,7 +63,7 @@ namespace Quizzer.Views.GameViews
 
             if (Coordinate.QuestionBaseId == Guid.Empty)
             {
-                MessageBox.Show("No question set");
+                UserPrompt.Inform("Keine Frage gesetzt.");
                 return;
             }
 
@@ -380,7 +379,7 @@ namespace Quizzer.Views.GameViews
         {
             if (Question == null)
             {
-                MessageBox.Show("No Question set");
+                UserPrompt.Inform("Keine Frage gesetzt.");
                 return;
             }
 
@@ -421,14 +420,14 @@ namespace Quizzer.Views.GameViews
 
             if (Question.WarnOnResultStep
                 && ((next?.IsResult ?? false) && (!CurrentStep?.IsResult ?? true))
-                && MessageBox.Show("Next is result! Want to proceed?", "Result step ahead", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+                && !UserPrompt.Confirm("Der naechste Schritt ist die Loesung. Trotzdem weiter?", "Loesungsschritt voraus"))
             {
                 return false;
             }
 
             if (Question.WarnOnFinishStep
                 && ((next?.IsFinish ?? false) && (!CurrentStep?.IsFinish ?? true))
-                && MessageBox.Show("Next is a finish step! Want to proceed?", "Finish step ahead", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+                && !UserPrompt.Confirm("Der naechste Schritt ist der Abschluss. Trotzdem weiter?", "Abschlussschritt voraus"))
             {
                 return false;
             }
@@ -452,7 +451,7 @@ namespace Quizzer.Views.GameViews
         {
             if (Question == null)
             {
-                MessageBox.Show("No Question set");
+                UserPrompt.Inform("Keine Frage gesetzt.");
                 return;
             }
 
@@ -517,29 +516,7 @@ namespace Quizzer.Views.GameViews
 
         private async Task OpenResultsAsync()
         {
-            if (_resultWindow == null)
-            {
-                _resultWindow = new PlayersResultView
-                {
-                    DataContext = PlayersResultViewModel
-                };
-                _resultWindow.Closed += async (_, _) =>
-                {
-                    if (PlayersResultViewModel?.IsDoneAndShowFinishState ?? false)
-                    {
-                        await SaveIsDoneFinishStateAsync(null);
-                    }
-                    _resultWindow = null;
-                };
-                _resultWindow.Show();
-            }
-            else
-            {
-                if (_resultWindow.WindowState == WindowState.Minimized)
-                    _resultWindow.WindowState = WindowState.Normal;
-
-                _resultWindow.Activate();
-            }
+            ShowResultWindow();
 
             var newResults = PlayersResultViewModel?.Results;
 

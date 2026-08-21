@@ -557,7 +557,7 @@ namespace Quizzer.Views
         private async Task ResetGameBuildAsync(object? commandParameter)
         {
             if (Game == null) return;
-            if (MessageBox.Show("Are you sure you want to reset the game build? This will remove all assigned questions and players from the game.", "Confirm Reset", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            if (UserPrompt.Confirm("Spielaufbau wirklich zuruecksetzen? Damit werden alle zugewiesenen Fragen und Spieler aus dem Spiel entfernt.", "Zuruecksetzen bestaetigen"))
             {
                 Game.State = GameState.Building;
                 using var ctrlGame = new GamesController();
@@ -600,9 +600,7 @@ namespace Quizzer.Views
         {
             if (game == null) return;
 
-            var mbResult = MessageBox.Show($"Delete all results for this Game: {game.Designation}", "Deletion", MessageBoxButton.YesNo);
-
-            if (mbResult != MessageBoxResult.Yes) return;
+            if (!UserPrompt.Confirm($"Alle Ergebnisse dieses Spiels loeschen: {game.Designation}?", "Loeschen bestaetigen")) return;
 
             using var ctrl = new QuestionResultsController();
             await ctrl.DeleteByGameIdAsync(game.Id);

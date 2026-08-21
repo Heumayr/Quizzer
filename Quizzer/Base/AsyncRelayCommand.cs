@@ -44,6 +44,13 @@ public class AsyncRelayCommand : ICommand
         }
     }
 
+    /// <summary>
+    /// Fuehrt den Befehl aus und reicht Ausnahmen durch, statt sie in den
+    /// <see cref="ExceptionManager"/> zu schlucken wie <see cref="Execute"/>. Fuer Tests, die
+    /// auf das Ende warten und einen echten Fehler sehen wollen.
+    /// </summary>
+    public Task ExecuteAsync(object? parameter) => _execute(parameter);
+
     // keep this if you call it manually anywhere
     public void RaiseCanExecuteChanged() => CommandManager.InvalidateRequerySuggested();
 }
