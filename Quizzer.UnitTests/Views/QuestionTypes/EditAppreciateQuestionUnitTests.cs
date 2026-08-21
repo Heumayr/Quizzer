@@ -62,27 +62,84 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
             vm.AppreciateValueKind = AppreciateValueKind.Length;
 
             var offered = vm.AppreciateUnitsForKind.Select(u => u.Unit).ToArray();
-            CollectionAssert.AreEquivalent(
-                new[] { AppreciateUnit.Kilometer, AppreciateUnit.Meter,
-                        AppreciateUnit.Zentimeter, AppreciateUnit.Millimeter },
-                offered);
+
+            CollectionAssert.AreEqual(
+                AppreciateUnits.For(AppreciateValueKind.Length).Select(u => u.Unit).ToArray(),
+                offered,
+                "Die Auswahlliste zeigt genau die Einheiten dieser Groesse, in der Reihenfolge "
+                + "der Tabelle - die erste ist die Vorauswahl.");
+
+            Assert.IsFalse(offered.Contains(AppreciateUnit.Kilogramm),
+                "Einheiten anderer Groessen duerfen nicht auftauchen.");
         }
 
         /// <summary>
-        /// Sonst bliebe nach einem Wechsel eine Einheit stehen, die zur neuen Art nicht passt -
-        /// der Nutzer liefe in eine Beanstandung, die er nicht verursacht hat.
+        /// Beim Wechsel der Art wird immer die erste Einheit der neuen Liste eingesetzt.
         /// </summary>
         [TestMethod]
-        public void SwitchingTheKind_PullsTheUnitAlong()
+        [DataRow(AppreciateValueKind.Length, AppreciateUnit.Meter)]
+        [DataRow(AppreciateValueKind.Mass, AppreciateUnit.Kilogramm)]
+        [DataRow(AppreciateValueKind.Volume, AppreciateUnit.Liter)]
+        [DataRow(AppreciateValueKind.Duration, AppreciateUnit.Jahre)]
+        [DataRow(AppreciateValueKind.Area, AppreciateUnit.Quadratmeter)]
+        [DataRow(AppreciateValueKind.Temperature, AppreciateUnit.GradCelsius)]
+        [DataRow(AppreciateValueKind.Speed, AppreciateUnit.KilometerProStunde)]
+        [DataRow(AppreciateValueKind.Power, AppreciateUnit.Pferdestaerken)]
+        [DataRow(AppreciateValueKind.Energy, AppreciateUnit.Kilokalorien)]
+        [DataRow(AppreciateValueKind.DataVolume, AppreciateUnit.Gigabyte)]
+        public void SwitchingTheKind_TakesTheFirstUnitOfTheNewList(
+            AppreciateValueKind kind, AppreciateUnit expected)
         {
             var vm = Editor();
+
+            vm.AppreciateValueKind = kind;
+
+            Assert.AreEqual(expected, vm.Appreciate!.Unit);
+            Assert.AreEqual(expected, vm.AppreciateUnitsForKind[0].Unit,
+                "Die Vorauswahl muss der ersten Zeile der Auswahlliste entsprechen.");
+        }
+
+        /// <summary>
+        /// Auch dann, wenn vorher von Hand eine andere Einheit gewaehlt wurde: ein Wechsel der
+        /// Art setzt die Einheit zurueck, statt irgendetwas zu behalten.
+        /// </summary>
+        [TestMethod]
+        public void SwitchingTheKind_DiscardsAHandPickedUnit()
+        {
+            var vm = Editor();
+            vm.AppreciateValueKind = AppreciateValueKind.Length;
+            vm.AppreciateUnit = AppreciateUnits.Info(AppreciateUnit.Lichtjahr);
+            Assert.AreEqual(AppreciateUnit.Lichtjahr, vm.Appreciate!.Unit);
+
             vm.AppreciateValueKind = AppreciateValueKind.Mass;
-            Assert.IsTrue(AppreciateUnits.Matches(AppreciateValueKind.Mass, vm.Appreciate!.Unit));
+
+            Assert.AreEqual(AppreciateUnit.Kilogramm, vm.Appreciate.Unit);
+        }
+
+        [TestMethod]
+        public void SwitchingBackAndForth_LandsOnTheFirstUnitAgain()
+        {
+            var vm = Editor();
+            vm.AppreciateValueKind = AppreciateValueKind.Length;
+            vm.AppreciateUnit = AppreciateUnits.Info(AppreciateUnit.Zoll);
 
             vm.AppreciateValueKind = AppreciateValueKind.Volume;
+            vm.AppreciateValueKind = AppreciateValueKind.Length;
 
-            Assert.IsTrue(AppreciateUnits.Matches(AppreciateValueKind.Volume, vm.Appreciate.Unit),
-                "Nach dem Wechsel muss die Einheit zur neuen Art passen.");
+            Assert.AreEqual(AppreciateUnit.Meter, vm.Appreciate!.Unit,
+                "Zurueck heisst nicht: die zuletzt gewaehlte Einheit wieder herstellen.");
+        }
+
+        [TestMethod]
+        public void TheUnitListFollowsTheKind()
+        {
+            var vm = Editor();
+
+            vm.AppreciateValueKind = AppreciateValueKind.Temperature;
+
+            CollectionAssert.AreEqual(
+                new[] { AppreciateUnit.GradCelsius, AppreciateUnit.Kelvin, AppreciateUnit.GradFahrenheit },
+                vm.AppreciateUnitsForKind.Select(u => u.Unit).ToArray());
         }
 
         [TestMethod]

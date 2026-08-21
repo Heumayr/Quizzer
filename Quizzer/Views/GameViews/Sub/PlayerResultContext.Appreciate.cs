@@ -1,3 +1,4 @@
+using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.DataModels.Questions;
 using System.Globalization;
 using System.Windows;
@@ -57,14 +58,13 @@ namespace Quizzer.Views.GameViews.Sub
                 if (AppreciateGuess == null)
                     return string.Empty;
 
-                if (!AppreciateGuess.IsValid)
-                    return "nicht lesbar";
+                // Der Abstand steht in der Basiseinheit; der Evaluator rechnet ihn in die
+                // Einheit der Frage zurueck. Ungerechnet hiesse "100" bei einer km-Frage
+                // in Wahrheit 100 Meter.
+                if (Coordinate?.QuestionBase is AppreciateQestion question)
+                    return AppreciateEvaluator.DescribeDistance(question, AppreciateGuess);
 
-                var distance = AppreciateGuess.Distance ?? 0;
-
-                return distance == 0
-                    ? "genau richtig"
-                    : $"Abstand {distance.ToString("0.####", CultureInfo.CurrentCulture)}";
+                return AppreciateGuess.IsValid ? string.Empty : "nicht lesbar";
             }
         }
 

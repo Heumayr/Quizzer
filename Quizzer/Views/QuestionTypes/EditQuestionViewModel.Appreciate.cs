@@ -33,10 +33,10 @@ namespace Quizzer.Views.QuestionTypes
 
                 Appreciate.ValueKind = value;
 
-                // Eine Einheit aus der alten Art waere jetzt falsch - deshalb sofort umstellen,
-                // statt den Nutzer auf eine Beanstandung laufen zu lassen.
-                if (!AppreciateUnits.Matches(value, Appreciate.Unit))
-                    Appreciate.Unit = AppreciateUnits.DefaultUnitFor(value);
+                // Beim Wechsel der Art immer die erste Einheit der neuen Liste einsetzen.
+                // Frueher blieb eine passende Einheit stehen - das war unvorhersehbar, weil man
+                // der Auswahlliste nicht ansieht, ob sie gerade neu gesetzt wurde oder nicht.
+                Appreciate.Unit = AppreciateUnits.DefaultUnitFor(value);
 
                 RefreshAppreciateUnits();
                 OnPropertyChanged();

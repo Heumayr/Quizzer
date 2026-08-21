@@ -138,6 +138,39 @@ namespace Quizzer.DataModels.Questions
         }
 
         /// <summary>
+        /// Beschreibt den Abstand eines Tipps zum Sollwert - in der Einheit der Frage, nicht in
+        /// der Basiseinheit.
+        /// <para>
+        /// <see cref="AppreciateGuess.Distance"/> steht in der Basiseinheit, weil danach
+        /// sortiert wird. Ungerechnet angezeigt waere das irrefuehrend: bei einer Frage in
+        /// Kilometern hiesse "Abstand 100" in Wahrheit 100 Meter.
+        /// </para>
+        /// </summary>
+        public static string DescribeDistance(AppreciateQestion question, AppreciateGuess guess)
+        {
+            ArgumentNullException.ThrowIfNull(question);
+            ArgumentNullException.ThrowIfNull(guess);
+
+            if (!guess.IsValid || guess.Distance == null)
+                return "nicht lesbar";
+
+            if (guess.Distance.Value == 0)
+                return "genau richtig";
+
+            if (question.ValueKind == AppreciateValueKind.Date)
+            {
+                var days = Math.Round(guess.Distance.Value);
+                return days == 1 ? "1 Tag daneben" : $"{days:0} Tage daneben";
+            }
+
+            var inUnit = AppreciateUnits.DifferenceFromBase(guess.Distance.Value, question.Unit);
+            var symbol = AppreciateUnits.Info(question.Unit).Symbol;
+            var text = inUnit.ToString("0.####", CultureInfo.CurrentCulture);
+
+            return string.IsNullOrEmpty(symbol) ? $"{text} daneben" : $"{text} {symbol} daneben";
+        }
+
+        /// <summary>
         /// Die Eingabeart, die der Browser fuer diese Frage anbieten soll. Wird als
         /// <c>inputType</c> an das Eingabe-Layout geschickt.
         /// </summary>
