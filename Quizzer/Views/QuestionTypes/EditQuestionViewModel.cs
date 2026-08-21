@@ -175,9 +175,14 @@ namespace Quizzer.Views.QuestionTypes
                 return Task.CompletedTask;
             }
 
-            var step = new QuestionStepResource();
+            var step = new QuestionStepResource
+            {
+                Id = Guid.NewGuid(),
+                QuestionBaseId = Question.Id,
+                SequenceNumber = Question.Steps.Any() ? Question.Steps.Max(q => q.SequenceNumber) + 10 : 0,
+            };
 
-            step.SequenceNumber = Question.Steps.Any() ? Question.Steps.Max(q => q.SequenceNumber) + 10 : 0;
+            Question.Steps.Add(step);
 
             return EditStepAsync(step);
         }
@@ -185,31 +190,41 @@ namespace Quizzer.Views.QuestionTypes
         private AsyncRelayCommand? removeStepCommnad;
         public ICommand RemoveStepCommnad => removeStepCommnad ??= new AsyncRelayCommand(RemoveStepCommnadAsync);
 
-        private async Task RemoveStepCommnadAsync(object? commandParameter)
+        private Task RemoveStepCommnadAsync(object? commandParameter)
         {
             if (Question == null)
             {
                 throw new InvalidOperationException("Question is null");
             }
 
-            using var ctrl = new QuestionStepResourcesController();
-
-            var removed = new List<QuestionStepResource>();
-
-            foreach (var step in SelectedSteps)
+            // Nur aus der Frage nehmen - geschrieben wird beim Speichern, ueber
+            // SaveWithStepsAsync. Frueher wurde hier sofort und ohne Rueckfrage geloescht,
+            // auch wenn der Spielleiter danach abgebrochen hat.
+            foreach (var step in SelectedSteps.ToList())
             {
-                await ctrl.DeleteAsync(step.Id);
+                Question.Steps.Remove(step);
             }
 
-            await ctrl.SaveChangesAsync();
-            await LoadModel(Question);
+            RefreshSteps();
+
+            return Task.CompletedTask;
+        }
+
+        /// <summary>Uebernimmt den Schrittstand der Frage in die angezeigte Liste.</summary>
+        private void RefreshSteps()
+        {
+            if (Question == null)
+                return;
+
+            Steps = new ObservableCollection<QuestionStepResource>(
+                Question.Steps.OrderBy(s => s.SequenceNumber));
+
+            Revalidate();
         }
 
         private async Task EditStepAsync(QuestionStepResource step)
         {
             if (Question == null) return;
-
-            await VMSaveAsync();
 
             var window = new EditStepView();
 
@@ -217,10 +232,14 @@ namespace Quizzer.Views.QuestionTypes
             {
                 step.QuestionBaseId = Question.Id;
 
+                // Der Schritt gehoert der Frage im Speicher; geschrieben wird beides zusammen
+                // beim Speichern. Deshalb kein Vorab-Speichern der halbfertigen Frage mehr.
+                vm.PersistDirectly = false;
+
                 await vm.SetModel(step);
                 window.ShowDialog();
 
-                await LoadModel(Question);
+                RefreshSteps();
             }
             else
             {

@@ -43,7 +43,7 @@ public class EditStepViewModel : ViewModelBase
         if (step == null)
             step = new QuestionStepResource();
 
-        if (step.Id == Guid.Empty)
+        if (step.Id == Guid.Empty || !PersistDirectly)
         {
             Step = step;
             return;
@@ -75,9 +75,27 @@ public class EditStepViewModel : ViewModelBase
         Window?.Close();
     }
 
+    /// <summary>
+    /// Ob der Schritt beim Speichern selbst in die Datenbank geschrieben wird.
+    /// <para>
+    /// Wird der Dialog aus dem Frage-Editor geoeffnet, steht das auf <c>false</c>: die Schritte
+    /// gehoeren dann zur Frage und werden mit ihr zusammen ueber
+    /// <c>QuestionBasesController.SaveWithStepsAsync</c> geschrieben. Frueher schrieb der
+    /// Schritt-Dialog immer sofort - und weil dafuer die Frage schon existieren musste, hat der
+    /// Frage-Editor sie vor jedem Schritt still vorab gespeichert.
+    /// </para>
+    /// </summary>
+    public bool PersistDirectly { get; set; } = true;
+
     public override async Task VMSaveAsync()
     {
         if (Step == null) return;
+
+        if (!PersistDirectly)
+        {
+            ResultState = EditResultState.Updated;
+            return;
+        }
 
         using var ctrl = new QuestionStepResourcesController();
         var result = await ctrl.UpsertAsync(Step);
