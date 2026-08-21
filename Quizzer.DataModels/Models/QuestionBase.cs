@@ -51,12 +51,6 @@ namespace Quizzer.DataModels.Models
         /// </summary>
         public QuestionType Typ { get; protected set; }
 
-        /// <summary>
-        /// Standard-Abschluss-Typ für den automatisch erzeugten Finish-Schritt,
-        /// falls kein expliziter Finish-Schritt in <see cref="Steps"/> vorhanden ist.
-        /// Wird von Unterklassen im Konstruktor gesetzt.
-        /// </summary>
-        public FinishType DefaultFinishType { get; protected set; } = FinishType.None;
 
         /// <summary>Schwierigkeitsgrad der Frage; beeinflusst den berechneten Punktewert.</summary>
         public Difficulty Difficulty { get; set; } = Difficulty.Level1;
@@ -185,7 +179,6 @@ namespace Quizzer.DataModels.Models
             {
                 finishSteps.Add(new QuestionStepResource
                 {
-                    FinishType = DefaultFinishType,
                     IsFinish = true,
                     Id = Guid.NewGuid()
                 });
@@ -252,7 +245,6 @@ namespace Quizzer.DataModels.Models
             target.UseProportionalScoreReductionOnStep = UseProportionalScoreReductionOnStep;
             target.Notes = Notes;
             target.Typ = Typ;
-            target.DefaultFinishType = DefaultFinishType;
             target.Difficulty = Difficulty;
             target.WarnOnResultStep = WarnOnResultStep;
             target.WarnOnFinishStep = WarnOnFinishStep;

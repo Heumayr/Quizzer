@@ -24,7 +24,6 @@ namespace Quizzer.DataModels.Models.QuestionTypes
             MinusPoints = 100;
             Typ = QuestionType.Properties;
             WarnOnResultStep = false;
-            DefaultFinishType = FinishType.AllPreviousSteps;
 
             // Alles Typeigene kommt aus dem Profil - das ist die einzige Stelle,
             // an der es steht, und die Eingabemaske liest von dort ebenfalls.

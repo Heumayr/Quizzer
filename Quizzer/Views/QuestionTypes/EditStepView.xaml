@@ -89,14 +89,6 @@
                     SelectedItem="{Binding Step.ResourceTyp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="5,10,0,0">
-                <ComboBox MinWidth="200" Height="25" ItemsSource="{Binding CmbSource}" SelectedItem="{Binding CmbSelectedStep}"></ComboBox>
-                <Button Content="Verknuepfung hinzufuegen" Command="{Binding AddStepCommnad}" />
-                <Button Content="Verknuepfung entfernen" Command="{Binding RemoveStepCommnad}" Style="{StaticResource DangerButton}" />
-            </StackPanel>
-            <DataGrid ItemsSource="{Binding Froms}" AutoGenerateColumns="True" Margin="5" CanUserAddRows="False" IsReadOnly="True"
-                    base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedStepXSteps}">
-            </DataGrid>
         </StackPanel>
     </Grid>
 </base:WindowBase>

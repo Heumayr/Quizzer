@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quizzer – Handbuch</title>
+  <style>
+    :root {
+      --primary: #1a1a2e;
+      --accent: #e94560;
+      --accent2: #0f3460;
+      --light: #f5f5f5;
+      --text: #222;
+      --muted: #666;
+      --card: #fff;
+      --border: #ddd;
+      --code-bg: #1e1e2e;
+      --code-text: #cdd6f4;
+      --sidebar-w: 260px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--light);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    nav {
+      width: var(--sidebar-w);
+      background: var(--primary);
+      color: #fff;
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 0 0 2rem 0;
+      z-index: 100;
+    }
+
+    .nav-logo {
+      padding: 1.5rem 1.2rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .nav-logo h1 {
+      font-size: 1.4rem;
+      color: var(--accent);
+      letter-spacing: 1px;
+    }
+
+    .nav-logo p {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 2px;
+    }
+
+    nav ul { list-style: none; padding: 0.8rem 0; }
+
+    nav ul li a {
+      display: block;
+      padding: 0.5rem 1.2rem;
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+    }
+
+    nav ul li a:hover,
+    nav ul li a.active {
+      color: #fff;
+      border-left-color: var(--accent);
+      background: rgba(255,255,255,0.07);
+    }
+
+    nav .nav-section {
+      padding: 1rem 1.2rem 0.3rem;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.35);
+    }
+
+    /* ── Main ── */
+    main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 2.5rem 3rem;
+      max-width: 960px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent2) 100%);
+      color: #fff;
+      border-radius: 12px;
+      padding: 3rem 2.5rem;
+      margin-bottom: 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: '🎯';
+      position: absolute;
+      right: 2rem; top: 1.5rem;
+      font-size: 5rem;
+      opacity: 0.15;
+    }
+
+    .hero h1 { font-size: 2.2rem; margin-bottom: 0.5rem; }
+    .hero p  { font-size: 1rem; opacity: 0.8; max-width: 550px; }
+
+    .hero-badges { margin-top: 1.2rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+    .badge {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 20px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.78rem;
+    }
+
+    /* ── Sections ── */
+    section {
+      margin-bottom: 3rem;
+      scroll-margin-top: 1.5rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      color: var(--accent2);
+      margin: 1.5rem 0 0.6rem;
+    }
+
+    p { line-height: 1.75; margin-bottom: 0.75rem; color: #333; }
+
+    /* ── Cards ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .card .icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .card h4 { font-size: 0.95rem; margin-bottom: 0.3rem; color: var(--primary); }
+    .card p  { font-size: 0.83rem; color: var(--muted); margin: 0; }
+
+    /* ── Steps ── */
+    .steps { counter-reset: step; }
+
+    .step {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      counter-increment: step;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .step-body h4 { font-size: 0.95rem; margin-bottom: 0.25rem; color: var(--primary); }
+    .step-body p  { font-size: 0.88rem; color: #444; margin: 0; }
+
+    /* ── Info boxes ── */
+    .info, .warning, .tip {
+      border-radius: 8px;
+      padding: 0.9rem 1.1rem;
+      margin: 1rem 0;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+
+    .info    { background: #e8f4fd; border-left: 4px solid #3b82f6; }
+    .warning { background: #fff7e6; border-left: 4px solid #f59e0b; }
+    .tip     { background: #ecfdf5; border-left: 4px solid #10b981; }
+
+    .info-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+    /* ── Table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.88rem;
+      background: var(--card);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    th {
+      background: var(--primary);
+      color: #fff;
+      padding: 0.7rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    td { padding: 0.65rem 1rem; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f9f9f9; }
+
+    /* ── Code ── */
+    code {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 0.83rem;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1rem 1.2rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 0.8rem 0;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 0.83rem;
+      line-height: 1.6;
+    }
+
+    /* ── Question type tags ── */
+    .qtype {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-right: 0.3rem;
+    }
+
+    .qt-default  { background: #dbeafe; color: #1e40af; }
+    .qt-mc       { background: #fce7f3; color: #9d174d; }
+    .qt-props    { background: #d1fae5; color: #065f46; }
+    .qt-apprec   { background: #fef3c7; color: #92400e; }
+
+    /* ── Scoring formula ── */
+    .formula {
+      background: var(--primary);
+      color: #fff;
+      border-radius: 8px;
+      padding: 1.2rem 1.5rem;
+      font-family: 'Cascadia Code', monospace;
+      font-size: 0.88rem;
+      line-height: 1.9;
+      margin: 1rem 0;
+    }
+
+    .formula span { color: var(--accent); }
+
+    /* ── Buzzer layout icons ── */
+    .layout-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    .layout-card {
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .layout-card .big { font-size: 2rem; margin-bottom: 0.5rem; }
+    .layout-card h4 { font-size: 0.9rem; color: var(--primary); margin-bottom: 0.3rem; }
+    .layout-card p { font-size: 0.78rem; color: var(--muted); margin: 0; }
+
+    /* ── Scrollbar ── */
+    nav::-webkit-scrollbar { width: 4px; }
+    nav::-webkit-scrollbar-track { background: transparent; }
+    nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      nav { display: none; }
+      main { margin-left: 0; padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════ SIDEBAR ════════════════════════════════════ -->
+<nav>
+  <div class="nav-logo">
+    <h1>🎯 Quizzer</h1>
+    <p>Benutzerhandbuch v1.0</p>
+  </div>
+  <ul>
+    <li class="nav-section">Einführung</li>
+    <li><a href="#uebersicht">Übersicht</a></li>
+    <li><a href="#voraussetzungen">Voraussetzungen</a></li>
+    <li><a href="#erste-schritte">Erste Schritte</a></li>
+
+    <li class="nav-section">Spielleiter</li>
+    <li><a href="#spiel-erstellen">Spiel erstellen</a></li>
+    <li><a href="#kategorien">Kategorien</a></li>
+    <li><a href="#fragen">Fragen anlegen</a></li>
+    <li><a href="#fragetypen">Fragetypen</a></li>
+    <li><a href="#spielfeld">Spielfeld aufbauen</a></li>
+    <li><a href="#spieler">Spieler verwalten</a></li>
+    <li><a href="#buzzer">Buzzer-Server</a></li>
+    <li><a href="#spiel-starten">Spiel spielen</a></li>
+    <li><a href="#phasen">Phasen & Schwierigkeit</a></li>
+    <li><a href="#punkte">Punktesystem</a></li>
+
+    <li class="nav-section">Spieler</li>
+    <li><a href="#spieler-verbinden">Verbinden & Buzzen</a></li>
+    <li><a href="#buzzer-layouts">Buzzer-Layouts</a></li>
+
+    <li class="nav-section">Referenz</li>
+    <li><a href="#konfiguration">Konfiguration</a></li>
+    <li><a href="#assets">Bild-Assets</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+</nav>
+
+<!-- ════════════════════════════════════ MAIN ════════════════════════════════════ -->
+<main>
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>Quizzer Handbuch</h1>
+    <p>Jeopardy-ähnliches Quiz-Spiel für Windows. Der Spielleiter steuert das Spiel am PC — Spieler buzzen über ihr Smartphone.</p>
+    <div class="hero-badges">
+      <span class="badge">.NET 10 / WPF</span>
+      <span class="badge">SignalR Buzzer</span>
+      <span class="badge">SQL Server</span>
+      <span class="badge">4 Fragetypen</span>
+    </div>
+  </div>
+
+  <!-- ── Übersicht ── -->
+  <section id="uebersicht">
+    <h2>📋 Übersicht</h2>
+    <p>Quizzer ist eine Desktop-Anwendung für Windows, die ein Jeopardy-ähnliches Quiz ermöglicht. Das Spielfeld besteht aus einem konfigurierbaren Grid aus Kategorien und Punktewerten. Spieler verbinden sich über ihren Smartphone-Browser mit dem eingebauten Buzzer-Server und können in Echtzeit buzzen.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="icon">🖥️</div>
+        <h4>Spielleiter-PC</h4>
+        <p>Steuert das gesamte Spiel über die WPF-Anwendung.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📱</div>
+        <h4>Spieler-Smartphones</h4>
+        <p>Verbinden sich per Browser & QR-Code mit dem Buzzer.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📺</div>
+        <h4>Publikums-Bildschirm</h4>
+        <p>Optionaler zweiter Monitor zeigt das Spielfeld für alle.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🗄️</div>
+        <h4>Datenbank</h4>
+        <p>SQL Server LocalDB speichert Spiele, Fragen & Ergebnisse.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Voraussetzungen ── -->
+  <section id="voraussetzungen">
+    <h2>⚙️ Voraussetzungen</h2>
+    <table>
+      <tr><th>Komponente</th><th>Anforderung</th></tr>
+      <tr><td>Betriebssystem</td><td>Windows 10 / 11 (64-bit)</td></tr>
+      <tr><td>Laufzeit</td><td>.NET 10 Runtime (Windows Desktop)</td></tr>
+      <tr><td>Datenbank</td><td>SQL Server LocalDB (wird mit Visual Studio / SQL Server Express installiert)</td></tr>
+      <tr><td>Netzwerk</td><td>WLAN-Netzwerk, dem alle Spieler-Smartphones beitreten können</td></tr>
+      <tr><td>Spieler-Gerät</td><td>Jeder moderne Browser (Chrome, Safari, Firefox)</td></tr>
+    </table>
+
+    <div class="warning">
+      <span class="info-icon">⚠️</span>
+      <div>Der Buzzer-Server verwendet einen lokalen Port (Standard: 5000). Stelle sicher, dass die Windows-Firewall eingehende Verbindungen auf diesem Port erlaubt, damit Smartphones sich verbinden können.</div>
+    </div>
+  </section>
+
+  <!-- ── Erste Schritte ── -->
+  <section id="erste-schritte">
+    <h2>🚀 Erste Schritte</h2>
+
+    <h3>1. Asset-Ordner anlegen</h3>
+    <p>Quizzer benötigt einen Ordner mit Hintergrundbildern. Lege den Ordner an und befülle ihn mit den benötigten Bilddateien:</p>
+    <pre>E:\QuizzerData\
+  ├── Background.png
+  ├── CellBackground.png
+  ├── CellBackgroundHover.png
+  ├── CellBackgroundIsDone.png
+  ├── GridBackground.png
+  ├── GridBackgroundResult.png
+  ├── HorizontalBackground.png
+  ├── HeaderColumnBackground.png
+  ├── HeaderRowBackground.png
+  ├── PlaceholderPlayer.png
+  ├── PlayerCardBackground.png
+  ├── PlayerCardBackgroundWinner.png
+  ├── AudioPlaceholderFile.png
+  └── Resources\          ← Fragen-Medien (Bilder, Videos, Audio)</pre>
+
+    <div class="info">
+      <span class="info-icon">ℹ️</span>
+      <div>Der Pfad zum Asset-Ordner wird in <code>appsettings.json</code> unter <code>AppSettings:FilePathQuizzer</code> konfiguriert. Der Standardpfad ist <code>E:\QuizzerData</code>.</div>
+    </div>
+
+    <h3>2. Datenbank initialisieren</h3>
+    <p>Beim ersten Start legt Quizzer die Datenbank automatisch an. Falls du die Migrationen manuell ausführen möchtest:</p>
+    <pre>dotnet ef database update --project Quizzer.Logic --startup-project Quizzer.EF</pre>
+
+    <h3>3. Anwendung starten</h3>
+    <p>Starte <code>Quizzer.exe</code> oder über Visual Studio mit <kbd>F5</kbd>. Die Hauptansicht zeigt eine Liste aller gespeicherten Spiele.</p>
+  </section>
+
+  <!-- ══════════════════════════════ SPIELLEITER ══════════════════════════════ -->
+
+  <!-- ── Spiel erstellen ── -->
+  <section id="spiel-erstellen">
+    <h2>🎮 Spiel erstellen</h2>
+    <p>Ein Spiel (<em>Game</em>) definiert das Spielfeld-Grid, die Spieler, die Punkte-Multiplikatoren und die Phasen-Einstellungen.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Neues Spiel anlegen</h4>
+          <p>Klicke in der Spielliste auf <strong>Neu</strong>. Vergib einen Namen (<em>Designation</em>) und konfiguriere Breite (Spalten) und Höhe (Zeilen) des Grids.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Grid-Größe festlegen</h4>
+          <p>Breite = Anzahl der Kategorien (Spalten), Höhe = Anzahl der Schwierigkeitsgrade (Zeilen). Standard: 5×5.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Multiplikatoren konfigurieren</h4>
+          <p>Stelle <em>DifficultyMultiplier</em>, <em>PhaseMultiplier</em> und die zugehörigen Additions-Werte ein. Diese beeinflussen die Endpunkte jeder Zelle.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Moderator festlegen</h4>
+          <p>Weise dem Spiel einen Moderator-Spieler zu. Der Moderator steuert den Spielfluss, sammelt aber keine Punkte.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h4>Spiel speichern</h4>
+          <p>Klicke auf <strong>Speichern</strong>. Das Spiel befindet sich nun im Status <em>Building</em>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Kategorien ── -->
+  <section id="kategorien">
+    <h2>🏷️ Kategorien</h2>
+    <p>Kategorien sind die thematischen Gruppen, denen Fragen zugeordnet werden. Sie erscheinen als Spalten-Überschriften im Spielfeld.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Kategorienverwaltung öffnen</h4>
+          <p>Navigiere über das Hauptmenü zu <strong>Kategorien</strong>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Neue Kategorie anlegen</h4>
+          <p>Klicke auf <strong>Neu</strong> und vergib einen Namen, z.B. "Geschichte", "Sport" oder "Wissenschaft".</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Im Spiel zuweisen</h4>
+          <p>Beim Aufbau des Spielfelds wählst du für jede Spalte eine Kategorie als Header aus.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <span class="info-icon">💡</span>
+      <div>Kategorien sind spielübergreifend — du kannst dieselbe Kategorie in mehreren Spielen verwenden.</div>
+    </div>
+  </section>
+
+  <!-- ── Fragen anlegen ── -->
+  <section id="fragen">
+    <h2>❓ Fragen anlegen</h2>
+    <p>Jede Frage besteht aus einem oder mehreren <strong>Schritten</strong> (QuestionStepResources). Schritte können Text, Bilder, Videos oder Audio enthalten und werden nacheinander aufgedeckt.</p>
+
+    <h3>Grundfelder einer Frage</h3>
+    <table>
+      <tr><th>Feld</th><th>Bedeutung</th></tr>
+      <tr><td><strong>Designation</strong></td><td>Vollständiger Name der Frage (intern)</td></tr>
+      <tr><td><strong>DesignationShort</strong></td><td>Kurz-Bezeichnung, die im Spielfeld-Grid angezeigt wird</td></tr>
+      <tr><td><strong>QuestionText</strong></td><td>Optionaler Fragetext (alternativ kann der Text im ersten Schritt stehen)</td></tr>
+      <tr><td><strong>Kategorie</strong></td><td>Thematische Zuordnung</td></tr>
+      <tr><td><strong>Punkte</strong></td><td>Basis-Punktewert (wird durch Multiplikatoren skaliert)</td></tr>
+      <tr><td><strong>MinusPunkte</strong></td><td>Abzug bei falscher Antwort</td></tr>
+      <tr><td><strong>Schwierigkeit</strong></td><td>Level 0–15 (fließt in die Punkteberechnung ein)</td></tr>
+      <tr><td><strong>Notizen</strong></td><td>Interne Anmerkungen des Spielleiters (für Spieler nicht sichtbar)</td></tr>
+    </table>
+
+    <h3>Schritte einer Frage</h3>
+    <p>Die Schritte werden in dieser Reihenfolge abgespielt:</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">→</div>
+        <div class="step-body">
+          <h4>Start-Schritt</h4>
+          <p>Optionales Intro der Frage. Im Schritt-Dialog über <em>Ist Startschritt</em> gesetzt, höchstens einer je Frage, ohne Anzeige-Schlüssel. Ohne Intro beginnt die Frage direkt mit dem ersten Hinweis.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">A</div>
+        <div class="step-body">
+          <h4>Normale Schritte</h4>
+          <p>Hinweise, Antwort-Optionen oder Teilfragen. Werden alphabetisch (A, B, C…) oder numerisch (1, 2, 3…) beschriftet. Reihenfolge kann zufällig gemischt werden.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">✓</div>
+        <div class="step-body">
+          <h4>Finish-Schritt</h4>
+          <p>Zeigt die Auflösung und läuft immer zuletzt. Je Frage ist höchstens ein Abschluss-Schritt erlaubt.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Ressourcen zu Schritten hinzufügen</h3>
+    <p>Jedem Schritt kann eine Mediendatei beigefügt werden. Dateien werden im Ordner <code>E:\QuizzerData\Resources\</code> abgelegt. Unterstützte Typen:</p>
+    <div class="card-grid">
+      <div class="card"><div class="icon">🖼️</div><h4>Bild</h4><p>PNG, JPG, …</p></div>
+      <div class="card"><div class="icon">🎬</div><h4>Video</h4><p>MP4, …</p></div>
+      <div class="card"><div class="icon">🎵</div><h4>Audio</h4><p>MP3, WAV, …</p></div>
+      <div class="card"><div class="icon">📄</div><h4>Dokument</h4><p>PDF, …</p></div>
+    </div>
+  </section>
+
+  <!-- ── Fragetypen ── -->
+  <section id="fragetypen">
+    <h2>🃏 Fragetypen</h2>
+    <p>Quizzer unterstützt vier Fragetypen, die jeweils unterschiedliche Spielmechaniken und Buzzer-Layouts verwenden:</p>
+
+    <table>
+      <tr>
+        <th>Typ</th>
+        <th>Buzzer-Layout</th>
+        <th>Besonderheit</th>
+      </tr>
+      <tr>
+        <td><span class="qtype qt-default">Standard</span></td>
+        <td>Buzzer</td>
+        <td>Klassisch: erster Spieler der buzzt, darf antworten. Schritte in fixer Reihenfolge.</td>
+      </tr>
+      <tr>
+        <td><span class="qtype qt-mc">Multiple Choice</span></td>
+        <td>KeySelect</td>
+        <td>Spieler wählen eine Antwort-Taste. Optionen werden zufällig gemischt, im Grid angezeigt.</td>
+      </tr>
+      <tr>
+        <td><span class="qtype qt-props">Eigenschaften</span></td>
+        <td>Buzzer</td>
+        <td>Hinweise werden schrittweise aufgedeckt. Punkte sinken proportional mit jedem Schritt.</td>
+      </tr>
+      <tr>
+        <td><span class="qtype qt-apprec">Schätzfrage</span></td>
+        <td>Texteingabe</td>
+        <td>Der Autor legt fest, was geschätzt wird (Zahl, Prozent, Länge, Masse, Volumen, Dauer, Datum, Geldbetrag) und in welcher Einheit. Die Spieler tippen einen Wert; wer am nächsten dran liegt, wird automatisch als Gewinner vorgeschlagen. Bei Gleichstand gewinnen alle Gleichauf-Spieler. Der Spielleiter kann jede Bewertung ändern.</td>
+      </tr>
+    </table>
+
+    <div class="tip">
+      <span class="info-icon">💡</span>
+      <div>Der Fragetyp bestimmt automatisch das passende Buzzer-Layout, den Anzeigemodus und andere Standardwerte — du musst diese nicht manuell setzen.</div>
+    </div>
+  </section>
+
+  <!-- ── Spielfeld aufbauen ── -->
+  <section id="spielfeld">
+    <h2>🗺️ Spielfeld aufbauen</h2>
+    <p>Im Bearbeitungs-Modus (<em>Building</em>) weist du jeder Zelle des Grids eine Frage zu.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Header definieren</h4>
+          <p>Weise jeder Spalte eine Kategorie als Überschrift zu, und vergib jeder Zeile einen Namen (z.B. "100 Punkte", "200 Punkte").</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Fragen zuweisen</h4>
+          <p>Klicke auf eine Zelle im Grid und wähle die gewünschte Frage aus dem Fragenkatalog. Die Zelle zeigt dann die Kurz-Bezeichnung der Frage.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Punkte prüfen</h4>
+          <p>Die berechneten Punkte jeder Zelle werden automatisch aus Basis-Punkten, Schwierigkeit und Phasen-Multiplikatoren ermittelt.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="info">
+      <span class="info-icon">ℹ️</span>
+      <div>Zellen können auch leer bleiben — leere Zellen werden im Spiel als inaktiv dargestellt und können nicht angeklickt werden.</div>
+    </div>
+  </section>
+
+  <!-- ── Spieler verwalten ── -->
+  <section id="spieler">
+    <h2>👥 Spieler verwalten</h2>
+    <p>Spieler werden einmalig angelegt und können danach in beliebig vielen Spielen verwendet werden.</p>
+
+    <h3>Spieler anlegen</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Spielerverwaltung öffnen</h4>
+          <p>Navigiere zu <strong>Spieler</strong> im Hauptmenü.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Neuen Spieler anlegen</h4>
+          <p>Klicke auf <strong>Neu</strong>. Vergib einen internen Namen (<em>Designation</em>) und einen optionalen Anzeigenamen (<em>DisplayName</em>). Wenn <em>DisplayName</em> leer ist, wird <em>Designation</em> angezeigt.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Profilbild zuweisen (optional)</h4>
+          <p>Lege ein Profilbild im Asset-Ordner ab und trage den Dateinamen beim Spieler ein.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Spieler zum Spiel hinzufügen</h3>
+    <p>Öffne das Spiel in der Bearbeitungsansicht und füge Spieler über den Bereich <strong>Spieler</strong> hinzu. Vergiss nicht, einen Spieler als <strong>Moderator</strong> zu definieren — der Moderator ist Pflicht, damit das Spiel gestartet werden kann.</p>
+
+    <div class="warning">
+      <span class="info-icon">⚠️</span>
+      <div>Ein Spiel kann nicht gestartet werden, wenn kein Moderator festgelegt ist oder wenn keine Spieler hinzugefügt wurden.</div>
+    </div>
+  </section>
+
+  <!-- ── Buzzer-Server ── -->
+  <section id="buzzer">
+    <h2>📡 Buzzer-Server</h2>
+    <p>Der eingebaute Kestrel/SignalR-Server ermöglicht es Spielern, sich per Smartphone zu verbinden und in Echtzeit zu buzzen.</p>
+
+    <h3>Server starten</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Buzzer-Server öffnen</h4>
+          <p>Klicke während des laufenden Spiels auf <strong>Buzzer-Server</strong>. Ein Fenster öffnet sich mit Server-Status und QR-Code.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Server starten</h4>
+          <p>Klicke auf <strong>Server starten</strong>. Der Server läuft dann auf deiner lokalen IP-Adresse (z.B. <code>http://192.168.1.100:5000</code>).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>QR-Code teilen</h4>
+          <p>Zeige den QR-Code den Spielern — jeder scannt ihn mit seinem Smartphone und wird automatisch verbunden.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Verbindungen prüfen</h4>
+          <p>Das Buzzer-Server-Fenster zeigt an, welche Spieler verbunden sind (grün) und welche nicht (grau).</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="info">
+      <span class="info-icon">ℹ️</span>
+      <div>Spieler-IDs sind GUIDs — jeder Spieler hat eine feste ID und kann sich bei Verbindungsverlust einfach neu verbinden, ohne seinen Fortschritt zu verlieren.</div>
+    </div>
+
+    <div class="warning">
+      <span class="info-icon">⚠️</span>
+      <div>Spielleiter-PC und Spieler-Smartphones müssen sich im selben WLAN-Netzwerk befinden.</div>
+    </div>
+  </section>
+
+  <!-- ── Spiel spielen ── -->
+  <section id="spiel-starten">
+    <h2>▶️ Spiel spielen</h2>
+
+    <h3>Spiel starten</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Spiel auswählen & starten</h4>
+          <p>Wähle das Spiel in der Liste und klicke auf <strong>Spielen</strong>. Das Spiel wechselt in den Status <em>InProgress</em>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Spieler-Ansicht öffnen (optional)</h4>
+          <p>Klicke auf <strong>Spieler-Ansicht öffnen</strong>, um einen zweiten Monitor für das Publikum zu aktivieren.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Frage auswählen</h4>
+          <p>Der aktuelle Auswahl-Spieler (<em>ChoosingPlayer</em>) wählt eine Zelle aus dem Grid. Klicke im Spielleiter-Fenster auf die gewünschte Zelle.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Frage spielen</h4>
+          <p>Das Fragen-Fenster öffnet sich. Klicke auf <strong>Weiter</strong>, um Schritt für Schritt die Hinweise aufzudecken. Spieler buzzen über ihr Smartphone.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h4>Antwort bewerten</h4>
+          <p>Nach dem Buzzen bewertest du die Antwort als <strong>Richtig</strong> oder <strong>Falsch</strong>. Punkte werden automatisch vergeben oder abgezogen.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <h4>Nächste Frage</h4>
+          <p>Die gespielte Zelle wird als <em>Erledigt</em> markiert. Der nächste Auswahl-Spieler wird automatisch bestimmt (Gewinner oder Round-Robin).</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Vollbild-Modus</h3>
+    <p>Klicke auf <strong>Vollbild</strong>, um alle geöffneten Spielfenster in den Vollbild-Modus zu schalten. Ideal für die Präsentation auf einem Beamer oder TV.</p>
+  </section>
+
+  <!-- ── Phasen & Schwierigkeit ── -->
+  <section id="phasen">
+    <h2>⚡ Phasen &amp; Schwierigkeit</h2>
+
+    <h3>Spielphasen</h3>
+    <p>Ein Spiel kann in mehrere Phasen unterteilt werden. In späteren Phasen sind die Punkte höher (durch den Phase-Multiplikator). Beim Erreichen eines Schwellenwerts (<em>PhaseTrashholds</em>) fragt das Spiel automatisch, ob zur nächsten Phase gewechselt werden soll.</p>
+
+    <table>
+      <tr><th>Einstellung</th><th>Bedeutung</th></tr>
+      <tr><td>SuggestedPhases</td><td>Empfohlene Anzahl an Phasen (bestimmt die Schwellenwerte)</td></tr>
+      <tr><td>PhaseMultiplier</td><td>Multiplikator pro Phase (Standard: 1 = keine Erhöhung)</td></tr>
+      <tr><td>PhaseAddition</td><td>Fixer Additionswert pro Phase</td></tr>
+    </table>
+
+    <p>Du kannst die Phase auch manuell mit den Schaltflächen <strong>Phase +</strong> und <strong>Phase −</strong> im Spielleiter-Fenster ändern.</p>
+
+    <h3>Schwierigkeitsgrade</h3>
+    <p>Jede Frage hat einen Schwierigkeitsgrad (Level 0–15), der die Punkte skaliert.</p>
+  </section>
+
+  <!-- ── Punktesystem ── -->
+  <section id="punkte">
+    <h2>🏆 Punktesystem</h2>
+    <p>Die Punkte einer Spielfeld-Zelle werden nach folgender Formel berechnet:</p>
+
+    <div class="formula">
+      Punkte = ( QuestionBase.Points × (<span>DifficultyMultiplier</span> × (int)Difficulty + 1)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + <span>DifficultyAddition</span> × (int)Difficulty )<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; × ( <span>PhaseMultiplier</span> × Phase ) + <span>PhaseAddition</span> × Phase
+    </div>
+
+    <h3>Ergebnis eines Spielers</h3>
+    <table>
+      <tr><th>Wert</th><th>Berechnung</th></tr>
+      <tr><td>Score</td><td>Summe aller erzielten Punkte</td></tr>
+      <tr><td>MinusScore</td><td>Summe aller Minuspunkte (Falschantworten)</td></tr>
+      <tr><td>Correction</td><td>Manuelle Korrektur durch den Spielleiter</td></tr>
+      <tr><td><strong>FinalScore</strong></td><td><strong>Score + Correction − MinusScore</strong></td></tr>
+    </table>
+
+    <h3>Auswahl-Spieler</h3>
+    <p>Nach jeder Frage wird der nächste Auswahl-Spieler bestimmt:</p>
+    <ul style="margin-left:1.5rem; line-height:2;">
+      <li>Wenn ein Spieler die Frage richtig beantwortet hat → dieser Spieler darf als nächstes wählen.</li>
+      <li>Wenn niemand richtig lag → Round-Robin, der nächste Spieler in der Liste.</li>
+    </ul>
+  </section>
+
+  <!-- ══════════════════════════════ SPIELER ══════════════════════════════ -->
+
+  <!-- ── Spieler verbinden ── -->
+  <section id="spieler-verbinden">
+    <h2>📱 Verbinden &amp; Buzzen (Spieler)</h2>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>QR-Code scannen</h4>
+          <p>Der Spielleiter zeigt einen QR-Code auf seinem Bildschirm. Scanne ihn mit deiner Smartphone-Kamera oder einer QR-App.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Browser öffnet automatisch</h4>
+          <p>Die Buzzer-Seite öffnet sich in deinem Browser. Du siehst deinen Namen und den aktuellen Rundenstand.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Warten auf Freigabe</h4>
+          <p>Der Buzzer ist gesperrt, bis der Spielleiter die Frage freigibt. Sobald er aktiv ist, leuchtet die Taste auf.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Buzzen!</h4>
+          <p>Drücke die Buzzer-Taste so schnell wie möglich. Nach dem ersten Buzz werden alle anderen Spieler gesperrt.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <span class="info-icon">💡</span>
+      <div>Falls die Verbindung abbricht, lade die Seite neu — dein Spieler-Link bleibt gültig und du wirst automatisch wieder verbunden.</div>
+    </div>
+  </section>
+
+  <!-- ── Buzzer-Layouts ── -->
+  <section id="buzzer-layouts">
+    <h2>🎛️ Buzzer-Layouts</h2>
+    <p>Je nach Fragetyp siehst du als Spieler unterschiedliche Eingabe-Oberflächen im Browser:</p>
+
+    <div class="layout-grid">
+      <div class="layout-card">
+        <div class="big">🔴</div>
+        <h4>Buzzer</h4>
+        <p>Großer Buzzer-Button. Erster Spieler gewinnt den Zug.</p>
+      </div>
+      <div class="layout-card">
+        <div class="big">🔡</div>
+        <h4>Key Select</h4>
+        <p>Mehrere Antwort-Tasten (A, B, C…). Auswahl bestätigen.</p>
+      </div>
+      <div class="layout-card">
+        <div class="big">⌨️</div>
+        <h4>Texteingabe</h4>
+        <p>Eingabefeld für Schätzfragen. Ob ein Zahlen- oder ein Datumsfeld erscheint und welche Einheit im Platzhalter steht, ergibt sich aus der Frage.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════ REFERENZ ══════════════════════════════ -->
+
+  <!-- ── Konfiguration ── -->
+  <section id="konfiguration">
+    <h2>⚙️ Konfiguration</h2>
+    <p>Die Konfiguration befindet sich in <code>Quizzer/appsettings.json</code> (im Ausgabe-Verzeichnis der App):</p>
+
+    <pre>{
+  "AppSettings": {
+    "FilePathQuizzer": "E:\\QuizzerData",
+    "MsSqlConString": "Data Source=(localdb)\\MSSQLLocalDB;Database=Quizzer;Integrated Security=True"
+  }
+}</pre>
+
+    <table>
+      <tr><th>Schlüssel</th><th>Bedeutung</th></tr>
+      <tr><td>FilePathQuizzer</td><td>Pfad zum Ordner mit Bild-Assets und Fragen-Ressourcen</td></tr>
+      <tr><td>MsSqlConString</td><td>SQL Server Verbindungsstring (Standard: LocalDB)</td></tr>
+    </table>
+  </section>
+
+  <!-- ── Assets ── -->
+  <section id="assets">
+    <h2>🖼️ Bild-Assets</h2>
+    <p>Alle Bilddateien werden aus dem Ordner <code>FilePathQuizzer</code> geladen. Fehlende Dateien führen zu schwarzen Flächen in der UI.</p>
+
+    <table>
+      <tr><th>Datei</th><th>Verwendet für</th></tr>
+      <tr><td>Background.png</td><td>Hauptfenster-Hintergrund</td></tr>
+      <tr><td>CellBackground.png</td><td>Normale Spielfeld-Zelle</td></tr>
+      <tr><td>CellBackgroundHover.png</td><td>Spielfeld-Zelle beim Hover</td></tr>
+      <tr><td>CellBackgroundIsDone.png</td><td>Bereits gespielte Zelle</td></tr>
+      <tr><td>GridBackground.png</td><td>Hintergrund des gesamten Spielfelds</td></tr>
+      <tr><td>GridBackgroundResult.png</td><td>Spielfeld in der Ergebnisansicht</td></tr>
+      <tr><td>HorizontalBackground.png</td><td>Horizontales Layout (Fragen-Anzeige)</td></tr>
+      <tr><td>HeaderColumnBackground.png</td><td>Spalten-Überschriften</td></tr>
+      <tr><td>HeaderRowBackground.png</td><td>Zeilen-Überschriften</td></tr>
+      <tr><td>PlaceholderPlayer.png</td><td>Spieler ohne Profilbild</td></tr>
+      <tr><td>PlayerCardBackground.png</td><td>Spieler-Karte in Ergebnisansicht</td></tr>
+      <tr><td>PlayerCardBackgroundWinner.png</td><td>Spieler-Karte des Gewinners</td></tr>
+      <tr><td>AudioPlaceholderFile.png</td><td>Vorschaubild für Audio-Ressourcen</td></tr>
+    </table>
+  </section>
+
+  <!-- ── FAQ ── -->
+  <section id="faq">
+    <h2>🙋 FAQ</h2>
+
+    <h3>Spieler können sich nicht verbinden</h3>
+    <p>Stelle sicher, dass sich alle Geräte im gleichen WLAN befinden und die Windows-Firewall eingehende Verbindungen auf dem Buzzer-Port (Standard: 5000) erlaubt. Füge ggf. eine Firewall-Ausnahme für <code>Quizzer.exe</code> hinzu.</p>
+
+    <h3>Die App startet nicht / stürzt sofort ab</h3>
+    <p>Überprüfe ob der Asset-Ordner (<code>E:\QuizzerData</code>) existiert und ob <code>appsettings.json</code> die korrekten Pfade enthält. Fehlt die Datenbank, führe die EF-Migrationen aus.</p>
+
+    <h3>Ich möchte ein abgeschlossenes Spiel nochmals spielen</h3>
+    <p>Setze in der Spiel-Bearbeitungsansicht das Flag <strong>Restart</strong> auf <em>true</em> und starte das Spiel. Beim nächsten Start werden alle Ergebnisse zurückgesetzt.</p>
+
+    <h3>Kann ich Fragen aus einem Spiel in einem anderen verwenden?</h3>
+    <p>Ja. Fragen sind unabhängig von Spielen gespeichert und können jederzeit in mehreren Spielen dem Grid zugewiesen werden.</p>
+
+    <h3>Wie viele Spieler sind möglich?</h3>
+    <p>Es gibt keine feste Obergrenze. Das System ist auf typische Quiz-Gruppen ausgelegt (3–10 Spieler). Bei sehr vielen Spielern kann die Anzeige auf dem Spielleiter-Bildschirm enger werden.</p>
+
+    <h3>Kann ich das Spiel pausieren?</h3>
+    <p>Es gibt keine explizite Pausieren-Funktion. Du kannst das Fragen-Fenster einfach offenlassen und zu einem beliebigen Zeitpunkt weitermachen.</p>
+  </section>
+
+</main>
+
+<script>
+  // Aktiven Nav-Link markieren beim Scrollen
+  const links = document.querySelectorAll('nav ul li a');
+  const sections = document.querySelectorAll('section');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
