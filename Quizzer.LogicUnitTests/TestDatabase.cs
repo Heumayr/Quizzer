@@ -19,9 +19,15 @@ namespace Quizzer.LogicUnitTests
         /// Verbindung zur Testdatenbank. Bewusst hier im Quelltext und nicht nur in der
         /// appsettings.json - so steht der Name auch dann fest, wenn die mitkopierte
         /// Konfiguration von Quizzer.DataModels gewinnen sollte.
+        /// <para>
+        /// Jedes Testprojekt hat eine EIGENE Datenbank: DoNotParallelize wirkt nur innerhalb
+        /// einer Assembly, die Projekte laufen aber als eigene Prozesse nebeneinander. Auf einer
+        /// gemeinsamen Datenbank loescht dann der eine, waehrend der andere die Migrationssperre
+        /// haelt.
+        /// </para>
         /// </summary>
         public const string ConnectionString =
-            @"Data Source=(localdb)\MSSQLLocalDB;Database=Quizzer_Tests;Integrated Security=True";
+            @"Data Source=(localdb)\MSSQLLocalDB;Database=Quizzer_Logic_Tests;Integrated Security=True";
 
         [AssemblyInitialize]
         public static void Initialize(TestContext _)

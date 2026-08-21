@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSTest" Version="4.2.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="4.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Quizzer\Quizzer.csproj" />
+  </ItemGroup>
+
+  <!--
+    Sperre 3: ueberschreibt die appsettings.json, die von Quizzer.DataModels
+    mitkopiert wird und auf die Produktivdatenbank zeigt.
+  -->
+  <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

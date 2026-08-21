@@ -5,4 +5,5 @@
   <Project Path="Quizzer.Logic/Quizzer.Logic.csproj" Id="da2af078-c5cd-4d0d-9e31-53540392e138" />
   <Project Path="Quizzer/Quizzer.csproj" />
   <Project Path="Quizzer.LogicUnitTests/Quizzer.LogicUnitTests.csproj" />
+  <Project Path="Quizzer.UnitTests/Quizzer.UnitTests.csproj" />
 </Solution>
