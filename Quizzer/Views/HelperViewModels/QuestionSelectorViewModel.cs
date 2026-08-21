@@ -9,6 +9,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Data;
+using Quizzer.DataModels.Helpers;
+using System.Windows;
 using System.Windows.Input;
 
 namespace Quizzer.Views.HelperViewModels
@@ -108,7 +110,29 @@ namespace Quizzer.Views.HelperViewModels
         }
 
         private AsyncRelayCommand? addQuestionCommand;
-        public ICommand AddQuestionCommand => addQuestionCommand ??= new AsyncRelayCommand((p) => EditQuestionAsync(new DefaultQuestion()));
+        public ICommand AddQuestionCommand => addQuestionCommand ??= new AsyncRelayCommand(AddQuestionAsync);
+
+        private Task AddQuestionAsync(object? commandParameter)
+        {
+            var question = AskForNewQuestion();
+
+            return question == null ? Task.CompletedTask : EditQuestionAsync(question);
+        }
+
+        /// <summary>
+        /// Fragt den Fragetyp ab und liefert eine neue Frage dieses Typs - oder <c>null</c>,
+        /// wenn abgebrochen wurde. Gemeinsamer Einstieg beider Anlegen-Strecken.
+        /// </summary>
+        private static QuestionBase? AskForNewQuestion()
+        {
+            var window = new NewQuestionView { Owner = Application.Current?.MainWindow };
+            window.ShowDialog();
+
+            var chosen = window.ViewModel?.ChosenType;
+
+            return chosen == null ? null : Factory.CreateNewQuestion(chosen.Value);
+        }
+
 
         private async Task EditQuestionAsync(QuestionBase questionBase)
         {

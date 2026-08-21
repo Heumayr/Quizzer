@@ -17,20 +17,24 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <ComboBox ItemsSource="{Binding QuestionTypes}" SelectedItem="{Binding SelectedQuestionType}"></ComboBox>
-            <Button Content="Add Question" Command="{Binding AddQuestionCommand}" />
-            <Button Content="Remove Question" Command="{Binding RemoveQuestionCommand}" Style="{StaticResource DangerButton}" />
+            <!-- Der Typ wird jetzt im Anlegen-Fenster gewaehlt, mit Namen und Erklaerung. -->
+            <Button Content="Neue Frage" Command="{Binding AddQuestionCommand}" MinWidth="150" />
+            <Button Content="Frage entfernen" Command="{Binding RemoveQuestionCommand}"
+                    Style="{StaticResource DangerButton}" MinWidth="150" Margin="0,4,0,0" />
         </StackPanel>
 
         <DataGrid Grid.Column="1" ItemsSource="{Binding QuestionsView}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True"
                   base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedQuestions}"
                   base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenQuestionCommand}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Designation" Binding="{Binding Designation}" Width="2*" />
-                <DataGridTextColumn Header="Category" Binding="{Binding Category.Designation}" Width="*" />
-                <DataGridTextColumn Header="Difficulty" Binding="{Binding Difficulty}" Width="*" />
-                <DataGridTextColumn Header="Points" Binding="{Binding Points}" Width="*" />
-                <DataGridTextColumn Header="Minus-Points" Binding="{Binding MinusPoints}" Width="*" />
+                <DataGridTextColumn Header="Bezeichnung" Binding="{Binding Designation}" Width="2*" />
+                <DataGridTextColumn Header="Kurz" Binding="{Binding DesignationShort}" Width="0.6*" />
+                <!-- Ohne diese Spalte war einer fertigen Frage nirgends anzusehen, welcher Typ sie ist. -->
+                <DataGridTextColumn Header="Typ" Binding="{Binding Typ}" Width="*" />
+                <DataGridTextColumn Header="Kategorie" Binding="{Binding Category.Designation}" Width="*" />
+                <DataGridTextColumn Header="Schwierigkeit" Binding="{Binding Difficulty}" Width="*" />
+                <DataGridTextColumn Header="Punkte" Binding="{Binding Points}" Width="0.7*" />
+                <DataGridTextColumn Header="Minuspunkte" Binding="{Binding MinusPoints}" Width="0.7*" />
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

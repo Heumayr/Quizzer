@@ -13,16 +13,13 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows.Data;
+using System.Windows;
 using System.Windows.Input;
 
 namespace Quizzer.Views
 {
     internal class QuestionsViewModel : ViewModelBase
     {
-        public Array QuestionTypes { get; } = Enum.GetValues(typeof(QuestionType));
-
-        public QuestionType SelectedQuestionType { get; set; }
-
         private ObservableCollection<QuestionBase> _questions = new();
 
         public ObservableCollection<QuestionBase> Questions
@@ -81,7 +78,29 @@ namespace Quizzer.Views
         }
 
         private AsyncRelayCommand? addQuestionCommand;
-        public ICommand AddQuestionCommand => addQuestionCommand ??= new AsyncRelayCommand((p) => EditQuestionAsync(Factory.CreateNewQuestion(SelectedQuestionType)));
+        public ICommand AddQuestionCommand => addQuestionCommand ??= new AsyncRelayCommand(AddQuestionAsync);
+
+        private Task AddQuestionAsync(object? commandParameter)
+        {
+            var question = AskForNewQuestion();
+
+            return question == null ? Task.CompletedTask : EditQuestionAsync(question);
+        }
+
+        /// <summary>
+        /// Fragt den Fragetyp ab und liefert eine neue Frage dieses Typs - oder <c>null</c>,
+        /// wenn abgebrochen wurde. Gemeinsamer Einstieg beider Anlegen-Strecken.
+        /// </summary>
+        private static QuestionBase? AskForNewQuestion()
+        {
+            var window = new NewQuestionView { Owner = Application.Current?.MainWindow };
+            window.ShowDialog();
+
+            var chosen = window.ViewModel?.ChosenType;
+
+            return chosen == null ? null : Factory.CreateNewQuestion(chosen.Value);
+        }
+
 
         private async Task EditQuestionAsync(QuestionBase questionBase)
         {
