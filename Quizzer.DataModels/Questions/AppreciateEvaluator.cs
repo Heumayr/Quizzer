@@ -197,12 +197,31 @@ namespace Quizzer.DataModels.Questions
                        CultureInfo.InvariantCulture, out number);
         }
 
+        /// <summary>
+        /// Schreibweisen, die unabhaengig von der Windows-Sprache gelesen werden.
+        /// <para>
+        /// Das Eingabe-Layout im Browser schickt ISO. Von Hand getippt kommt bei uns
+        /// Tag.Monat.Jahr - und genau das darf nicht davon abhaengen, auf welche Sprache
+        /// Windows eingestellt ist: gemessen wurde, dass "1.2.1974" unter en-US still als
+        /// 2. Jaenner gelesen wird statt als 1. Februar. Ein Monat daneben, ohne Fehlermeldung.
+        /// </para>
+        /// </summary>
+        private static readonly string[] DateFormats =
+        [
+            "yyyy-MM-dd",   // das schickt der Browser
+            "d.M.yyyy",     // 1.2.1974
+            "dd.MM.yyyy",   // 01.02.1974
+            "d. M. yyyy",   // 1. 2. 1974
+        ];
+
         private static DateTime? ParseDate(string text)
         {
-            // Das Eingabe-Layout schickt ISO (yyyy-MM-dd); von Hand getippt kommt Ortsformat.
-            if (DateTime.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture,
-                    DateTimeStyles.None, out var iso))
-                return iso;
+            foreach (var format in DateFormats)
+            {
+                if (DateTime.TryParseExact(text, format, CultureInfo.InvariantCulture,
+                        DateTimeStyles.None, out var exact))
+                    return exact;
+            }
 
             if (DateTime.TryParse(text, CultureInfo.CurrentCulture, DateTimeStyles.None, out var local))
                 return local;
