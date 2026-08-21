@@ -5,6 +5,11 @@ using System.Text;
 
 namespace Quizzer.DataModels.Enumerations
 {
+    /// <summary>
+    /// Schwierigkeitsgrad einer Frage (Level 0–15).
+    /// Der ganzzahlige Wert fließt direkt in die Punkteberechnung ein:
+    /// <c>Points * (DifficultyMultiplier * (int)Difficulty + 1) + DifficultyAddition * (int)Difficulty</c>.
+    /// </summary>
     public enum Difficulty
     {
         [Description("Level 0")]
