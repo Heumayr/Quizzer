@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Quizzer.Logic.Controller.TypedControllers
 {
-    public class QuestionBasesController : GenericController<QuestionBase>
+    public partial class QuestionBasesController : GenericController<QuestionBase>
     {
         public QuestionBasesController()
         {

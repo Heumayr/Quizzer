@@ -13,7 +13,7 @@ using System.Windows.Input;
 
 namespace Quizzer.Views.QuestionTypes
 {
-    public class EditQuestionViewModel : ViewModelBase
+    public partial class EditQuestionViewModel : ViewModelBase
     {
         public Array Difficulties { get; } = Enum.GetValues(typeof(Difficulty));
 
@@ -56,7 +56,9 @@ namespace Quizzer.Views.QuestionTypes
                 {
                     _question?.CategoryId = value.Id;
                 }
+
                 OnPropertyChanged();
+                Revalidate();
             }
         }
 
@@ -72,6 +74,7 @@ namespace Quizzer.Views.QuestionTypes
                 SelectedCategory = categories.FirstOrDefault(c => c.Id == Question.CategoryId);
 
             OnPropertyChanged(nameof(SelectedCategory));
+            Revalidate();
         }
 
         public List<QuestionStepResource> SelectedSteps { get; set; } = new List<QuestionStepResource>();
@@ -87,9 +90,14 @@ namespace Quizzer.Views.QuestionTypes
                     throw new Exception("Can't set null model");
 
                 _question = value;
-                SelectedCategory = Categories.FirstOrDefault(c => c.Id == _question.CategoryId);
+
+                // Frueher stand hier ein Zugriff auf Categories - die Liste ist zu diesem
+                // Zeitpunkt aber noch leer (SetModel laeuft vor OnloadAsync), und der Setter
+                // von SelectedCategory hat dabei Question.Category auf null gesetzt.
+                // Aufgeloest wird die Kategorie jetzt ausschliesslich in OnloadAsync.
                 OnModelChanged();
                 Steps = new ObservableCollection<QuestionStepResource>(_question.Steps.OrderBy(s => s.SequenceNumber));
+                Revalidate();
             }
         }
 
@@ -125,7 +133,7 @@ namespace Quizzer.Views.QuestionTypes
 
         private AsyncRelayCommand? saveCommand;
 
-        public ICommand SaveCommand => saveCommand ??= new AsyncRelayCommand(SaveAsync);
+        public ICommand SaveCommand => saveCommand ??= new AsyncRelayCommand(SaveAsync, _ => CanSave);
 
         private async Task SaveAsync(object? commandParameter)
         {
@@ -133,20 +141,23 @@ namespace Quizzer.Views.QuestionTypes
 
             await VMSaveAsync();
             await LoadModel(Question);
+            Revalidate();
         }
 
         public override async Task VMSaveAsync()
         {
             if (Question == null) return;
 
+            var wasNew = Question.Id == Guid.Empty;
+
             using var ctrl = new QuestionBasesController();
-            var result = await ctrl.UpsertAsync(Question);
+            await ctrl.SaveWithStepsAsync(Question);
             await ctrl.SaveChangesAsync();
-            ResultState = result.Created ? EditResultState.New : EditResultState.Updated;
+            ResultState = wasNew ? EditResultState.New : EditResultState.Updated;
         }
 
         private AsyncRelayCommand? saveAndCloseCommand;
-        public ICommand SaveAndCloseCommand => saveAndCloseCommand ??= new AsyncRelayCommand(SaveAndCloseAsync);
+        public ICommand SaveAndCloseCommand => saveAndCloseCommand ??= new AsyncRelayCommand(SaveAndCloseAsync, _ => CanSave);
 
         private async Task SaveAndCloseAsync(object? param)
         {
