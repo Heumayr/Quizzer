@@ -363,3 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 /Quizzer.DataModels/appsettings.json
 /Quizzer/appsettings.json
+
+# Testergebnisse
+TestResults/

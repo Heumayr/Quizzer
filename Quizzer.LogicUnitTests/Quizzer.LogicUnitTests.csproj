@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!--
+    LocalBuzzer.Service zieht Hub und IHubContext aus dem ASP.NET-Core-Framework.
+    Ohne diesen Verweis uebersetzt schon der blosse Projektbezug nicht.
+  -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSTest" Version="4.2.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="4.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Quizzer.DataModels\Quizzer.DataModels.csproj" />
+    <ProjectReference Include="..\Quizzer.Logic\Quizzer.Logic.csproj" />
+    <ProjectReference Include="..\LocalBuzzer.Service\LocalBuzzer.Service.csproj" />
+  </ItemGroup>
+
+  <!--
+    Sperre 3: ueberschreibt die appsettings.json, die von Quizzer.DataModels
+    mitkopiert wird und auf die Produktivdatenbank zeigt.
+  -->
+  <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>
