@@ -1,0 +1,178 @@
+using Quizzer.DataModels.Enumerations;
+using Quizzer.DataModels.Models;
+using Quizzer.DataModels.Models.Base;
+
+namespace Quizzer.DataModels.Questions
+{
+    /// <summary>
+    /// Prueft, ob eine Frage so, wie sie dasteht, wirklich spielbar ist.
+    /// <para>
+    /// Bewusst ohne WPF und ohne Datenbank, damit jede Regel einzeln pruefbar bleibt.
+    /// Die WPF-Regeln in <c>Quizzer/Validators</c> pruefen weiterhin die Eingabeform
+    /// (ist das ueberhaupt eine Zahl), hier geht es um die Stimmigkeit.
+    /// </para>
+    /// </summary>
+    public static class QuestionValidator
+    {
+        public const string DesignationMissing = "designation-missing";
+        public const string DesignationShortMissing = "designation-short-missing";
+        public const string CategoryMissing = "category-missing";
+        public const string PointsNegative = "points-negative";
+        public const string MinusPointsNegative = "minus-points-negative";
+        public const string TooFewSteps = "too-few-steps";
+        public const string ResultStepMissing = "result-step-missing";
+        public const string MultipleResultStepsNotAllowed = "multiple-result-steps-not-allowed";
+        public const string KeySelectCountMismatch = "key-select-count-mismatch";
+        public const string KeySelectOutOfRange = "key-select-out-of-range";
+        public const string ResourceWithoutType = "resource-without-type";
+        public const string ResourceTypeWithoutFile = "resource-type-without-file";
+        public const string MultipleStartSteps = "multiple-start-steps";
+        public const string MultipleFinishSteps = "multiple-finish-steps";
+        public const string StepTextMissing = "step-text-missing";
+        public const string TypeOwnedValuesChanged = "type-owned-values-changed";
+
+        /// <summary>Prueft die Frage und liefert alle Beanstandungen.</summary>
+        public static IReadOnlyList<ValidationIssue> Validate(QuestionBase question)
+        {
+            ArgumentNullException.ThrowIfNull(question);
+
+            var profile = QuestionTypeProfiles.For(question.Typ);
+            var issues = new List<ValidationIssue>();
+
+            ValidateHeader(question, issues);
+            ValidateSteps(question, profile, issues);
+            ValidateKeySelect(question, profile, issues);
+            ValidateTypeOwnedValues(question, profile, issues);
+
+            return issues;
+        }
+
+        /// <summary>Ob die Frage gespeichert werden darf.</summary>
+        public static bool IsSavable(QuestionBase question)
+            => !Validate(question).Any(i => i.IsError);
+
+        private static void ValidateHeader(QuestionBase question, List<ValidationIssue> issues)
+        {
+            if (string.IsNullOrWhiteSpace(question.Designation))
+                issues.Add(new(DesignationMissing, ValidationSeverity.Error,
+                    "Die Frage braucht eine Bezeichnung.", nameof(question.Designation)));
+
+            if (string.IsNullOrWhiteSpace(question.DesignationShort))
+                issues.Add(new(DesignationShortMissing, ValidationSeverity.Warning,
+                    "Ohne Kurzbezeichnung bleibt die Zelle im Spielfeld leer.",
+                    nameof(question.DesignationShort)));
+
+            if (question.CategoryId == Guid.Empty)
+                issues.Add(new(CategoryMissing, ValidationSeverity.Error,
+                    "Die Frage braucht eine Kategorie.", nameof(question.CategoryId)));
+
+            if (question.Points < 0)
+                issues.Add(new(PointsNegative, ValidationSeverity.Error,
+                    "Die Punkte duerfen nicht negativ sein.", nameof(question.Points)));
+
+            if (question.MinusPoints < 0)
+                issues.Add(new(MinusPointsNegative, ValidationSeverity.Error,
+                    "Die Minuspunkte duerfen nicht negativ sein.", nameof(question.MinusPoints)));
+        }
+
+        private static void ValidateSteps(
+            QuestionBase question, QuestionTypeProfile profile, List<ValidationIssue> issues)
+        {
+            var steps = question.Steps ?? new List<QuestionStepResource>();
+            var normalSteps = steps.Where(s => !s.IsStart && !s.IsFinish).ToList();
+
+            if (normalSteps.Count < profile.MinNormalSteps)
+                issues.Add(new(TooFewSteps, ValidationSeverity.Error,
+                    $"{profile.DisplayName}: mindestens {profile.MinNormalSteps} Schritte noetig, "
+                    + $"vorhanden sind {normalSteps.Count}.", nameof(question.Steps)));
+
+            var resultSteps = steps.Where(s => s.IsResult).ToList();
+
+            if (profile.RequiresResultStep && resultSteps.Count == 0)
+                issues.Add(new(ResultStepMissing, ValidationSeverity.Error,
+                    "Kein Schritt ist als Loesung markiert - die Antwort kann nie als richtig "
+                    + "gewertet werden.", nameof(question.Steps)));
+
+            if (!profile.AllowsMultipleResultSteps && resultSteps.Count > 1)
+                issues.Add(new(MultipleResultStepsNotAllowed, ValidationSeverity.Error,
+                    $"{profile.DisplayName} vertraegt nur einen Loesungsschritt, "
+                    + $"markiert sind {resultSteps.Count}.", nameof(question.Steps)));
+
+            if (steps.Count(s => s.IsStart) > 1)
+                issues.Add(new(MultipleStartSteps, ValidationSeverity.Error,
+                    "Es darf hoechstens einen Startschritt geben.", nameof(question.Steps)));
+
+            if (steps.Count(s => s.IsFinish) > 1)
+                issues.Add(new(MultipleFinishSteps, ValidationSeverity.Error,
+                    "Es darf hoechstens einen Abschlussschritt geben.", nameof(question.Steps)));
+
+            foreach (var step in steps)
+            {
+                var hasFile = !string.IsNullOrWhiteSpace(step.ResourceFileName);
+                var hasType = step.ResourceTyp != ResourceType.None;
+
+                if (hasFile && !hasType)
+                    issues.Add(new(ResourceWithoutType, ValidationSeverity.Error,
+                        $"Schritt {Describe(step)}: eine Datei ist hinterlegt, aber kein "
+                        + "Medientyp - im Spiel bleibt sie unsichtbar.", nameof(step.ResourceTyp)));
+
+                if (hasType && !hasFile)
+                    issues.Add(new(ResourceTypeWithoutFile, ValidationSeverity.Error,
+                        $"Schritt {Describe(step)}: ein Medientyp ist gesetzt, aber keine Datei.",
+                        nameof(step.ResourceFileName)));
+
+                if (!step.IsStart && !step.IsFinish
+                    && string.IsNullOrWhiteSpace(step.StepText)
+                    && string.IsNullOrWhiteSpace(step.Designation)
+                    && !hasFile)
+                    issues.Add(new(StepTextMissing, ValidationSeverity.Warning,
+                        "Ein Schritt ohne Text und ohne Medium bleibt im Spiel leer.",
+                        nameof(step.StepText)));
+            }
+        }
+
+        private static void ValidateKeySelect(
+            QuestionBase question, QuestionTypeProfile profile, List<ValidationIssue> issues)
+        {
+            if (!profile.ShowMaxAllowedKeySelect)
+                return;
+
+            var steps = question.Steps ?? new List<QuestionStepResource>();
+            var normalCount = steps.Count(s => !s.IsStart && !s.IsFinish);
+            var resultCount = steps.Count(s => s.IsResult);
+
+            if (question.BuzzerMaxAllowedKeySelect < 1
+                || (normalCount > 0 && question.BuzzerMaxAllowedKeySelect > normalCount))
+                issues.Add(new(KeySelectOutOfRange, ValidationSeverity.Error,
+                    $"Es duerfen zwischen 1 und {Math.Max(normalCount, 1)} Antworten gewaehlt "
+                    + $"werden, eingestellt sind {question.BuzzerMaxAllowedKeySelect}.",
+                    nameof(question.BuzzerMaxAllowedKeySelect)));
+
+            // PlayerResultContext wertet nur dann als richtig, wenn die Anzahl der gewaehlten
+            // Tasten der eingestellten Hoechstzahl entspricht. Stimmen die beiden nicht ueberein,
+            // kann die Frage nie richtig beantwortet werden.
+            if (resultCount > 0 && question.BuzzerMaxAllowedKeySelect != resultCount)
+                issues.Add(new(KeySelectCountMismatch, ValidationSeverity.Error,
+                    $"{resultCount} Loesungen markiert, aber {question.BuzzerMaxAllowedKeySelect} "
+                    + "waehlbare Antworten eingestellt. So kann die Frage nie richtig beantwortet "
+                    + "werden.", nameof(question.BuzzerMaxAllowedKeySelect)));
+        }
+
+        private static void ValidateTypeOwnedValues(
+            QuestionBase question, QuestionTypeProfile profile, List<ValidationIssue> issues)
+        {
+            if (profile.MatchesOwnedValues(question))
+                return;
+
+            issues.Add(new(TypeOwnedValuesChanged, ValidationSeverity.Error,
+                $"Die Frage weicht von den Vorgaben fuer {profile.DisplayName} ab. Im Spiel "
+                + "fuehrt das auf dem Spielerbildschirm zur Anzeige Not Supported.",
+                nameof(question.Typ)));
+        }
+
+        private static string Describe(QuestionStepResource step)
+            => !string.IsNullOrWhiteSpace(step.Designation) ? step.Designation
+             : !string.IsNullOrWhiteSpace(step.StepText) ? step.StepText
+             : $"Nr. {step.SequenceNumber}";
+    }
+}

@@ -1,4 +1,5 @@
 ﻿using Quizzer.DataModels.Enumerations;
+using Quizzer.DataModels.Questions;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Quizzer.DataModels.Models.QuestionTypes
@@ -21,8 +22,11 @@ namespace Quizzer.DataModels.Models.QuestionTypes
             MinusPoints = 100;
             Typ = QuestionType.Default;
             WarnOnResultStep = false;
-            UseRandomSequenceOnNoneFinishSteps = false;
             DefaultFinishType = FinishType.AllPreviousSteps;
+
+            // Alles Typeigene kommt aus dem Profil - das ist die einzige Stelle,
+            // an der es steht, und die Eingabemaske liest von dort ebenfalls.
+            QuestionTypeProfiles.For(QuestionType.Default).ApplyTo(this);
         }
 
         protected override QuestionBase CreateCloneInstance()
