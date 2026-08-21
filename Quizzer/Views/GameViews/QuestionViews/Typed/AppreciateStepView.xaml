@@ -1,4 +1,4 @@
-<local:UserControlStepViewBase x:Class="Quizzer.Views.GameViews.QuestionViews.Typed.AppreciateStepView"
+﻿<local:UserControlStepViewBase x:Class="Quizzer.Views.GameViews.QuestionViews.Typed.AppreciateStepView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -50,7 +50,7 @@
                              HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
                         <TextBlock Text="{Binding Step.StepText}"
                                    Foreground="{Binding TextForgroundBrush}"
-                                   TextWrapping="Wrap" TextAlignment="Center" />
+                                   TextWrapping="Wrap" MaxWidth="900" TextAlignment="Center" />
                     </Viewbox>
                 </Grid>
             </Border>
@@ -62,7 +62,7 @@
                  Visibility="{Binding AppreciateAskVisibility}">
             <TextBlock Text="{Binding AppreciateAskText}"
                        Foreground="{Binding TextForgroundBrush}"
-                       TextAlignment="Center" TextWrapping="Wrap" />
+                       TextAlignment="Center" TextWrapping="Wrap" MaxWidth="900" />
         </Viewbox>
 
         <!-- Der richtige Wert: beim Spielleiter immer, auf dem Spielerbildschirm erst am Ende -->

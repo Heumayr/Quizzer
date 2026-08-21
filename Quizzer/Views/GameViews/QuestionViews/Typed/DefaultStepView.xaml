@@ -61,6 +61,7 @@
                         <TextBlock Text="{Binding Step.StepText}"
                     Foreground="{Binding TextForgroundBrush}"
                     TextWrapping="Wrap"
+                    MaxWidth="900"
                     TextAlignment="Center" />
                     </Viewbox>
                 </Grid>

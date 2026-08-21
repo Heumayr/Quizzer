@@ -61,6 +61,7 @@
                  Foreground="WhiteSmoke"
                  FontWeight="SemiBold"
                  TextWrapping="Wrap"
+                 MaxWidth="900"
                  TextAlignment="Left"
                  VerticalAlignment="Center"
                  HorizontalAlignment="Center" />

@@ -49,7 +49,7 @@
                         <Border Margin="20,0,20,0"
                                 Width="{Binding CardWidth}"
                                 Height="{Binding CardHeight}">
-                            <Viewbox Stretch="Fill">
+                            <Viewbox Stretch="Uniform">
                                 <local:UcPlayerStatsView Width="220" Height="340" />
                             </Viewbox>
                         </Border>
@@ -72,7 +72,7 @@
                         <Border Margin="12,0,12,0"
                                 Width="{Binding CardWidth}"
                                 Height="{Binding CardHeight}">
-                            <Viewbox Stretch="Fill">
+                            <Viewbox Stretch="Uniform">
                                 <local:UcPlayerStatsView Width="220" Height="340" />
                             </Viewbox>
                         </Border>
