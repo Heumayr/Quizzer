@@ -51,6 +51,7 @@ namespace Quizzer.Views.QuestionTypes
             OnPropertyChanged(nameof(TypeDisplayName));
             OnPropertyChanged(nameof(TypeHelpText));
             RaiseLayoutChanged();
+            RaiseAppreciateChanged();
             CommandManager.InvalidateRequerySuggested();
         }
 

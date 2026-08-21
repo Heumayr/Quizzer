@@ -29,9 +29,35 @@ namespace Quizzer.DataModels.Models.QuestionTypes
             QuestionTypeProfiles.For(QuestionType.Appreciate).ApplyTo(this);
         }
 
+        /// <summary>
+        /// Was geschaetzt wird. Bestimmt die Eingabeart am Telefon und die Einheitenauswahl.
+        /// </summary>
+        public AppreciateValueKind ValueKind { get; set; } = AppreciateValueKind.Number;
+
+        /// <summary>Die Einheit des Sollwerts. Muss zu <see cref="ValueKind"/> passen.</summary>
+        public AppreciateUnit Unit { get; set; } = AppreciateUnit.Stueck;
+
+        /// <summary>
+        /// Der richtige Wert, in der gewaehlten Einheit. Wird bei allen Arten ausser
+        /// <see cref="AppreciateValueKind.Date"/> verwendet.
+        /// </summary>
+        public double ExpectedValue { get; set; }
+
+        /// <summary>
+        /// Das richtige Datum. Nur bei <see cref="AppreciateValueKind.Date"/> belegt;
+        /// der Abstand zum Tipp wird dann in Tagen gerechnet.
+        /// </summary>
+        public DateTime? ExpectedDate { get; set; }
+
         protected override QuestionBase CreateCloneInstance()
         {
-            return new AppreciateQestion();
+            return new AppreciateQestion
+            {
+                ValueKind = ValueKind,
+                Unit = Unit,
+                ExpectedValue = ExpectedValue,
+                ExpectedDate = ExpectedDate,
+            };
         }
     }
 }

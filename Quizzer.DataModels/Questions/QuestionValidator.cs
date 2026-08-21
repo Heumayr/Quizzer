@@ -1,6 +1,7 @@
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.DataModels.Models.QuestionTypes;
 
 namespace Quizzer.DataModels.Questions
 {
@@ -30,6 +31,9 @@ namespace Quizzer.DataModels.Questions
         public const string MultipleFinishSteps = "multiple-finish-steps";
         public const string StepTextMissing = "step-text-missing";
         public const string TypeOwnedValuesChanged = "type-owned-values-changed";
+        public const string ExpectedDateMissing = "expected-date-missing";
+        public const string ExpectedValueMissing = "expected-value-missing";
+        public const string UnitDoesNotMatchKind = "unit-does-not-match-kind";
 
         /// <summary>Prueft die Frage und liefert alle Beanstandungen.</summary>
         public static IReadOnlyList<ValidationIssue> Validate(QuestionBase question)
@@ -43,6 +47,7 @@ namespace Quizzer.DataModels.Questions
             ValidateSteps(question, profile, issues);
             ValidateKeySelect(question, profile, issues);
             ValidateTypeOwnedValues(question, profile, issues);
+            ValidateExpectedValue(question, issues);
 
             return issues;
         }
@@ -156,6 +161,37 @@ namespace Quizzer.DataModels.Questions
                     $"{resultCount} Loesungen markiert, aber {question.BuzzerMaxAllowedKeySelect} "
                     + "waehlbare Antworten eingestellt. So kann die Frage nie richtig beantwortet "
                     + "werden.", nameof(question.BuzzerMaxAllowedKeySelect)));
+        }
+
+        private static void ValidateExpectedValue(QuestionBase question, List<ValidationIssue> issues)
+        {
+            if (question is not AppreciateQestion appreciate)
+                return;
+
+            if (!AppreciateUnits.Matches(appreciate.ValueKind, appreciate.Unit))
+            {
+                issues.Add(new(UnitDoesNotMatchKind, ValidationSeverity.Error,
+                    "Die gewaehlte Einheit passt nicht zur Art des Schaetzwerts.",
+                    nameof(appreciate.Unit)));
+                return;
+            }
+
+            if (appreciate.ValueKind == AppreciateValueKind.Date)
+            {
+                if (appreciate.ExpectedDate == null)
+                    issues.Add(new(ExpectedDateMissing, ValidationSeverity.Error,
+                        "Ohne Solldatum kann der naechste Tipp nicht ermittelt werden.",
+                        nameof(appreciate.ExpectedDate)));
+
+                return;
+            }
+
+            // Null ist ein zulaessiger Sollwert, aber fast immer bedeutet er, dass niemand
+            // ihn eingetragen hat - deshalb eine Warnung, keine Sperre.
+            if (appreciate.ExpectedValue == 0)
+                issues.Add(new(ExpectedValueMissing, ValidationSeverity.Warning,
+                    "Der Sollwert steht auf 0. Ist das wirklich gemeint?",
+                    nameof(appreciate.ExpectedValue)));
         }
 
         private static void ValidateTypeOwnedValues(

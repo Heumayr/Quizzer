@@ -1,4 +1,4 @@
-<base:WindowBase x:Class="Quizzer.Views.QuestionTypes.EditQuestionsView"
+﻿<base:WindowBase x:Class="Quizzer.Views.QuestionTypes.EditQuestionsView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -187,6 +187,41 @@
                            ToolTip="Ob die Spieler den Antworttext am Telefon sehen oder nur den Buchstaben." />
                     <CheckBox VerticalAlignment="Center"
                               IsChecked="{Binding Path=Question.ShowTextOnKeySelect}" />
+                </StackPanel>
+
+                <!-- Nur Schaetzfrage -->
+                <StackPanel Visibility="{Binding ExpectedValueVisibility}">
+                    <StackPanel Style="{StaticResource FieldRow}">
+                        <Label Style="{StaticResource FieldLabel}" Content="Geschaetzt wird"
+                               ToolTip="Bestimmt die Einheiten und die Eingabeart am Telefon." />
+                        <ComboBox ItemsSource="{Binding AppreciateValueKinds}" MinWidth="200"
+                                  SelectedItem="{Binding AppreciateValueKind, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+
+                    <StackPanel Style="{StaticResource FieldRow}">
+                        <Label Style="{StaticResource FieldLabel}" Content="Einheit"
+                               ToolTip="Alle Tipps werden vor dem Vergleich in dieselbe Basiseinheit umgerechnet." />
+                        <ComboBox ItemsSource="{Binding AppreciateUnitsForKind}" MinWidth="200"
+                                  DisplayMemberPath="Symbol"
+                                  SelectedItem="{Binding AppreciateUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+
+                    <StackPanel Style="{StaticResource FieldRow}" Visibility="{Binding ExpectedNumberVisibility}">
+                        <Label Style="{StaticResource FieldLabel}" Content="Richtiger Wert *"
+                               ToolTip="Der Sollwert in der gewaehlten Einheit. Wer am naechsten dran liegt, gewinnt." />
+                        <TextBox VerticalContentAlignment="Center" MinWidth="200"
+                                 Text="{Binding ExpectedValue, UpdateSourceTrigger=LostFocus}" />
+                    </StackPanel>
+
+                    <StackPanel Style="{StaticResource FieldRow}" Visibility="{Binding ExpectedDateVisibility}">
+                        <Label Style="{StaticResource FieldLabel}" Content="Richtiges Datum *"
+                               ToolTip="Der Abstand zum Tipp wird in Tagen gerechnet." />
+                        <DatePicker MinWidth="200"
+                                    SelectedDate="{Binding ExpectedDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding AppreciateHintText}" TextWrapping="Wrap"
+                               Opacity="0.75" Margin="5,3,5,3" />
                 </StackPanel>
 
                 <!-- Nur Eigenschaftsfrage -->
