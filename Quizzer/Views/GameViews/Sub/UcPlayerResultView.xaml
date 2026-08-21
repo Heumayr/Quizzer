@@ -23,6 +23,7 @@
                 <RowDefinition Height="auto"></RowDefinition>
                 <RowDefinition Height="auto"></RowDefinition>
                 <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center">
@@ -125,7 +126,21 @@
                 </ItemsControl>
             </StackPanel>
 
-            <Grid Grid.Row="5" Grid.Column="0" HorizontalAlignment="Right">
+            <!-- Schaetzfrage: der abgegebene Tipp und wie weit er daneben liegt -->
+            <Border Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
+                    Margin="6,4" Padding="8,5" CornerRadius="6"
+                    Background="{Binding AppreciateGuessBrush}"
+                    Visibility="{Binding ShowAppreciateGuess}">
+                <StackPanel>
+                    <TextBlock Text="Geschaetzt" FontWeight="Bold" Foreground="White" />
+                    <TextBlock Text="{Binding AppreciateGuessText}" FontSize="18"
+                               Foreground="White" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding AppreciateDistanceText}" Opacity="0.8"
+                               Foreground="White" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Grid Grid.Row="6" Grid.Column="0" HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Buzzered:"></Label>
                     <CheckBox IsEnabled="False" IsChecked="{Binding IsBuzzerWinner, Mode=OneWay}" VerticalAlignment="Center"></CheckBox>
