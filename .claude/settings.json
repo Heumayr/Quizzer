@@ -1,0 +1,29 @@
+{
+  "autoMemoryEnabled": false,
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \".harness-core/tools/check-harness.ps1\" -Repo .harness",
+            "timeout": 30,
+            "statusMessage": "Harness-Stand pruefen (.harness)"
+          },
+          {
+            "type": "command",
+            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \".harness-core/tools/check-harness.ps1\" -Repo .harness-core",
+            "timeout": 30,
+            "statusMessage": "Harness-Stand pruefen (.harness-core)"
+          },
+          {
+            "type": "command",
+            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \".harness-core/tools/check-code.ps1\"",
+            "timeout": 30,
+            "statusMessage": "Code-Regeln pruefen"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+[submodule ".harness-core"]
+	path = .harness-core
+	url = https://github.com/Heumayr/harness-core.git
+[submodule ".harness"]
+	path = .harness
+	url = https://github.com/Heumayr/harness-quizzer.git
