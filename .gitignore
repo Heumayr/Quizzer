@@ -366,3 +366,6 @@ FodyWeavers.xsd
 
 # Testergebnisse
 TestResults/
+
+# Rules-Junction auf .harness-core/regeln/bei-bedarf - legt einrichten.ps1 an
+.claude/rules/

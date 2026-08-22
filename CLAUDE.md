@@ -7,9 +7,11 @@ Regelwerk und Gedächtnis kommen aus den beiden Submodulen:
 
 @.harness-core/regeln/arbeitsweise.md
 @.harness-core/regeln/standards-allgemein.md
-@.harness-core/regeln/standards-csharp.md
 @.harness/context.md
 @.harness/memory/MEMORY.md
+
+Die sprachspezifischen Standards (.harness-core/regeln/bei-bedarf/) laden automatisch über
+die .claude/rules-Verknüpfung, sobald passende Dateien berührt werden — legt einrichten.ps1 an.
 
 **Pflichtlektüre vor der ersten Änderung: `.harness/memory/was-gilt.md`.** Neues Projektwissen
 gehört ins `.harness`-Submodul (dort committen und pushen), nirgendwo sonst — Format:
