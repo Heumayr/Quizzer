@@ -217,6 +217,13 @@ namespace Quizzer.UnitTests.Views.GameViews
                         $"Der Sollwert fehlt in der Steuerung. Sichtbar: {string.Join(" | ", texts)}");
                     Assert.IsTrue(texts.Any(t => t.Contains("Schaetzfrage")),
                         $"Die Kopfzeile nennt die Frage nicht. Sichtbar: {string.Join(" | ", texts)}");
+
+                    // Sichtbarer Text traegt echte Umlaute (standards-allgemein.md, Abschnitt 1).
+                    // Nachgemessen: das BOM der XAML ist dafuer nicht noetig, MSBuild liest sie
+                    // auch ohne als UTF-8 - diese Zusicherung haelt die Regel fest, nicht die
+                    // Kodierung.
+                    Assert.IsTrue(texts.Any(t => t.Contains("Lösung")),
+                        $"Der Beschriftung fehlt der echte Umlaut. Sichtbar: {string.Join(" | ", texts)}");
                 }
                 finally
                 {
