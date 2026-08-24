@@ -130,7 +130,7 @@ namespace Quizzer.Views.BuzzerViews
         private async void OnConnectionChanged(object? sender, PlayerConnection e)
         {
             // Avoid deadlocks: prefer InvokeAsync
-            await Application.Current.Dispatcher.InvokeAsync(() =>
+            await RunOnUiAsync(() =>
             {
                 CollectionViewSource.GetDefaultView(_players).Refresh();
                 RecalcServerState();

@@ -314,7 +314,7 @@ namespace Quizzer.Views.GameViews
                 return;
             }
 
-            Application.Current.Dispatcher.Invoke(() =>
+            RunOnUi(() =>
             {
                 CloseCurrentBuzzerWinnerWindows();
 
@@ -414,7 +414,7 @@ namespace Quizzer.Views.GameViews
 
         private void CloseCurrentBuzzerWinnerWindows()
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            RunOnUi(() =>
             {
                 foreach (var popup in currentBuzzerWinnerWindows.Values.ToList())
                 {
@@ -456,7 +456,7 @@ namespace Quizzer.Views.GameViews
                 if (cancellationToken.IsCancellationRequested)
                     return;
 
-                await Application.Current.Dispatcher.InvokeAsync(() =>
+                await RunOnUiAsync(() =>
                 {
                     if (!cancellationToken.IsCancellationRequested)
                         CurrentBuzzerWinner = null;
