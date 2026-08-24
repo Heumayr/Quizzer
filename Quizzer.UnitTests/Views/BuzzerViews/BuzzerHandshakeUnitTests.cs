@@ -4,6 +4,7 @@ using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.Buzzer;
+using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.UnitTests.PlayThrough;
 using Quizzer.Views.BuzzerViews;
 using Quizzer.Views.StaticRessources;
@@ -220,6 +221,46 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
             Assert.IsFalse(dto.AllLocked, "Alle Spieler waeren gesperrt.");
 
             TestEnvironment.ThrowIfAnythingWasSwallowed();
+        }
+
+        /// <summary>
+        /// Der Rueckweg: was am Telefon eingetippt wird, muss der Spielleiter waehrend der
+        /// laufenden Runde sehen - nicht erst im Ergebnisfenster danach.
+        /// </summary>
+        [TestMethod]
+        public async Task AGuessFromThePhoneReachesTheMastersOverview()
+        {
+            await StartServerAsync(QuestionType.Appreciate);
+
+            var player = world!.Players[0];
+            await ConnectPhoneAsync(player);
+
+            var vm = new TestableCurrentQuestionViewModel { Coordinate = world.Coordinate };
+            await vm.LoadForTestAsync();
+
+            // Der Builder legt die Schaetzfrage ohne Sollwert an; die Uebersicht zeigt auf
+            // dieselbe Instanz, deshalb wirkt das Setzen hier.
+            var frage = (AppreciateQestion)vm.Coordinate!.QuestionBase!;
+            frage.ValueKind = AppreciateValueKind.Length;
+            frage.Unit = AppreciateUnit.Meter;
+            frage.ExpectedValue = 3798;
+
+            await phones[^1].InvokeAsync("SubmitInput", new { playerId = player.Id, value = "3750" });
+
+            var overview = serverVm!.BuzzerControlsViewModel!;
+
+            Assert.IsTrue(await WaitForAsync(() =>
+                overview.LivePlayers.Any(p => p.PlayerId == player.Id && p.AnswerText == "3750")),
+                "Der Tipp steht dem Spielleiter nicht vor Augen. Sichtbar ist: "
+                + string.Join(" | ", overview.LivePlayers.Select(p => $"{p.DisplayName}={p.StatusText}")));
+
+            Assert.AreEqual("3798 m", overview.SolutionText,
+                "Ohne Sollwert muss der Spielleiter im Editor nachsehen, waehrend die Runde laeuft.");
+
+            var wartende = overview.LivePlayers.Count(p => !p.HasAnswered);
+
+            Assert.AreEqual(1, wartende,
+                "Auf den zweiten Spieler wird noch gewartet - genau das soll die Uebersicht zeigen.");
         }
 
         /// <summary>

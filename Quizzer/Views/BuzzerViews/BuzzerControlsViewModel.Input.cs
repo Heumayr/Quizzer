@@ -63,6 +63,8 @@ namespace Quizzer.Views.BuzzerViews
         {
             try
             {
+                TrackInput(result.PlayerId, result.Value);
+
                 await RunOnUiAsync(async () =>
                 {
                     if (PlayerSubmittedInput != null)

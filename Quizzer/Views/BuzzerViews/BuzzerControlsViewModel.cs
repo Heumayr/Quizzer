@@ -61,6 +61,7 @@ namespace Quizzer.Views.BuzzerViews
         private void OnPlayerConnectionStateChanged(object? sender, ServerState e)
         {
             OnPropertyChanged(nameof(BackgroundBrush));
+            RefreshConnections();
         }
 
         private AsyncRelayCommand? resetRoundCommand;
@@ -99,6 +100,8 @@ namespace Quizzer.Views.BuzzerViews
         {
             try
             {
+                TrackSelection(selectionResult.PlayerId, selectionResult.SelectedKeys);
+
                 await RunOnUiAsync(async () =>
                 {
                     if (PlayerSelectedKeys != null)
@@ -131,6 +134,8 @@ namespace Quizzer.Views.BuzzerViews
         {
             try
             {
+                TrackWinner(player?.Id);
+
                 await RunOnUiAsync(async () =>
                 {
                     if (WinnerDeclared != null)
@@ -162,8 +167,13 @@ namespace Quizzer.Views.BuzzerViews
             BuzzerController?.StateManager.BuzzerKeySelector.Infos = info;
         }
 
+        /// <summary>
+        /// Eine neue Runde wurde ausgespielt: die Abgaben der letzten gelten nicht mehr, und die
+        /// Rundennummer in der Kopfzeile stimmt nicht mehr.
+        /// </summary>
         public void OnReset(int round)
         {
+            ClearRound();
         }
 
         public void Dispose()
