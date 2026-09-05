@@ -200,7 +200,7 @@ namespace Quizzer.ViewModels
 
         public string DifficultyDisplay => _coordinate.QuestionBase?.Difficulty.DescriptionOrString() ?? string.Empty;
 
-        public string PointsDisplay => _coordinate != null ? $"{_coordinate?.CurrentPoints} pts / -{_coordinate?.CurrentMinusPoints} pts" : string.Empty;
+        public string PointsDisplay => _coordinate != null ? $"{_coordinate?.CurrentPoints} / −{_coordinate?.CurrentMinusPoints} Punkte" : string.Empty;
 
         /// <summary>
         /// Call this if you changed the underlying model outside this VM and want to refresh bindings.

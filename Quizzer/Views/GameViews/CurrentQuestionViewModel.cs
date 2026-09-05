@@ -122,6 +122,11 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(NextStepContext));
 
             OnPropertyChanged(nameof(IsDone));
+            OnPropertyChanged(nameof(DoneStateText));
+            OnPropertyChanged(nameof(WindowTitle));
+            OnPropertyChanged(nameof(QuestionSummary));
+            OnPropertyChanged(nameof(QuestionNotesLine));
+            OnPropertyChanged(nameof(NotesVisibility));
         }
 
         protected override async Task OnClosed()
@@ -174,6 +179,7 @@ namespace Quizzer.Views.GameViews
                 Coordinate?.IsDone = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsDoneBrush));
+                OnPropertyChanged(nameof(DoneStateText));
             }
         }
 
@@ -191,6 +197,59 @@ namespace Quizzer.Views.GameViews
         }
 
         public QuestionBase? Question => Coordinate?.QuestionBase;
+
+        /// <summary>Titel des Fragefensters, mit der Kurzbezeichnung der Frage.</summary>
+        public string WindowTitle
+        {
+            get
+            {
+                var kurz = Question?.DesignationShort;
+
+                if (string.IsNullOrWhiteSpace(kurz))
+                    kurz = Question?.Designation;
+
+                return string.IsNullOrWhiteSpace(kurz) ? "Frage" : $"Frage – {kurz}";
+            }
+        }
+
+        /// <summary>
+        /// Kategorie, Stufe, Punkte und Phase in einer Zeile. Sie stand bisher in neun einzelnen
+        /// schreibgeschuetzten Textfeldern, die ein Viertel des Fensters belegten.
+        /// </summary>
+        public string QuestionSummary
+        {
+            get
+            {
+                if (Question == null)
+                    return string.Empty;
+
+                var teile = new List<string>();
+
+                if (!string.IsNullOrWhiteSpace(QuestionCategory))
+                    teile.Add(QuestionCategory);
+
+                teile.Add(QuestionType);
+                teile.Add($"Stufe {(int)Question.Difficulty}");
+                teile.Add($"{CurrentPoints} / −{CurrentMinusPoints} Punkte");
+                teile.Add($"Phase {Phase}");
+
+                return string.Join(" · ", teile);
+            }
+        }
+
+        /// <summary>Die Notizen des Spielleiters; die Spieler sehen sie nicht.</summary>
+        public string QuestionNotesLine =>
+            string.IsNullOrWhiteSpace(QuestionNotes) ? string.Empty : $"Notiz: {QuestionNotes}";
+
+        public Visibility NotesVisibility =>
+            string.IsNullOrWhiteSpace(QuestionNotes) ? Visibility.Collapsed : Visibility.Visible;
+
+        /// <summary>
+        /// Ob die Zelle abgeschlossen ist, als Satz. Bisher trug das allein ein duenner
+        /// dunkelroter Rahmen, den man leicht uebersieht.
+        /// </summary>
+        public string DoneStateText =>
+            IsDone ? "Zelle abgeschlossen" : "Noch nicht abgeschlossen";
 
         public BuzzerServerViewModel? BuzzerServerViewModel => StaticRessources.StaticManager.BuzzerServerViewModel;
 
@@ -316,6 +375,19 @@ namespace Quizzer.Views.GameViews
                 return;
             }
 
+            // Eine Frage ohne Schritte hat nichts zum Aufdecken. Bis 2026-09-06 lief das in
+            // Last() auf einer leeren Folge und riss ein Fehlerfenster samt Stapelspur auf -
+            // beim ersten Enter, vor Publikum.
+            if (Question.OrderedSteps.Length == 0)
+            {
+                UserPrompt.Inform(
+                    "Diese Frage hat keine Schritte. Im Frage-Editor mindestens einen anlegen, "
+                    + "sonst gibt es nichts aufzudecken.",
+                    "Frage ohne Schritte");
+
+                return;
+            }
+
             if (up)
             {
                 if (CurrentStep == Question.OrderedSteps.Last())
@@ -353,14 +425,14 @@ namespace Quizzer.Views.GameViews
 
             if (Question.WarnOnResultStep
                 && ((next?.IsResult ?? false) && (!CurrentStep?.IsResult ?? true))
-                && !UserPrompt.Confirm("Der naechste Schritt ist die Loesung. Trotzdem weiter?", "Loesungsschritt voraus"))
+                && !UserPrompt.Confirm("Der nächste Schritt ist die Lösung. Trotzdem weiter?", "Lösungsschritt voraus"))
             {
                 return false;
             }
 
             if (Question.WarnOnFinishStep
                 && ((next?.IsFinish ?? false) && (!CurrentStep?.IsFinish ?? true))
-                && !UserPrompt.Confirm("Der naechste Schritt ist der Abschluss. Trotzdem weiter?", "Abschlussschritt voraus"))
+                && !UserPrompt.Confirm("Der nächste Schritt ist der Abschluss. Trotzdem weiter?", "Abschlussschritt voraus"))
             {
                 return false;
             }
@@ -405,13 +477,24 @@ namespace Quizzer.Views.GameViews
         private AsyncRelayCommand? saveIsDoneFinishStateCommand;
         public ICommand SaveIsDoneFinishStateCommand => saveIsDoneFinishStateCommand ??= new AsyncRelayCommand(SaveIsDoneFinishStateAsync);
 
+        /// <summary>
+        /// Schliesst die Zelle ab und stellt den Abschlussschritt auf den Spielerbildschirm.
+        /// <para>
+        /// Hat die Frage keinen Abschlussschritt, bleibt der zuletzt gezeigte stehen. Bis
+        /// 2026-09-06 wurde <c>CurrentStep</c> auch dann auf <c>null</c> gesetzt - der Beamer
+        /// wurde vollstaendig schwarz, und die Mitspieler sahen bis zum Schliessen des Fensters
+        /// gar nichts mehr.
+        /// </para>
+        /// </summary>
         private async Task SaveIsDoneFinishStateAsync(object? commandParameter)
         {
             IsDone = true;
 
             await VMSaveAsync();
 
-            CurrentStep = finishStep;
+            if (finishStep != null)
+                CurrentStep = finishStep;
+
             NextStep = null;
         }
 
@@ -447,14 +530,34 @@ namespace Quizzer.Views.GameViews
             await OpenResultsAsync();
         }
 
+        /// <summary>
+        /// Oeffnet das Ergebnisfenster und uebernimmt die Ergebniszeilen an die Zelle.
+        /// <para>
+        /// Passt die Zahl der Zeilen nicht zur Mannschaft, wird nichts uebernommen - aber auch
+        /// nichts geworfen. Bis 2026-09-06 stand hier ein <c>throw</c>, und weil der Aufruf aus
+        /// den Buzzer-Rueckrufen kommt, riss er mitten in der Runde die Anwendung mit.
+        /// <c>PlayersResultViewModel.SetCoordinateAsync</c> gleicht die Zeilen inzwischen ab,
+        /// sodass der Fall nur noch bei einem Fehler dort auftreten kann.
+        /// </para>
+        /// </summary>
         private async Task OpenResultsAsync()
         {
             ShowResultWindow();
 
             var newResults = PlayersResultViewModel?.Results;
 
-            if (newResults == null || Coordinate == null || newResults.Count == 0 || Coordinate.Game.Players.Count() != newResults.Count)
-                throw new Exception("Invalid result state");
+            if (newResults == null || Coordinate == null || newResults.Count == 0)
+                return;
+
+            if (Coordinate.Game.Players.Count() != newResults.Count)
+            {
+                UserPrompt.Inform(
+                    "Die Ergebniszeilen dieser Zelle passen nicht zur Mannschaft. Das Fenster "
+                    + "zeigt trotzdem, was vorhanden ist – bitte die Punkte vor dem Abschließen prüfen.",
+                    "Ergebnisse der Zelle");
+
+                return;
+            }
 
             Coordinate.QuestionResults = newResults;
         }

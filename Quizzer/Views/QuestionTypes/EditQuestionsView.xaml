@@ -46,12 +46,12 @@
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="In anderen Typ umwandeln" Command="{Binding ConvertTypeCommand}"
                         MinWidth="190" Margin="0,0,8,0"
-                        ToolTip="Behaelt Schritte, Medien und bisherige Ergebnisse. Nur fuer bereits gespeicherte Fragen." />
+                        ToolTip="Behält Schritte, Medien und bisherige Ergebnisse. Nur für bereits gespeicherte Fragen." />
                 <Button Content="Abbrechen" Command="{Binding CancelCommand}"
                         MinWidth="110" Margin="0,0,8,0" />
                 <Button Content="Speichern" Command="{Binding SaveCommand}"
                         MinWidth="110" Margin="0,0,8,0" />
-                <Button Content="Speichern und schliessen" Command="{Binding SaveAndCloseCommand}"
+                <Button Content="Speichern und schließen" Command="{Binding SaveAndCloseCommand}"
                         MinWidth="180" />
             </StackPanel>
         </Border>
@@ -89,7 +89,7 @@
 
                 <StackPanel Style="{StaticResource FieldRow}">
                     <Label Style="{StaticResource FieldLabel}" Content="Bezeichnung *"
-                           ToolTip="Vollstaendiger Name der Frage. Nur intern sichtbar." />
+                           ToolTip="Vollständiger Name der Frage. Nur intern sichtbar." />
                     <TextBox VerticalContentAlignment="Center" MinWidth="320"
                              Text="{Binding Path=Question.Designation, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
@@ -103,7 +103,7 @@
 
                 <StackPanel Style="{StaticResource FieldRow}">
                     <Label Style="{StaticResource FieldLabel}" Content="Kategorie *"
-                           ToolTip="Thematische Zuordnung. Ohne Kategorie laesst sich die Frage nicht speichern." />
+                           ToolTip="Thematische Zuordnung. Ohne Kategorie lässt sich die Frage nicht speichern." />
                     <ComboBox ItemsSource="{Binding Categories}"
                               SelectedItem="{Binding Path=SelectedCategory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               DisplayMemberPath="Designation" MinWidth="320" />
@@ -157,7 +157,7 @@
 
                 <StackPanel Style="{StaticResource FieldRow}">
                     <Label Style="{StaticResource FieldLabel}" Content="Schwierigkeit"
-                           ToolTip="Stufe 0 bis 15. Fliesst in die Punkteberechnung ein." />
+                           ToolTip="Stufe 0 bis 15. Fließt in die Punkteberechnung ein." />
                     <ComboBox ItemsSource="{Binding Difficulties}" MinWidth="200"
                               SelectedItem="{Binding Question.Difficulty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
@@ -167,8 +167,8 @@
 
                 <!-- Nur Multiple Choice -->
                 <StackPanel Style="{StaticResource FieldRow}" Visibility="{Binding MaxAllowedKeySelectVisibility}">
-                    <Label Style="{StaticResource FieldLabel}" Content="Waehlbare Antworten"
-                           ToolTip="Wie viele Tasten ein Spieler waehlen darf. Muss der Anzahl der als Loesung markierten Schritte entsprechen." />
+                    <Label Style="{StaticResource FieldLabel}" Content="Wählbare Antworten"
+                           ToolTip="Wie viele Tasten ein Spieler wählen darf. Muss der Anzahl der als Lösung markierten Schritte entsprechen." />
                     <TextBox VerticalContentAlignment="Center" MinWidth="80">
                         <TextBox.Text>
                             <Binding Path="Question.BuzzerMaxAllowedKeySelect"
@@ -181,7 +181,7 @@
                             </Binding>
                         </TextBox.Text>
                     </TextBox>
-                    <TextBlock Text="Fuer mehrere richtige Antworten diesen Wert erhoehen."
+                    <TextBlock Text="Für mehrere richtige Antworten diesen Wert erhöhen."
                                Opacity="0.7" VerticalAlignment="Center" Margin="10,0,0,0" />
                 </StackPanel>
 
@@ -195,7 +195,7 @@
                 <!-- Nur Schaetzfrage -->
                 <StackPanel Visibility="{Binding ExpectedValueVisibility}">
                     <StackPanel Style="{StaticResource FieldRow}">
-                        <Label Style="{StaticResource FieldLabel}" Content="Geschaetzt wird"
+                        <Label Style="{StaticResource FieldLabel}" Content="Geschätzt wird"
                                ToolTip="Bestimmt die Einheiten und die Eingabeart am Telefon." />
                         <ComboBox ItemsSource="{Binding AppreciateValueKinds}" MinWidth="200"
                                   SelectedItem="{Binding AppreciateValueKind, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -211,7 +211,7 @@
 
                     <StackPanel Style="{StaticResource FieldRow}" Visibility="{Binding ExpectedNumberVisibility}">
                         <Label Style="{StaticResource FieldLabel}" Content="Richtiger Wert *"
-                               ToolTip="Der Sollwert in der gewaehlten Einheit. Wer am naechsten dran liegt, gewinnt." />
+                               ToolTip="Der Sollwert in der gewählten Einheit. Wer am nächsten dran liegt, gewinnt." />
                         <TextBox VerticalContentAlignment="Center" MinWidth="200"
                                  Text="{Binding ExpectedValue, UpdateSourceTrigger=LostFocus}" />
                     </StackPanel>
@@ -240,8 +240,8 @@
                 <TextBlock Text="Warnungen beim Spielen" Style="{StaticResource SectionHeader}" />
 
                 <StackPanel Style="{StaticResource FieldRow}">
-                    <Label Style="{StaticResource FieldLabel}" Content="Vor der Loesung fragen"
-                           ToolTip="Fragt beim Weiterschalten nach, bevor die Loesung aufgedeckt wird." />
+                    <Label Style="{StaticResource FieldLabel}" Content="Vor der Lösung fragen"
+                           ToolTip="Fragt beim Weiterschalten nach, bevor die Lösung aufgedeckt wird." />
                     <CheckBox VerticalAlignment="Center"
                               IsChecked="{Binding Path=Question.WarnOnResultStep}" />
                 </StackPanel>
@@ -255,7 +255,7 @@
 
                 <StackPanel Style="{StaticResource FieldRow}">
                     <Label Style="{StaticResource FieldLabel}" Content="Notizen" VerticalAlignment="Top"
-                           ToolTip="Nur fuer den Spielleiter. Die Spieler sehen das nicht." />
+                           ToolTip="Nur für den Spielleiter. Die Spieler sehen das nicht." />
                     <TextBox Text="{Binding Question.Notes, UpdateSourceTrigger=PropertyChanged}"
                              AcceptsReturn="True" TextWrapping="Wrap"
                              VerticalScrollBarVisibility="Auto"
@@ -266,7 +266,7 @@
                 <Expander Header="Vom Fragetyp festgelegt" Margin="5,12,5,5" Padding="8">
                     <StackPanel>
                         <TextBlock TextWrapping="Wrap" Opacity="0.75" Margin="0,0,0,8"
-                                   Text="Diese Werte gehoeren zum Fragetyp und werden nicht von Hand gesetzt. Wuerden sie nicht zusammenpassen, zeigt die Spieleransicht 'Not Supported'." />
+                                   Text="Diese Werte gehören zum Fragetyp und werden nicht von Hand gesetzt. Würden sie nicht zusammenpassen, zeigt die Spieleransicht 'Not Supported'." />
                         <StackPanel Style="{StaticResource FieldRow}">
                             <Label Style="{StaticResource FieldLabel}" Content="Bedienung am Telefon" />
                             <TextBlock Text="{Binding BuzzerLayoutText}" VerticalAlignment="Center" />
@@ -285,7 +285,7 @@
                 <TextBlock Text="Schritte" Style="{StaticResource SectionHeader}" />
 
                 <StackPanel Style="{StaticResource FieldRow}">
-                    <Button Content="Schritt hinzufuegen" Command="{Binding AddStepCommnad}"
+                    <Button Content="Schritt hinzufügen" Command="{Binding AddStepCommnad}"
                             MinWidth="150" Margin="0,0,8,0" />
                     <Button Content="Schritt entfernen" Command="{Binding RemoveStepCommnad}"
                             Style="{StaticResource DangerButton}" MinWidth="150" />
@@ -300,7 +300,7 @@
                         <DataGridTextColumn Header="Taste" Binding="{Binding QuestionViewKey}" Width="55" />
                         <DataGridTextColumn Header="Bezeichnung" Binding="{Binding Designation}" Width="*" />
                         <DataGridTextColumn Header="Text" Binding="{Binding StepText}" Width="2*" />
-                        <DataGridCheckBoxColumn Header="Ist Loesung" Binding="{Binding IsResult}" Width="85"
+                        <DataGridCheckBoxColumn Header="Ist Lösung" Binding="{Binding IsResult}" Width="85"
                                                 Visibility="{Binding DataContext.IsResultColumnVisibility,
                                                              RelativeSource={RelativeSource AncestorType=DataGrid}}" />
                         <DataGridCheckBoxColumn Header="Abschluss" Binding="{Binding IsFinish}" Width="80" />
@@ -309,7 +309,7 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <TextBlock Text="Doppelklick auf eine Zeile oeffnet den Schritt."
+                <TextBlock Text="Doppelklick auf eine Zeile öffnet den Schritt."
                            Opacity="0.7" Margin="5,0,5,10" />
             </StackPanel>
         </ScrollViewer>

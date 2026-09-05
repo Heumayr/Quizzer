@@ -40,6 +40,25 @@ namespace Quizzer.Views.GameViews.Sub
 
         public int Columns => PlayerStatsContextList.Count();
 
+        /// <summary>
+        /// Wie viele Kacheln nebeneinander in die Punkteleiste passen, ohne dass die Punktzahl
+        /// unlesbar wird. Ab sechs Spielern bricht die Leiste in zwei Reihen um - gemessen am
+        /// 2026-09-06: bei acht Kacheln in einer Reihe kam der groesste Text mit 16,6
+        /// Bildpunkten an, aus mehreren Metern also gar nicht.
+        /// </summary>
+        public int TileColumns
+        {
+            get
+            {
+                var anzahl = PlayerStatsContextList.Count;
+
+                if (anzahl <= 5)
+                    return Math.Max(anzahl, 1);
+
+                return (int)Math.Ceiling(anzahl / 2.0);
+            }
+        }
+
         public List<PlayerStatsContext> PlayerStatsContextList
         {
             get => playerStatsContextList;
@@ -48,6 +67,7 @@ namespace Quizzer.Views.GameViews.Sub
                 playerStatsContextList = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(Columns));
+                OnPropertyChanged(nameof(TileColumns));
                 OnPropertyChanged(nameof(FirstPlacePlayers));
                 OnPropertyChanged(nameof(OtherPlayers));
             }

@@ -30,9 +30,9 @@ namespace Quizzer.DataModels.Questions
         {
             Typ = QuestionType.MultipleChoice,
             DisplayName = "Multiple Choice",
-            HelpText = "Die Spieler waehlen am Telefon eine Antworttaste. Die Optionen werden "
+            HelpText = "Die Spieler wählen am Telefon eine Antworttaste. Die Optionen werden "
                      + "gemischt und im Raster angezeigt. Mindestens eine Option muss als "
-                     + "Loesung markiert sein.",
+                     + "Lösung markiert sein.",
             TableName = nameof(MultipleChoiceQuestion),
             BuzzerControlsLayout = BuzzerControlsLayout.KeySelect,
             StepDisplayLayoutMode = StepDisplayLayoutMode.Grid,
@@ -52,7 +52,7 @@ namespace Quizzer.DataModels.Questions
             Typ = QuestionType.Properties,
             DisplayName = "Eigenschaftsfrage",
             HelpText = "Hinweise werden nacheinander aufgedeckt; mit jedem Hinweis sinken die "
-                     + "erreichbaren Punkte. Die Spieler buzzern und antworten muendlich.",
+                     + "erreichbaren Punkte. Die Spieler buzzern und antworten mündlich.",
             TableName = nameof(PropertiesQuestion),
             BuzzerControlsLayout = BuzzerControlsLayout.Buzzer,
             StepDisplayLayoutMode = StepDisplayLayoutMode.Vertical,
@@ -68,8 +68,8 @@ namespace Quizzer.DataModels.Questions
         private static readonly QuestionTypeProfile Appreciate = new()
         {
             Typ = QuestionType.Appreciate,
-            DisplayName = "Schaetzfrage",
-            HelpText = "Die Spieler tippen einen Wert ein. Wer am naechsten dran liegt, gewinnt - "
+            DisplayName = "Schätzfrage",
+            HelpText = "Die Spieler tippen einen Wert ein. Wer am nächsten dran liegt, gewinnt - "
                      + "das ermittelt das Spiel selbst aus Sollwert und Einheit.",
             TableName = nameof(AppreciateQestion),
             BuzzerControlsLayout = BuzzerControlsLayout.Input,

@@ -1,8 +1,10 @@
-﻿using Quizzer.Logic.Context;
+﻿using Microsoft.EntityFrameworkCore;
+using Quizzer.Logic.Context;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
-using static System.Collections.Specialized.BitVector32;
 
 namespace Quizzer.Logic.Controller
 {
@@ -46,11 +48,35 @@ namespace Quizzer.Logic.Controller
             {
                 if (disposing && owner)
                 {
+                    ReportUnsavedChanges();
                     Context?.Dispose();
                 }
                 Context = null!;
 
                 disposedValue = true;
+            }
+        }
+
+        /// <summary>
+        /// Meldet Aenderungen, die nie geschrieben wurden. Nur der Eigentuemer des Kontexts
+        /// prueft - ein Controller, der sich den Kontext teilt, waere der falsche Melder.
+        /// </summary>
+        private void ReportUnsavedChanges()
+        {
+            try
+            {
+                if (Context == null)
+                    return;
+
+                var offen = Context.ChangeTracker.Entries().Count(e =>
+                    e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted);
+
+                UnsavedChangesWatch.Report(GetType().Name, offen);
+            }
+            catch (Exception ex)
+            {
+                // Dispose darf nicht werfen, und der Kontext kann hier schon halb abgebaut sein.
+                Debug.WriteLine($"Pruefung auf ungespeicherte Aenderungen gescheitert: {ex.Message}");
             }
         }
 

@@ -409,6 +409,7 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(Game));
             OnPropertyChanged(nameof(Players));
             OnPropertyChanged(nameof(GamePhase));
+            OnPropertyChanged(nameof(PhaseHeadline));
             OnPropertyChanged(nameof(Height));
             OnPropertyChanged(nameof(Width));
             OnPropertyChanged(nameof(CellHeight));
@@ -471,6 +472,11 @@ namespace Quizzer.Views.GameViews
             }
 
             UpdateGameState();
+
+            // War das die letzte Zelle, wechselt der Spielerbildschirm auf die Siegerehrung.
+            // Bis 2026-09-06 geschah das nur, wenn der Spielleiter den Punktestand danach von
+            // Hand umschaltete - sonst blieb das leere Raster stehen.
+            GamePlayerViewModel?.RefreshFinishState();
         }
 
         public int CurrentRound
@@ -486,6 +492,50 @@ namespace Quizzer.Views.GameViews
         public int GameGridCoordinatesCount => Game?.GameGridCoordinates.Count() ?? 0;
         public int GameGridCoordinatesDoneCount => Game?.GameGridCoordinates.Count(c => c.IsDone) ?? 0;
 
+        /// <summary>Titel des Fensters, mit dem Namen des Spiels.</summary>
+        public string WindowTitle =>
+            string.IsNullOrWhiteSpace(Game?.Designation)
+                ? "Spielleitung"
+                : $"Spielleitung – {Game!.Designation}";
+
+        /// <summary>
+        /// Wie weit das Spiel ist, in einem Satz. Bis 2026-09-06 standen hier zwei Angaben
+        /// nebeneinander - "Round" und "Done" -, die dieselbe Zahl mit Versatz eins zeigten.
+        /// </summary>
+        public string ProgressHeadline =>
+            GameGridCoordinatesCount == 0
+                ? "Kein Spielfeld"
+                : $"Frage {Math.Min(GameGridCoordinatesDoneCount + 1, GameGridCoordinatesCount)} von {GameGridCoordinatesCount}";
+
+        public string OpenCellsText
+        {
+            get
+            {
+                var offen = GameGridCoordinatesCount - GameGridCoordinatesDoneCount;
+
+                return offen switch
+                {
+                    <= 0 => "Alle Fragen gespielt",
+                    1 => "Noch eine offen",
+                    _ => $"Noch {offen} offen",
+                };
+            }
+        }
+
+        /// <summary>Die Phase samt der Zahl, auf die das Spiel angelegt ist.</summary>
+        public string PhaseHeadline
+        {
+            get
+            {
+                if (Game == null)
+                    return "Keine Phase";
+
+                return Game.SuggestedPhases > 0
+                    ? $"Phase {Game.Phase} von {Game.SuggestedPhases}"
+                    : $"Phase {Game.Phase}";
+            }
+        }
+
         private void UpdateGameState()
         {
             if (Game == null) return;
@@ -497,7 +547,7 @@ namespace Quizzer.Views.GameViews
             {
                 if (Game.PhaseTrashholds.Contains(CurrentRound))
                 {
-                    var advance = UserPrompt.Confirm("Punkteschwelle erreicht. Zur naechsten Phase wechseln?", "Phasenschwelle");
+                    var advance = UserPrompt.Confirm("Punkteschwelle erreicht. Zur nächsten Phase wechseln?", "Phasenschwelle");
 
                     if (advance)
                     {
@@ -509,6 +559,10 @@ namespace Quizzer.Views.GameViews
 
             OnPropertyChanged(nameof(GameGridCoordinatesCount));
             OnPropertyChanged(nameof(GameGridCoordinatesDoneCount));
+            OnPropertyChanged(nameof(ProgressHeadline));
+            OnPropertyChanged(nameof(OpenCellsText));
+            OnPropertyChanged(nameof(PhaseHeadline));
+            OnPropertyChanged(nameof(WindowTitle));
         }
 
         public int Height
@@ -552,6 +606,17 @@ namespace Quizzer.Views.GameViews
 
         private async Task OpenGamePlayerViewAsync(object? commandParameter)
         {
+            // Ein zweites Spieleransichts-Fenster teilt sich das ViewModel mit dem ersten und
+            // ueberschreibt dessen Fensterverweis - danach folgt nur noch eines dem Spiel, und
+            // welches, ist Zufall. Stattdessen das vorhandene nach vorne holen.
+            var vorhanden = OpenGamePlayerViews.FirstOrDefault(w => w.IsLoaded);
+
+            if (vorhanden != null)
+            {
+                vorhanden.Activate();
+                return;
+            }
+
             var window = new GamePlayerView()
             {
                 DataContext = GamePlayerViewModel
@@ -568,6 +633,10 @@ namespace Quizzer.Views.GameViews
             window.Show();
         }
 
+        /// <summary>
+        /// Beschriftung des Knopfes, der den Punktestand bei den Spielern ein- und ausblendet.
+        /// Sie sagt, was der Druck bewirkt - nicht, was gerade gilt.
+        /// </summary>
         public string ToggleStatsButtonText
         {
             get => field;
@@ -576,9 +645,11 @@ namespace Quizzer.Views.GameViews
                 field = value;
                 OnPropertyChanged();
             }
-        } = "Show Stats";
+        } = "Punktestand ausblenden";
 
-        private bool showStats = false;
+        // Voreingestellt sichtbar, ebenso wie im GamePlayerViewModel: der Punktestand ist die
+        // Auskunft, nach der die Mitspieler am haeufigsten fragen.
+        private bool showStats = true;
 
         private RelayCommand? togglePlayerStatsViewCommand;
         public ICommand TogglePlayerStatsViewCommand => togglePlayerStatsViewCommand ??= new RelayCommand(TogglePlayerStatsView);
@@ -586,7 +657,7 @@ namespace Quizzer.Views.GameViews
         private void TogglePlayerStatsView(object? commandParameter)
         {
             showStats = !showStats;
-            ToggleStatsButtonText = showStats ? "Hide Stats" : "Show Stats";
+            ToggleStatsButtonText = showStats ? "Punktestand ausblenden" : "Punktestand einblenden";
             GamePlayerViewModel.SetShowPlayerStats(showStats);
         }
 
@@ -655,6 +726,7 @@ namespace Quizzer.Views.GameViews
                 cell.RefreshFromModel();
             }
             OnPropertyChanged(nameof(GamePhase));
+            OnPropertyChanged(nameof(PhaseHeadline));
         }
 
         private RelayCommand? toggleFullScreenCommand;

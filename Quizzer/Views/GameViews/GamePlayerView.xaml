@@ -176,13 +176,15 @@
         </Grid>
 
         <!-- BOTTOM STATS -->
+        <!-- Ohne Viewbox: die Punktekacheln fuellen die Leiste selbst aus. Eine Viewbox hier
+             hat den ganzen Streifen auf die Groesse einer einzelnen Karte gestaucht - die
+             Punktzahl kam mit rund 14 Bildpunkten auf dem Beamer an.
+             Dunkler Grund, damit der Kontrast nicht vom Hintergrundbild abhaengt. -->
         <Border Grid.Row="1"
             Visibility="{Binding ShowBottomStats}"
-            Background="Transparent"
+            Background="#99000000"
             Margin="5">
-            <Viewbox Stretch="Uniform">
-                <sub:UcStatsView DataContext="{Binding StatsContext}" />
-            </Viewbox>
+            <sub:UcStatsView DataContext="{Binding StatsContext}" />
         </Border>
 
         <!-- FULLSCREEN STATS -->

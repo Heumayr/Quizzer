@@ -122,7 +122,7 @@ namespace Quizzer.Views
                 return;
             }
 
-            if (!UserPrompt.Confirm("Die ausgewaehlten Spiele wirklich entfernen?", "Entfernen bestaetigen")) return;
+            if (!UserPrompt.Confirm("Die ausgewählten Spiele wirklich entfernen?", "Entfernen bestätigen")) return;
 
             var toRemove = new List<Game>(SelectedGames);
             using var ctrl = new GamesController();

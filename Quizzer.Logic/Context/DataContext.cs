@@ -43,9 +43,14 @@ namespace Quizzer.Logic.Context
                 .HasForeignKey(qr => qr.GameGridCoordinateId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            // Bewusst WithMany() ohne Gegenstueck: Game.QuestionResults traegt [NotMapped] und
+            // rechnet sich aus den Zellen (SelectMany), ist also keine Sammlung, die EF fuellen
+            // koennte. Als Navigation angemeldet, scheitert jedes Laden eines Ergebnisses samt
+            // Spiel mit "does not implement ICollection<QuestionResult>". Fremdschluessel und
+            // Loeschregel bleiben unveraendert - am Schema aendert sich nichts.
             modelBuilder.Entity<QuestionResult>()
                 .HasOne(qr => qr.Game)
-                .WithMany(g => g.QuestionResults)
+                .WithMany()
                 .HasForeignKey(qr => qr.GameId)
                 .OnDelete(DeleteBehavior.NoAction);
 

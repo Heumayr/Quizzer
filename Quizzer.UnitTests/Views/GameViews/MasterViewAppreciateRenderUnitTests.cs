@@ -215,7 +215,7 @@ namespace Quizzer.UnitTests.Views.GameViews
                         $"Der Mitspieler fehlt in der Uebersicht. Sichtbar: {string.Join(" | ", texts)}");
                     Assert.IsTrue(texts.Any(t => t.Contains("3798")),
                         $"Der Sollwert fehlt in der Steuerung. Sichtbar: {string.Join(" | ", texts)}");
-                    Assert.IsTrue(texts.Any(t => t.Contains("Schaetzfrage")),
+                    Assert.IsTrue(texts.Any(t => t.Contains("Schätzfrage")),
                         $"Die Kopfzeile nennt die Frage nicht. Sichtbar: {string.Join(" | ", texts)}");
 
                     // Sichtbarer Text traegt echte Umlaute (standards-allgemein.md, Abschnitt 1).

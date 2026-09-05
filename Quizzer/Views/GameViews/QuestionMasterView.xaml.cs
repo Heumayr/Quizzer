@@ -18,6 +18,12 @@ namespace Quizzer.Views.GameViews
     /// </summary>
     public partial class QuestionMasterView : WindowBase
     {
+        /// <summary>
+        /// Escape schliesst die laufende Frage nicht. Zum Beenden gibt es die Knoepfe unten
+        /// rechts - die schreiben den Spielstand mit.
+        /// </summary>
+        public override bool CloseOnEscape => false;
+
         public QuestionMasterView()
         {
             InitializeComponent();

@@ -119,6 +119,13 @@ namespace Quizzer.Views.GameViews.Sub
 
         public string PlayerImagePath => string.IsNullOrEmpty(Player?.UserPictureFileName) ? Settings.PlaceholderPlayerImagePath : Path.Combine(Settings.FilePathQuizzer, Player.UserPictureFileName);
 
+        /// <summary>
+        /// Der Name, wie er auf dem Beamer steht: der frei gewaehlte, sonst die Bezeichnung.
+        /// Die hohe Spielerkarte zeigt beides untereinander; auf der Punktekachel der Leiste ist
+        /// nur fuer einen Platz.
+        /// </summary>
+        public string PlayerName => Player?.CalculatedDisplayName ?? string.Empty;
+
         public Brush BackgroundBrush => GetBackgroundBrush();
 
         private Brush GetBackgroundBrush()

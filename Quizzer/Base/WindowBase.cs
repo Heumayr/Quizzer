@@ -108,9 +108,16 @@ namespace Quizzer.Base
 
         #endregion Chrome Properties
 
+        /// <summary>
+        /// Ob die Escape-Taste dieses Fenster schliesst. Fuer Dialoge richtig, fuer die Fenster
+        /// des laufenden Spiels nicht: dort trifft ein versehentliches Escape das Spielfeld, den
+        /// Spielerbildschirm oder die offene Frage - und beendet damit den Spielzug vor Publikum.
+        /// </summary>
+        public virtual bool CloseOnEscape => true;
+
         private void DefaultKeyDown(object? sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Escape)
+            if (e.Key == Key.Escape && CloseOnEscape)
             {
                 Close();
                 e.Handled = true;

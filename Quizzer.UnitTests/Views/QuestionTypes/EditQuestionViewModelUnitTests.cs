@@ -29,7 +29,7 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
         [DataRow(QuestionType.Default, "Standardfrage")]
         [DataRow(QuestionType.MultipleChoice, "Multiple Choice")]
         [DataRow(QuestionType.Properties, "Eigenschaftsfrage")]
-        [DataRow(QuestionType.Appreciate, "Schaetzfrage")]
+        [DataRow(QuestionType.Appreciate, "Schätzfrage")]
         public void TheEditor_NamesTheQuestionType(QuestionType typ, string expected)
         {
             var vm = EditorFor(typ);

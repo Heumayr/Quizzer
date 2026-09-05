@@ -132,7 +132,7 @@
                     Background="{Binding AppreciateGuessBrush}"
                     Visibility="{Binding ShowAppreciateGuess}">
                 <StackPanel>
-                    <TextBlock Text="Geschaetzt" FontWeight="Bold" Foreground="White" />
+                    <TextBlock Text="Geschätzt" FontWeight="Bold" Foreground="White" />
                     <TextBlock Text="{Binding AppreciateGuessText}" FontSize="18"
                                Foreground="White" TextWrapping="Wrap" />
                     <TextBlock Text="{Binding AppreciateDistanceText}" Opacity="0.8"

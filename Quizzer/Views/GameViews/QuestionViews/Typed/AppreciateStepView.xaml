@@ -18,7 +18,7 @@
         <!-- Nur fuer den Spielleiter: Zustand des Schritts -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left"
                     Visibility="{Binding MasterViewVisibility}" Margin="4">
-            <Label Content="Loesung:" />
+            <Label Content="Lösung:" />
             <CheckBox VerticalContentAlignment="Center" IsEnabled="False"
                       IsChecked="{Binding Step.IsResult}" />
             <Label Content="Abschluss:" Margin="12,0,0,0" />

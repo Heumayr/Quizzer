@@ -35,6 +35,15 @@
                 <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
             </Style>
 
+            <!-- Ueberschrift eines Bereichs. Dieselbe Form, die BuzzerServerView bereits
+                 verwendet: klein, fett, zurueckgenommen - sie gliedert, ohne zu draengen. -->
+            <Style x:Key="SectionHeader" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+                <Setter Property="FontWeight" Value="Bold" />
+                <Setter Property="Opacity" Value="0.7" />
+                <Setter Property="Margin" Value="0,0,0,4" />
+            </Style>
+
             <Style TargetType="Label">
                 <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
                 <Setter Property="Background" Value="Transparent" />

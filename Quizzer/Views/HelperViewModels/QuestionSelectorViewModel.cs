@@ -65,6 +65,15 @@ namespace Quizzer.Views.HelperViewModels
         {
             if (Coordinate == null) return;
 
+            // Die Punkte einer Zelle sind gespeicherte Spalten, keine Rechnung beim Anzeigen.
+            // Ohne diesen Aufruf schreibt der Dialog den Stand VOR der Zuweisung - meist eine
+            // Null - und die Oberflaeche zeigt danach den richtigen Wert, den niemand mehr
+            // speichert. Die Frage wird dann fuer null Punkte gespielt.
+            if (Game != null)
+                Coordinate.Game = Game;
+
+            Coordinate.CalculateAndSetCurrentPoints();
+
             using var ctrlCoords = new GameGridCoordinatesController();
             await ctrlCoords.UpsertAsync(Coordinate);
             await ctrlCoords.SaveChangesAsync();

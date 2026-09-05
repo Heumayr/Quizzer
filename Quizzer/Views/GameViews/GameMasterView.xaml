@@ -8,7 +8,7 @@
         xmlns:base="clr-namespace:Quizzer.Base"
         xmlns:helper="clr-namespace:Quizzer.Views.HelperViewModels"
         mc:Ignorable="d"
-        Title="GameMasterView" Height="450" Width="800">
+        Title="{Binding WindowTitle}" Height="700" Width="1200">
     <base:WindowBase.DataContext>
         <local:GameMasterViewModel />
     </base:WindowBase.DataContext>
@@ -31,39 +31,53 @@
             <RowDefinition Height="4*" />
             <RowDefinition Height="{Binding StatsRowHeight}" />
         </Grid.RowDefinitions>
-        <Border Padding="20" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Background="Black" MaxWidth="200">
-            <StackPanel Orientation="Vertical" >
-                <Button Content="Buzzer Server" Command="{Binding BuzzerServerCommand}" />
-                <Button Content="Toggle Fullscreen" Command="{Binding ToggleFullScreenCommand}" />
-                <Button Content="Open Player View" Command="{Binding OpenGamePlayerViewCommand}" />
-                <Button Content="Change View" Command="{Binding ChangeViewCommand}" />
-                <Button Content="{Binding ToggleStatsButtonText}" Command="{Binding TogglePlayerStatsViewCommand}" />
-                <StackPanel Height="30"></StackPanel>
+        <!-- Linke Spalte: vier abgesetzte Bloecke statt einer Knopfkette. Jeder Block sagt in
+             seiner Ueberschrift, worum es geht, und die Knoepfe sagen, was ein Druck bewirkt. -->
+        <Border Padding="16" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Background="Black" Width="250">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Orientation="Vertical">
 
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock FontWeight="Bold" Text="Round: "></TextBlock>
-                    <TextBlock FontWeight="Bold" Text="{Binding CurrentRound}" VerticalAlignment="Center"></TextBlock>
-                    <TextBlock Margin="15, 0, 0, 0" FontWeight="Bold" Text="Done: "></TextBlock>
-                    <TextBlock FontWeight="Bold" Text="{Binding GameGridCoordinatesDoneCount}" VerticalAlignment="Center"></TextBlock>
-                    <TextBlock FontWeight="Bold" Text="/"></TextBlock>
-                    <TextBlock FontWeight="Bold" Text="{Binding GameGridCoordinatesCount}" VerticalAlignment="Center"></TextBlock>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0, 10">
-                    <TextBlock FontWeight="Bold" Text="Phase: "></TextBlock>
-                    <TextBlock FontWeight="Bold" Text="{Binding GamePhase}" VerticalAlignment="Center"></TextBlock>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <Button Content="Raise" Command="{Binding RaiseGamePhaseCommand}" />
-                    <Button Content="Lower" Command="{Binding LowerGamePhaseCommand}" />
-                </StackPanel>
+                    <!-- Spielstand -->
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Spielstand" />
+                    <TextBlock FontSize="20" FontWeight="Bold" Text="{Binding ProgressHeadline}" />
+                    <TextBlock Opacity="0.75" Text="{Binding OpenCellsText}" Margin="0,2,0,0" />
 
-                <StackPanel Orientation="Vertical" Margin="0, 10">
-                    <TextBlock FontWeight="Bold" Text="Choosing Player: "></TextBlock>
-                    <TextBlock TextWrapping="Wrap" Margin="0, 10, 0, 0" FontWeight="ExtraBold" FontSize="18" Text="{Binding ChoosingPlayer}" VerticalAlignment="Center" TextAlignment="Center" Foreground="Wheat"></TextBlock>
+                    <!-- Wer waehlt aus -->
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Wer wählt aus" Margin="0,18,0,4" />
+                    <TextBlock TextWrapping="Wrap" FontWeight="ExtraBold" FontSize="18"
+                               Text="{Binding ChoosingPlayer}" TextAlignment="Center"
+                               Foreground="Wheat" />
+
+                    <!-- Phase -->
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Phase" Margin="0,18,0,4" />
+                    <TextBlock FontSize="16" FontWeight="Bold" Text="{Binding PhaseHeadline}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <Button Content="Phase +" Command="{Binding RaiseGamePhaseCommand}"
+                                ToolTip="Erhöht die Phase. Die Punkte aller noch offenen Zellen steigen." />
+                        <Button Content="Phase −" Command="{Binding LowerGamePhaseCommand}"
+                                ToolTip="Senkt die Phase. Die Punkte aller noch offenen Zellen sinken." />
+                    </StackPanel>
+                    <TextBlock Opacity="0.65" TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0"
+                               Text="Ändert die Punkte aller noch offenen Zellen." />
+
+                    <!-- Fenster und Anzeige, getrennt nach Wirkungsort -->
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Bei den Spielern" Margin="0,18,0,4" />
+                    <Button Content="Spieleransicht öffnen" Command="{Binding OpenGamePlayerViewCommand}"
+                            ToolTip="Öffnet das Fenster für den Beamer. Ist es schon offen, kommt es nach vorne." />
+                    <Button Content="{Binding ToggleStatsButtonText}" Command="{Binding TogglePlayerStatsViewCommand}"
+                            ToolTip="Blendet den Punktestand auf dem Spielerbildschirm ein oder aus." />
+
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Bei mir" Margin="0,18,0,4" />
+                    <Button Content="Vollbild umschalten" Command="{Binding ToggleFullScreenCommand}" />
+                    <Button Content="Zwischen Raster und Punkten wechseln" Command="{Binding ChangeViewCommand}" />
+
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Telefone" Margin="0,18,0,4" />
+                    <Button Content="Buzzer-Server öffnen" Command="{Binding BuzzerServerCommand}"
+                            ToolTip="Startet den Server, zu dem sich die Telefone verbinden, und zeigt die QR-Codes." />
                 </StackPanel>
-            </StackPanel>
+            </ScrollViewer>
         </Border>
-        <Viewbox Visibility="{Binding ShowGameGridView}" Margin="5" Grid.Column="1" Grid.Row="0"
+        <Viewbox Margin="5" Grid.Column="1" Grid.Row="0"
               Stretch="Uniform"
                HorizontalAlignment="Stretch"
                VerticalAlignment="Stretch">
@@ -160,8 +174,9 @@
             </Grid>
         </Viewbox>
 
-        <Viewbox Grid.Row="1" Grid.Column="1">
+        <!-- Ohne Viewbox, wie auf dem Spielerbildschirm: die Kacheln fuellen die Leiste selbst. -->
+        <Border Grid.Row="1" Grid.Column="1" Background="#99000000" Margin="5">
             <sub:UcStatsView DataContext="{Binding StatsContext}" />
-        </Viewbox>
+        </Border>
     </Grid>
 </base:WindowBase>

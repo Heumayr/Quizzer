@@ -18,6 +18,9 @@ namespace Quizzer.Views.GameViews
     /// </summary>
     public partial class GamePlayerView : WindowBase
     {
+        /// <summary>Escape schliesst den Spielerbildschirm nicht - er haengt am Beamer.</summary>
+        public override bool CloseOnEscape => false;
+
         public GamePlayerView()
         {
             InitializeComponent();

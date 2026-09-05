@@ -9,20 +9,21 @@
 
     <Grid Background="Transparent">
 
-        <!-- normal view -->
+        <!-- Laufender Punktestand. Querformatige Kacheln, die die Leiste ausfuellen: die hohe
+             Spielerkarte wurde hier auf ein Zwanzigstel gestaucht, und die Punktzahl kam mit
+             rund 14 Bildpunkten an. Ohne Viewbox darum - die Kachel skaliert ihren Inhalt
+             selbst und nutzt die ganze Breite. -->
         <Grid Visibility="{Binding ShowNormalStatsView}">
             <ItemsControl ItemsSource="{Binding PlayerStatsContextList}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <UniformGrid Columns="{Binding Columns}" />
+                        <UniformGrid Columns="{Binding TileColumns}" />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Viewbox Stretch="Uniform" Margin="8">
-                            <local:UcPlayerStatsView Width="220" Height="340" />
-                        </Viewbox>
+                        <local:UcPlayerScoreTile />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
