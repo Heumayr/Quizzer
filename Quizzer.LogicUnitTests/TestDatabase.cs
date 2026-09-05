@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels;
 using Quizzer.Logic.Context;
+using Quizzer.Logic.Controller;
 
 // Alles Wesentliche ist prozessweit: Settings, die Zufallsquelle und eine einzige
 // Testdatenbank. Parallele Testklassen wuerden sich gegenseitig den Boden wegziehen,
@@ -29,6 +30,9 @@ namespace Quizzer.LogicUnitTests
         public const string ConnectionString =
             @"Data Source=(localdb)\MSSQLLocalDB;Database=Quizzer_Logic_Tests;Integrated Security=True";
 
+        /// <summary>Controller, die mit ungespeicherten Aenderungen entsorgt wurden.</summary>
+        public static List<string> DiscardedChanges { get; } = new();
+
         [AssemblyInitialize]
         public static void Initialize(TestContext _)
         {
@@ -38,8 +42,49 @@ namespace Quizzer.LogicUnitTests
             Settings.ConnectionString = ConnectionString;
             Settings.FilePathQuizzer = Path.Combine(Path.GetTempPath(), "QuizzerTestAssets");
 
+            // Ein vergessenes SaveChangesAsync verliert die Aenderung ohne jeden Fehler. Im
+            // Testlauf wird daraus eine Liste, die ein Test nachsehen kann.
+            UnsavedChangesWatch.Handler = (controller, anzahl) =>
+            {
+                lock (DiscardedChanges)
+                {
+                    DiscardedChanges.Add($"{controller}: {anzahl}");
+                }
+            };
+
             // Sperre 1 sitzt in RecreateForTests und wirft, wenn das hier je danebengeht.
             DatabaseInitializer.RecreateForTests();
+        }
+
+        [AssemblyCleanup]
+        public static void Cleanup() => UnsavedChangesWatch.ResetHandler();
+
+        /// <summary>Vergisst, was bisher verworfen wurde - fuer Tests, die es absichtlich tun.</summary>
+        public static void ClearDiscardedChanges()
+        {
+            lock (DiscardedChanges)
+            {
+                DiscardedChanges.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Wirft, wenn seit dem letzten Zuruecksetzen ein Controller Aenderungen weggeworfen hat.
+        /// </summary>
+        public static void ThrowIfChangesWereDiscarded()
+        {
+            lock (DiscardedChanges)
+            {
+                if (DiscardedChanges.Count == 0)
+                    return;
+
+                var offen = string.Join(", ", DiscardedChanges);
+                DiscardedChanges.Clear();
+
+                throw new AssertFailedException(
+                    "Ein Controller wurde mit ungespeicherten Aenderungen entsorgt - es fehlt ein "
+                    + $"SaveChangesAsync: {offen}");
+            }
         }
     }
 }
