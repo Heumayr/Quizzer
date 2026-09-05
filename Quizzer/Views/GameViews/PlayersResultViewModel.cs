@@ -22,7 +22,29 @@ namespace Quizzer.Views.GameViews
 
         public GameGridCoordinate? Coordinate { get; private set; }
 
-        public int Columns => PlayerResultContextList.Count();
+        /// <summary>
+        /// Wie viele Spielerkarten nebeneinander stehen. Hoechstens vier - der Rest bricht um.
+        /// <para>
+        /// Bis 2026-09-06 wurde durch die Zahl der Mitspieler geteilt: bei sechs Gaesten blieben
+        /// je Karte rund 133 Bildpunkte, waehrend das Spielerbild allein 150 breit ist. Die
+        /// Karten ueberzeichneten einander.
+        /// </para>
+        /// </summary>
+        public int Columns => Math.Clamp(PlayerResultContextList.Count, 1, 4);
+
+        /// <summary>Titel des Fensters, mit der Kurzbezeichnung der Frage.</summary>
+        public string WindowTitle
+        {
+            get
+            {
+                var kurz = Coordinate?.QuestionBase?.DesignationShort;
+
+                if (string.IsNullOrWhiteSpace(kurz))
+                    kurz = Coordinate?.QuestionBase?.Designation;
+
+                return string.IsNullOrWhiteSpace(kurz) ? "Bewerten" : $"Bewerten – {kurz}";
+            }
+        }
 
         public GamePlayerViewModel? GamePlayerViewModel { get; set; }
 
@@ -149,6 +171,7 @@ namespace Quizzer.Views.GameViews
 
             PlayerResultContextList = contextList;
             OnPropertyChanged(nameof(Columns));
+            OnPropertyChanged(nameof(WindowTitle));
         }
 
         /// <summary>

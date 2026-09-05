@@ -186,8 +186,25 @@ namespace Quizzer.Views.GameViews.Sub
                     CorrectAnswered = false;
 
                 OnPropertyChanged(nameof(CanNotEditManipulation));
+                OnPropertyChanged(nameof(SuggestionText));
             }
         }
+
+        /// <summary>
+        /// Die gesetzte Bewertung im Klartext.
+        /// <para>
+        /// Bis 2026-09-06 sahen die vier Knoepfe immer gleich aus, und welche Bewertung galt,
+        /// musste der Spielleiter aus einer Zahl in einem 50 Bildpunkte breiten Feld
+        /// zurueckrechnen. Bei fuenf Karten nebeneinander geht das nicht.
+        /// </para>
+        /// </summary>
+        public string SuggestionText => Suggestion switch
+        {
+            ScoreSuggestion.Right => $"Bewertung: richtig, +{CurrentScoreManipulation}",
+            ScoreSuggestion.Wrong => $"Bewertung: falsch, {CurrentScoreManipulation}",
+            ScoreSuggestion.Correction => $"Bewertung: eigener Wert, {CurrentScoreManipulation}",
+            _ => "Noch nicht bewertet",
+        };
 
         private int GetCurrentPoints()
         {
@@ -255,6 +272,7 @@ namespace Quizzer.Views.GameViews.Sub
             {
                 field = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(SuggestionText));
 
                 NewScore = Result.FinalScore + value;
             }

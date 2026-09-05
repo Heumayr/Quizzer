@@ -7,37 +7,48 @@
         xmlns:sub="clr-namespace:Quizzer.Views.GameViews.Sub"
         xmlns:base="clr-namespace:Quizzer.Base"
         mc:Ignorable="d"
-        Title="PlayersResultView" Height="450" Width="800">
+        Title="{Binding WindowTitle}" Height="700" Width="1100">
     <base:WindowBase.DataContext>
         <local:PlayersResultViewModel></local:PlayersResultViewModel>
     </base:WindowBase.DataContext>
     <Grid Background="Black">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition></ColumnDefinition>
-        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto" MinHeight="100"></RowDefinition>
-            <RowDefinition Height="auto"></RowDefinition>
+            <!-- Die Karten nehmen den Platz, die Knopfleiste bleibt darunter stehen. Bis
+                 2026-09-06 war die erste Zeile auf "auto": ab etwa fuenf Mitspielern wuchsen
+                 die Karten aus dem Fenster, und die Knoepfe rutschten mit hinaus. -->
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <ItemsControl Grid.Column="0" Grid.Row="0" ItemsSource="{Binding PlayerResultContextList}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Columns="{Binding Columns}" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding PlayerResultContextList}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <!-- Hoechstens vier je Zeile, der Rest bricht um. Bisher wurde durch die
+                             Zahl der Spieler geteilt: bei sechs Gaesten blieben je Karte rund
+                             133 Bildpunkte, das Spielerbild allein ist 150 breit. -->
+                        <UniformGrid Columns="{Binding Columns}" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
 
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <sub:UcPlayerResultView />
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <sub:UcPlayerResultView />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
 
-        <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button Content="Save" Command="{Binding SaveCommand}"></Button>
-            <Button Content="Save and Close" Command="{Binding SaveAndCloseCommand}"></Button>
-            <Button Content="Save IsDone Finish" Command="{Binding SaveIsDoneFinishStateCommand}" Background="DarkRed"></Button>
-        </StackPanel>
+        <Border Grid.Row="1" Background="#161616" Padding="8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="Speichern" Command="{Binding SaveCommand}"
+                        ToolTip="Schreibt die Punkte, das Fenster bleibt offen." />
+                <Button Content="Speichern und schließen" Command="{Binding SaveAndCloseCommand}" />
+                <Button Content="Speichern und Zelle abschließen" Command="{Binding SaveIsDoneFinishStateCommand}"
+                        Background="DarkRed"
+                        ToolTip="Schreibt die Punkte und markiert die Zelle als gespielt." />
+            </StackPanel>
+        </Border>
     </Grid>
 </base:WindowBase>

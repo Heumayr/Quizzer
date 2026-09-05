@@ -52,34 +52,42 @@
                     <RowDefinition Height="auto"></RowDefinition>
                     <RowDefinition Height="auto"></RowDefinition>
                     <RowDefinition Height="auto"></RowDefinition>
+                    <RowDefinition Height="auto"></RowDefinition>
                 </Grid.RowDefinitions>
 
-                <Label Grid.Column="0" Grid.Row="0" Content="Correct answered:"></Label>
+                <Label Grid.Column="0" Grid.Row="0" Content="Richtig beantwortet"></Label>
                 <CheckBox Grid.Column="1" Grid.Row="0" IsChecked="{Binding CorrectAnswered}" VerticalAlignment="Center"></CheckBox>
 
-                <Label Grid.Column="0" Grid.Row="1" Content="Actual Score:"></Label>
+                <Label Grid.Column="0" Grid.Row="1" Content="Punkte bisher"></Label>
                 <Label Grid.Column="1" Grid.Row="1" Content="{Binding ActualScore, Mode=OneWay}"  HorizontalAlignment="Left"></Label>
 
-                <Label Grid.Column="0" Grid.Row="2" Content="Manipulation:"></Label>
+                <Label Grid.Column="0" Grid.Row="2" Content="Änderung"></Label>
                 <TextBox Grid.Column="1" Grid.Row="2" IsReadOnly="{Binding CanNotEditManipulation}" HorizontalAlignment="Left"
                   Text="{Binding CurrentScoreManipulation, UpdateSourceTrigger=PropertyChanged}" Width="50"></TextBox>
 
-                <Label Grid.Column="0" Grid.Row="3" Content="New Score:"></Label>
+                <Label Grid.Column="0" Grid.Row="3" Content="Punkte danach"></Label>
                 <Label Grid.Column="1" Grid.Row="3" Content="{Binding NewScore, Mode=OneWay}"  HorizontalAlignment="Left"></Label>
 
                 <Grid Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Button Content="Right" Background="DarkGreen" Command="{Binding RightSuggestionCommand}"></Button>
-                        <Button Content="Wrong" Command="{Binding WrongSuggestionCommand}"></Button>
-                        <Button Content="None" Command="{Binding NoneSuggestionCommand}"></Button>
-                        <Button Content="Correction" Command="{Binding CorrectionSuggestionCommand}"></Button>
+                        <Button Content="Richtig" Background="DarkGreen" Command="{Binding RightSuggestionCommand}" />
+                        <Button Content="Falsch" Command="{Binding WrongSuggestionCommand}" />
+                        <Button Content="Ohne Wertung" Command="{Binding NoneSuggestionCommand}" />
+                        <Button Content="Eigener Wert" Command="{Binding CorrectionSuggestionCommand}" />
                     </StackPanel>
                 </Grid>
+
+                <!-- Die Bewertung als Wort: an den vier gleich aussehenden Knoepfen ist nicht
+                     zu erkennen, welcher gedrueckt wurde. -->
+                <TextBlock Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="2"
+                           Text="{Binding SuggestionText}"
+                           HorizontalAlignment="Center" Margin="0,6,0,0"
+                           FontWeight="SemiBold" Foreground="Wheat" />
             </Grid>
 
             <StackPanel Grid.Row="4" Visibility="{Binding ShowKeySelections}">
 
-                <TextBlock Text="Key Selections"
+                <TextBlock Text="Tastenwahl"
                Margin="6,6,6,2"
                FontSize="16"
                FontWeight="Bold"
@@ -142,7 +150,7 @@
 
             <Grid Grid.Row="6" Grid.Column="0" HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal">
-                    <Label Content="Buzzered:"></Label>
+                    <Label Content="Hat gebuzzert"></Label>
                     <CheckBox IsEnabled="False" IsChecked="{Binding IsBuzzerWinner, Mode=OneWay}" VerticalAlignment="Center"></CheckBox>
                 </StackPanel>
             </Grid>
