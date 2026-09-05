@@ -174,8 +174,9 @@
             </Grid>
         </Viewbox>
 
-        <Viewbox Grid.Row="1" Grid.Column="1">
+        <!-- Ohne Viewbox, wie auf dem Spielerbildschirm: die Kacheln fuellen die Leiste selbst. -->
+        <Border Grid.Row="1" Grid.Column="1" Background="#99000000" Margin="5">
             <sub:UcStatsView DataContext="{Binding StatsContext}" />
-        </Viewbox>
+        </Border>
     </Grid>
 </base:WindowBase>

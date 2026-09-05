@@ -125,7 +125,7 @@ namespace Quizzer.DataModels.Models.Base
         public string DisplayBuild => $"{QuestionBase?.Designation}";
 
         [NotMapped]
-        public string DisplayPlay => $"{CurrentPoints} pts / -{CurrentMinusPoints} pts";
+        public string DisplayPlay => $"{CurrentPoints} / −{CurrentMinusPoints} Punkte";
 
         [NotMapped]
         public string DisplayMaster => !string.IsNullOrEmpty(QuestionBase?.DesignationShort) ? $"{QuestionBase?.DesignationShort}" : DisplayBuild;

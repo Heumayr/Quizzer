@@ -131,7 +131,7 @@
                 <!-- Failed -->
                 <Viewbox Visibility="{Binding ShowFailed, Converter={StaticResource BoolToVisibilityConverter}}"
                          Stretch="Uniform">
-                    <TextBlock Text="Failed"
+                    <TextBlock Text="Nicht gelöst"
                                Foreground="{Binding IsDoneTextBrush}"
                                FontWeight="Bold"
                                HorizontalAlignment="Center"
