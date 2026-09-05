@@ -80,44 +80,18 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
         [TestMethod]
         public void TheWindowBuilds()
         {
-            Exception? failure = null;
-
-            var thread = new Thread(() =>
+            // Laeuft auf dem gemeinsamen Oberflaechen-Thread; ein eigener wuerde beim
+            // Herunterfahren den prozessweiten Application.Current mitnehmen (siehe UiTestHost).
+            UiTestHost.Run(() =>
             {
-                try
-                {
-                    if (Application.Current == null)
-                    {
-                        var app = new Quizzer.App { ShutdownMode = ShutdownMode.OnExplicitShutdown };
-                        app.InitializeComponent();
-                    }
+                var view = new NewQuestionView();
+                view.Measure(new Size(620, 520));
+                view.Arrange(new Rect(0, 0, 620, 520));
+                view.UpdateLayout();
 
-                    var view = new NewQuestionView();
-                    view.Measure(new Size(620, 520));
-                    view.Arrange(new Rect(0, 0, 620, 520));
-                    view.UpdateLayout();
-
-                    Assert.IsNotNull(view.ViewModel);
-                    Assert.AreEqual(4, view.ViewModel.Profiles.Count);
-                }
-                catch (Exception ex)
-                {
-                    failure = ex;
-                }
-                finally
-                {
-                    Dispatcher.CurrentDispatcher.InvokeShutdown();
-                }
+                Assert.IsNotNull(view.ViewModel);
+                Assert.AreEqual(4, view.ViewModel.Profiles.Count);
             });
-
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-
-            Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(60)));
-
-            if (failure != null)
-                throw new AssertFailedException(
-                    $"Das Anlegen-Fenster liess sich nicht aufbauen: {failure.Message}", failure);
         }
     }
 }

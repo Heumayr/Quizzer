@@ -24,40 +24,16 @@ namespace Quizzer.UnitTests.Views.GameViews
         private const double LeisteBreite = 1900;
         private const double LeisteHoehe = 200;
 
-        private static void OnUiThread(Action action)
-        {
-            Exception? failure = null;
-
-            var thread = new Thread(() =>
-            {
-                try
-                {
-                    if (Application.Current == null)
-                    {
-                        var app = new Quizzer.App { ShutdownMode = ShutdownMode.OnExplicitShutdown };
-                        app.InitializeComponent();
-                    }
-
-                    action();
-                }
-                catch (Exception ex)
-                {
-                    failure = ex;
-                }
-                finally
-                {
-                    Dispatcher.CurrentDispatcher.InvokeShutdown();
-                }
-            });
-
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-
-            Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(60)), "Der Aufbau blieb haengen.");
-
-            if (failure != null)
-                throw new AssertFailedException($"Der Aufbau scheiterte: {failure.Message}", failure);
-        }
+        /// <summary>
+        /// Fuehrt die Arbeit auf dem gemeinsamen Oberflaechen-Thread aus.
+        /// <para>
+        /// Frueher legte diese Klasse einen eigenen STA-Thread an und fuhr dessen Dispatcher
+        /// am Ende herunter. <c>Application.Current</c> ist prozessweit - danach fand keine
+        /// spaetere Klasse mehr einen lebenden Dispatcher. Einzelheiten in
+        /// <see cref="UiTestHost"/>.
+        /// </para>
+        /// </summary>
+        private static void OnUiThread(Action action) => UiTestHost.Run(action);
 
         private static IEnumerable<T> Descendants<T>(DependencyObject root) where T : DependencyObject
         {

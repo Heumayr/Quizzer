@@ -33,41 +33,16 @@ namespace Quizzer.UnitTests.Views.GameViews
         private static readonly string LangerText = string.Join(" ",
             Enumerable.Repeat("Diesertextistabsichtlichlang", 40));
 
-        private static void OnUiThread(Action action)
-        {
-            Exception? failure = null;
-
-            var thread = new Thread(() =>
-            {
-                try
-                {
-                    if (Application.Current == null)
-                    {
-                        var app = new Quizzer.App { ShutdownMode = ShutdownMode.OnExplicitShutdown };
-                        app.InitializeComponent();
-                    }
-
-                    action();
-                }
-                catch (Exception ex)
-                {
-                    failure = ex;
-                }
-                finally
-                {
-                    Dispatcher.CurrentDispatcher.InvokeShutdown();
-                }
-            });
-
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-
-            Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(60)), "Der Aufbau blieb haengen.");
-
-            if (failure != null)
-                throw failure is AssertFailedException ? failure
-                    : new AssertFailedException($"Die Ansicht liess sich nicht aufbauen: {failure.Message}", failure);
-        }
+        /// <summary>
+        /// Fuehrt die Arbeit auf dem gemeinsamen Oberflaechen-Thread aus.
+        /// <para>
+        /// Frueher legte diese Klasse einen eigenen STA-Thread an und fuhr dessen Dispatcher
+        /// am Ende herunter. <c>Application.Current</c> ist prozessweit - danach fand keine
+        /// spaetere Klasse mehr einen lebenden Dispatcher. Einzelheiten in
+        /// <see cref="UiTestHost"/>.
+        /// </para>
+        /// </summary>
+        private static void OnUiThread(Action action) => UiTestHost.Run(action);
 
         /// <summary>Sucht rekursiv alle TextBlocks im aufgebauten Baum.</summary>
         private static IEnumerable<TextBlock> TextBlocksIn(DependencyObject root)

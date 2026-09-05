@@ -20,44 +20,16 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
         /// Fuehrt die Aktion auf einem STA-Thread mit eigener Application aus. WPF verlangt
         /// beides; MSTest liefert von sich aus keinen STA-Thread.
         /// </summary>
-        private static void OnUiThread(Action action)
-        {
-            Exception? failure = null;
-
-            var thread = new Thread(() =>
-            {
-                try
-                {
-                    if (Application.Current == null)
-                    {
-                        // Die echte App.xaml laden: dort stehen Palette und Stile, auf die die
-                        // Ansichten ueber StaticResource zugreifen. Eine nackte Application
-                        // haette sie nicht - der Aufbau scheitert dann an der ersten Farbe.
-                        var app = new Quizzer.App { ShutdownMode = ShutdownMode.OnExplicitShutdown };
-                        app.InitializeComponent();
-                    }
-
-                    action();
-                }
-                catch (Exception ex)
-                {
-                    failure = ex;
-                }
-                finally
-                {
-                    Dispatcher.CurrentDispatcher.InvokeShutdown();
-                }
-            });
-
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-
-            Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(60)), "Der Aufbau blieb haengen.");
-
-            if (failure != null)
-                throw new AssertFailedException(
-                    $"Das Editorfenster liess sich nicht aufbauen: {failure.Message}", failure);
-        }
+        /// <summary>
+        /// Fuehrt die Arbeit auf dem gemeinsamen Oberflaechen-Thread aus.
+        /// <para>
+        /// Frueher legte diese Klasse einen eigenen STA-Thread an und fuhr dessen Dispatcher
+        /// am Ende herunter. <c>Application.Current</c> ist prozessweit - danach fand keine
+        /// spaetere Klasse mehr einen lebenden Dispatcher. Einzelheiten in
+        /// <see cref="UiTestHost"/>.
+        /// </para>
+        /// </summary>
+        private static void OnUiThread(Action action) => UiTestHost.Run(action);
 
         [TestMethod]
         [DataRow(QuestionType.Default)]
