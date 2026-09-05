@@ -167,5 +167,67 @@ namespace Quizzer.LogicUnitTests.DataModels.Models.Base
 
             Assert.AreEqual(2, coordinate.Phase);
         }
+        /// <summary>
+        /// Die Punkte sind gespeicherte Spalten. Kann die Rechnung nicht rechnen, weil die
+        /// Rueckverweise im Speicher fehlen, darf sie den gespeicherten Stand nicht ueberschreiben -
+        /// sonst wird aus einer Zelle mit 600 Punkten still eine mit null.
+        /// </summary>
+        [TestMethod]
+        public void WithoutBackReferences_TheStoredPointsAreKept()
+        {
+            var coordinate = new GameGridCoordinate
+            {
+                QuestionBaseId = Guid.NewGuid(),   // eine Frage ist zugewiesen ...
+                QuestionBase = null,               // ... aber nicht geladen
+                Game = null!,
+                CurrentPoints = 600,
+                CurrentMinusPoints = 165,
+            };
+
+            coordinate.CalculateAndSetCurrentPoints();
+
+            Assert.AreEqual(600, coordinate.CurrentPoints,
+                "Der gespeicherte Punktestand wurde ueberschrieben, obwohl nichts zu rechnen war.");
+            Assert.AreEqual(165, coordinate.CurrentMinusPoints);
+        }
+
+        /// <summary>
+        /// Die Gegenrichtung: ist wirklich keine Frage zugewiesen, gehoert die Zelle auf null.
+        /// Ohne diese Probe wuerde ein pauschales "nichts anfassen" nicht auffallen.
+        /// </summary>
+        [TestMethod]
+        public void WithoutAQuestion_ThePointsAreCleared()
+        {
+            var coordinate = new GameGridCoordinate
+            {
+                QuestionBaseId = null,
+                QuestionBase = null,
+                Game = new Game(),
+                CurrentPoints = 600,
+                CurrentMinusPoints = 165,
+            };
+
+            coordinate.CalculateAndSetCurrentPoints();
+
+            Assert.AreEqual(0, coordinate.CurrentPoints,
+                "Eine leere Zelle muss null Punkte tragen.");
+            Assert.AreEqual(0, coordinate.CurrentMinusPoints);
+        }
+
+        /// <summary>Eine leere Kennung zaehlt wie keine.</summary>
+        [TestMethod]
+        public void AnEmptyQuestionIdCountsAsNoQuestion()
+        {
+            var coordinate = new GameGridCoordinate
+            {
+                QuestionBaseId = Guid.Empty,
+                Game = new Game(),
+                CurrentPoints = 600,
+            };
+
+            coordinate.CalculateAndSetCurrentPoints();
+
+            Assert.AreEqual(0, coordinate.CurrentPoints);
+        }
     }
 }

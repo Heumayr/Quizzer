@@ -36,14 +36,36 @@ namespace Quizzer.DataModels.Models.Base
 
         public int CurrentMinusPoints { get; set; }
 
+        /// <summary>
+        /// Rechnet die Punkte dieser Zelle neu. <see cref="CurrentPoints"/> und
+        /// <see cref="CurrentMinusPoints"/> sind gespeicherte Spalten, keine Anzeigewerte - was
+        /// hier gesetzt wird, schreibt der naechste Speichervorgang fest.
+        /// <para>
+        /// Deshalb wird nur genullt, wenn wirklich keine Frage zugewiesen ist. Fehlen bloss die
+        /// Rueckverweise im Speicher - etwa weil das Spiel geladen wurde, bevor der Rasteraufbau
+        /// sie gesetzt hat -, bleibt der bestehende Wert stehen. Bis 2026-09-06 nullte diese
+        /// Stelle auch dann, und aus einer Zelle mit 600 Punkten wurde still eine mit null.
+        /// </para>
+        /// </summary>
         public void CalculateAndSetCurrentPoints()
         {
             if (IsDone) return;
 
-            if (QuestionBase == null || Game == null)
+            // Eine Frage kann ueber die Navigation da sein, ueber die Kennung, oder ueber beides.
+            var hatFrage = QuestionBase != null
+                        || (QuestionBaseId.HasValue && QuestionBaseId.Value != Guid.Empty);
+
+            if (!hatFrage)
             {
                 CurrentPoints = 0;
                 CurrentMinusPoints = 0;
+                return;
+            }
+
+            if (QuestionBase == null || Game == null)
+            {
+                // Es gibt eine Frage, aber die Rueckverweise fehlen: rechnen ist nicht moeglich,
+                // also den gespeicherten Stand nicht anfassen.
                 return;
             }
 
