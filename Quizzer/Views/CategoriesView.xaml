@@ -10,14 +10,15 @@
     <base:WindowBase.DataContext>
         <local:CategoriesViewModel />
     </base:WindowBase.DataContext>
-    <Grid Background="Black">
+    <Grid Background="{StaticResource AppBgBrush}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Speichern" Command="{Binding SaveCommand}" Style="{StaticResource DangerButton}" />
+            <Button Content="Speichern" Command="{Binding SaveCommand}" MinWidth="150" Height="32"
+                    ToolTip="Schreibt alle Zeilen der Liste, auch die neu angelegten." />
         </StackPanel>
 
         <DataGrid Grid.Column="1" ItemsSource="{Binding Categories}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="True">

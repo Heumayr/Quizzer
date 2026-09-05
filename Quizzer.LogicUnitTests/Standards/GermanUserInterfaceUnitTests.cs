@@ -116,6 +116,48 @@ namespace Quizzer.LogicUnitTests.Standards
         }
 
         /// <summary>
+        /// Die Warnfarbe steht nur auf Knoepfen, die etwas zerstoeren.
+        /// <para>
+        /// <c>DangerButton</c> ist rot. Stand sie auch auf harmlosen Knoepfen, gewoehnt sich der
+        /// Spielleiter daran und uebersieht sie dort, wo sie zaehlt. Gemessen 2026-09-06: in der
+        /// Kategorienverwaltung trug ausgerechnet <b>Speichern</b> die Warnfarbe.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void TheDangerStyleIsOnlyOnDestructiveButtons()
+        {
+            var root = RepoRoot();
+            var funde = new List<string>();
+
+            var zerstoerend = new[] { "entfernen", "löschen", "zurücksetzen", "verwerfen" };
+
+            foreach (var datei in XamlDateien(root))
+            {
+                var inhalt = File.ReadAllText(datei);
+
+                foreach (Match knopf in Regex.Matches(inhalt, "<Button.*?/>", RegexOptions.Singleline))
+                {
+                    if (!knopf.Value.Contains("DangerButton", StringComparison.Ordinal))
+                        continue;
+
+                    var beschriftung = Regex.Match(knopf.Value, "Content=\"([^\"{]*)\"");
+
+                    if (!beschriftung.Success)
+                        continue;
+
+                    var text = beschriftung.Groups[1].Value;
+
+                    if (!zerstoerend.Any(w => text.Contains(w, StringComparison.OrdinalIgnoreCase)))
+                        funde.Add($"{Path.GetRelativePath(root, datei)}: \"{text}\"");
+                }
+            }
+
+            Assert.AreEqual(0, funde.Count,
+                "Diese Knoepfe tragen die Warnfarbe, ohne etwas zu zerstoeren: "
+                + string.Join(", ", funde));
+        }
+
+        /// <summary>
         /// Die Gegenrichtung: der Durchlauf liest wirklich Dateien und findet wirklich Titel.
         /// Ohne diese Probe waere gruen nicht von blind zu unterscheiden.
         /// </summary>
