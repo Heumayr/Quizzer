@@ -122,6 +122,11 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(NextStepContext));
 
             OnPropertyChanged(nameof(IsDone));
+            OnPropertyChanged(nameof(DoneStateText));
+            OnPropertyChanged(nameof(WindowTitle));
+            OnPropertyChanged(nameof(QuestionSummary));
+            OnPropertyChanged(nameof(QuestionNotesLine));
+            OnPropertyChanged(nameof(NotesVisibility));
         }
 
         protected override async Task OnClosed()
@@ -174,6 +179,7 @@ namespace Quizzer.Views.GameViews
                 Coordinate?.IsDone = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsDoneBrush));
+                OnPropertyChanged(nameof(DoneStateText));
             }
         }
 
@@ -191,6 +197,59 @@ namespace Quizzer.Views.GameViews
         }
 
         public QuestionBase? Question => Coordinate?.QuestionBase;
+
+        /// <summary>Titel des Fragefensters, mit der Kurzbezeichnung der Frage.</summary>
+        public string WindowTitle
+        {
+            get
+            {
+                var kurz = Question?.DesignationShort;
+
+                if (string.IsNullOrWhiteSpace(kurz))
+                    kurz = Question?.Designation;
+
+                return string.IsNullOrWhiteSpace(kurz) ? "Frage" : $"Frage – {kurz}";
+            }
+        }
+
+        /// <summary>
+        /// Kategorie, Stufe, Punkte und Phase in einer Zeile. Sie stand bisher in neun einzelnen
+        /// schreibgeschuetzten Textfeldern, die ein Viertel des Fensters belegten.
+        /// </summary>
+        public string QuestionSummary
+        {
+            get
+            {
+                if (Question == null)
+                    return string.Empty;
+
+                var teile = new List<string>();
+
+                if (!string.IsNullOrWhiteSpace(QuestionCategory))
+                    teile.Add(QuestionCategory);
+
+                teile.Add(QuestionType);
+                teile.Add($"Stufe {(int)Question.Difficulty}");
+                teile.Add($"{CurrentPoints} / −{CurrentMinusPoints} Punkte");
+                teile.Add($"Phase {Phase}");
+
+                return string.Join(" · ", teile);
+            }
+        }
+
+        /// <summary>Die Notizen des Spielleiters; die Spieler sehen sie nicht.</summary>
+        public string QuestionNotesLine =>
+            string.IsNullOrWhiteSpace(QuestionNotes) ? string.Empty : $"Notiz: {QuestionNotes}";
+
+        public Visibility NotesVisibility =>
+            string.IsNullOrWhiteSpace(QuestionNotes) ? Visibility.Collapsed : Visibility.Visible;
+
+        /// <summary>
+        /// Ob die Zelle abgeschlossen ist, als Satz. Bisher trug das allein ein duenner
+        /// dunkelroter Rahmen, den man leicht uebersieht.
+        /// </summary>
+        public string DoneStateText =>
+            IsDone ? "Zelle abgeschlossen" : "Noch nicht abgeschlossen";
 
         public BuzzerServerViewModel? BuzzerServerViewModel => StaticRessources.StaticManager.BuzzerServerViewModel;
 
@@ -316,6 +375,19 @@ namespace Quizzer.Views.GameViews
                 return;
             }
 
+            // Eine Frage ohne Schritte hat nichts zum Aufdecken. Bis 2026-09-06 lief das in
+            // Last() auf einer leeren Folge und riss ein Fehlerfenster samt Stapelspur auf -
+            // beim ersten Enter, vor Publikum.
+            if (Question.OrderedSteps.Length == 0)
+            {
+                UserPrompt.Inform(
+                    "Diese Frage hat keine Schritte. Im Frage-Editor mindestens einen anlegen, "
+                    + "sonst gibt es nichts aufzudecken.",
+                    "Frage ohne Schritte");
+
+                return;
+            }
+
             if (up)
             {
                 if (CurrentStep == Question.OrderedSteps.Last())
@@ -405,13 +477,24 @@ namespace Quizzer.Views.GameViews
         private AsyncRelayCommand? saveIsDoneFinishStateCommand;
         public ICommand SaveIsDoneFinishStateCommand => saveIsDoneFinishStateCommand ??= new AsyncRelayCommand(SaveIsDoneFinishStateAsync);
 
+        /// <summary>
+        /// Schliesst die Zelle ab und stellt den Abschlussschritt auf den Spielerbildschirm.
+        /// <para>
+        /// Hat die Frage keinen Abschlussschritt, bleibt der zuletzt gezeigte stehen. Bis
+        /// 2026-09-06 wurde <c>CurrentStep</c> auch dann auf <c>null</c> gesetzt - der Beamer
+        /// wurde vollstaendig schwarz, und die Mitspieler sahen bis zum Schliessen des Fensters
+        /// gar nichts mehr.
+        /// </para>
+        /// </summary>
         private async Task SaveIsDoneFinishStateAsync(object? commandParameter)
         {
             IsDone = true;
 
             await VMSaveAsync();
 
-            CurrentStep = finishStep;
+            if (finishStep != null)
+                CurrentStep = finishStep;
+
             NextStep = null;
         }
 

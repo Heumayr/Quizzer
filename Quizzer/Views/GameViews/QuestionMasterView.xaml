@@ -9,7 +9,7 @@
         xmlns:buzzerServer="clr-namespace:Quizzer.Views.BuzzerViews"
         xmlns:typed="clr-namespace:Quizzer.Views.GameViews.QuestionViews.Typed"
         mc:Ignorable="d"
-        Title="QuestionMasterView" Height="auto" Width="auto">
+        Title="{Binding WindowTitle}" Height="800" Width="1300">
     <base:WindowBase.DataContext>
         <local:CurrentQuestionViewModel></local:CurrentQuestionViewModel>
     </base:WindowBase.DataContext>
@@ -55,8 +55,15 @@
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Background="Black" MaxHeight="100" ClipToBounds="True">
-            <Viewbox Margin="5" Stretch="Uniform">
+        <!-- Kopfleiste: links die Frage, rechts die Angaben, die bisher als neun einzelne
+             Textfelder ein Viertel des Fensters belegt haben. -->
+        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Background="Black" MaxHeight="110" ClipToBounds="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Viewbox Grid.Column="0" Margin="5" Stretch="Uniform" HorizontalAlignment="Left">
                 <TextBlock Text="{Binding Question.QuestionText}"
                  Foreground="WhiteSmoke"
                  FontWeight="SemiBold"
@@ -66,6 +73,14 @@
                  VerticalAlignment="Center"
                  HorizontalAlignment="Center" />
             </Viewbox>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,4,12,4">
+                <TextBlock Text="{Binding QuestionSummary}" FontWeight="Bold" FontSize="14"
+                           Foreground="Wheat" TextAlignment="Right" />
+                <TextBlock Text="{Binding QuestionNotesLine}" FontSize="12" Opacity="0.75"
+                           TextAlignment="Right" TextWrapping="Wrap" MaxWidth="320"
+                           Visibility="{Binding NotesVisibility}" />
+            </StackPanel>
         </Grid>
         <Border Grid.Row="1" Grid.Column="0" BorderThickness="3" BorderBrush="Black">
             <Grid  MinWidth="200" ClipToBounds="True">
@@ -73,7 +88,11 @@
                     <RowDefinition Height="30"></RowDefinition>
                     <RowDefinition Height="*"></RowDefinition>
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="Current Step" Foreground="DarkGreen" FontWeight="Bold" FontSize="14" />
+                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                    <Border Width="4" Background="Wheat" Margin="0,0,6,0" />
+                    <TextBlock Text="Jetzt sichtbar" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" />
+                    <TextBlock Text=" (läuft auf dem Beamer)" FontSize="12" Opacity="0.7" VerticalAlignment="Center" />
+                </StackPanel>
                 <ContentControl Grid.Row="1"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"
@@ -90,7 +109,7 @@
                     <RowDefinition Height="30"></RowDefinition>
                     <RowDefinition Height="*"></RowDefinition>
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="Next Step" FontWeight="Bold" FontSize="14" />
+                <TextBlock Grid.Row="0" Text="Als Nächstes" FontWeight="Bold" FontSize="14" Margin="10,0,0,0" />
                 <ContentControl Grid.Row="1"
                   HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch"
@@ -107,7 +126,7 @@
                     <RowDefinition Height="30"></RowDefinition>
                     <RowDefinition Height="*"></RowDefinition>
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="Finish Step" FontWeight="Bold" FontSize="14" />
+                <TextBlock Grid.Row="0" Text="Abschluss" FontWeight="Bold" FontSize="14" Margin="10,0,0,0" />
                 <ContentControl Grid.Row="1"
                      HorizontalAlignment="Stretch"
                      VerticalAlignment="Stretch"
@@ -131,19 +150,26 @@
 
                 <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
                     <Border BorderBrush="WhiteSmoke">
-                        <buzzerServer:BuzzerControlsView Background="{Binding BackgroundBrush}" DataContext="{Binding BuzzerControlsViewModel}"></buzzerServer:BuzzerControlsView>
+                        <buzzerServer:BuzzerControlsView DataContext="{Binding BuzzerControlsViewModel}" />
                     </Border>
                 </Grid>
 
-                <Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top">
-                    <questions:CurrentQuestionView Width="auto" ></questions:CurrentQuestionView>
+                <Grid Grid.Row="1" Grid.Column="0">
+                    <questions:CurrentQuestionView />
                 </Grid>
 
                 <StackPanel Grid.Row="1" Grid.Column="1" Background="{Binding IsDoneBrush}">
-                    <Button Content="Results" Command="{Binding OpenResultsCommand}"></Button>
-                    <Button Margin="0, 20, 0, 0" Content="Save/IsDone/Finish" Command="{Binding SaveIsDoneFinishStateCommand}" Background="DarkGreen"></Button>
-                    <Button Margin="0, 20, 0, 0" Content="Exit/Next Ch. P." Command="{Binding ExitSetNextChoosingPlayerCommand}" Background="DarkBlue"></Button>
-                    <Button Content="Exit" Command="{Binding ExitCommand}"></Button>
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Zelle abschließen" Margin="4,4,4,6" />
+                    <Button Content="Bewerten …" Command="{Binding OpenResultsCommand}"
+                            ToolTip="Öffnet das Fenster, in dem die Punkte vergeben werden." />
+                    <Button Margin="0,14,0,0" Content="Zelle abschließen" Command="{Binding SaveIsDoneFinishStateCommand}" Background="DarkGreen"
+                            ToolTip="Speichert und markiert die Zelle als gespielt. Zeigt den Abschlussschritt." />
+                    <Button Margin="0,14,0,0" Content="Schließen, nächster wählt" Command="{Binding ExitSetNextChoosingPlayerCommand}" Background="DarkBlue"
+                            ToolTip="Schließt das Fenster und bestimmt den nächsten Auswählenden." />
+                    <Button Content="Schließen ohne Wechsel" Command="{Binding ExitCommand}"
+                            ToolTip="Schließt das Fenster. Es wählt weiterhin derselbe aus." />
+                    <TextBlock Text="{Binding DoneStateText}" FontSize="12" Opacity="0.8"
+                               TextWrapping="Wrap" Margin="4,10,4,4" />
                 </StackPanel>
             </Grid>
         </Border>

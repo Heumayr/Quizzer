@@ -14,7 +14,9 @@
     <SolidColorBrush x:Key="BtnBgDisabledBrush" Color="{StaticResource BtnBgDisabled}" />
 
     <SolidColorBrush x:Key="BtnFgBrush" Color="WhiteSmoke" />
-    <SolidColorBrush x:Key="BtnBorderBrush" Color="#40FFFFFF" />
+    <!-- Heller als die fruehere #40FFFFFF: der Rahmen erreichte nur 2,2:1 und war damit kaum
+         als Bedienelement zu erkennen. -->
+    <SolidColorBrush x:Key="BtnBorderBrush" Color="#66FFFFFF" />
 
     <!-- Implicit style: applies to ALL Buttons -->
     <Style TargetType="{x:Type Button}">
@@ -32,25 +34,48 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
-                    <Border x:Name="bd"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="8"
-                            SnapsToDevicePixels="True">
-                        <ContentPresenter Margin="{TemplateBinding Padding}"
-                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                          RecognizesAccessKey="True" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+
+                        <!-- Ueberfahren und Druecken liegen als Auflage UEBER dem gesetzten
+                             Grund, statt ihn zu ersetzen. Sonst verlieren die farbig
+                             hervorgehobenen Knoepfe ihre Farbe genau dann, wenn der Zeiger
+                             darauf steht - also im Augenblick des Klickens. -->
+                        <Border x:Name="overlay"
+                                CornerRadius="8"
+                                IsHitTestVisible="False"
+                                Background="#00FFFFFF" />
+
+                        <!-- Der Tastaturfokus war bisher unsichtbar. -->
+                        <Border x:Name="focus"
+                                CornerRadius="8"
+                                IsHitTestVisible="False"
+                                BorderThickness="2"
+                                BorderBrush="Transparent"
+                                Margin="-1" />
+                    </Grid>
 
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BtnBgHoverBrush}" />
+                            <Setter TargetName="overlay" Property="Background" Value="#22FFFFFF" />
                         </Trigger>
 
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BtnBgPressedBrush}" />
+                            <Setter TargetName="overlay" Property="Background" Value="#44000000" />
+                        </Trigger>
+
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="focus" Property="BorderBrush" Value="Wheat" />
                         </Trigger>
 
                         <Trigger Property="IsEnabled" Value="False">

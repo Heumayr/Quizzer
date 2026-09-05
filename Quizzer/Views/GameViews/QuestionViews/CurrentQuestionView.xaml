@@ -10,114 +10,73 @@
     <UserControl.Resources>
         <base:EqualityMultiConverter x:Key="EqualityMultiConverter" />
     </UserControl.Resources>
+
+    <!-- Die neun schreibgeschuetzten Textfelder rechts (Typ, Bezeichnung, Kategorie, Stufe,
+         Phase, Punkte, Minuspunkte, Notizen) sind entfallen. Dieselben Angaben stehen jetzt
+         als eine Zeile in der Kopfleiste des Fragefensters. -->
     <Grid Background="Black">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto"></RowDefinition>
-            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <StackPanel Grid.Column="1" Grid.Row="1" Grid.RowSpan="1">
-            <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Type:" VerticalAlignment="Center" />
-                <TextBox IsReadOnly="True" VerticalContentAlignment="Center" Text="{Binding Path=QuestionType, Mode=OneWay}" MinWidth="200" Margin="5,0,0,0" />
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Designation:" VerticalAlignment="Center" />
-                <TextBox IsReadOnly="True" VerticalContentAlignment="Center" Text="{Binding Path=QuestionDesignation, Mode=OneWay}" MinWidth="200" Margin="5,0,0,0" />
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Designation short:" VerticalAlignment="Center" />
-                <TextBox IsReadOnly="True" VerticalContentAlignment="Center" Text="{Binding Path=QuestionDesignationShort, Mode=OneWay}" MinWidth="200" Margin="5,0,0,0" />
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120"  Content="Category:" VerticalAlignment="Center" />
-                <TextBox IsReadOnly="True" VerticalContentAlignment="Center" Text="{Binding Path=QuestionCategory, Mode=OneWay}" MinWidth="200" Margin="5,0,0,0" />
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120"  Content="Difficulty:" VerticalAlignment="Center" />
-                <TextBox IsReadOnly="True" VerticalContentAlignment="Center" Text="{Binding Path=QuestionDifficulty, Mode=OneWay}" MinWidth="200" Margin="5,0,0,0" />
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Phase:" VerticalAlignment="Center" />
-                <TextBox IsReadOnly="True" VerticalContentAlignment="Center" Text="{Binding Phase, Mode=OneWay}" MinWidth="200" Margin="5,0,0,0"></TextBox>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Points:" VerticalAlignment="Center" />
-                <TextBox IsReadOnly="True" VerticalContentAlignment="Center" Text="{Binding CurrentPoints, Mode=OneWay}" MinWidth="200" Margin="5,0,0,0"></TextBox>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Minus-Points:" VerticalAlignment="Center" />
-                <TextBox IsReadOnly="True" VerticalContentAlignment="Center" Text="{Binding CurrentMinusPoints, Mode=OneWay}" MinWidth="200" Margin="5,0,0,0"></TextBox>
-            </StackPanel>
 
-            <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Notes:" VerticalAlignment="Center" />
-                <TextBox Grid.Column="1"
-                       IsReadOnly="True"
-                       Text="{Binding QuestionNotes, Mode=OneWay}"
-                       Margin="5,0,0,0"
-                       AcceptsReturn="True"
-                       TextWrapping="Wrap"
-                       VerticalScrollBarVisibility="Auto"
-                       MinWidth="200"
-                       MinHeight="60"
-                       MaxHeight="200"
-                       HorizontalAlignment="Stretch"
-                       VerticalAlignment="Top" />
-            </StackPanel>
-        </StackPanel>
-        <StackPanel Height="50" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="5,10,0,0">
-            <Button Content="Start" Command="{Binding StartStepCommnad}" />
-            <Button Content="Next" Command="{Binding NextStepCommnad}" />
-            <Button Content="Back" Command="{Binding BackStepCommnad}" />
+        <TextBlock Grid.Row="0" Style="{StaticResource SectionHeader}" Text="Schritte" Margin="8,8,8,4" />
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="5,0,0,4">
+            <Button Content="Zum ersten Schritt" Command="{Binding StartStepCommnad}"
+                    ToolTip="Springt zurück an den Anfang der Frage." />
+            <Button Content="Weiter (Enter)" Command="{Binding NextStepCommnad}"
+                    ToolTip="Deckt den nächsten Schritt auf. Der Spielerbildschirm folgt." />
+            <Button Content="Zurück (Rücktaste)" Command="{Binding BackStepCommnad}" />
         </StackPanel>
 
-        <Viewbox Grid.Column="0" Grid.Row="1" Stretch="Uniform" MaxWidth="500">
-            <DataGrid ItemsSource="{Binding QuestionOrderedSteps}"
+        <!-- Ohne Viewbox: die Schriftgroesse haengt sonst an der Zahl der Schritte, und eine
+             Frage mit vielen Schritten wird unlesbar klein. -->
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding QuestionOrderedSteps}"
                   AutoGenerateColumns="False"
                   Margin="5"
+                  FontSize="13"
                   CanUserAddRows="False"
                   CanUserResizeColumns="True"
                   CanUserReorderColumns="True"
                   CanUserSortColumns="False"
                   IsReadOnly="True"
+                  HeadersVisibility="Column"
                   base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedSteps}"
                   base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenStepCommand}">
 
-                <DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow">
-                        <Style.Triggers>
-                            <DataTrigger Value="True">
-                                <DataTrigger.Binding>
-                                    <MultiBinding Converter="{StaticResource EqualityMultiConverter}">
-                                        <!-- current row Id -->
-                                        <Binding Path="Id" />
-                                        <!-- CurrentStep.Id from the DataGrid DataContext -->
-                                        <Binding Path="DataContext.CurrentStep.Id"
-                                             RelativeSource="{RelativeSource AncestorType=DataGrid}" />
-                                    </MultiBinding>
-                                </DataTrigger.Binding>
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <DataTrigger Value="True">
+                            <DataTrigger.Binding>
+                                <MultiBinding Converter="{StaticResource EqualityMultiConverter}">
+                                    <!-- current row Id -->
+                                    <Binding Path="Id" />
+                                    <!-- CurrentStep.Id from the DataGrid DataContext -->
+                                    <Binding Path="DataContext.CurrentStep.Id"
+                                         RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                </MultiBinding>
+                            </DataTrigger.Binding>
 
-                                <Setter Property="Background" Value="DarkGreen" />
-                                <Setter Property="Foreground" Value="White" />
-                                <Setter Property="FontWeight" Value="Bold" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </DataGrid.RowStyle>
+                            <Setter Property="Background" Value="DarkGreen" />
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter Property="FontWeight" Value="Bold" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
 
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Seq." Binding="{Binding SequenceNumber}" Width="Auto" />
-                    <DataGridTextColumn Header="Key" Binding="{Binding QuestionViewKey}" Width="Auto" />
-                    <DataGridCheckBoxColumn Header="R" Binding="{Binding IsResult}" Width="Auto" />
-                    <DataGridCheckBoxColumn Header="F" Binding="{Binding IsFinish}" Width="Auto" />
-                    <DataGridTextColumn Header="Desig." Binding="{Binding Designation}" Width="Auto" />
-                    <DataGridTextColumn Header="RT" Binding="{Binding ResourceTyp}" Width="Auto" />
-                </DataGrid.Columns>
-            </DataGrid>
-        </Viewbox>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Nr." Binding="{Binding SequenceNumber}" Width="Auto" />
+                <DataGridTextColumn Header="Taste" Binding="{Binding QuestionViewKey}" Width="Auto" />
+                <DataGridCheckBoxColumn Header="Lösung" Binding="{Binding IsResult}" Width="Auto" />
+                <DataGridCheckBoxColumn Header="Abschluss" Binding="{Binding IsFinish}" Width="Auto" />
+                <DataGridTextColumn Header="Bezeichnung" Binding="{Binding Designation}" Width="*" />
+                <DataGridTextColumn Header="Medium" Binding="{Binding ResourceTyp}" Width="Auto" />
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </UserControl>

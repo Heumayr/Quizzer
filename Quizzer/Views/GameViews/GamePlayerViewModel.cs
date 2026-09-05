@@ -22,7 +22,10 @@ namespace Quizzer.Views.GameViews
 
         private QuestionStepViewContext? questionStepViewContext;
         private string questionText = string.Empty;
-        private Visibility showPlayerStats = Visibility.Collapsed;
+        // Der Punktestand ist von Anfang an zu sehen. Er ist die Auskunft, nach der die
+        // Mitspieler am haeufigsten fragen, und bis 2026-09-06 musste der Spielleiter ihn erst
+        // von Hand einschalten - viele Abende liefen deshalb ganz ohne.
+        private Visibility showPlayerStats = Visibility.Visible;
 
         public Brush HeaderColumnBrush { get; set; } = StaticResources.HeaderColumnImageBrush;
         public Brush HeaderRowBrush { get; set; } = StaticResources.HeaderRowImageBrush;
@@ -233,14 +236,21 @@ namespace Quizzer.Views.GameViews
 
         public void SetShowPlayerStats(bool show)
         {
-            if (show)
-            {
-                ShowPlayerStats = Visibility.Visible;
-                return;
-            }
+            ShowPlayerStats = show ? Visibility.Visible : Visibility.Collapsed;
 
-            ShowPlayerStats = Visibility.Collapsed;
+            RefreshFinishState();
+        }
 
+        /// <summary>
+        /// Sieht nach, ob das Spiel zu Ende ist, und stellt die Anzeige darauf ein - waehrend
+        /// des Spiels die Punkteleiste, danach die Siegerehrung ueber den ganzen Bildschirm.
+        /// <para>
+        /// Wird nach jedem Spielzug gerufen. Bis 2026-09-06 geschah das nur beim Umschalten des
+        /// Punktestands von Hand, und nach der letzten Zelle blieb das leere Raster stehen.
+        /// </para>
+        /// </summary>
+        public void RefreshFinishState()
+        {
             OnPropertyChanged(nameof(IsGameFinished));
             OnPropertyChanged(nameof(ShowMainContent));
             OnPropertyChanged(nameof(ShowBottomStats));
