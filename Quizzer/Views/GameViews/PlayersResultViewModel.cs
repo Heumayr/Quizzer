@@ -105,10 +105,11 @@ namespace Quizzer.Views.GameViews
 
             var results = await ctrlResults.GetAllResultsForCoordinate(Coordinate.Id) ?? new();
 
-            if (results.Count > 0 && results.Count != playersCount)
-            {
-                throw new Exception("Invalid results count");
-            }
+            // Ergebniszeilen von Spielern, die nicht (mehr) mitspielen, werden geraeumt statt
+            // gezaehlt. Bis 2026-09-06 warf diese Stelle "Invalid results count", und die Zelle
+            // war dauerhaft nicht mehr spielbar - es genuegte, waehrend eines Spiels einen Spieler
+            // aus der Mannschaft zu nehmen, nachdem schon eine Zelle gespielt war.
+            results = await RemoveResultsOfFormerPlayersAsync(ctrlResults, results);
 
             var contextList = new List<PlayerResultContext>();
             foreach (var player in Coordinate.Game.Players)
@@ -150,7 +151,46 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(Columns));
         }
 
-        public override async Task VMSaveAsync()
+        /// <summary>
+        /// Raeumt Ergebniszeilen weg, deren Spieler nicht mehr zur Mannschaft dieses Spiels
+        /// gehoert, und gibt die verbleibenden zurueck.
+        /// <para>
+        /// Nur solche Zeilen: die Ergebnisse der aktuellen Mitspieler bleiben unberuehrt. Sonst
+        /// kostete ein Oeffnen der Zelle die Punkte einer bereits gespielten Runde.
+        /// </para>
+        /// </summary>
+        private async Task<List<QuestionResult>> RemoveResultsOfFormerPlayersAsync(
+            QuestionResultsController ctrlResults, List<QuestionResult> results)
+        {
+            if (Coordinate == null || results.Count == 0)
+                return results;
+
+            var mannschaft = Coordinate.Game.Players.Select(p => p.Id).ToHashSet();
+            var verwaist = results.Where(r => !mannschaft.Contains(r.PlayerId)).ToList();
+
+            if (verwaist.Count == 0)
+                return results;
+
+            foreach (var zeile in verwaist)
+                await ctrlResults.DeleteAsync(zeile.Id);
+
+            await ctrlResults.SaveChangesAsync();
+
+            return results.Where(r => mannschaft.Contains(r.PlayerId)).ToList();
+        }
+
+        public override async Task VMSaveAsync() => await TrySaveAsync();
+
+        /// <summary>
+        /// Schreibt die Punktevergabe und sagt, ob es gelungen ist.
+        /// <para>
+        /// Der Rueckgabewert ist der Grund fuer diese Methode: bis 2026-09-06 verschluckte der
+        /// Fangblock jeden Schreibfehler, und der Aufrufer schloss das Fenster trotzdem. Die Zelle
+        /// wurde danach in einem zweiten, erfolgreichen Schreibvorgang auf erledigt gesetzt - die
+        /// Punkte fehlten, die Zelle war dunkel, und aus der Oberflaeche gab es keinen Weg zurueck.
+        /// </para>
+        /// </summary>
+        public async Task<bool> TrySaveAsync()
         {
             try
             {
@@ -168,10 +208,15 @@ namespace Quizzer.Views.GameViews
                 {
                     ctx.RefreshUIOnModelSave();
                 }
+
+                return true;
             }
             catch (Exception ex)
             {
+                // Der Fang bleibt: ohne ihn faellt der Fehler in eine async-void-Behandlung und
+                // reisst die Anwendung mit. Neu ist nur, dass der Aufrufer davon erfaehrt.
                 ExceptionManager.HandleException(ex);
+                return false;
             }
         }
 
@@ -192,8 +237,10 @@ namespace Quizzer.Views.GameViews
 
         private async Task SaveAndCloseAsync(object? commandParameter)
         {
-            await VMSaveAsync();
-            Window?.Close();
+            // Nur schliessen, wenn die Punkte auch geschrieben sind - sonst waeren sie weg, und
+            // der Spielleiter haette keine Gelegenheit mehr, es erneut zu versuchen.
+            if (await TrySaveAsync())
+                Window?.Close();
         }
 
         public bool IsDoneAndShowFinishState { get; private set; }
@@ -203,7 +250,11 @@ namespace Quizzer.Views.GameViews
 
         private async Task SaveIsDoneFinishStateAsync(object? commandParameter)
         {
-            await VMSaveAsync();
+            // Die Zelle darf erst als erledigt gelten, wenn die Punkte in der Datenbank stehen.
+            // Andernfalls bleibt das Fenster offen und ein zweiter Versuch ist moeglich - er
+            // vergibt nichts doppelt, weil die Bewertungen bereits im Ergebnis stehen.
+            if (!await TrySaveAsync())
+                return;
 
             IsDoneAndShowFinishState = true;
 

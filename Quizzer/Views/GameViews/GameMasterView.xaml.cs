@@ -19,6 +19,12 @@ namespace Quizzer.Views.GameViews
     /// </summary>
     public partial class GameMasterView : WindowBase
     {
+        /// <summary>
+        /// Escape schliesst dieses Fenster nicht: es traegt das laufende Spiel, und ein
+        /// versehentlicher Druck haette den ganzen Spielstand vom Bildschirm genommen.
+        /// </summary>
+        public override bool CloseOnEscape => false;
+
         public GameMasterView()
         {
             InitializeComponent();

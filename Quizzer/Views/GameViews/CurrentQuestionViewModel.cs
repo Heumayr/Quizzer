@@ -447,14 +447,34 @@ namespace Quizzer.Views.GameViews
             await OpenResultsAsync();
         }
 
+        /// <summary>
+        /// Oeffnet das Ergebnisfenster und uebernimmt die Ergebniszeilen an die Zelle.
+        /// <para>
+        /// Passt die Zahl der Zeilen nicht zur Mannschaft, wird nichts uebernommen - aber auch
+        /// nichts geworfen. Bis 2026-09-06 stand hier ein <c>throw</c>, und weil der Aufruf aus
+        /// den Buzzer-Rueckrufen kommt, riss er mitten in der Runde die Anwendung mit.
+        /// <c>PlayersResultViewModel.SetCoordinateAsync</c> gleicht die Zeilen inzwischen ab,
+        /// sodass der Fall nur noch bei einem Fehler dort auftreten kann.
+        /// </para>
+        /// </summary>
         private async Task OpenResultsAsync()
         {
             ShowResultWindow();
 
             var newResults = PlayersResultViewModel?.Results;
 
-            if (newResults == null || Coordinate == null || newResults.Count == 0 || Coordinate.Game.Players.Count() != newResults.Count)
-                throw new Exception("Invalid result state");
+            if (newResults == null || Coordinate == null || newResults.Count == 0)
+                return;
+
+            if (Coordinate.Game.Players.Count() != newResults.Count)
+            {
+                UserPrompt.Inform(
+                    "Die Ergebniszeilen dieser Zelle passen nicht zur Mannschaft. Das Fenster "
+                    + "zeigt trotzdem, was vorhanden ist – bitte die Punkte vor dem Abschließen prüfen.",
+                    "Ergebnisse der Zelle");
+
+                return;
+            }
 
             Coordinate.QuestionResults = newResults;
         }
