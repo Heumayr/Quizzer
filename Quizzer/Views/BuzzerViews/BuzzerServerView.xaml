@@ -6,31 +6,125 @@
         xmlns:local="clr-namespace:Quizzer.Views.BuzzerViews"
         xmlns:base="clr-namespace:Quizzer.Base"
         mc:Ignorable="d"
-        Title="Window1" Height="450" Width="800">
-    <base:WindowBase.DataContext>
-        <local:BuzzerServerViewModel></local:BuzzerServerViewModel>
-    </base:WindowBase.DataContext>
-    <Grid Background="{Binding BackgroundBrush}">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        d:DataContext="{d:DesignInstance Type=local:BuzzerServerViewModel}"
+        Title="Buzzer-Server" Height="520" Width="880">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-        <StackPanel Margin="5">
-            <Button Content="Start Server" Command="{Binding StartServerCommand}" />
-            <Button Content="Stop Server" Command="{Binding StopServerCommand}" />
+        <!-- Bereich 1: der Server selbst. Der Zustand steht als Satz da, nicht als Enum-Name. -->
+        <Border Grid.Row="0" Background="{Binding BackgroundBrush}" BorderThickness="1"
+                CornerRadius="8" Padding="12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock Text="Server" FontWeight="Bold" Opacity="0.7" />
+                    <TextBlock Text="{Binding StateText}" FontSize="16" FontWeight="Bold"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Server starten" Command="{Binding StartServerCommand}" />
+                    <Button Content="Server beenden" Command="{Binding StopServerCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Bereich 2: unter welcher Adresse die Telefone hereinkommen, und was sie hindert. -->
+        <StackPanel Grid.Row="1" Margin="0,12,0,0">
+            <StackPanel Orientation="Horizontal" Visibility="{Binding EndpointVisibility}">
+                <TextBlock Text="Erreichbar unter:" FontWeight="Bold" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding EndpointUrl}" Margin="8,0,0,0" FontSize="15"
+                           VerticalAlignment="Center" />
+                <Button Content="Adresse kopieren" Command="{Binding CopyEndpointCommand}"
+                        Margin="12,0,0,0" />
+            </StackPanel>
+
+            <Border Visibility="{Binding FirewallHintVisibility}" Margin="0,8,0,0"
+                    Background="#3A2F10" BorderBrush="#8A6D1F" BorderThickness="1"
+                    CornerRadius="6" Padding="10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <TextBlock Text="Achtung" FontWeight="Bold" Margin="0,0,8,0"
+                                   VerticalAlignment="Top" />
+                        <TextBlock Text="{Binding FirewallHint}" TextWrapping="Wrap" MaxWidth="560" />
+                    </StackPanel>
+
+                    <Button Grid.Column="1" Content="Freigeben" Command="{Binding AllowFirewallCommand}"
+                            VerticalAlignment="Center" />
+                </Grid>
+            </Border>
         </StackPanel>
 
-        <StackPanel Grid.Column="2" Orientation="Vertical">
-            <Label Content="{Binding State}"></Label>
+        <!-- Bereich 3: die Mitspieler. Feste Spalten - AutoGenerateColumns zeigte elf davon,
+             darunter Kennung, Bilddaten und eine Ergebnisliste. -->
+        <Grid Grid.Row="2" Margin="0,12,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-            <!--<StackPanel>
-                <Button Content="Reset Round" Command="{Binding ResetRoundCommand}" />
-            </StackPanel>-->
+            <TextBlock Grid.Row="0" Text="Mitspieler" FontWeight="Bold" Opacity="0.7"
+                       Margin="0,0,0,4" />
 
-            <DataGrid ItemsSource="{Binding Players}" AutoGenerateColumns="True" Margin="5" IsReadOnly="True"
+            <DataGrid Grid.Row="1" ItemsSource="{Binding Players}" AutoGenerateColumns="False"
+                      IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
                       base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenPlayerQRCommand}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Spieler" Width="*"
+                                        Binding="{Binding CalculatedDisplayName}" />
+
+                    <!-- Der Zustand steht als Wort da, nicht nur als Farbe. -->
+                    <DataGridTemplateColumn Header="Verbindung" Width="170">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock VerticalAlignment="Center" Margin="4,0">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="nicht verbunden" />
+                                            <Setter Property="Foreground" Value="DarkGray" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ConnectionState}" Value="Connected">
+                                                    <Setter Property="Text" Value="verbunden" />
+                                                    <Setter Property="Foreground" Value="LightGreen" />
+                                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="QR-Code" Width="150">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="QR-Code zeigen"
+                                        Command="{Binding DataContext.OpenPlayerQRCommand,
+                                                  RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                                        CommandParameter="{Binding}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
             </DataGrid>
-        </StackPanel>
+
+            <TextBlock Grid.Row="2" Margin="0,6,0,0" Opacity="0.75" TextWrapping="Wrap"
+                       Text="Jeder Mitspieler scannt seinen eigenen QR-Code. Ein zweiter Scan desselben Spielers ersetzt die bisherige Verbindung." />
+        </Grid>
     </Grid>
 </base:WindowBase>

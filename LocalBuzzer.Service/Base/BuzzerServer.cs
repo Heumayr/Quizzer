@@ -56,6 +56,7 @@ namespace LocalBuzzer.Service
                 builder.Services.AddSingleton<LayoutStateManager>();
                 builder.Services.AddSingleton<BuzzerEventBus>();
                 builder.Services.AddSingleton<GameAccessor>();
+                builder.Services.AddSingleton<PlayerConnectionRegistry>();
                 builder.Services.AddSignalR();
                 builder.Services.AddSignalR(o => o.EnableDetailedErrors = true);
 

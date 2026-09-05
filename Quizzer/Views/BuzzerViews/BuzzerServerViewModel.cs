@@ -4,6 +4,7 @@ using QRCoder;
 using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.Views.StaticRessources;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -20,7 +21,7 @@ using System.Windows.Media.Imaging;
 
 namespace Quizzer.Views.BuzzerViews
 {
-    public class BuzzerServerViewModel : ViewModelBase
+    public partial class BuzzerServerViewModel : ViewModelBase
     {
         internal BuzzerServer? _server;
         internal Game? _game;
@@ -37,6 +38,45 @@ namespace Quizzer.Views.BuzzerViews
 
         public string State => ServerState.ToString();
 
+        /// <summary>Ueberschrift der Meldungsfenster dieses ViewModels.</summary>
+        internal const string ServerCaption = "Buzzer-Server";
+
+        /// <summary>Wie viele Telefone bereits verbunden sind.</summary>
+        public int ConnectedCount => _players.Count(p => p.ConnectionState == PlayerConnection.Connected);
+
+        /// <summary>Wie viele Mitspieler das Spiel hat.</summary>
+        public int PlayerCount => _players.Count;
+
+        /// <summary>
+        /// Der Zustand als Satz, den der Spielleiter lesen kann. Bis 2026-09-05 stand hier der
+        /// rohe Name des Enums - „None“, „Running“, „ActiveState“ - und nirgends, auf wie viele
+        /// Telefone noch gewartet wird.
+        /// </summary>
+        public string StateText
+        {
+            get
+            {
+                if (ServerState.HasFlag(ServerState.Error))
+                    return "Fehler – der Buzzer-Server läuft nicht";
+
+                if (ServerState.HasFlag(ServerState.Stopping))
+                    return "Server wird beendet …";
+
+                if (ServerState.HasFlag(ServerState.Starting) && !IsBuzzerServerRunning)
+                    return "Server startet …";
+
+                if (!IsBuzzerServerRunning)
+                    return "Server nicht gestartet";
+
+                if (PlayerCount == 0)
+                    return "Läuft – kein Mitspieler im Spiel";
+
+                return ConnectedCount >= PlayerCount
+                    ? $"Alle {PlayerCount} Telefone verbunden"
+                    : $"Läuft – {ConnectedCount} von {PlayerCount} Telefonen verbunden";
+            }
+        }
+
         /// <summary>
         /// ViewModel state = server state + computed flags (e.g. AllConnected).
         /// </summary>
@@ -48,20 +88,33 @@ namespace Quizzer.Views.BuzzerViews
                 if (_serverState == value) return;
                 _serverState = value;
 
+                // Gedeckte Toene statt Rot fuer den Normalfall: Rot war bisher der Zustand
+                // "laeuft, wartet noch auf Telefone" und faerbte im Fragefenster den Grund, auf
+                // dem die Uebersicht des Spielleiters steht. Das Wort daneben traegt die
+                // Bedeutung, nicht die Farbe.
                 BackgroundBrush = _serverState switch
                 {
-                    ServerState.None => Brushes.DarkGray,
-                    ServerState.Running => Brushes.Red,
-                    ServerState.Stopping => Brushes.Red,
-                    ServerState.Stopped => Brushes.DarkGray,
-                    ServerState.AllConnected => Brushes.Black,
-                    ServerState.ActiveState => Brushes.Black,
-                    _ => Brushes.Red
+                    _ when _serverState.HasFlag(ServerState.Error) => ErrorBrush,
+                    _ when _serverState.HasFlag(ServerState.AllConnected) => AllConnectedBrush,
+                    _ when _serverState.HasFlag(ServerState.Running) => WaitingBrush,
+                    _ => IdleBrush
                 };
 
                 NotifyServerStateChanged();
                 OnPropertyChanged(nameof(BackgroundBrush));
             }
+        }
+
+        private static readonly Brush IdleBrush = Freeze("#2A2A2A");
+        private static readonly Brush WaitingBrush = Freeze("#3A2F10");
+        private static readonly Brush AllConnectedBrush = Freeze("#10321A");
+        private static readonly Brush ErrorBrush = Freeze("#4A1010");
+
+        private static Brush Freeze(string hex)
+        {
+            var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+            brush.Freeze();
+            return brush;
         }
 
         private Brush backgroundBrush = Brushes.DarkGray;
@@ -113,10 +166,43 @@ namespace Quizzer.Views.BuzzerViews
         /// </summary>
         public bool IsBuzzerServerRunning => _server != null && _server.ServerState.HasFlag(ServerState.Running);
 
+        /// <summary>
+        /// Die Adresse, unter der ein Telefon die Buzzer-Seite oeffnet. Sie stand bisher nur im
+        /// QR-Fenster - der Spielleiter konnte sie also niemandem ansagen und bei Stoerungen auch
+        /// nicht selbst ausprobieren.
+        /// </summary>
+        public string EndpointUrl
+        {
+            get
+            {
+                var endpoint = IsBuzzerServerRunning ? _server?.GetBestListeningIpPort() : null;
+
+                return string.IsNullOrWhiteSpace(endpoint) ? string.Empty : $"http://{endpoint}";
+            }
+        }
+
+        public Visibility EndpointVisibility =>
+            string.IsNullOrEmpty(EndpointUrl) ? Visibility.Collapsed : Visibility.Visible;
+
+        private RelayCommand? copyEndpointCommand;
+
+        public ICommand CopyEndpointCommand => copyEndpointCommand ??= new RelayCommand(CopyEndpoint);
+
+        private void CopyEndpoint(object? commandParameter)
+        {
+            if (!string.IsNullOrEmpty(EndpointUrl))
+                Clipboard.SetText(EndpointUrl);
+        }
+
         private void NotifyServerStateChanged()
         {
             OnPropertyChanged(nameof(ServerState));
             OnPropertyChanged(nameof(State));
+            OnPropertyChanged(nameof(StateText));
+            OnPropertyChanged(nameof(ConnectedCount));
+            OnPropertyChanged(nameof(PlayerCount));
+            OnPropertyChanged(nameof(EndpointUrl));
+            OnPropertyChanged(nameof(EndpointVisibility));
             OnPropertyChanged(nameof(IsBuzzerServerRunning));
 
             startServerCommand?.RaiseCanExecuteChanged();
@@ -127,14 +213,39 @@ namespace Quizzer.Views.BuzzerViews
             PlayerConnectionStateChanged?.Invoke(this, ServerState);
         }
 
+        /// <summary>
+        /// Ein Telefon hat sich an- oder abgemeldet. Der Aufruf kommt aus dem Kestrel-Thread.
+        /// <para>
+        /// Faehrt die Anwendung gerade herunter, nimmt der Dispatcher nichts mehr an; ohne den
+        /// Ausstieg entkaeme aus dieser <c>async void</c>-Methode eine Ausnahme.
+        /// </para>
+        /// </summary>
         private async void OnConnectionChanged(object? sender, PlayerConnection e)
         {
-            // Avoid deadlocks: prefer InvokeAsync
-            await RunOnUiAsync(() =>
+            if (Application.Current?.Dispatcher.HasShutdownStarted == true)
+                return;
+
+            try
             {
-                CollectionViewSource.GetDefaultView(_players).Refresh();
-                RecalcServerState();
-            });
+                await RunOnUiAsync(() =>
+                {
+                    CollectionViewSource.GetDefaultView(_players).Refresh();
+                    RecalcServerState();
+
+                    // Der Zaehler im Zustandssatz haengt an den Spielern, nicht am Serverzustand:
+                    // ohne diesen Anstoss bliebe "0 von 3" stehen, waehrend alle verbunden sind.
+                    OnPropertyChanged(nameof(StateText));
+                    OnPropertyChanged(nameof(ConnectedCount));
+                });
+            }
+            catch (TaskCanceledException)
+            {
+                // Die Anwendung macht zu, waehrend der Server noch Telefone abmeldet.
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
         }
 
         /// <summary>
@@ -191,14 +302,20 @@ namespace Quizzer.Views.BuzzerViews
                 BuzzerControlsViewModel.SetBuzzerVerverViewModel(this);
 
                 RecalcServerState();
+                RefreshFirewallHint();
             }
             catch (Exception ex)
             {
                 var s = _server?.ServerState ?? ServerState.None;
                 ServerState = s | ServerState.Error;
 
-                MessageBox.Show(ex.Message, "Start Server failed", MessageBoxButton.OK, MessageBoxImage.Error);
-                throw;
+                // Nicht weiterwerfen: sonst zeigt der ExceptionManager dieselbe Sache ein zweites
+                // Mal, mit Stapelabbild, mitten im Spielaufbau.
+                UserPrompt.Inform(
+                    "Der Buzzer-Server konnte nicht starten. Meist ist Port 5000 noch belegt – "
+                    + "läuft noch eine zweite Quizzer-Instanz oder ein Testlauf?"
+                    + Environment.NewLine + Environment.NewLine + ex.Message,
+                    ServerCaption);
             }
         }
 
@@ -221,14 +338,17 @@ namespace Quizzer.Views.BuzzerViews
                 await _server.StopAsync();
 
                 RecalcServerState();
+                RefreshFirewallHint();
             }
             catch (Exception ex)
             {
                 var s = _server.ServerState;
                 ServerState = s | ServerState.Error;
 
-                MessageBox.Show(ex.Message, "Stop Server failed", MessageBoxButton.OK, MessageBoxImage.Error);
-                throw;
+                UserPrompt.Inform(
+                    "Der Buzzer-Server ließ sich nicht sauber beenden."
+                    + Environment.NewLine + Environment.NewLine + ex.Message,
+                    ServerCaption);
             }
         }
 
@@ -242,120 +362,5 @@ namespace Quizzer.Views.BuzzerViews
         //    await _server.ResetRoundAsync();
         //}
 
-        private RelayCommand? openPlayerQRCommand;
-
-        public ICommand OpenPlayerQRCommand => openPlayerQRCommand ??= new RelayCommand(OpenPlayerQR);
-
-        private void OpenPlayerQR(object? commandParameter)
-        {
-            if (commandParameter is not Player player)
-                return;
-
-            if (!IsBuzzerServerRunning)
-            {
-                MessageBox.Show("Server is not running.");
-                return;
-            }
-
-            var endpoint = _server?.GetBestListeningIpPort();
-            if (string.IsNullOrWhiteSpace(endpoint))
-            {
-                MessageBox.Show("No LAN endpoint found (is the server started and bound to a LAN interface?).");
-                return;
-            }
-
-            if (player.ConnectionState == PlayerConnection.Connected)
-            {
-                MessageBox.Show($"Player {player.DisplayName} is already connected.");
-                return;
-            }
-
-            var url = $"http://{endpoint}?id={Uri.EscapeDataString(player.Id.ToString())}";
-            var qrImage = CreateQrBitmap(url);
-
-            var urlBox = new TextBox
-            {
-                Text = url,
-                IsReadOnly = true,
-                Margin = new Thickness(12, 8, 12, 0)
-            };
-
-            var copyBtn = new Button
-            {
-                Content = "Copy URL",
-                Margin = new Thickness(12, 8, 12, 12),
-                Padding = new Thickness(10, 6, 10, 6)
-            };
-            copyBtn.Click += (_, __) => Clipboard.SetText(url);
-
-            var img = new Image
-            {
-                Source = qrImage,
-                Width = 360,
-                Height = 360,
-                Margin = new Thickness(12),
-                Stretch = Stretch.Uniform
-            };
-
-            var panel = new StackPanel();
-            panel.Children.Add(new TextBlock
-            {
-                Text = $"QR für {player.CalculatedDisplayName}",
-                FontWeight = FontWeights.Bold,
-                Margin = new Thickness(12, 12, 12, 0)
-            });
-            panel.Children.Add(img);
-            panel.Children.Add(urlBox);
-            panel.Children.Add(copyBtn);
-
-            var win = new Window
-            {
-                Title = "Player QR",
-                Content = panel,
-                SizeToContent = SizeToContent.WidthAndHeight,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Owner = Application.Current?.MainWindow
-            };
-
-            win.Loaded += (o, e) =>
-            {
-                _server?.BuzzerController?.EventBus.ClientAssigned += (name, playerId) => PlayerAssigend(player, win, name, playerId);
-            };
-
-            win.Closed += (o, e) =>
-            {
-                _server?.BuzzerController?.EventBus.ClientAssigned -= (name, playerId) => PlayerAssigend(player, win, name, playerId);
-            };
-
-            win.Show();
-        }
-
-        public void PlayerAssigend(Player player, Window win, string displayname, Guid playerId)
-        {
-            RunOnUi(() =>
-            {
-                if (playerId == player.Id && player.ConnectionState == PlayerConnection.Connected)
-                {
-                    win.Close();
-                }
-            });
-        }
-
-        private static BitmapImage CreateQrBitmap(string payload)
-        {
-            using var gen = new QRCodeGenerator();
-            using var data = gen.CreateQrCode(payload, QRCodeGenerator.ECCLevel.Q);
-
-            var png = new PngByteQRCode(data);
-            byte[] bytes = png.GetGraphic(20);
-
-            var bmp = new BitmapImage();
-            bmp.BeginInit();
-            bmp.CacheOption = BitmapCacheOption.OnLoad;
-            bmp.StreamSource = new MemoryStream(bytes);
-            bmp.EndInit();
-            bmp.Freeze();
-            return bmp;
-        }
     }
 }
