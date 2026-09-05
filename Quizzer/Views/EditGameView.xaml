@@ -97,7 +97,12 @@
                         </Binding>
                     </TextBox.Text>
                 </TextBox>
-                <Label Margin="70,0,0,0" MinWidth="210" Content="Minuspunkte Faktor / Zuschlag:" ToolTip="Dieselbe Rechnung für die Minuspunkte einer Zelle." VerticalAlignment="Center" />
+            </StackPanel>
+            <!-- Eigene Zeile: nebeneinander brauchten beide Paare zusammen rund 730 Bildpunkte,
+                 das Fenster ist 800 breit und die Knopfspalte nimmt davon 164. Gemessen
+                 2026-09-06, nachdem die Beschriftungen ausgeschrieben wurden. -->
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="210" Content="Minuspunkte Faktor / Zuschlag:" ToolTip="Dieselbe Rechnung für die Minuspunkte einer Zelle." VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" MinWidth="50" Margin="5,0,0,0">
                     <TextBox.Text>
                         <Binding Path="DifficultyMinusMultiplier" UpdateSourceTrigger="LostFocus" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">

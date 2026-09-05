@@ -41,6 +41,7 @@ namespace Quizzer.UnitTests.Views
             typeof(Quizzer.Views.QuestionTypes.EditQuestionsView),
             typeof(Quizzer.Views.QuestionTypes.EditStepView),
             typeof(Quizzer.Views.QuestionTypes.NewQuestionView),
+            typeof(Quizzer.Views.BuzzerViews.BuzzerServerView),
         ];
 
         private static IEnumerable<T> Descendants<T>(DependencyObject root) where T : DependencyObject
@@ -113,6 +114,63 @@ namespace Quizzer.UnitTests.Views
 
             Assert.AreEqual(0, funde.Count,
                 "Beim Aufbau der Fenster ist etwas schiefgegangen:" + Environment.NewLine
+                + string.Join(Environment.NewLine, funde));
+        }
+
+        /// <summary>
+        /// Kein Fenster ragt in seiner <b>eigenen</b> Groesse waagrecht heraus.
+        /// <para>
+        /// Deutsche Beschriftungen sind laenger als englische. Beim Uebersetzen der
+        /// Verwaltungsfenster am 2026-09-06 ragte der Spieleditor sofort heraus: zwei
+        /// ausgeschriebene Faktoren-Beschriftungen nebeneinander brauchten rund 730 Bildpunkte
+        /// bei 800 Fensterbreite. Zwei weitere Fenster lagen schon vorher 35 Bildpunkte
+        /// darueber. Auf dem Bildschirm sieht man das nicht - man zieht das Fenster groesser,
+        /// ohne es zu merken.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void NoWindowOverflowsItsOwnWidth()
+        {
+            var funde = new List<string>();
+            var gemessen = 0;
+
+            UiTestHost.Run(() =>
+            {
+                foreach (var typ in Fenster)
+                {
+                    var fenster = (Window)Activator.CreateInstance(typ)!;
+
+                    // Ohne eigene Angabe im XAML die WPF-Standardgroesse.
+                    var breite = double.IsNaN(fenster.Width) ? 800 : fenster.Width;
+                    var hoehe = double.IsNaN(fenster.Height) ? 450 : fenster.Height;
+
+                    var inhalt = (FrameworkElement)fenster.Content;
+
+                    inhalt.Measure(new Size(breite, hoehe));
+                    inhalt.Arrange(new Rect(0, 0, breite, hoehe));
+                    inhalt.UpdateLayout();
+
+                    gemessen++;
+
+                    var ueber = Descendants<FrameworkElement>(inhalt)
+                        .Where(e => e.ActualWidth > 0 && e.ActualHeight > 0)
+                        .Select(e => new { e, x = e.TranslatePoint(new Point(0, 0), inhalt).X })
+                        .Where(a => a.x + a.e.ActualWidth > breite + 1)
+                        .Select(a => $"{a.e.GetType().Name} bis {a.x + a.e.ActualWidth:0}")
+                        .Distinct()
+                        .Take(3)
+                        .ToList();
+
+                    if (ueber.Count > 0)
+                        funde.Add($"{typ.Name} ({breite:0} breit): " + string.Join(" ; ", ueber));
+                }
+            });
+
+            Assert.AreEqual(Fenster.Length, gemessen,
+                $"Nur {gemessen} von {Fenster.Length} Fenstern gemessen.");
+
+            Assert.AreEqual(0, funde.Count,
+                "Diese Fenster ragen in ihrer eigenen Groesse heraus:" + Environment.NewLine
                 + string.Join(Environment.NewLine, funde));
         }
     }

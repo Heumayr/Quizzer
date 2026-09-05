@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Quizzer.Views.HelperViewModels"
         xmlns:base="clr-namespace:Quizzer.Base"
         mc:Ignorable="d"
-        Title="Frage auswählen" Height="450" Width="800">
+        Title="Frage auswählen" Height="500" Width="900">
     <base:WindowBase.DataContext>
         <local:QuestionSelectorViewModel />
     </base:WindowBase.DataContext>
