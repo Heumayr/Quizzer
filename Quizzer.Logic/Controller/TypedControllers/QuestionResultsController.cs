@@ -45,5 +45,23 @@ namespace Quizzer.Logic.Controller.TypedControllers
 
             return result;
         }
+
+        /// <summary>
+        /// Zaehlt die Ergebniszeilen der genannten Mitspieler.
+        /// <para>
+        /// Gebraucht wird das vor dem Loeschen: <c>QuestionResult.PlayerId</c> steht auf CASCADE,
+        /// mit dem Mitspieler verschwindet also seine gesamte Punktehistorie. Die Rueckfrage soll
+        /// das beziffern koennen, statt nur "wirklich entfernen?" zu sagen.
+        /// </para>
+        /// </summary>
+        public async Task<int> CountResultsOfPlayersAsync(IEnumerable<Guid> playerIds)
+        {
+            var ids = playerIds?.Distinct().ToList() ?? [];
+
+            if (ids.Count == 0)
+                return 0;
+
+            return await EntitySet.CountAsync(r => ids.Contains(r.PlayerId));
+        }
     }
 }

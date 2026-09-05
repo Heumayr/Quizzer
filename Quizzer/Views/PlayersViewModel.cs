@@ -95,16 +95,30 @@ namespace Quizzer.Views
 
         public ICommand RemovePlayerCommand => removePlayerCommand ??= new AsyncRelayCommand(RemovePlayerAsync);
 
+        /// <summary>
+        /// Entfernt die ausgewählten Mitspieler - und nennt vorher, was daran hängt.
+        /// <para>
+        /// <c>QuestionResult.PlayerId</c> steht in der Datenbank auf CASCADE: mit dem Mitspieler
+        /// verschwindet <b>seine gesamte Punktehistorie aus allen Spielen</b>, ohne Meldung und
+        /// ohne Weg zurück. Bis 2026-09-06 fragte die Rückfrage nur „wirklich entfernen?" - das
+        /// klingt nach einer Zeile in einer Liste. Jetzt steht die Zahl der Ergebniszeilen dabei.
+        /// </para>
+        /// <para>
+        /// Die Rückfrage kommt außerdem erst nach der Prüfung auf Auswahl; vorher fragte sie
+        /// auch dann, wenn gar nichts ausgewählt war.
+        /// </para>
+        /// </summary>
         private async Task RemovePlayerAsync(object? commandParameter)
         {
-            if (!UserPrompt.Confirm("Die ausgewählten Spieler wirklich entfernen?", "Entfernen bestätigen")) return;
-
             if (SelectedPlayers == null || SelectedPlayers.Count == 0)
             {
                 return;
             }
 
             var toRemove = new List<Player>(SelectedPlayers);
+
+            if (!await ConfirmRemovalAsync(toRemove))
+                return;
 
             using var ctrl = new PlayersController();
 
@@ -116,6 +130,31 @@ namespace Quizzer.Views
             await ctrl.SaveChangesAsync();
 
             await OnloadAsync();
+        }
+
+        /// <summary>
+        /// Fragt nach und beziffert dabei, wie viele Ergebniszeilen mitgelöscht würden.
+        /// </summary>
+        private static async Task<bool> ConfirmRemovalAsync(List<Player> toRemove)
+        {
+            int ergebnisse;
+
+            using (var ctrlResults = new QuestionResultsController())
+            {
+                ergebnisse = await ctrlResults.CountResultsOfPlayersAsync(toRemove.Select(p => p.Id));
+            }
+
+            var namen = string.Join(", ", toRemove.Select(p => p.CalculatedDisplayName));
+
+            var zeilen = ergebnisse == 1 ? "1 Ergebniszeile" : $"{ergebnisse} Ergebniszeilen";
+
+            var frage = ergebnisse == 0
+                ? $"{namen} entfernen?"
+                : $"{namen} entfernen?" + Environment.NewLine + Environment.NewLine
+                  + $"Dabei wird die gesamte Punktehistorie mitgelöscht: {zeilen} aus allen "
+                  + "Spielen. Das lässt sich nicht rückgängig machen.";
+
+            return UserPrompt.Confirm(frage, "Mitspieler entfernen");
         }
     }
 }
