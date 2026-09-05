@@ -30,7 +30,7 @@
                 <DataGridTextColumn Header="Bezeichnung" Binding="{Binding Designation}" Width="2*" />
                 <DataGridTextColumn Header="Kurz" Binding="{Binding DesignationShort}" Width="0.6*" />
                 <!-- Ohne diese Spalte war einer fertigen Frage nirgends anzusehen, welcher Typ sie ist. -->
-                <DataGridTextColumn Header="Typ" Binding="{Binding Typ}" Width="*" />
+                <DataGridTextColumn Header="Typ" Binding="{Binding TypDisplayName}" Width="*" />
                 <DataGridTextColumn Header="Kategorie" Binding="{Binding Category.Designation}" Width="*" />
                 <DataGridTextColumn Header="Schwierigkeit" Binding="{Binding Difficulty}" Width="*" />
                 <DataGridTextColumn Header="Punkte" Binding="{Binding Points}" Width="0.7*" />

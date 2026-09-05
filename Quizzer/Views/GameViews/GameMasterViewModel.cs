@@ -271,7 +271,7 @@ namespace Quizzer.Views.GameViews
 
         private string GetChoosingPlayerSignature()
         {
-            var result = $"Cant't be{Environment.NewLine}evaluated!";
+            var result = "Noch nicht festgelegt";
 
             if (Game == null) return result;
 

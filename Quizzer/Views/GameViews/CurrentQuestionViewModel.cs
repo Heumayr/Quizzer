@@ -264,7 +264,7 @@ namespace Quizzer.Views.GameViews
             await ctrl.SaveChangesAsync();
         }
 
-        public string QuestionType => Question?.Typ.DescriptionOrString() ?? String.Empty;
+        public string QuestionType => Question?.TypDisplayName ?? String.Empty;
         public string QuestionDesignation => Question?.Designation ?? String.Empty;
         public string QuestionDesignationShort => Question?.DesignationShort ?? String.Empty;
         public string QuestionCategory => Question?.Category?.Designation ?? String.Empty;

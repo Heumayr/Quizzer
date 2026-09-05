@@ -104,6 +104,19 @@ namespace Quizzer.DataModels.Models
         public QuestionStepResource[] OrderedSteps { get; set; } = [];
 
         /// <summary>
+        /// Der Fragetyp, wie er auf dem Bildschirm heißen soll - "Schätzfrage" statt
+        /// "Appreciate".
+        /// <para>
+        /// Der Name kommt aus <see cref="Questions.QuestionTypeProfiles"/>, der einzigen Quelle
+        /// für Typwissen. Bewusst keine <c>[Description]</c> am Enum: dann stünde derselbe Name
+        /// an zwei Stellen und liefe auseinander. Gemessen 2026-09-06: bis dahin stand im Kopf
+        /// des Fragefensters und in der Fragenliste der interne Bezeichner.
+        /// </para>
+        /// </summary>
+        [NotMapped]
+        public string TypDisplayName => Questions.QuestionTypeProfiles.For(Typ).DisplayName;
+
+        /// <summary>
         /// Gibt den nächsten Schritt nach <paramref name="currentStep"/> zurück.
         /// Gibt den ersten Schritt zurück, wenn <paramref name="currentStep"/> <c>null</c> ist.
         /// Gibt <c>null</c> zurück, wenn kein weiterer Schritt vorhanden ist.
