@@ -480,10 +480,15 @@ namespace Quizzer.Views.GameViews
         /// <summary>
         /// Schliesst die Zelle ab und stellt den Abschlussschritt auf den Spielerbildschirm.
         /// <para>
-        /// Hat die Frage keinen Abschlussschritt, bleibt der zuletzt gezeigte stehen. Bis
-        /// 2026-09-06 wurde <c>CurrentStep</c> auch dann auf <c>null</c> gesetzt - der Beamer
-        /// wurde vollstaendig schwarz, und die Mitspieler sahen bis zum Schliessen des Fensters
-        /// gar nichts mehr.
+        /// Hat die Frage keinen eigenen Abschlussschritt, bleibt der zuletzt gezeigte stehen -
+        /// sonst wird der Beamer leer, und die Mitspieler sehen bis zum Schliessen des Fensters
+        /// nichts mehr.
+        /// </para>
+        /// <para>
+        /// <c>FinishStep</c> ist dabei nie <c>null</c>: <c>CalculateOrderdSteps</c> erfindet
+        /// einen, wenn keiner hinterlegt ist. Eine Pruefung auf <c>null</c> haette also nichts
+        /// bewirkt - gemessen am 2026-09-06, nachdem ich zuerst genau die geschrieben hatte.
+        /// Es zaehlt, ob der Schritt etwas zu zeigen hat.
         /// </para>
         /// </summary>
         private async Task SaveIsDoneFinishStateAsync(object? commandParameter)
@@ -492,10 +497,21 @@ namespace Quizzer.Views.GameViews
 
             await VMSaveAsync();
 
-            if (finishStep != null)
+            if (HasSomethingToShow(finishStep))
                 CurrentStep = finishStep;
 
             NextStep = null;
+        }
+
+        /// <summary>Ob ein Schritt Text oder ein Medium mitbringt.</summary>
+        private static bool HasSomethingToShow(QuestionStepResource? step)
+        {
+            if (step == null)
+                return false;
+
+            return !string.IsNullOrWhiteSpace(step.StepText)
+                || !string.IsNullOrWhiteSpace(step.Designation)
+                || step.HasResource;
         }
 
         #region Buzzer
