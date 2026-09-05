@@ -290,5 +290,60 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
             Assert.AreEqual(vm.Coordinate!.QuestionBaseId, state.Infos.QuestionId,
                 "Ohne Fragekennung kann der Browser eine neue Runde nicht von der alten trennen.");
         }
+
+        /// <summary>
+        /// Ohne laufenden Server wird ohne Buzzer weitergespielt - das ist ein Normalzustand.
+        /// Bis 2026-09-05 warf das Ausspielen der Runde dabei, und nach einem "Server beenden"
+        /// brachte jede geoeffnete und jede geschlossene Frage ein Fehlerfenster mit sich.
+        /// </summary>
+        [TestMethod]
+        public async Task AfterStoppingTheServer_OpeningAQuestionStaysQuiet()
+        {
+            await StartServerAsync(QuestionType.Default);
+
+            await ((AsyncRelayCommand)serverVm!.StopServerCommand).ExecuteAsync(null);
+
+            // Was beim Beenden selbst anfiel, gehoert nicht zu dieser Messung.
+            TestEnvironment.ClearSwallowedExceptions();
+
+            var vm = new TestableCurrentQuestionViewModel { Coordinate = world!.Coordinate };
+
+            await vm.LoadForTestAsync();
+            await vm.ClosedForTestAsync();
+
+            TestEnvironment.ThrowIfAnythingWasSwallowed();
+        }
+
+        /// <summary>
+        /// Ein Spieler ohne frei gewaehlten Namen: die Meldungen muessen trotzdem einen Namen
+        /// tragen. <c>DisplayName</c> ist dann leer, <c>CalculatedDisplayName</c> faellt auf die
+        /// Bezeichnung zurueck.
+        /// </summary>
+        [TestMethod]
+        public async Task APlayerWithoutADisplayNameIsStillNamed()
+        {
+            await StartServerAsync(QuestionType.Default);
+
+            var player = world!.Players[0];
+            player.DisplayName = string.Empty;
+
+            await ConnectPhoneAsync(player);
+
+            // Die Uebersicht entsteht erst mit der geoeffneten Frage.
+            var vm = new TestableCurrentQuestionViewModel { Coordinate = world.Coordinate };
+            await vm.LoadForTestAsync();
+
+            var uebersicht = serverVm!.BuzzerControlsViewModel!;
+
+            var eintrag = uebersicht.LivePlayers.FirstOrDefault(p => p.PlayerId == player.Id);
+
+            Assert.IsNotNull(eintrag, "Der Spieler fehlt in der Uebersicht des Spielleiters.");
+
+            Assert.IsFalse(string.IsNullOrWhiteSpace(eintrag!.DisplayName),
+                "Ohne frei gewaehlten Namen steht in der Uebersicht eine leere Zeile.");
+
+            Assert.AreEqual(player.Designation, eintrag.DisplayName,
+                "Ohne DisplayName muss die Bezeichnung einspringen.");
+        }
     }
 }

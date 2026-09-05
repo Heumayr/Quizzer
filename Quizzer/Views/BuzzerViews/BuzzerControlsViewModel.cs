@@ -68,12 +68,20 @@ namespace Quizzer.Views.BuzzerViews
 
         public ICommand ResetRoundCommand => resetRoundCommand ??= new AsyncRelayCommand(ResetRoundAsync, _ => BuzzerServerViewModel?.IsBuzzerServerRunning ?? false);
 
+        /// <summary>
+        /// Spielt eine Runde auf die Telefone aus.
+        /// <para>
+        /// Ohne laufenden Server geschieht nichts. Das ist ein Normalzustand, kein Fehler: bis
+        /// 2026-09-05 warf diese Stelle, und nach einem "Server beenden" brachte jede geoeffnete
+        /// und jede geschlossene Frage ein Fehlerfenster mit sich.
+        /// </para>
+        /// </summary>
         public async Task ResetRoundAsync(object? commandParameter)
         {
             try
             {
                 if (BuzzerServerViewModel is null || BuzzerController is null || Game is null)
-                    throw new Exception("Invalid Server State");
+                    return;
 
                 var buzzerLayout = BuzzerControlsLayout.None;
 
@@ -88,12 +96,18 @@ namespace Quizzer.Views.BuzzerViews
             }
         }
 
+        /// <summary>
+        /// Ein Telefon hat sich angemeldet. Die Spielerliste haengt am Verbindungszustand und
+        /// zieht ueber <see cref="RefreshConnections"/> nach; hier ist nur der Sprung auf den
+        /// Oberflaechen-Thread noetig.
+        /// <para>
+        /// Bis 2026-09-05 stand hier ein leerer <c>RunOnUi</c>-Rumpf. Der blockierte den
+        /// Hub-Thread mitten im Handshake, solange die Oberflaeche beschaeftigt war - fuer nichts.
+        /// </para>
+        /// </summary>
         public void OnAssigned(string displayName, Guid guid)
         {
-            RunOnUi(() =>
-            {
-                // UI updates here
-            });
+            _ = RunOnUiAsync(RefreshConnections);
         }
 
         public async void OnPlayerSelectedKeys(SelectionResult selectionResult)
@@ -191,6 +205,11 @@ namespace Quizzer.Views.BuzzerViews
             ctrl?.EventBus.AllPlayersSelectedKeys -= OnAllPlayerSelectedKeys;
 
             UnsubscribeInputEvents(ctrl);
+
+            // Das Abo haengt am prozessweiten BuzzerServerViewModel und ueberlebt sonst jedes
+            // Entsorgen: nach mehrmaligem Start liefen tote ViewModels bei jedem Verbindungs-
+            // wechsel ihre Spielerlisten durch.
+            StaticManager.BuzzerServerViewModel.PlayerConnectionStateChanged -= OnPlayerConnectionStateChanged;
 
             BuzzerServerViewModel = null;
         }
