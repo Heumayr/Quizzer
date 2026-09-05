@@ -144,9 +144,15 @@ namespace Quizzer.UnitTests.PlayThrough
                 Y = 0,
                 Phase = 1,
                 QuestionBaseId = Question.Id,
+                QuestionBase = Question,
             };
 
             Game.GameGridCoordinates.Add(Coordinate);
+
+            // Ohne diesen Aufruf traegt die Zelle CurrentPoints = 0, und jeder Durchspiel-Test
+            // misst die Punktevergabe an einer Zelle, die nichts wert ist - eine Zusicherung
+            // ueber Punkte kann dann gar nicht fehlschlagen. Gemessen 2026-09-06.
+            Coordinate.CalculateAndSetCurrentPoints();
 
             foreach (var player in Players)
             {

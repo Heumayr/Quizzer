@@ -24,6 +24,14 @@ namespace Quizzer.UnitTests
         /// <summary>Ausnahmen, die der ExceptionManager waehrend eines Tests aufgefangen hat.</summary>
         public static List<Exception> SwallowedExceptions { get; } = new();
 
+        /// <summary>
+        /// Controller, die mit offenen Aenderungen entsorgt wurden - also ohne
+        /// <c>SaveChangesAsync</c>. Ein vergessener Aufruf verliert die Aenderung lautlos: es
+        /// gibt keine Ausnahme, keine Meldung, und der naechste Bildschirmaufbau zeigt einfach
+        /// wieder den alten Stand. Genau der Fall, den der Nutzer am 05.09. gemeldet hat.
+        /// </summary>
+        public static List<string> DiscardedChanges { get; } = new();
+
         [AssemblyInitialize]
         public static void Initialize(TestContext _)
         {
@@ -41,6 +49,14 @@ namespace Quizzer.UnitTests
                 }
             };
 
+            Quizzer.Logic.Controller.UnsavedChangesWatch.Handler = (controller, anzahl) =>
+            {
+                lock (DiscardedChanges)
+                {
+                    DiscardedChanges.Add($"{controller}: {anzahl} Aenderungen");
+                }
+            };
+
             DatabaseInitializer.RecreateForTests();
         }
 
@@ -49,7 +65,36 @@ namespace Quizzer.UnitTests
         {
             ViewCommonBase.UiInvokerOverride = null;
             ExceptionManager.ResetHandler();
+            Quizzer.Logic.Controller.UnsavedChangesWatch.ResetHandler();
             UserPrompt.Reset();
+        }
+
+        /// <summary>
+        /// Scheitert, wenn ein Controller mit offenen Aenderungen entsorgt wurde.
+        /// </summary>
+        public static void ThrowIfAnythingWasDiscarded()
+        {
+            lock (DiscardedChanges)
+            {
+                if (DiscardedChanges.Count == 0)
+                    return;
+
+                var verloren = string.Join(", ", DiscardedChanges);
+                DiscardedChanges.Clear();
+
+                throw new AssertFailedException(
+                    "Ein Controller wurde ohne SaveChangesAsync entsorgt - die Aenderungen sind "
+                    + $"verloren: {verloren}");
+            }
+        }
+
+        /// <summary>Vergisst gemeldete Verluste, wenn ein Test sie erwartet hat.</summary>
+        public static void ClearDiscardedChanges()
+        {
+            lock (DiscardedChanges)
+            {
+                DiscardedChanges.Clear();
+            }
         }
 
         /// <summary>
