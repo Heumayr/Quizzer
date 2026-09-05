@@ -248,5 +248,57 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
                 await connection.DisposeAsync();
             }
         }
+        /// <summary>
+        /// Der Abendfall: das Telefon faellt mitten in einer laufenden Runde weg - Bildschirm
+        /// gesperrt, WLAN gewechselt - und kommt zurueck. Es muss die laufende Runde
+        /// wiederbekommen, nicht eine leere Anzeige.
+        /// <para>
+        /// Gemessen 2026-09-06. Bis dahin war nur geprueft, <b>dass</b> die neue Verbindung
+        /// angenommen wird - nicht, <b>was</b> sie zurueckbekommt. Ein Gast vor einem leeren
+        /// Telefon merkt den Unterschied sofort, der Spielleiter erst, wenn niemand buzzert.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task AReconnectingPhoneGetsTheRunningRoundBack()
+        {
+            await using var erstes = await ConnectAsync(anna);
+
+            server.BuzzerController!.StateManager.BuzzerInputState.Infos = new()
+            {
+                InputType = "number",
+                Placeholder = "Wert in m",
+                QuestionId = Guid.NewGuid(),
+            };
+
+            await server.BuzzerController.ResetRoundAsync(7, BuzzerControlsLayout.Input);
+
+            // Jetzt faellt das Telefon weg und meldet sich neu an.
+            await using var zweites = await ConnectAsync(anna);
+
+            Assert.IsTrue(await WaitForAsync(() =>
+            {
+                lock (zweites.Assigned) return zweites.Assigned.Count > 0;
+            }), "Das wiederverbindende Telefon bekam keine Zuordnung.");
+
+            ClientLayoutStateDto stand;
+            lock (zweites.Assigned) stand = zweites.Assigned[0];
+
+            Assert.AreEqual(BuzzerControlsLayout.Input, stand.Layout,
+                "Das Telefon bekam nicht das laufende Layout zurueck - der Gast saehe eine "
+                + "leere Anzeige, bis der Spielleiter weiterschaltet.");
+
+            Assert.AreEqual(7, stand.Round,
+                "Die Rundennummer stimmt nicht - eine Abgabe wuerde der falschen Runde "
+                + "zugeordnet.");
+
+            Assert.IsFalse(stand.CurrentLayoutLocked,
+                "Die laufende Runde kam als gesperrt an - das Telefon liesse keine Eingabe zu.");
+
+            Assert.IsNotNull(stand.LayoutInfo,
+                "Ohne LayoutInfo weiss das Telefon nicht, welche Eingabeart es zeigen soll.");
+
+            Assert.AreEqual(anna.CalculatedDisplayName, stand.PlayerName,
+                "Das Telefon zeigt den falschen Spieler an.");
+        }
     }
 }
