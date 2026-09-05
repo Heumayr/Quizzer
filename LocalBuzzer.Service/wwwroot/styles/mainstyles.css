@@ -1,5 +1,6 @@
 ﻿/* ===== Theme ===== */
 :root {
+    color-scheme: dark;
     --bg: #0b0f19;
     --text: #ffffff;
     --text-soft: rgba(255, 255, 255, 0.75);
@@ -10,7 +11,9 @@
     --primary: #1f6feb;
     --secondary: #243047;
     --disabled: #2a3345;
-    --success: #16a34a;
+    /* Dunkler als das fruehere #16a34a: mit weisser Schrift standen dort 3,30:1, und der
+       Bestaetigen-Knopf ist in zwei von drei Layouts das wichtigste Element der Seite. */
+    --success: #15803d;
     --danger-bg: rgba(220, 38, 38, 0.18);
     --danger-border: rgba(220, 38, 38, 0.45);
     --danger-text: #ffd1d1;
@@ -51,6 +54,9 @@ body {
     font-family: system-ui, sans-serif;
     background: var(--bg);
     color: var(--text);
+    /* Ohne das wertet iOS zwei schnelle Tipps auf den Buzzer als Doppeltipp und zoomt,
+       statt den zweiten Druck durchzulassen. */
+    touch-action: manipulation;
 }
 
 body {
@@ -65,6 +71,8 @@ body {
 /* ===== Top bar ===== */
 .top {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     justify-content: space-between;
     gap: var(--space-md);
     flex: 0 0 auto;
@@ -76,23 +84,37 @@ body {
     font-weight: 800;
 }
 
+/* Verbindungsanzeige: Punkt UND Wort - ein farbiger Punkt allein ist keine Meldung. */
+#connection {
+    font-size: 13px;
+    white-space: nowrap;
+    color: var(--text-soft);
+}
+
+    #connection[data-state="connected"] {
+        color: #7ee2a8;
+    }
+
+    #connection[data-state="reconnecting"] {
+        color: var(--toast-warning-text);
+    }
+
 #status {
     text-align: right;
 }
 
 /* ===== Inline error ===== */
+/* Ganze Breite und umbrechend: auf einem schmalen Telefon blieben zwischen Name und Status
+   rund hundert Pixel, und die Meldung endete nach dem dritten Wort in "...". */
 #error_display {
     display: none;
-    flex: 1 1 auto;
+    flex: 1 1 100%;
     min-width: 0;
-    align-self: center;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
     padding: var(--space-xs) var(--space-sm);
     border-radius: var(--radius-md);
-    font-size: 13px;
-    line-height: 1.2;
+    font-size: 14px;
+    line-height: 1.3;
+    overflow-wrap: break-word;
     background: var(--danger-bg);
     border: 1px solid var(--danger-border);
     color: var(--danger-text);
@@ -133,11 +155,19 @@ body {
 /* ===== Shared button basics ===== */
 .key-btn,
 .commit-btn,
+.notice-btn,
 .layout-buzzer .buzz-btn {
     border: 0;
     color: var(--text);
     cursor: pointer;
     box-sizing: border-box;
+    /* Kein Doppeltipp-Zoom, keine Textauswahl beim Halten, kein grauer Aufblitzer -
+       alles drei stoert genau dann, wenn es auf Schnelligkeit ankommt. */
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
     .key-btn:disabled,
@@ -162,7 +192,15 @@ body {
         font-size: 44px;
         font-weight: 900;
         background: var(--primary);
+        transition: transform 0.06s ease, filter 0.06s ease;
     }
+
+        /* Sichtbare Rueckmeldung im Augenblick des Druckens - der Buzzer wird gleich gesperrt,
+           und ohne diese Antwort wirkt das wie ein verschluckter Druck. */
+        .layout-buzzer .buzz-btn:active:not(:disabled) {
+            transform: scale(0.97);
+            filter: brightness(1.25);
+        }
 
 /* ===== KeySelect layout ===== */
 .layout-keyselect {
@@ -203,9 +241,17 @@ body {
     word-break: break-word;
 }
 
+    /* Gewaehlt wird nicht nur ueber die Farbe angezeigt: ein Haken davor und ein Rahmen
+       bleiben auch bei Farbfehlsichtigkeit und bei Sonnenlicht erkennbar. */
     .key-btn.selected {
         background: var(--primary);
+        outline: 3px solid #ffffff;
+        outline-offset: -3px;
     }
+
+        .key-btn.selected::before {
+            content: "✓ ";
+        }
 
         .key-btn.selected:disabled {
             background: var(--primary);
@@ -234,6 +280,22 @@ body {
     box-sizing: border-box;
 }
 
+/* Eine Beschriftung ueber dem Feld, nicht nur ein Platzhalter: der verschwindet mit dem
+   ersten Zeichen - also genau dann, wenn man die Einheit nachlesen will. */
+.input-label {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-soft);
+}
+
+.input-submitted {
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+    background: var(--panel);
+    font-size: 15px;
+    overflow-wrap: break-word;
+}
+
 .input-field {
     min-height: var(--input-height);
     padding: 0 var(--space-xl);
@@ -249,6 +311,40 @@ body {
     .input-field:disabled {
         opacity: 0.7;
     }
+
+/* ===== Meldung mit Ausweg ===== */
+/* Steht anstelle des Layouts, wenn die Verbindung weg ist oder ein anderes Geraet uebernommen
+   hat. Bis 2026-09-05 blieb an dieser Stelle nur ein gesperrtes Layout ohne jeden Hinweis. */
+.layout-notice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-lg);
+    height: 100%;
+    padding: var(--space-xl);
+    border-radius: var(--radius-xl);
+    background: var(--panel);
+    box-sizing: border-box;
+}
+
+.notice-text {
+    margin: 0;
+    text-align: center;
+    font-size: 18px;
+    line-height: 1.4;
+    overflow-wrap: break-word;
+}
+
+.notice-btn {
+    width: 100%;
+    max-width: 420px;
+    min-height: var(--input-height);
+    border-radius: var(--radius-lg);
+    font-size: 20px;
+    font-weight: 800;
+    background: var(--primary);
+}
 
 /* ===== Toast host ===== */
 #toast-host {

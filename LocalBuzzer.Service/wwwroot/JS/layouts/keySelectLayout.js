@@ -8,6 +8,7 @@
 
         this.selectedKeys = new Set();
         this.locked = true;
+        this.submitted = false;
 
         this.lastSignature = "";
         this.lastContext = null;
@@ -94,6 +95,10 @@
         this.keysWrap.innerHTML = "";
         this.selectedKeys = new Set();
 
+        // Neue Runde: die Abgabe der letzten gilt nicht mehr.
+        this.submitted = false;
+        this.commitBtn.textContent = "Auswahl bestätigen";
+
         for (const [key, designation] of entries) {
             const btn = document.createElement("button");
             btn.type = "button";
@@ -103,8 +108,10 @@
                 ? `${key}: ${designation}`
                 : key;
 
+            btn.setAttribute("aria-pressed", "false");
+
             if (previouslySelected.has(key)) {
-                btn.classList.add("selected");
+                this.markSelected(btn, true);
                 this.selectedKeys.add(key);
             }
 
@@ -113,7 +120,7 @@
 
                 if (this.selectedKeys.has(key)) {
                     this.selectedKeys.delete(key);
-                    btn.classList.remove("selected");
+                    this.markSelected(btn, false);
                 } else {
                     if (this.selectedKeys.size >= maxSelections) {
                         if (typeof window.show_toast === "function") {
@@ -126,7 +133,7 @@
                     }
 
                     this.selectedKeys.add(key);
-                    btn.classList.add("selected");
+                    this.markSelected(btn, true);
                 }
 
                 this.updateCommitState();
@@ -137,6 +144,13 @@
 
         this.updateCommitState();
         this.setLocked(context.currentLayoutLocked || context.allLocked);
+    }
+
+    // Gewaehlt wird nicht allein ueber die Farbe angezeigt: der Haken kommt aus der CSS,
+    // aria-pressed sagt es der Vorlesehilfe.
+    markSelected(btn, selected) {
+        btn.classList.toggle("selected", selected);
+        btn.setAttribute("aria-pressed", String(selected));
     }
 
     setLocked(locked) {
@@ -153,6 +167,12 @@
 
     updateCommitState() {
         if (!this.commitBtn) return;
+
+        if (this.submitted) {
+            this.commitBtn.disabled = true;
+            return;
+        }
+
         this.commitBtn.disabled = this.locked || this.selectedKeys.size === 0;
     }
 
@@ -169,10 +189,6 @@
 
         this.setLocked(true);
 
-        if (typeof window.show_toast === "function") {
-            window.show_toast("info", "Auswahl gespeichert");
-        }
-
         try {
             await this.actions.submitSelection(payload);
         } catch (e) {
@@ -182,7 +198,17 @@
                 window.show_toast("error", e?.message ?? "Speichern fehlgeschlagen");
             }
 
-            throw e;
+            return;
+        }
+
+        // Erst jetzt melden. Bis 2026-09-05 stand "Auswahl gespeichert" schon da, bevor der
+        // Server geantwortet hatte - auch dann, wenn er die Abgabe still verwarf.
+        this.submitted = true;
+        this.commitBtn.textContent = "Abgegeben ✓";
+        this.updateCommitState();
+
+        if (typeof window.show_toast === "function") {
+            window.show_toast("info", "Auswahl übermittelt");
         }
     }
 
