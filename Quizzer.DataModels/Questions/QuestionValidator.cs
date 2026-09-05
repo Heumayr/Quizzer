@@ -73,11 +73,11 @@ namespace Quizzer.DataModels.Questions
 
             if (question.Points < 0)
                 issues.Add(new(PointsNegative, ValidationSeverity.Error,
-                    "Die Punkte duerfen nicht negativ sein.", nameof(question.Points)));
+                    "Die Punkte dürfen nicht negativ sein.", nameof(question.Points)));
 
             if (question.MinusPoints < 0)
                 issues.Add(new(MinusPointsNegative, ValidationSeverity.Error,
-                    "Die Minuspunkte duerfen nicht negativ sein.", nameof(question.MinusPoints)));
+                    "Die Minuspunkte dürfen nicht negativ sein.", nameof(question.MinusPoints)));
         }
 
         private static void ValidateSteps(
@@ -88,28 +88,28 @@ namespace Quizzer.DataModels.Questions
 
             if (normalSteps.Count < profile.MinNormalSteps)
                 issues.Add(new(TooFewSteps, ValidationSeverity.Error,
-                    $"{profile.DisplayName}: mindestens {profile.MinNormalSteps} Schritte noetig, "
+                    $"{profile.DisplayName}: mindestens {profile.MinNormalSteps} Schritte nötig, "
                     + $"vorhanden sind {normalSteps.Count}.", nameof(question.Steps)));
 
             var resultSteps = steps.Where(s => s.IsResult).ToList();
 
             if (profile.RequiresResultStep && resultSteps.Count == 0)
                 issues.Add(new(ResultStepMissing, ValidationSeverity.Error,
-                    "Kein Schritt ist als Loesung markiert - die Antwort kann nie als richtig "
+                    "Kein Schritt ist als Lösung markiert - die Antwort kann nie als richtig "
                     + "gewertet werden.", nameof(question.Steps)));
 
             if (!profile.AllowsMultipleResultSteps && resultSteps.Count > 1)
                 issues.Add(new(MultipleResultStepsNotAllowed, ValidationSeverity.Error,
-                    $"{profile.DisplayName} vertraegt nur einen Loesungsschritt, "
+                    $"{profile.DisplayName} verträgt nur einen Lösungsschritt, "
                     + $"markiert sind {resultSteps.Count}.", nameof(question.Steps)));
 
             if (steps.Count(s => s.IsStart) > 1)
                 issues.Add(new(MultipleStartSteps, ValidationSeverity.Error,
-                    "Es darf hoechstens einen Startschritt geben.", nameof(question.Steps)));
+                    "Es darf höchstens einen Startschritt geben.", nameof(question.Steps)));
 
             if (steps.Count(s => s.IsFinish) > 1)
                 issues.Add(new(MultipleFinishSteps, ValidationSeverity.Error,
-                    "Es darf hoechstens einen Abschlussschritt geben.", nameof(question.Steps)));
+                    "Es darf höchstens einen Abschlussschritt geben.", nameof(question.Steps)));
 
             foreach (var step in steps)
             {
@@ -149,7 +149,7 @@ namespace Quizzer.DataModels.Questions
             if (question.BuzzerMaxAllowedKeySelect < 1
                 || (normalCount > 0 && question.BuzzerMaxAllowedKeySelect > normalCount))
                 issues.Add(new(KeySelectOutOfRange, ValidationSeverity.Error,
-                    $"Es duerfen zwischen 1 und {Math.Max(normalCount, 1)} Antworten gewaehlt "
+                    $"Es dürfen zwischen 1 und {Math.Max(normalCount, 1)} Antworten gewählt "
                     + $"werden, eingestellt sind {question.BuzzerMaxAllowedKeySelect}.",
                     nameof(question.BuzzerMaxAllowedKeySelect)));
 
@@ -158,8 +158,8 @@ namespace Quizzer.DataModels.Questions
             // kann die Frage nie richtig beantwortet werden.
             if (resultCount > 0 && question.BuzzerMaxAllowedKeySelect != resultCount)
                 issues.Add(new(KeySelectCountMismatch, ValidationSeverity.Error,
-                    $"{resultCount} Loesungen markiert, aber {question.BuzzerMaxAllowedKeySelect} "
-                    + "waehlbare Antworten eingestellt. So kann die Frage nie richtig beantwortet "
+                    $"{resultCount} Lösungen markiert, aber {question.BuzzerMaxAllowedKeySelect} "
+                    + "wählbare Antworten eingestellt. So kann die Frage nie richtig beantwortet "
                     + "werden.", nameof(question.BuzzerMaxAllowedKeySelect)));
         }
 
@@ -171,7 +171,7 @@ namespace Quizzer.DataModels.Questions
             if (!AppreciateUnits.Matches(appreciate.ValueKind, appreciate.Unit))
             {
                 issues.Add(new(UnitDoesNotMatchKind, ValidationSeverity.Error,
-                    "Die gewaehlte Einheit passt nicht zur Art des Schaetzwerts.",
+                    "Die gewählte Einheit passt nicht zur Art des Schätzwerts.",
                     nameof(appreciate.Unit)));
                 return;
             }
@@ -180,7 +180,7 @@ namespace Quizzer.DataModels.Questions
             {
                 if (appreciate.ExpectedDate == null)
                     issues.Add(new(ExpectedDateMissing, ValidationSeverity.Error,
-                        "Ohne Solldatum kann der naechste Tipp nicht ermittelt werden.",
+                        "Ohne Solldatum kann der nächste Tipp nicht ermittelt werden.",
                         nameof(appreciate.ExpectedDate)));
 
                 return;
@@ -201,8 +201,8 @@ namespace Quizzer.DataModels.Questions
                 return;
 
             issues.Add(new(TypeOwnedValuesChanged, ValidationSeverity.Error,
-                $"Die Frage weicht von den Vorgaben fuer {profile.DisplayName} ab. Im Spiel "
-                + "fuehrt das auf dem Spielerbildschirm zur Anzeige Not Supported.",
+                $"Die Frage weicht von den Vorgaben für {profile.DisplayName} ab. Im Spiel "
+                + "führt das auf dem Spielerbildschirm zur Anzeige Not Supported.",
                 nameof(question.Typ)));
         }
 

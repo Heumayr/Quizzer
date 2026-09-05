@@ -122,7 +122,7 @@ namespace Quizzer.Views.QuestionTypes
 
                 return $"Die Spieler tippen: {placeholder}. Richtig ist "
                      + $"{AppreciateEvaluator.DescribeExpected(Appreciate)}. "
-                     + "Wer am naechsten dran liegt, gewinnt; bei Gleichstand gewinnen alle "
+                     + "Wer am nächsten dran liegt, gewinnt; bei Gleichstand gewinnen alle "
                      + "Gleichauf-Spieler.";
             }
         }

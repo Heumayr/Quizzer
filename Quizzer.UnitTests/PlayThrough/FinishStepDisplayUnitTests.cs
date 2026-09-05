@@ -36,6 +36,18 @@ namespace Quizzer.UnitTests.PlayThrough
             UserPrompt.Reset();
         }
 
+        /// <summary>
+        /// Fuehrt einen Async-Befehl aus und wartet ihn ab. Der Umweg ueber den Helfer haelt
+        /// die Nullpruefung an einer Stelle - ein direkter Cast erzeugte CS8600/CS8602.
+        /// </summary>
+        private static Task RunAsync(System.Windows.Input.ICommand? command)
+        {
+            if (command is not AsyncRelayCommand asyncCommand)
+                throw new AssertFailedException("Der erwartete Async-Befehl fehlt.");
+
+            return asyncCommand.ExecuteAsync(null);
+        }
+
         /// <summary>Entfernt den Abschlussschritt, den der Builder anlegt.</summary>
         private async Task RemoveFinishStepAsync()
         {
@@ -63,13 +75,13 @@ namespace Quizzer.UnitTests.PlayThrough
             await vm.LoadForTestAsync();
 
             // Einen Schritt aufdecken, damit etwas auf dem Beamer steht.
-            await ((AsyncRelayCommand)vm.NextStepCommnad).ExecuteAsync(null);
+            await RunAsync(vm.NextStepCommnad);
 
             var gezeigt = vm.CurrentStep;
 
             Assert.IsNotNull(gezeigt, "Nach dem ersten Weiterschalten muss ein Schritt laufen.");
 
-            await ((AsyncRelayCommand)vm.SaveIsDoneFinishStateCommand).ExecuteAsync(null);
+            await RunAsync(vm.SaveIsDoneFinishStateCommand);
 
             Assert.IsNotNull(vm.CurrentStep,
                 "Der Spielerbildschirm ist leer - die Mitspieler saehen bis zum Schliessen nichts.");
@@ -88,7 +100,7 @@ namespace Quizzer.UnitTests.PlayThrough
             var vm = new TestableCurrentQuestionViewModel { Coordinate = world.Coordinate };
             await vm.LoadForTestAsync();
 
-            await ((AsyncRelayCommand)vm.NextStepCommnad).ExecuteAsync(null);
+            await RunAsync(vm.NextStepCommnad);
 
             var abschluss = vm.FinishStep;
 
@@ -96,7 +108,7 @@ namespace Quizzer.UnitTests.PlayThrough
             Assert.IsFalse(string.IsNullOrWhiteSpace(abschluss!.StepText),
                 "Der Abschlussschritt des Builders traegt Text - sonst misst dieser Test nichts.");
 
-            await ((AsyncRelayCommand)vm.SaveIsDoneFinishStateCommand).ExecuteAsync(null);
+            await RunAsync(vm.SaveIsDoneFinishStateCommand);
 
             Assert.AreEqual(abschluss.Id, vm.CurrentStep?.Id,
                 "Ein echter Abschlussschritt muss auf den Beamer kommen.");

@@ -162,7 +162,7 @@
                               SelectedItem="{Binding Question.Difficulty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
 
-                <TextBlock Text="{Binding TypeDisplayName, StringFormat=Einstellungen fuer {0}}"
+                <TextBlock Text="{Binding TypeDisplayName, StringFormat=Einstellungen für {0}}"
                            Style="{StaticResource SectionHeader}" />
 
                 <!-- Nur Multiple Choice -->

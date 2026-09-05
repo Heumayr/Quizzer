@@ -31,7 +31,7 @@ namespace Quizzer.Logic.Controller.TypedControllers
         public async Task<QuestionBase> ConvertTypeAsync(Guid questionId, QuestionType targetType)
         {
             if (questionId == Guid.Empty)
-                throw new ArgumentException("Ohne Id laesst sich nichts umwandeln.", nameof(questionId));
+                throw new ArgumentException("Ohne Id lässt sich nichts umwandeln.", nameof(questionId));
 
             var current = await GetAsync(questionId).ConfigureAwait(false)
                 ?? throw new InvalidOperationException("Die Frage wurde nicht gefunden.");
@@ -144,21 +144,21 @@ namespace Quizzer.Logic.Controller.TypedControllers
             var target = QuestionTypeProfiles.For(to);
 
             if (from == QuestionType.Appreciate)
-                effects.Add("Sollwert und Einheit der Schaetzfrage gehen verloren.");
+                effects.Add("Sollwert und Einheit der Schätzfrage gehen verloren.");
 
             if (to == QuestionType.Appreciate)
                 effects.Add("Der Sollwert muss danach neu gesetzt werden.");
 
             if (from == QuestionType.MultipleChoice && to != QuestionType.MultipleChoice)
-                effects.Add("Die Loesungsmarkierungen bleiben erhalten, werden aber nicht mehr "
+                effects.Add("Die Lösungsmarkierungen bleiben erhalten, werden aber nicht mehr "
                           + "zur Wertung herangezogen.");
 
             if (to == QuestionType.MultipleChoice)
-                effects.Add("Mindestens ein Schritt muss als Loesung markiert sein, und die Zahl "
-                          + "der waehlbaren Antworten muss dazu passen.");
+                effects.Add("Mindestens ein Schritt muss als Lösung markiert sein, und die Zahl "
+                          + "der wählbaren Antworten muss dazu passen.");
 
-            effects.Add($"Anzeige und Bedienung wechseln auf die Vorgaben fuer {target.DisplayName}.");
-            effects.Add("Schritte, Medien, Spielfeldzellen und bisherige Ergebnisse bleiben unberuehrt.");
+            effects.Add($"Anzeige und Bedienung wechseln auf die Vorgaben für {target.DisplayName}.");
+            effects.Add("Schritte, Medien, Spielfeldzellen und bisherige Ergebnisse bleiben unberührt.");
 
             return effects;
         }

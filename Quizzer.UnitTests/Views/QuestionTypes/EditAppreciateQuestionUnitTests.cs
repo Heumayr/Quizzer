@@ -187,7 +187,7 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
             vm.ExpectedValue = 3798;
 
             StringAssert.Contains(vm.AppreciateHintText, "3798");
-            StringAssert.Contains(vm.AppreciateHintText, "naechsten");
+            StringAssert.Contains(vm.AppreciateHintText, "nächsten");
         }
 
         [TestMethod]

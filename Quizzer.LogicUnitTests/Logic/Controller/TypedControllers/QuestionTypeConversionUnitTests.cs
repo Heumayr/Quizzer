@@ -272,9 +272,9 @@ namespace Quizzer.LogicUnitTests.Logic.Controller.TypedControllers
             var effects = QuestionBasesController.DescribeConversionEffects(
                 QuestionType.MultipleChoice, QuestionType.Default);
 
-            Assert.IsTrue(effects.Any(e => e.Contains("Loesungsmarkierungen")),
+            Assert.IsTrue(effects.Any(e => e.Contains("Lösungsmarkierungen")),
                 "Die stille Verhaltensaenderung muss benannt werden.");
-            Assert.IsTrue(effects.Any(e => e.Contains("unberuehrt")));
+            Assert.IsTrue(effects.Any(e => e.Contains("unberührt")));
         }
 
         [TestMethod]

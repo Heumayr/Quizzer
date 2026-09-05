@@ -51,8 +51,8 @@ namespace Quizzer.Views.QuestionTypes
         /// <summary>Das Buzzer-Layout im Klartext, wie der Typ es vorgibt.</summary>
         public string BuzzerLayoutText => Profile?.BuzzerControlsLayout switch
         {
-            BuzzerControlsLayout.Buzzer => "Buzzer - wer zuerst drueckt, darf antworten",
-            BuzzerControlsLayout.KeySelect => "Tastenwahl - die Spieler waehlen eine Antwort",
+            BuzzerControlsLayout.Buzzer => "Buzzer - wer zuerst drückt, darf antworten",
+            BuzzerControlsLayout.KeySelect => "Tastenwahl - die Spieler wählen eine Antwort",
             BuzzerControlsLayout.Input => "Texteingabe - die Spieler tippen einen Wert",
             _ => string.Empty,
         };

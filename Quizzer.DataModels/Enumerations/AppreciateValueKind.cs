@@ -22,7 +22,7 @@ namespace Quizzer.DataModels.Enumerations
         Percent = 1,
 
         /// <summary>Eine Laenge, Hoehe oder Entfernung.</summary>
-        [Description("Laenge")]
+        [Description("Länge")]
         Length = 2,
 
         /// <summary>Eine Masse.</summary>
@@ -46,7 +46,7 @@ namespace Quizzer.DataModels.Enumerations
         Money = 7,
 
         /// <summary>Eine Flaeche (Seen, Laender, Wohnungen).</summary>
-        [Description("Flaeche")]
+        [Description("Fläche")]
         Area = 8,
 
         /// <summary>Eine Temperatur.</summary>

@@ -68,7 +68,7 @@ namespace Quizzer.Views.GameViews
                 var expected = AppreciateEvaluator.DescribeExpected(AppreciateQuestion);
 
                 if (AppreciateOutcome is not { HasWinner: true })
-                    return $"Richtig waere: {expected}";
+                    return $"Richtig wäre: {expected}";
 
                 var winners = AppreciateOutcome.Guesses
                     .Where(g => g.IsWinner)
@@ -76,8 +76,8 @@ namespace Quizzer.Views.GameViews
                     .ToList();
 
                 return winners.Count == 1
-                    ? $"Richtig waere: {expected}. Am naechsten dran: {winners[0]}."
-                    : $"Richtig waere: {expected}. Gleichauf: {string.Join(", ", winners)}.";
+                    ? $"Richtig wäre: {expected}. Am nächsten dran: {winners[0]}."
+                    : $"Richtig wäre: {expected}. Gleichauf: {string.Join(", ", winners)}.";
             }
         }
 

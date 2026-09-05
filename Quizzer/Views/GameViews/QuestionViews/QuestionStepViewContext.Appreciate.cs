@@ -33,7 +33,7 @@ namespace Quizzer.Views.GameViews.QuestionViews
                 var placeholder = AppreciateEvaluator.PlaceholderFor(
                     AppreciateQuestion.ValueKind, AppreciateQuestion.Unit);
 
-                return $"Schaetzt am Telefon: {placeholder}";
+                return $"Schätzt am Telefon: {placeholder}";
             }
         }
 
