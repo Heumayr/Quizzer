@@ -11,23 +11,49 @@
     }
 
     switchTo(layoutId, context) {
-        if (this.activeLayout?.dispose) {
-            this.activeLayout.dispose();
-        }
-
-        this.activeLayout = null;
+        this.clear(context.host);
         this.activeLayoutId = layoutId;
-        context.host.innerHTML = "";
 
         const layout = this.layouts.get(layoutId);
         if (!layout) {
-            context.host.innerHTML = `<div class="layout-empty">Kein Layout aktiv.</div>`;
+            context.host.innerHTML = `<div class="layout-empty">Warten auf die nächste Frage …</div>`;
             return;
         }
 
         this.activeLayout = layout;
         layout.render(context.host, context);
         layout.setLocked?.(context.currentLayoutLocked || context.allLocked);
+    }
+
+    // Ersetzt das aktive Layout durch eine Meldung mit einem grossen Knopf (Verbindung verloren, abgeloest).
+    showNotice(host, { text, buttonLabel, onButton }) {
+        this.clear(host);
+
+        const root = document.createElement("div");
+        root.className = "layout layout-notice";
+
+        const message = document.createElement("p");
+        message.className = "notice-text";
+        message.textContent = text;
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "notice-btn";
+        btn.textContent = buttonLabel;
+        btn.addEventListener("click", onButton);
+
+        root.append(message, btn);
+        host.appendChild(root);
+    }
+
+    clear(host) {
+        if (this.activeLayout?.dispose) {
+            this.activeLayout.dispose();
+        }
+
+        this.activeLayout = null;
+        this.activeLayoutId = null;
+        host.innerHTML = "";
     }
 
     update(context) {

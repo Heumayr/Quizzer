@@ -38,13 +38,17 @@ namespace LocalBuzzer.Service.Base.States
 
         public ConcurrentDictionary<Guid, SelectionResult> KeyResultsForPlayer { get; } = new();
 
-        public int MaxAllowedKeySelectPerPlayer { get; set; } = 1;
-
+        /// <summary>
+        /// Was das Telefon ueber die Tastenwahl erfahren muss. Alles kommt aus <see cref="Infos"/> -
+        /// hier stand bis 2026-09-05 ein zweites, nie gesetztes Feld fuer die erlaubte Anzahl, und
+        /// damit erreichte die Einstellung des Spielleiters das Telefon nie.
+        /// </summary>
         public object BuzzerStateInfo => new BuzzerKeySelectorInfo
         {
             ShowDesignations = Infos.ShowDesignations,
             KeysAndDesignations = Infos.KeysAndDesignations,
-            MaxAllowedSelections = MaxAllowedKeySelectPerPlayer
+            MaxAllowedSelections = Infos.MaxAllowedSelections,
+            QuestionId = Infos.QuestionId
         };
 
         public void SetSelectedKeys(SelectionResult results)
@@ -54,7 +58,7 @@ namespace LocalBuzzer.Service.Base.States
 
             lock (this)
             {
-                if (results.SelectedKeys.Count > MaxAllowedKeySelectPerPlayer)
+                if (results.SelectedKeys.Count > Infos.MaxAllowedSelections)
                 {
                     results.SelectedKeys.Clear();
                     results.CommittedResult = false;

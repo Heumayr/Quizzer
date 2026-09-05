@@ -7,6 +7,7 @@ using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.Buzzer;
 using System.Collections.Concurrent;
+using System.Text.Json;
 
 namespace Quizzer.LogicUnitTests.LocalBuzzer
 {
@@ -327,6 +328,108 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
                 {
                     lock (states) return states.Any(s => s.Layout == BuzzerControlsLayout.KeySelect);
                 }), "Das Tastenwahl-Layout ist nie beim Client angekommen.");
+            }
+            finally
+            {
+                await connection.DisposeAsync();
+            }
+        }
+
+        /// <summary>
+        /// Was der Spielleiter im Editor einstellt, muss auch am Telefon gelten. Bis 2026-09-05
+        /// schickte der Hub statt der eingestellten Anzahl ein zweites, nie gesetztes Feld mit dem
+        /// Wert 1 - eine Frage mit zwei richtigen Antworten liess sich am Telefon nicht abgeben.
+        /// <para>
+        /// Geprueft wird am empfangenen Zustand, nicht am Serverobjekt: die Feldnamen zwischen C#
+        /// und JS haengen an Zeichenketten, und die Browser-Seite faellt bei jedem fehlenden Feld
+        /// still auf einen Standardwert zurueck.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task TheKeySelectLayoutCarriesTheEditorSettings()
+        {
+            var (connection, states) = await ConnectAsync(anna);
+
+            try
+            {
+                var frageId = Guid.NewGuid();
+
+                server.BuzzerController!.StateManager.BuzzerKeySelector.Infos = new()
+                {
+                    KeysAndDesignations = new() { ["A"] = "Wien", ["B"] = "Graz" },
+                    MaxAllowedSelections = 2,
+                    ShowDesignations = false,
+                    QuestionId = frageId,
+                };
+
+                await server.BuzzerController.ResetRoundAsync(1, BuzzerControlsLayout.KeySelect);
+
+                Assert.IsTrue(await WaitForAsync(() =>
+                {
+                    lock (states) return states.Any(s => s.Layout == BuzzerControlsLayout.KeySelect);
+                }), "Das Tastenwahl-Layout ist nie beim Client angekommen.");
+
+                ClientLayoutStateDto dto;
+                lock (states) dto = states.Last(s => s.Layout == BuzzerControlsLayout.KeySelect);
+
+                Assert.IsNotNull(dto.LayoutInfo, "Ohne LayoutInfo weiss der Browser gar nichts.");
+
+                var info = (JsonElement)dto.LayoutInfo!;
+
+                Assert.AreEqual(2, info.GetProperty("maxAllowedSelections").GetInt32(),
+                    "Am Telefon gilt eine andere Anzahl als der Spielleiter eingestellt hat.");
+
+                Assert.IsFalse(info.GetProperty("showDesignations").GetBoolean(),
+                    "Der Schalter 'Text auf Tasten anzeigen' erreicht das Telefon nicht.");
+
+                Assert.AreEqual(frageId, info.GetProperty("questionId").GetGuid(),
+                    "Ohne Fragekennung kann der Browser eine neue Runde nicht von der alten trennen.");
+            }
+            finally
+            {
+                await connection.DisposeAsync();
+            }
+        }
+
+        /// <summary>
+        /// Die andere Haelfte derselben Einstellung: der Server muss zwei Tasten auch annehmen.
+        /// Frueher pruefte er gegen dasselbe tote Feld und leerte die Abgabe - die Runde konnte
+        /// dann nie schliessen.
+        /// </summary>
+        [TestMethod]
+        public async Task TwoKeysAreAcceptedWhenTwoAreAllowed()
+        {
+            var (connection, _) = await ConnectAsync(anna);
+
+            try
+            {
+                server.BuzzerController!.StateManager.BuzzerKeySelector.Infos = new()
+                {
+                    KeysAndDesignations = new() { ["A"] = "Wien", ["B"] = "Graz", ["C"] = "Linz" },
+                    MaxAllowedSelections = 2,
+                };
+
+                await server.BuzzerController.ResetRoundAsync(1, BuzzerControlsLayout.KeySelect);
+
+                await connection.InvokeAsync("SelectionResults", new
+                {
+                    playerId = anna.Id,
+                    selectedKeys = new[] { "A", "B" },
+                    committedResult = true,
+                });
+
+                var keySelector = server.BuzzerController.StateManager.BuzzerKeySelector;
+
+                Assert.IsTrue(await WaitForAsync(() => keySelector.KeyResultsForPlayer.Count > 0),
+                    "Die Auswahl ist nie am Server angekommen.");
+
+                var gespeichert = keySelector.KeyResultsForPlayer[anna.Id];
+
+                CollectionAssert.AreEquivalent(new[] { "A", "B" }, gespeichert.SelectedKeys,
+                    "Der Server hat die zweite Taste verworfen.");
+
+                Assert.IsTrue(gespeichert.CommittedResult,
+                    "Die Abgabe gilt nicht als abgegeben - die Runde koennte nie schliessen.");
             }
             finally
             {

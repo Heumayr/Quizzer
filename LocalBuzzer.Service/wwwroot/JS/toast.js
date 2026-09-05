@@ -51,7 +51,7 @@
             const btn = document.createElement("button");
             btn.className = "toast-close";
             btn.type = "button";
-            btn.setAttribute("aria-label", "Close");
+            btn.setAttribute("aria-label", "Schließen");
             btn.textContent = "×";
             btn.addEventListener("click", remove);
             el.appendChild(btn);

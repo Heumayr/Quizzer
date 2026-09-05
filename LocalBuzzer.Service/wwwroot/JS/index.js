@@ -1,9 +1,11 @@
 ﻿import { Layouts } from "./constants.js";
-import { dom, resolvePlayerId, showError, getErrMsg, toast } from "./helpers.js";
+import { dom, resolvePlayerId, showError, getErrMsg, toast, nextRetryDelay, setConnectionIndicator } from "./helpers.js";
 import { LayoutManager } from "./layoutManager.js";
 import { BuzzerLayout } from "./layouts/buzzerLayout.js";
 import { KeySelectLayout } from "./layouts/keySelectLayout.js";
 import { InputLayout } from "./layouts/inputLayout.js";
+
+const WAITING_FOR_HOST = "Verbunden – warte auf den Spielleiter";
 
 const state = {
     playerId: null,
@@ -14,6 +16,7 @@ const state = {
     currentLayoutLocked: true,
     allLocked: false,
     winner: null,
+    replaced: false,
     conn: null
 };
 
@@ -46,7 +49,9 @@ function buildStatusText() {
         case Layouts.Input:
             return `Runde ${state.round}: Eingabe erwartet`;
         default:
-            return `Runde ${state.round}: kein Layout aktiv`;
+            return state.round > 0
+                ? `Runde ${state.round}: warte auf den Spielleiter`
+                : WAITING_FOR_HOST;
     }
 }
 
@@ -73,66 +78,67 @@ function applyServerState(serverState) {
     }
 }
 
+// Meldet einen fehlgeschlagenen Hub-Aufruf und wirft ihn weiter, damit das Layout seine Sperre zuruecknehmen kann.
+async function invokeOrReport(method, payload) {
+    try {
+        if (payload === undefined) {
+            await state.conn.invoke(method);
+        } else {
+            await state.conn.invoke(method, payload);
+        }
+    } catch (e) {
+        const m = getErrMsg(e);
+        showError(m);
+        toast("error", m);
+        throw e;
+    }
+}
+
 function registerLayouts() {
     layoutManager.register(Layouts.Buzzer, new BuzzerLayout({
-        buzz: async () => {
-            try {
-                await state.conn.invoke("Buzz");
-            } catch (e) {
-                const m = getErrMsg(e);
-                showError(m);
-                toast("error", m);
-            }
-        }
+        buzz: () => invokeOrReport("Buzz")
     }));
 
     layoutManager.register(Layouts.KeySelect, new KeySelectLayout({
-        submitSelection: async (payload) => {
-            try {
-                await state.conn.invoke("SelectionResults", payload);
-            } catch (e) {
-                const m = getErrMsg(e);
-                showError(m);
-                toast("error", m);
-            }
-        }
+        submitSelection: (payload) => invokeOrReport("SelectionResults", payload)
     }));
 
     layoutManager.register(Layouts.Input, new InputLayout({
-        submitInput: async (payload) => {
-            try {
-                await state.conn.invoke("SubmitInput", payload);
-            } catch (e) {
-                const m = getErrMsg(e);
-                showError(m);
-                toast("error", m);
-            }
-        }
+        submitInput: (payload) => invokeOrReport("SubmitInput", payload)
     }));
 }
 
-async function start() {
-    dom.status.textContent = "Verbinde…";
+// Endzustand ohne Verbindung: Grund zeigen, Toast ohne Ablauf, grosser Knopf zum Neuladen.
+function showDisconnected(reason) {
+    setConnectionIndicator("disconnected");
+    showError(reason);
+    dom.status.textContent = "Nicht verbunden";
+    toast("error", reason, { timeout: 0 });
+    layoutManager.showNotice(dom.host, {
+        text: reason,
+        buttonLabel: "Neu verbinden",
+        onButton: () => location.reload()
+    });
+}
 
-    state.playerId = resolvePlayerId();
-    if (!state.playerId) {
-        const m = "Nicht verbunden: keine gültige Player-ID.";
-        dom.name.textContent = "—";
-        dom.status.textContent = m;
-        showError(m);
-        toast("error", m);
-        return;
-    }
+// Eine neuere Verbindung desselben Spielers hat diese abgeloest: bewusst beenden, nicht neu verbinden.
+async function handleReplaced(text) {
+    state.replaced = true;
+    const message = text || "Dieser Spieler ist inzwischen auf einem anderen Gerät angemeldet.";
 
-    registerLayouts();
+    setConnectionIndicator("disconnected");
+    showError("");
+    dom.status.textContent = "Verbindung beendet";
+    layoutManager.showNotice(dom.host, {
+        text: message,
+        buttonLabel: "Hier weiterspielen",
+        onButton: () => location.reload()
+    });
 
-    const conn = new signalR.HubConnectionBuilder()
-        .withUrl(`/hub?playerid=${encodeURIComponent(state.playerId)}`)
-        .withAutomaticReconnect()
-        .build();
+    await state.conn.stop();
+}
 
-    state.conn = conn;
-
+function registerConnectionEvents(conn) {
     conn.on("Assigned", (serverState) => {
         showError("");
         applyServerState(serverState);
@@ -152,41 +158,58 @@ async function start() {
         }
     });
 
-    conn.on("Error", (errorMessage) => {
-        showError(errorMessage);
-        toast("error", errorMessage);
-    });
+    conn.on("Replaced", handleReplaced);
 
     conn.onreconnecting(() => {
-        dom.status.textContent = "Verbindung verloren… reconnecting";
+        const m = "Verbindung verloren – verbinde neu …";
+        setConnectionIndicator("reconnecting");
+        dom.status.textContent = m;
         layoutManager.lockCurrent();
-        toast("warning", "Verbindung verloren… reconnecting");
+        toast("warning", m);
     });
 
     conn.onreconnected(() => {
+        setConnectionIndicator("connected");
         dom.status.textContent = "Wieder verbunden";
         toast("info", "Wieder verbunden");
     });
 
     conn.onclose((closeErr) => {
-        const m = closeErr ? getErrMsg(closeErr) : "Verbindung geschlossen.";
-        showError(m);
-        dom.status.textContent = "Nicht verbunden: Verbindung geschlossen.";
-        layoutManager.lockCurrent();
-        toast("error", m);
+        if (state.replaced) return;
+        showDisconnected(closeErr ? getErrMsg(closeErr) : "Verbindung geschlossen.");
     });
+}
+
+async function start() {
+    dom.status.textContent = "Verbinde…";
+
+    state.playerId = resolvePlayerId();
+    if (!state.playerId) {
+        const m = "Nicht verbunden: keine gültige Player-ID.";
+        dom.name.textContent = "—";
+        dom.status.textContent = m;
+        showError(m);
+        toast("error", m);
+        return;
+    }
+
+    registerLayouts();
+
+    const conn = new signalR.HubConnectionBuilder()
+        .withUrl(`/hub?playerid=${encodeURIComponent(state.playerId)}`)
+        .withAutomaticReconnect({ nextRetryDelayInMilliseconds: nextRetryDelay })
+        .build();
+
+    state.conn = conn;
+    registerConnectionEvents(conn);
 
     try {
         await conn.start();
         showError("");
-        dom.status.textContent = "Bereit";
-        toast("debug", "Bereit");
+        setConnectionIndicator("connected");
+        dom.status.textContent = WAITING_FOR_HOST;
     } catch (e) {
-        const m = getErrMsg(e);
-        showError(m);
-        dom.status.textContent = "Nicht verbunden: Verbindung fehlgeschlagen.";
-        layoutManager.lockCurrent();
-        toast("error", m);
+        showDisconnected(getErrMsg(e));
     }
 }
 
