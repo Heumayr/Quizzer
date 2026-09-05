@@ -49,6 +49,27 @@ namespace Quizzer.Logic.Controller.TypedControllers
             return base.AfterActionAsync(entity, action);
         }
 
+        /// <summary>
+        /// Liefert die Bezeichnungen der Spiele, in deren Raster die genannte Frage liegt.
+        /// <para>
+        /// Gebraucht wird das vor dem Loeschen einer Frage:
+        /// <c>GameGridCoordinate.QuestionBaseId</c> steht auf NO ACTION, das Loeschen scheitert
+        /// also in der Datenbank. Ohne diese Abfrage bekaeme der Spielleiter einen rohen
+        /// Fremdschluesselfehler zu sehen.
+        /// </para>
+        /// </summary>
+        public async Task<List<string>> GameNamesUsingQuestionAsync(Guid questionId)
+        {
+            if (questionId == Guid.Empty)
+                return [];
+
+            return await EntitySet
+                .Where(c => c.QuestionBaseId == questionId)
+                .Select(c => c.Game.Designation)
+                .Distinct()
+                .ToListAsync();
+        }
+
         public async Task<int> DeleteByGameIdAsync(Guid gameId)
         {
             return await EntitySet.Where(qr => qr.GameId == gameId)

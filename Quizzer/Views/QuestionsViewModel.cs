@@ -122,6 +122,17 @@ namespace Quizzer.Views
         private AsyncRelayCommand? removeQuestionCommand;
         public ICommand RemoveQuestionCommand => removeQuestionCommand ??= new AsyncRelayCommand(RemoveQuestionAsync);
 
+        /// <summary>
+        /// Entfernt die ausgewählten Fragen - nach Rückfrage, und nicht, wenn sie in einem
+        /// Spielfeld liegen.
+        /// <para>
+        /// Bis 2026-09-06 löschte dieser Weg <b>ohne jede Rückfrage</b>. Zwei Folgen hingen
+        /// daran: <c>QuestionResult.QuestionBaseId</c> steht auf CASCADE, mit der Frage
+        /// verschwand also ihre gesamte Spielhistorie; und liegt die Frage in einem Raster,
+        /// scheitert das Löschen am NO ACTION von <c>GameGridCoordinate</c> - der Spielleiter
+        /// bekam einen rohen Datenbankfehler zu sehen.
+        /// </para>
+        /// </summary>
         private async Task RemoveQuestionAsync(object? commandParameter)
         {
             if (SelectedQuestions == null || SelectedQuestions.Count == 0)
@@ -130,6 +141,9 @@ namespace Quizzer.Views
             }
 
             var toRemove = new List<QuestionBase>(SelectedQuestions);
+
+            if (!await ConfirmRemovalAsync(toRemove))
+                return;
 
             using var ctrl = new QuestionBasesController();
 
@@ -140,6 +154,53 @@ namespace Quizzer.Views
 
             await ctrl.SaveChangesAsync();
             await OnloadAsync();
+        }
+
+        /// <summary>
+        /// Prüft, ob die Fragen überhaupt löschbar sind, und fragt sonst nach - mit dem, was
+        /// dabei verloren geht.
+        /// </summary>
+        private static async Task<bool> ConfirmRemovalAsync(List<QuestionBase> toRemove)
+        {
+            using var ctrlZellen = new GameGridCoordinatesController();
+
+            var belegt = new List<string>();
+
+            foreach (var frage in toRemove)
+            {
+                var spiele = await ctrlZellen.GameNamesUsingQuestionAsync(frage.Id);
+
+                if (spiele.Count > 0)
+                    belegt.Add($"{frage.Designation} - liegt in: {string.Join(", ", spiele)}");
+            }
+
+            if (belegt.Count > 0)
+            {
+                UserPrompt.Inform(
+                    "Diese Fragen liegen in einem Spielfeld und lassen sich nicht löschen:"
+                    + Environment.NewLine + Environment.NewLine
+                    + string.Join(Environment.NewLine, belegt)
+                    + Environment.NewLine + Environment.NewLine
+                    + "Zuerst im Spielaufbau die Zuweisung entfernen.",
+                    "Frage entfernen");
+
+                return false;
+            }
+
+            using var ctrlErgebnisse = new QuestionResultsController();
+
+            var ergebnisse = await ctrlErgebnisse.CountResultsOfQuestionsAsync(toRemove.Select(q => q.Id));
+
+            var namen = string.Join(", ", toRemove.Select(q => q.Designation));
+            var zeilen = ergebnisse == 1 ? "1 Ergebniszeile" : $"{ergebnisse} Ergebniszeilen";
+
+            var frageText = ergebnisse == 0
+                ? $"{namen} entfernen?"
+                : $"{namen} entfernen?" + Environment.NewLine + Environment.NewLine
+                  + $"Dabei werden {zeilen} aus gespielten Runden mitgelöscht. Das lässt sich "
+                  + "nicht rückgängig machen.";
+
+            return UserPrompt.Confirm(frageText, "Frage entfernen");
         }
     }
 }

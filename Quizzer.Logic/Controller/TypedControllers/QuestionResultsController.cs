@@ -63,5 +63,20 @@ namespace Quizzer.Logic.Controller.TypedControllers
 
             return await EntitySet.CountAsync(r => ids.Contains(r.PlayerId));
         }
+
+        /// <summary>
+        /// Zaehlt die Ergebniszeilen der genannten Fragen. Dasselbe wie
+        /// <see cref="CountResultsOfPlayersAsync"/>, nur fuer den anderen CASCADE-Pfad:
+        /// <c>QuestionResult.QuestionBaseId</c>.
+        /// </summary>
+        public async Task<int> CountResultsOfQuestionsAsync(IEnumerable<Guid> questionIds)
+        {
+            var ids = questionIds?.Distinct().ToList() ?? [];
+
+            if (ids.Count == 0)
+                return 0;
+
+            return await EntitySet.CountAsync(r => ids.Contains(r.QuestionBaseId));
+        }
     }
 }
