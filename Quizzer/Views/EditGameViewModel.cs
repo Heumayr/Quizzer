@@ -20,7 +20,7 @@ using static Quizzer.Views.HelperViewModels.GridBuilder;
 
 namespace Quizzer.Views
 {
-    public class EditGameViewModel : ViewModelBase
+    public partial class EditGameViewModel : ViewModelBase
     {
         private ObservableCollection<Player> availablePlayers = new();
         private ObservableCollection<Player> gameAddedPlayers = new();
@@ -432,29 +432,6 @@ namespace Quizzer.Views
             await SaveCoordinateAsync(cell.Coordinate);
         }
 
-        /// <summary>
-        /// Schreibt eine einzelne Zelle samt ihrer Punkte.
-        /// <para>
-        /// Die Punkte sind gespeicherte Spalten. Bis 2026-09-06 blieb die Zuweisung einer Frage
-        /// nur im Speicher stehen: die Kachel zeigte sofort "600 / −165 Punkte", in der Datenbank
-        /// stand weiterhin die Null, und wer das Fenster ohne "Speichern" schloss, spielte die
-        /// Frage spaeter fuer null Punkte. In der Spieldatenbank stehen deshalb fuenf von sechs
-        /// belegten Zellen eines Spiels auf null.
-        /// </para>
-        /// </summary>
-        private async Task SaveCoordinateAsync(GameGridCoordinate? coordinate)
-        {
-            if (coordinate == null || Game == null)
-                return;
-
-            coordinate.Game = Game;
-            coordinate.CalculateAndSetCurrentPoints();
-
-            using var ctrlCoords = new GameGridCoordinatesController();
-
-            await ctrlCoords.UpsertAsync(coordinate);
-            await ctrlCoords.SaveChangesAsync();
-        }
 
         public async Task OnModelChangedAsync()
         {
@@ -483,40 +460,6 @@ namespace Quizzer.Views
             await RebuildCellsAsync();
         }
 
-        private AsyncRelayCommand? saveCommand;
-
-        public ICommand SaveCommand => saveCommand ??= new AsyncRelayCommand(SaveAsync);
-
-        private async Task SaveAsync(object? commandParameter)
-        {
-            await VMSaveAsync();
-        }
-
-        public override async Task VMSaveAsync()
-        {
-            if (Game == null) return;
-
-            using var ctrlGames = new GamesController();
-            await ctrlGames.UpsertAsync(Game);
-            await ctrlGames.SaveChangesAsync();
-
-            using var ctrlHeader = new HeadersController();
-            await ctrlHeader.UpsertAsync(Game.Headers);
-            await ctrlHeader.SaveChangesAsync();
-
-            using var ctrlCells = new GameGridCoordinatesController();
-            await ctrlCells.UpsertAsync(Game.GameGridCoordinates);
-            await ctrlCells.SaveChangesAsync();
-        }
-
-        private AsyncRelayCommand? saveAndCloseCommand;
-        public ICommand SaveAndCloseCommand => saveAndCloseCommand ??= new AsyncRelayCommand(SaveAndCloseAsync);
-
-        private async Task SaveAndCloseAsync(object? param)
-        {
-            await SaveAsync(param);
-            Window?.Close();
-        }
 
         #region Player
 

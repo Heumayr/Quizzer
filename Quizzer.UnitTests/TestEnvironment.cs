@@ -88,6 +88,22 @@ namespace Quizzer.UnitTests
             }
         }
 
+        /// <summary>
+        /// Fuehrt einen Async-Befehl aus und wartet ihn ab.
+        /// <para>
+        /// <c>Execute</c> eines <c>AsyncRelayCommand</c> ist <c>async void</c> - ein Test, der
+        /// danach zusichert, misst den Stand davor. Der Umweg ueber diesen Helfer haelt zugleich
+        /// die Nullpruefung an einer Stelle; ein direkter Cast erzeugte CS8600/CS8602.
+        /// </para>
+        /// </summary>
+        public static Task RunCommandAsync(System.Windows.Input.ICommand? command)
+        {
+            if (command is not AsyncRelayCommand asyncCommand)
+                throw new AssertFailedException("Der erwartete Async-Befehl fehlt.");
+
+            return asyncCommand.ExecuteAsync(null);
+        }
+
         /// <summary>Vergisst gemeldete Verluste, wenn ein Test sie erwartet hat.</summary>
         public static void ClearDiscardedChanges()
         {

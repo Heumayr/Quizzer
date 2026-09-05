@@ -55,7 +55,7 @@ namespace Quizzer.UnitTests.PlayThrough
             var vm = new TestableCurrentQuestionViewModel { Coordinate = world.Coordinate };
             await vm.LoadForTestAsync();
 
-            await ((AsyncRelayCommand)vm.NextStepCommnad).ExecuteAsync(null);
+            await TestEnvironment.RunCommandAsync(vm.NextStepCommnad);
 
             var ergebnisse = vm.PlayersResultViewModel;
 
@@ -68,7 +68,7 @@ namespace Quizzer.UnitTests.PlayThrough
 
             Assert.IsTrue(await ergebnisse.TrySaveAsync(), "Das Speichern der Punkte scheiterte.");
 
-            await ((AsyncRelayCommand)vm.SaveIsDoneFinishStateCommand).ExecuteAsync(null);
+            await TestEnvironment.RunCommandAsync(vm.SaveIsDoneFinishStateCommand);
 
             TestEnvironment.ThrowIfAnythingWasSwallowed();
             TestEnvironment.ThrowIfAnythingWasDiscarded();
