@@ -428,6 +428,32 @@ namespace Quizzer.Views
             }
 
             cell.RefreshFromModel();
+
+            await SaveCoordinateAsync(cell.Coordinate);
+        }
+
+        /// <summary>
+        /// Schreibt eine einzelne Zelle samt ihrer Punkte.
+        /// <para>
+        /// Die Punkte sind gespeicherte Spalten. Bis 2026-09-06 blieb die Zuweisung einer Frage
+        /// nur im Speicher stehen: die Kachel zeigte sofort "600 / −165 Punkte", in der Datenbank
+        /// stand weiterhin die Null, und wer das Fenster ohne "Speichern" schloss, spielte die
+        /// Frage spaeter fuer null Punkte. In der Spieldatenbank stehen deshalb fuenf von sechs
+        /// belegten Zellen eines Spiels auf null.
+        /// </para>
+        /// </summary>
+        private async Task SaveCoordinateAsync(GameGridCoordinate? coordinate)
+        {
+            if (coordinate == null || Game == null)
+                return;
+
+            coordinate.Game = Game;
+            coordinate.CalculateAndSetCurrentPoints();
+
+            using var ctrlCoords = new GameGridCoordinatesController();
+
+            await ctrlCoords.UpsertAsync(coordinate);
+            await ctrlCoords.SaveChangesAsync();
         }
 
         public async Task OnModelChangedAsync()

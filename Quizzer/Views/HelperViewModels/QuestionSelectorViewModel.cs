@@ -29,7 +29,13 @@ namespace Quizzer.Views.HelperViewModels
             set
             {
                 Coordinate?.QuestionBase = value;
-                Coordinate?.QuestionBaseId = value != null ? value.Id : default;
+
+                // Bewusst (Guid?)null und nicht default: der Ausdruck haette sonst den Typ Guid,
+                // und "keine Frage" waere Guid.Empty. Der Aufrufer prueft aber auf HasValue -
+                // nach einem "Auswahl entfernen" sprang er deshalb an seinem Nachladezweig
+                // vorbei, und die geleerte Zelle zeigte weiter ihre alten Punkte.
+                Coordinate?.QuestionBaseId = value != null ? value.Id : (Guid?)null;
+
                 OnPropertyChanged(nameof(SelectedQuestion));
                 OnPropertyChanged(nameof(CurrentSelectedQuestionDisplay));
             }
@@ -65,10 +71,11 @@ namespace Quizzer.Views.HelperViewModels
         {
             if (Coordinate == null) return;
 
-            // Die Punkte einer Zelle sind gespeicherte Spalten, keine Rechnung beim Anzeigen.
-            // Ohne diesen Aufruf schreibt der Dialog den Stand VOR der Zuweisung - meist eine
-            // Null - und die Oberflaeche zeigt danach den richtigen Wert, den niemand mehr
-            // speichert. Die Frage wird dann fuer null Punkte gespielt.
+            // Hinweis: diese Methode hat heute keinen Aufrufer - der Auswahldialog wird ueber
+            // ShowDialog geoeffnet und geschlossen, ohne dass jemand VMSaveAsync ruft.
+            // Geschrieben wird die Zelle in EditGameViewModel.SaveCoordinateAsync. Die Punkte
+            // werden hier trotzdem gerechnet, damit die Methode richtig bleibt, falls sie je
+            // wieder angeschlossen wird.
             if (Game != null)
                 Coordinate.Game = Game;
 
