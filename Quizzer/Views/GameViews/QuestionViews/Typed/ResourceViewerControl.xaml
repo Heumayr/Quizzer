@@ -64,11 +64,11 @@
                         HorizontalAlignment="Center"
                         Margin="0,8,0,0"
                         Visibility="Collapsed">
-                <Button Content="Start"
+                <Button Content="Abspielen"
                         Width="90"
                         Margin="4"
                         Click="Start_Click" />
-                <Button Content="Stop"
+                <Button Content="Anhalten"
                         Width="90"
                         Margin="4"
                         Click="Stop_Click" />

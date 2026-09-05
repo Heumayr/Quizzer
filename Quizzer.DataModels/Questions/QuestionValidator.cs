@@ -202,7 +202,8 @@ namespace Quizzer.DataModels.Questions
 
             issues.Add(new(TypeOwnedValuesChanged, ValidationSeverity.Error,
                 $"Die Frage weicht von den Vorgaben für {profile.DisplayName} ab. Im Spiel "
-                + "führt das auf dem Spielerbildschirm zur Anzeige Not Supported.",
+                + "steht auf dem Spielerbildschirm statt der Frage ein Hinweis, dass sie für die "
+                + "gewählte Anzeigeart nicht eingerichtet ist.",
                 nameof(question.Typ)));
         }
 

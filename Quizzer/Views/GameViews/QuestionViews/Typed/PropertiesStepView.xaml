@@ -232,7 +232,9 @@
         <!-- Alles außer Vertical -->
         <DataTemplate x:Key="NotSupportedTemplate">
             <Grid>
-                <TextBlock Text="Not Supported"
+                <TextBlock Text="Diese Frage ist für die gewählte Anzeigeart nicht eingerichtet."
+                           TextWrapping="Wrap"
+                           MaxWidth="900"
                            Foreground="WhiteSmoke"
                            FontSize="32"
                            FontWeight="SemiBold"

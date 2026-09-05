@@ -28,6 +28,10 @@ namespace Quizzer.LogicUnitTests.Standards
             "Edit Selected", "Designation", "Category", "Difficulty", "Points", "Minus-Points",
             "Final Score", "Correct Answered", "Display Name", "Resource Filename", "StepText",
             "Question", "Questions", "Categories", "Players", "Games", "Game",
+            // Diese standen bis 2026-09-06 auf dem Beamer bzw. in der Medienvorschau.
+            // "Not Supported" war die schlimmste Stelle: sie erschien vor den Gaesten und sah
+            // aus wie ein Absturz.
+            "Not Supported", "Start all", "Stop all", "Close all", "Stop",
         ];
 
         private static string RepoRoot()

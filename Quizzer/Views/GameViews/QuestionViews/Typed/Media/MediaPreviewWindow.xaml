@@ -32,17 +32,17 @@
                 Visibility="Collapsed">
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Center">
-                <Button Content="Start all"
+                <Button Content="Alle starten"
                         Width="120"
                         Margin="6"
                         Click="StartAll_Click" />
 
-                <Button Content="Stop all"
+                <Button Content="Alle anhalten"
                         Width="120"
                         Margin="6"
                         Click="StopAll_Click" />
 
-                <Button Content="Close all"
+                <Button Content="Alle schließen"
                         Width="120"
                         Margin="6"
                         Click="CloseAll_Click" />
