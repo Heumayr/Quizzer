@@ -103,7 +103,7 @@ namespace Quizzer.Views
 
             if (Player.Id == Guid.Empty)
             {
-                MessageBox.Show("Player must be saved before add a user picture!", "Save player");
+                UserPrompt.Inform("Der Mitspieler muss gespeichert sein, bevor ein Bild hinterlegt werden kann.", "Bild hinterlegen");
                 return;
             }
 
@@ -132,7 +132,7 @@ namespace Quizzer.Views
 
             if (file.Type != ResourceType.Image)
             {
-                MessageBox.Show("Filetye is not an Image.", "Wrong resource type");
+                UserPrompt.Inform("Die gewählte Datei ist kein Bild.", "Falscher Dateityp");
                 return;
             }
 

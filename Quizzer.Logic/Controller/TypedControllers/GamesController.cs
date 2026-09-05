@@ -23,7 +23,9 @@ namespace Quizzer.Logic.Controller.TypedControllers
         {
             if (action == Actions.Get)
             {
-                query = query.AsNoTracking().Include(q => q.Headers)
+                // Kein eigenes AsNoTracking hier: die Basisklasse setzt es samt
+                // Identitaetsaufloesung, und ein zweiter Aufruf wuerde sie wieder abschalten.
+                query = query.Include(q => q.Headers)
                  .Include(q => q.GameGridCoordinates).ThenInclude(t => t.QuestionBase).ThenInclude(q => q!.Category)
                  .Include(q => q.GameGridCoordinates).ThenInclude(t => t.QuestionResults)
                  .Include(q => q.PlayerXGames).ThenInclude(t => t.Player)

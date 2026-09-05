@@ -25,7 +25,7 @@ using static Quizzer.Views.HelperViewModels.GridBuilder;
 
 namespace Quizzer.Views.GameViews
 {
-    public class GameMasterViewModel : ViewModelBase
+    public partial class GameMasterViewModel : ViewModelBase
     {
         public List<Window> OpenGamePlayerViews { get; private set; } = new();
 
@@ -195,34 +195,36 @@ namespace Quizzer.Views.GameViews
 
             if (dbGame == null)
             {
-                MessageBox.Show("No game found in Database", "No Game", MessageBoxButton.OK, MessageBoxImage.Warning);
+                UserPrompt.Inform("Das Spiel wurde in der Datenbank nicht gefunden.", "Spiel öffnen");
                 return null;
             }
 
+            // Ueber UserPrompt statt MessageBox.Show: der Weg ist in Tests austauschbar, und
+            // ein ViewModel soll kein Fenster kennen. Umgestellt 2026-09-06, dabei ins Deutsche.
             var errors = new List<string>();
 
             if (dbGame.ModeratorPlayerId == null || dbGame.ModeratorPlayerId == Guid.Empty || dbGame.Moderator == null)
             {
-                errors.Add("Game must have a moderator set.");
+                errors.Add("Dem Spiel fehlt der Moderator. Er wird im Spielaufbau ausgewählt.");
             }
 
             if (!dbGame.Players.Any())
             {
-                errors.Add("Cannot start the game without any players. Please add at least one player before starting.");
+                errors.Add("Dem Spiel ist kein Mitspieler zugeordnet. Mindestens einer muss im "
+                         + "Spielaufbau hinzugefügt werden.");
             }
 
             if (dbGame.GameGridCoordinates.Count == 0)
             {
-                errors.Add("Cannot start the game without any questions assigned. Please assign at least one question to the grid before starting.");
+                errors.Add("Dem Spielfeld ist keine Frage zugewiesen. Mindestens eine muss im "
+                         + "Spielaufbau auf eine Zelle gelegt werden.");
             }
 
             if (errors.Any())
             {
-                MessageBox.Show(
+                UserPrompt.Inform(
                     string.Join(Environment.NewLine + Environment.NewLine, errors),
-                    "Game cannot be started",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                    "Spiel lässt sich nicht starten");
 
                 return null;
             }
@@ -554,7 +556,7 @@ namespace Quizzer.Views.GameViews
                     if (advance)
                     {
                         Game.RaisePhase();
-                        _ = SaveAndRefreshAfterPhaseChangeAsync();
+                        StartPhaseChangeSave();
                     }
                 }
             }
@@ -690,45 +692,6 @@ namespace Quizzer.Views.GameViews
             }
 
             StatsRowHeight = $"{statsRowHeight}*";
-        }
-
-        private AsyncRelayCommand? raiseGamePhaseCommand;
-        public ICommand RaiseGamePhaseCommand => raiseGamePhaseCommand ??= new AsyncRelayCommand(RaiseGamePhaseAsync);
-
-        private async Task RaiseGamePhaseAsync(object? commandParameter)
-        {
-            if (Game == null) return;
-            Game.RaisePhase();
-            await SaveAndRefreshAfterPhaseChangeAsync();
-        }
-
-        private AsyncRelayCommand? lowerGamePhaseCommand;
-        public ICommand LowerGamePhaseCommand => lowerGamePhaseCommand ??= new AsyncRelayCommand(LowerGamePhaseAsync);
-
-        private async Task LowerGamePhaseAsync(object? commandParameter)
-        {
-            if (Game == null) return;
-            Game.LowerPhase();
-            await SaveAndRefreshAfterPhaseChangeAsync();
-        }
-
-        private async Task SetPhaseAndSetCoordinatesPhaseAsync(object? commandParameter)
-        {
-            if (Game == null) return;
-
-            Game.SetPhaseAndSetCoordinatesPhase(Game.Phase);
-            await SaveAndRefreshAfterPhaseChangeAsync();
-        }
-
-        private async Task SaveAndRefreshAfterPhaseChangeAsync()
-        {
-            await VMSaveAsync();
-            foreach (var cell in GameGridVMs.CellVMs)
-            {
-                cell.RefreshFromModel();
-            }
-            OnPropertyChanged(nameof(GamePhase));
-            OnPropertyChanged(nameof(PhaseHeadline));
         }
 
         private RelayCommand? toggleFullScreenCommand;

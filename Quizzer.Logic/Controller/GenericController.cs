@@ -43,9 +43,25 @@ namespace Quizzer.Logic.Controller
             return query;
         }
 
+        /// <summary>
+        /// Leseabfrage ohne Nachverfolgung, aber <b>mit Identitaetsaufloesung</b>.
+        /// <para>
+        /// Ein blosses <c>AsNoTracking()</c> erzeugt je Ergebniszeile eine eigene Instanz. Steht
+        /// derselbe Datensatz zweimal im Graphen - ein Spieler als Moderator <i>und</i> als
+        /// Mitspieler -, kommen zwei Objekte mit derselben Id zurueck. Wird eines davon spaeter
+        /// wieder angehaengt, wirft EF <i>"another instance with the same key value is already
+        /// being tracked"</i>.
+        /// </para>
+        /// <para>
+        /// Gemessen 2026-09-06: genau das riss beim Oeffnen eines Spiels ab, sobald der
+        /// Rasteraufbau eine fehlende Zelle nachlegen musste und der Moderator zugleich
+        /// mitspielte. Die Aufloesung liefert je Schluessel eine Instanz und kostet hier nichts -
+        /// es geht um ein Spielfeld, nicht um einen Massenbericht.
+        /// </para>
+        /// </summary>
         protected virtual IQueryable<TEntity> CreateReadQuery(Actions action)
         {
-            return SetQueryAttributes(EntitySet.AsNoTracking().AsQueryable(), action);
+            return SetQueryAttributes(EntitySet.AsNoTrackingWithIdentityResolution().AsQueryable(), action);
         }
 
         protected virtual IQueryable<TEntity> CreateWriteQuery(Actions action)
