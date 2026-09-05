@@ -212,10 +212,39 @@ namespace Quizzer.Views
             {
                 // ok, neuer Rebuild wurde angefordert
             }
+            catch (GridShrinkBlockedException ex)
+            {
+                // Kein Fehler des Programms, sondern eine Lage, die der Spielleiter aufloesen
+                // muss. Die Aenderung an Breite und Hoehe wird zurueckgenommen - sonst stuende im
+                // Speicher ein Raster, das es in der Datenbank nicht gibt, und ein spaeteres
+                // Speichern schriebe die falsche Groesse fest.
+                UserPrompt.Inform(ex.Message, "Spielfeld verkleinern");
+
+                RestoreGridSizeFromCells();
+            }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Grid rebuild failed");
+                UserPrompt.Inform(
+                    "Das Spielfeld ließ sich nicht neu aufbauen."
+                    + Environment.NewLine + Environment.NewLine + ex.Message,
+                    "Spielfeld");
             }
+        }
+
+        /// <summary>
+        /// Setzt Breite und Hoehe auf das zurueck, was die vorhandenen Zellen hergeben. Noetig,
+        /// wenn ein Verkleinern abgelehnt wurde: im Speicher steht dann schon die kleinere Zahl.
+        /// </summary>
+        private void RestoreGridSizeFromCells()
+        {
+            if (Game == null || Game.GameGridCoordinates.Count == 0)
+                return;
+
+            Game.Width = Game.GameGridCoordinates.Max(c => c.X) + 1;
+            Game.Height = Game.GameGridCoordinates.Max(c => c.Y) + 1;
+
+            OnPropertyChanged(nameof(Width));
+            OnPropertyChanged(nameof(Height));
         }
 
         public bool Restart
@@ -596,11 +625,25 @@ namespace Quizzer.Views
             await RebuildCellsAsync();
         }
 
-        public static async Task ResetGameResultsAsync(Game game)
+        /// <summary>
+        /// Loescht alle Ergebnisse eines Spiels und setzt die Zellen zurueck.
+        /// </summary>
+        /// <returns>
+        /// <c>true</c>, wenn wirklich zurueckgesetzt wurde. Der Rueckgabewert ist der Grund fuer
+        /// diese Signatur: der Aufrufer loeschte bis 2026-09-06 auch dann den Neustart-Haken,
+        /// wenn der Spielleiter die Rueckfrage verneint hatte - beim naechsten Start kam sie dann
+        /// gar nicht mehr, und niemand wusste, warum.
+        /// </returns>
+        public static async Task<bool> ResetGameResultsAsync(Game game)
         {
-            if (game == null) return;
+            if (game == null) return false;
 
-            if (!UserPrompt.Confirm($"Alle Ergebnisse dieses Spiels löschen: {game.Designation}?", "Löschen bestätigen")) return;
+            if (!UserPrompt.Confirm(
+                    $"Alle Ergebnisse dieses Spiels löschen: {game.Designation}?",
+                    "Löschen bestätigen"))
+            {
+                return false;
+            }
 
             using var ctrl = new QuestionResultsController();
             await ctrl.DeleteByGameIdAsync(game.Id);
@@ -610,6 +653,8 @@ namespace Quizzer.Views
             await ctrlCoords.UpdatePhaseOfGame(game.Id, 1);
 
             game.CalculateAndSetCurrentPoints();
+
+            return true;
         }
 
         private AsyncRelayCommand? setToBuildingModeCommand;

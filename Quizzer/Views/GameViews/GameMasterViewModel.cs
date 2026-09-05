@@ -227,10 +227,12 @@ namespace Quizzer.Views.GameViews
                 return null;
             }
 
-            if (dbGame.Restart)
+            // Der Haken wird nur geloescht, wenn wirklich zurueckgesetzt wurde. Verneint der
+            // Spielleiter die Rueckfrage, bleibt er stehen - sonst kaeme sie beim naechsten
+            // Start gar nicht mehr, und er muesste den Haken im Aufbau neu setzen, ohne zu
+            // wissen warum.
+            if (dbGame.Restart && await EditGameViewModel.ResetGameResultsAsync(dbGame))
             {
-                await EditGameViewModel.ResetGameResultsAsync(dbGame);
-
                 using var ctrlGamesAfterReset = new GamesController();
                 dbGame = (await ctrlGamesAfterReset.GetAsync(gameId)) ?? throw new Exception("Game could not be loaded");
 

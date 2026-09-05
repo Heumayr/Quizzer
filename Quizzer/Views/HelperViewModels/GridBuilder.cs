@@ -11,6 +11,25 @@ using System.Text;
 
 namespace Quizzer.Views.HelperViewModels
 {
+    /// <summary>
+    /// Wird geworfen, wenn ein Raster verkleinert werden soll, in dessen wegfallenden Zellen
+    /// bereits gespielt wurde. Die Ergebniszeilen verweisen mit NO ACTION auf die Zelle - das
+    /// Loeschen scheitert dann in der Datenbank, und der Aufrufer haette einen halben Zustand.
+    /// </summary>
+    public sealed class GridShrinkBlockedException : Exception
+    {
+        public GridShrinkBlockedException(int playedCells)
+            : base($"Das Spielfeld lässt sich nicht verkleinern: in {playedCells} der "
+                 + "wegfallenden Zellen wurde schon gespielt. Zuerst die Ergebnisse "
+                 + "zurücksetzen, dann verkleinern.")
+        {
+            PlayedCells = playedCells;
+        }
+
+        /// <summary>Wie viele der wegfallenden Zellen schon Ergebnisse tragen.</summary>
+        public int PlayedCells { get; }
+    }
+
     public static class GridBuilder
     {
         public class GameGridVMs
@@ -18,6 +37,29 @@ namespace Quizzer.Views.HelperViewModels
             public List<GameGridCoordinateViewModel> CellVMs { get; set; } = new();
             public List<HeaderEntryViewModel> ColumnHeaderVMs { get; set; } = new();
             public List<HeaderEntryViewModel> RowHeaderVMs { get; set; } = new();
+        }
+
+        /// <summary>
+        /// Zaehlt, in wie vielen der uebergebenen Zellen schon gespielt wurde.
+        /// </summary>
+        private static async Task<int> CountPlayedAsync(List<GameGridCoordinate> coordinates)
+        {
+            if (coordinates.Count == 0)
+                return 0;
+
+            using var ctrlResults = new QuestionResultsController();
+
+            var gespielt = 0;
+
+            foreach (var coord in coordinates)
+            {
+                var ergebnisse = await ctrlResults.GetAllResultsForCoordinate(coord.Id);
+
+                if (ergebnisse != null && ergebnisse.Count > 0)
+                    gespielt++;
+            }
+
+            return gespielt;
         }
 
         public static async Task<GameGridVMs> RebuildCells(
@@ -61,6 +103,18 @@ namespace Quizzer.Views.HelperViewModels
             var coordsToDelete = game.GameGridCoordinates
                 .Where(c => c.Y < 0 || c.Y >= h || c.X < 0 || c.X >= w)
                 .ToList();
+
+            // Eine Zelle, in der schon gespielt wurde, laesst sich nicht loeschen: die
+            // Ergebniszeilen verweisen mit NO ACTION darauf. Bis 2026-09-06 lief das Verkleinern
+            // eines gespielten Rasters deshalb in einen rohen Fremdschluesselfehler - und weil
+            // Breite und Hoehe im Speicher schon geaendert waren, liess sich das Spiel danach
+            // gar nicht mehr starten.
+            var gespielte = await CountPlayedAsync(coordsToDelete);
+
+            if (gespielte > 0)
+            {
+                throw new GridShrinkBlockedException(gespielte);
+            }
 
             foreach (var coord in coordsToDelete)
             {

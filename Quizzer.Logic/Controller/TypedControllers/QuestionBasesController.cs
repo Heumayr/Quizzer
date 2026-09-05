@@ -40,12 +40,14 @@ namespace Quizzer.Logic.Controller.TypedControllers
             {
                 if (entity.Category != null)
                 {
+                    // Nur den Fremdschluessel nachziehen. Die Navigation bleibt stehen: dieser
+                    // Haken bekommt das Objekt des AUFRUFERS, nicht den Klon. Bis 2026-09-06
+                    // wurde sie hier genullt, und nach einem "Speichern" in der Fragenliste war
+                    // die Spalte "Kategorie" fuer alle Zeilen leer - obwohl in der Datenbank
+                    // alles richtig stand. Fuers Schreiben ist das Nullsetzen ohne Wirkung:
+                    // CloneWithoutReferences leert die Navigation ohnehin.
                     entity.CategoryId = entity.Category.Id;
-
-                    entity.Category = null;
                 }
-
-                //entity.Steps = null!;
             }
 
             return base.BeforeActionAsync(entity, action);

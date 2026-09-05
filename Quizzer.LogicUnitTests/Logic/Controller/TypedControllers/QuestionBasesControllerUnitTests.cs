@@ -154,5 +154,47 @@ namespace Quizzer.LogicUnitTests.Logic.Controller.TypedControllers
                 await ctrl.SaveChangesAsync();
             }
         }
+        /// <summary>
+        /// Der Schreibhaken darf das Objekt des Aufrufers nicht veraendern.
+        /// <para>
+        /// Bis 2026-09-06 setzte er dessen Kategorie-Navigation auf null. Nach einem
+        /// "Speichern" in der Fragenliste war die Spalte "Kategorie" deshalb fuer alle Zeilen
+        /// leer - obwohl in der Datenbank alles richtig stand.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task SavingKeepsTheCategoryOnTheCallersObject()
+        {
+            var question = NewQuestion(QuestionType.Default);
+            question.CategoryId = Guid.Empty;
+            question.Category = category;
+
+            using (var ctrl = new QuestionBasesController())
+            {
+                await ctrl.UpsertAsync(question);
+                await ctrl.SaveChangesAsync();
+            }
+
+            Assert.IsNotNull(question.Category,
+                "Die Kategorie am uebergebenen Objekt ist weg - die Liste zeigt danach eine leere Spalte.");
+
+            Assert.AreEqual(category.Id, question.Category!.Id);
+
+            // Und der Fremdschluessel ist trotzdem gesetzt worden.
+            Assert.AreEqual(category.Id, question.CategoryId,
+                "Ohne CategoryId haette die Frage keine Kategorie in der Datenbank.");
+
+            using (var pruefer = new QuestionBasesController())
+            {
+                var geladen = await pruefer.GetAsync(question.Id);
+
+                Assert.IsNotNull(geladen);
+                Assert.AreEqual(category.Id, geladen!.CategoryId,
+                    "In der Datenbank fehlt die Kategorie.");
+
+                await pruefer.DeleteAsync(question.Id);
+                await pruefer.SaveChangesAsync();
+            }
+        }
     }
 }
