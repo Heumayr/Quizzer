@@ -139,10 +139,11 @@
                         </ItemsControl.ItemContainerStyle>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <helper:UcCellViewPlay
-                                Command="{Binding DataContext.CellClickCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                CommandParameter="{Binding}"
-                                Margin="2" />
+                                <!-- Ohne Command: das Beamer-Fenster ist eine Anzeige, ausgewaehlt
+                                     wird im Spielleiter-Fenster. Die Bindung zeigte auf
+                                     CellClickCommand, das es auf dem GamePlayerViewModel gar nicht
+                                     gibt - eine tote Bindung, gemessen 2026-09-06. -->
+                                <helper:UcCellViewPlay Margin="2" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
