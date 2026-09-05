@@ -300,5 +300,61 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             Assert.AreEqual(anna.CalculatedDisplayName, stand.PlayerName,
                 "Das Telefon zeigt den falschen Spieler an.");
         }
+        /// <summary>
+        /// Die Gegenrichtung zur vorigen Probe: ist die Runde schon geschlossen, muss das
+        /// wiederverbundene Telefon sie als gesperrt zurueckbekommen.
+        /// <para>
+        /// Ohne diese Zusicherung waere die vorige auch dann gruen, wenn
+        /// <c>CurrentLayoutLocked</c> fest auf "offen" stuende - und der Gast tippte in ein
+        /// Feld, dessen Eingabe der Server verwirft.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task AReconnectAfterTheRoundClosedComesBackLocked()
+        {
+            var erstes = await ConnectAsync(anna);
+
+            try
+            {
+                server.BuzzerController!.StateManager.BuzzerInputState.Infos = new()
+                {
+                    InputType = "number",
+                    Placeholder = "Wert in m",
+                    QuestionId = Guid.NewGuid(),
+                };
+
+                await server.BuzzerController.ResetRoundAsync(7, BuzzerControlsLayout.Input);
+
+                // Anna ist die einzige Mitspielerin - mit ihrer Abgabe schliesst die Runde.
+                await erstes.Connection.InvokeAsync("SubmitInput", new
+                {
+                    playerId = anna.Id,
+                    value = "3798",
+                });
+
+                Assert.IsTrue(await WaitForAsync(() =>
+                    server.BuzzerController.StateManager.BuzzerInputState.Locked),
+                    "Die Runde hat nach der letzten Abgabe nicht geschlossen - dann misst "
+                    + "dieser Test nichts.");
+            }
+            finally
+            {
+                await erstes.DisposeAsync();
+            }
+
+            await using var zweites = await ConnectAsync(anna);
+
+            Assert.IsTrue(await WaitForAsync(() =>
+            {
+                lock (zweites.Assigned) return zweites.Assigned.Count > 0;
+            }), "Das wiederverbindende Telefon bekam keine Zuordnung.");
+
+            ClientLayoutStateDto stand;
+            lock (zweites.Assigned) stand = zweites.Assigned[0];
+
+            Assert.IsTrue(stand.CurrentLayoutLocked,
+                "Die geschlossene Runde kam als offen an - der Gast tippt in ein Feld, dessen "
+                + "Eingabe der Server verwirft.");
+        }
     }
 }
