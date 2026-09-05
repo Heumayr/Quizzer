@@ -97,7 +97,7 @@ namespace Quizzer.Views
 
         private async Task RemovePlayerAsync(object? commandParameter)
         {
-            if (!UserPrompt.Confirm("Die ausgewaehlten Spieler wirklich entfernen?", "Entfernen bestaetigen")) return;
+            if (!UserPrompt.Confirm("Die ausgewählten Spieler wirklich entfernen?", "Entfernen bestätigen")) return;
 
             if (SelectedPlayers == null || SelectedPlayers.Count == 0)
             {

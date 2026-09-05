@@ -19,7 +19,7 @@
             <StackPanel>
                 <TextBlock Text="Welche Art von Frage?" FontSize="18" FontWeight="Bold" />
                 <TextBlock Opacity="0.75" TextWrapping="Wrap" Margin="0,4,0,0"
-                           Text="Der Typ bestimmt, wie die Spieler antworten und welche Felder danach ausgefuellt werden. Er laesst sich spaeter nur ueber Umwandeln aendern." />
+                           Text="Der Typ bestimmt, wie die Spieler antworten und welche Felder danach ausgefüllt werden. Er lässt sich später nur über Umwandeln ändern." />
             </StackPanel>
         </Border>
 

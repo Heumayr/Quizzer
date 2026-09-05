@@ -83,7 +83,7 @@ namespace Quizzer.UnitTests.PlayThrough
             while (vm.NextStep != null)
                 await vm.NextStepCommnad!.ExecuteAsync(null);
 
-            CollectionAssert.Contains(prompt.Confirmations, "Loesungsschritt voraus");
+            CollectionAssert.Contains(prompt.Confirmations, "Lösungsschritt voraus");
         }
 
         [TestMethod]

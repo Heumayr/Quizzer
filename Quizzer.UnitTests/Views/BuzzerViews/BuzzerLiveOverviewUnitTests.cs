@@ -222,7 +222,7 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
         {
             game.CurrentRound = 3;
 
-            StringAssert.Contains(Open(Appreciate()).RoundHeadline, "Schaetzfrage");
+            StringAssert.Contains(Open(Appreciate()).RoundHeadline, "Schätzfrage");
             StringAssert.Contains(Open(Appreciate()).RoundHeadline, "3");
         }
     }

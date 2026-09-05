@@ -497,7 +497,7 @@ namespace Quizzer.Views.GameViews
             {
                 if (Game.PhaseTrashholds.Contains(CurrentRound))
                 {
-                    var advance = UserPrompt.Confirm("Punkteschwelle erreicht. Zur naechsten Phase wechseln?", "Phasenschwelle");
+                    var advance = UserPrompt.Confirm("Punkteschwelle erreicht. Zur nächsten Phase wechseln?", "Phasenschwelle");
 
                     if (advance)
                     {

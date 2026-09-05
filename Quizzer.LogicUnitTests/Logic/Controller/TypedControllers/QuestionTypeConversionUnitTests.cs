@@ -294,5 +294,36 @@ namespace Quizzer.LogicUnitTests.Logic.Controller.TypedControllers
 
             Assert.AreEqual(0, effects.Count);
         }
+        /// <summary>
+        /// Der Tabellenname geht in den SQL-Text, weil er dort kein Parameter sein kann. Eine
+        /// Weissliste laesst nur die Untertabellen der Fragetypen durch.
+        /// </summary>
+        [TestMethod]
+        public void EveryProfileTableNameIsAccepted()
+        {
+            foreach (var profile in QuestionTypeProfiles.All)
+            {
+                Assert.AreEqual(profile.TableName,
+                    QuestionBasesController.EnsureKnownTable(profile.TableName),
+                    $"Der Tabellenname des Profils {profile.Typ} kommt nicht durch die Weissliste.");
+            }
+        }
+
+        /// <summary>
+        /// Die Gegenrichtung, und sie ist der Zweck der Weissliste: alles andere wird abgewiesen,
+        /// bevor es in eine Anweisung wandert.
+        /// </summary>
+        [TestMethod]
+        [DataRow("QuestionBase")]
+        [DataRow("Player")]
+        [DataRow("Foo]; DROP TABLE [question].[QuestionBase]--")]
+        [DataRow("")]
+        public void AnythingElseIsRejected(string tableName)
+        {
+            var fehler = Assert.ThrowsExactly<InvalidOperationException>(
+                () => QuestionBasesController.EnsureKnownTable(tableName));
+
+            StringAssert.Contains(fehler.Message, "Unbekannte Fragetabelle");
+        }
     }
 }

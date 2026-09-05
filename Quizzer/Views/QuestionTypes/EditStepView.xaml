@@ -19,7 +19,7 @@
 
         <StackPanel Margin="5">
             <Button Content="Speichern" Command="{Binding SaveCommand}" />
-            <Button Content="Speichern und schliessen" Command="{Binding SaveAndCloseCommand}" />
+            <Button Content="Speichern und schließen" Command="{Binding SaveAndCloseCommand}" />
         </StackPanel>
 
         <StackPanel Grid.Column="1">
@@ -46,19 +46,19 @@
 
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="150" Content="Ist Startschritt:" VerticalAlignment="Center"
-                       ToolTip="Intro der Frage. Laeuft als erstes und bekommt keine Antworttaste. Hoechstens einer je Frage." />
+                       ToolTip="Intro der Frage. Läuft als erstes und bekommt keine Antworttaste. Höchstens einer je Frage." />
                 <CheckBox VerticalAlignment="Center" IsChecked="{Binding Path=Step.IsStart, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="150" Content="Ist Loesung:" VerticalAlignment="Center"
-                       ToolTip="Markiert diesen Schritt als richtige Antwort. Bei Multiple Choice entscheidet das ueber die Wertung." />
+                <Label MinWidth="150" Content="Ist Lösung:" VerticalAlignment="Center"
+                       ToolTip="Markiert diesen Schritt als richtige Antwort. Bei Multiple Choice entscheidet das über die Wertung." />
                 <CheckBox VerticalAlignment="Center" IsChecked="{Binding Path=Step.IsResult, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="150" Content="Ist Abschluss:" VerticalAlignment="Center"
-                       ToolTip="Der Schritt, der die Frage beendet. Laeuft immer zuletzt." />
+                       ToolTip="Der Schritt, der die Frage beendet. Läuft immer zuletzt." />
                 <CheckBox VerticalAlignment="Center" IsChecked="{Binding Path=Step.IsFinish, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0" />
             </StackPanel>
 
@@ -80,7 +80,7 @@
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="150" Content="Datei:" VerticalAlignment="Center" />
                 <TextBox IsEnabled="False" Height="25" VerticalContentAlignment="Center" Text="{Binding Path=Step.ResourceFileName, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" Margin="5,0,0,0" Width="350" />
-                <Button Content="Auswaehlen" Command="{Binding SelectResourceCommnad}" />
+                <Button Content="Auswählen" Command="{Binding SelectResourceCommnad}" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">

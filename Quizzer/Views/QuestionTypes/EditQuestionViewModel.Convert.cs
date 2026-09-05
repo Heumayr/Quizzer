@@ -37,7 +37,7 @@ namespace Quizzer.Views.QuestionTypes
 
             var message = "Frage umwandeln?\n\n" + string.Join("\n", effects.Select(e => "- " + e));
 
-            if (!UserPrompt.Confirm(message, "Fragetyp aendern"))
+            if (!UserPrompt.Confirm(message, "Fragetyp ändern"))
                 return;
 
             // Vor dem Umwandeln sichern, sonst gehen offene Aenderungen an der Maske verloren.

@@ -42,10 +42,12 @@ namespace Quizzer.Logic.Controller.TypedControllers
             var sourceProfile = QuestionTypeProfiles.For(current.Typ);
             var targetProfile = QuestionTypeProfiles.For(targetType);
 
-            // Tabellennamen kommen aus dem Profil - eine feste Aufzaehlung, nie aus Eingaben
-            // zusammengesetzt.
-            var oldTable = sourceProfile.TableName;
-            var newTable = targetProfile.TableName;
+            // Ein Tabellenname kann in SQL nicht als Parameter uebergeben werden, er muss in den
+            // Text. Deshalb geht er durch eine Weissliste: erlaubt ist nur, was in den Profilen
+            // als TableName steht. Bisher stand dieser Beweis nur im Kommentar - jetzt scheitert
+            // ein unbekannter Name, statt in die Anweisung zu wandern.
+            var oldTable = EnsureKnownTable(sourceProfile.TableName);
+            var newTable = EnsureKnownTable(targetProfile.TableName);
 
             var context = CurrentContext;
 
@@ -53,7 +55,7 @@ namespace Quizzer.Logic.Controller.TypedControllers
                 .BeginTransactionAsync().ConfigureAwait(false);
 
             await context.Database.ExecuteSqlRawAsync(
-                $"DELETE FROM [question].[{oldTable}] WHERE [Id] = @id",
+                DeleteStatementFor(oldTable),
                 new SqlParameter("@id", questionId)).ConfigureAwait(false);
 
             await context.Database.ExecuteSqlRawAsync(
@@ -88,6 +90,33 @@ namespace Quizzer.Logic.Controller.TypedControllers
             return await GetAsync(questionId).ConfigureAwait(false)
                 ?? throw new InvalidOperationException("Die umgewandelte Frage wurde nicht gefunden.");
         }
+
+        /// <summary>
+        /// Die einzigen Tabellennamen, die in eine SQL-Anweisung dieser Klasse gelangen duerfen:
+        /// die Untertabellen der vier Fragetypen, wie sie in den Profilen stehen.
+        /// </summary>
+        private static readonly HashSet<string> KnownTables =
+            QuestionTypeProfiles.All.Select(p => p.TableName).ToHashSet(StringComparer.Ordinal);
+
+        /// <summary>
+        /// Laesst nur bekannte Tabellennamen durch. Wirft, wenn ein Profil je einen Namen
+        /// mitbraechte, der nicht zu einer Untertabelle gehoert.
+        /// </summary>
+        internal static string EnsureKnownTable(string tableName)
+        {
+            if (!KnownTables.Contains(tableName))
+            {
+                throw new InvalidOperationException(
+                    $"Unbekannte Fragetabelle '{tableName}'. Erlaubt sind nur die Untertabellen "
+                    + $"der Fragetypen: {string.Join(", ", KnownTables.OrderBy(t => t, StringComparer.Ordinal))}.");
+            }
+
+            return tableName;
+        }
+
+        /// <summary>Loescht die Zeile in der Untertabelle des bisherigen Typs.</summary>
+        private static string DeleteStatementFor(string tableName)
+            => $"DELETE FROM [question].[{tableName}] WHERE [Id] = @id";
 
         /// <summary>
         /// Die Schaetzfrage ist die einzige Untertabelle mit eigenen Spalten; sie bekommt beim

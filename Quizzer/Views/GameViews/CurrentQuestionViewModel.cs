@@ -353,14 +353,14 @@ namespace Quizzer.Views.GameViews
 
             if (Question.WarnOnResultStep
                 && ((next?.IsResult ?? false) && (!CurrentStep?.IsResult ?? true))
-                && !UserPrompt.Confirm("Der naechste Schritt ist die Loesung. Trotzdem weiter?", "Loesungsschritt voraus"))
+                && !UserPrompt.Confirm("Der nächste Schritt ist die Lösung. Trotzdem weiter?", "Lösungsschritt voraus"))
             {
                 return false;
             }
 
             if (Question.WarnOnFinishStep
                 && ((next?.IsFinish ?? false) && (!CurrentStep?.IsFinish ?? true))
-                && !UserPrompt.Confirm("Der naechste Schritt ist der Abschluss. Trotzdem weiter?", "Abschlussschritt voraus"))
+                && !UserPrompt.Confirm("Der nächste Schritt ist der Abschluss. Trotzdem weiter?", "Abschlussschritt voraus"))
             {
                 return false;
             }
