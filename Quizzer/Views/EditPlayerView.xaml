@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Quizzer.Views"
         xmlns:base="clr-namespace:Quizzer.Base"
         mc:Ignorable="d"
-        Title="EditPlayerView" Height="450" Width="800">
+        Title="Mitspieler bearbeiten" Height="450" Width="800">
     <base:WindowBase.DataContext>
         <local:EditPlayerViewModel />
     </base:WindowBase.DataContext>
@@ -17,44 +17,44 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Save" Command="{Binding SaveCommand}" />
-            <Button Content="Save and Close" Command="{Binding SaveAndCloseCommand}" />
+            <Button Content="Speichern" Command="{Binding SaveCommand}" />
+            <Button Content="Speichern und schließen" Command="{Binding SaveAndCloseCommand}" />
         </StackPanel>
 
         <StackPanel Grid.Column="1">
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Designation:" VerticalAlignment="Center" />
+                <Label MinWidth="120" Content="Bezeichnung:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" Text="{Binding Path=Player.Designation}" MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Display Name:" VerticalAlignment="Center" />
+                <Label MinWidth="120" Content="Anzeigename:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" Text="{Binding Path=Player.DisplayName}" MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Resource Filename:" VerticalAlignment="Center" />
+                <Label MinWidth="120" Content="Bilddatei:" VerticalAlignment="Center" />
                 <TextBox IsEnabled="False" Height="25" VerticalContentAlignment="Center" Text="{Binding Path=Player.UserPictureFileName, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" Margin="5,0,0,0" Width="350" />
-                <Button Content="Select" Command="{Binding SelectResourceCommnad}" />
+                <Button Content="Auswählen" Command="{Binding SelectResourceCommnad}" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="120" Content="Sum Final Score:" VerticalAlignment="Center" />
+                <Label MinWidth="120" Content="Punkte gesamt:" VerticalAlignment="Center" />
                 <TextBox VerticalContentAlignment="Center" IsReadOnly="True" Text="{Binding Path=Player.FinalScore, Mode=OneWay}" MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
 
             <DataGrid ItemsSource="{Binding Player.CurrentQuestionResults}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Game" Binding="{Binding Game.Designation}" Width="*" />
-                    <DataGridTextColumn Header="Question" Binding="{Binding Question.Designation}" Width="2*" />
-                    <DataGridTextColumn Header="Final Score" Binding="{Binding FinalScore}" Width="*" />
-                    <DataGridCheckBoxColumn Header="Correct Answered" Binding="{Binding CorrectAnswered}" Width="auto" />
-                    <DataGridTextColumn Header="Points" Binding="{Binding Points}" Width="auto" />
-                    <DataGridTextColumn Header="Minus-Points" Binding="{Binding MinusPoints}" Width="auto" />
+                    <DataGridTextColumn Header="Spiel" Binding="{Binding Game.Designation}" Width="*" />
+                    <DataGridTextColumn Header="Frage" Binding="{Binding Question.Designation}" Width="2*" />
+                    <DataGridTextColumn Header="Endpunkte" Binding="{Binding FinalScore}" Width="*" />
+                    <DataGridCheckBoxColumn Header="Richtig beantwortet" Binding="{Binding CorrectAnswered}" Width="auto" />
+                    <DataGridTextColumn Header="Punkte" Binding="{Binding Points}" Width="auto" />
+                    <DataGridTextColumn Header="Minuspunkte" Binding="{Binding MinusPoints}" Width="auto" />
                 </DataGrid.Columns>
                 <!--base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedSteps}"-->
                 <!--base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenStepCommand}">-->
                 <!--<DataGrid.Columns>
-                <DataGridTextColumn Header="StepText" Binding="{Binding StepText}" Width="2*" />
+                <DataGridTextColumn Header="Schritttext" Binding="{Binding StepText}" Width="2*" />
             </DataGrid.Columns>-->
             </DataGrid>
         </StackPanel>

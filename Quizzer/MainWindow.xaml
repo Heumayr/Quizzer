@@ -7,21 +7,79 @@
         xmlns:vm="clr-namespace:Quizzer.Views"
         xmlns:base="clr-namespace:Quizzer.Base"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Quizzer" Height="450" Width="800">
     <base:WindowBase.DataContext>
         <vm:MainViewModel />
     </base:WindowBase.DataContext>
-    <Grid Background="Black">
+
+    <!-- Das Startfenster fuehrt in die vier Verwaltungen. Die Reihenfolge ist die des
+         Arbeitsablaufs: erst Kategorien und Fragen anlegen, dann Mitspieler, dann das
+         Spiel daraus bauen. Bis 2026-09-06 standen hier vier englische Woerter ohne
+         Erklaerung untereinander. -->
+    <Grid Background="{StaticResource AppBgBrush}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <StackPanel Margin="5" Width="120">
-            <Button Content="Categories" Command="{Binding CategoryCommand}" />
-            <Button Content="Questions" Command="{Binding QuestionsCommand}" />
-            <Button Content="Players" Command="{Binding PlayersCommand}" />
-            <Button Content="Games" Command="{Binding GamesCommand}" />
+        <Border Grid.Column="0"
+                Background="{StaticResource PanelBgBrush}"
+                BorderBrush="{StaticResource BorderBrushDark}"
+                BorderThickness="0,0,1,0"
+                Padding="16">
+            <StackPanel Width="220">
+                <TextBlock Text="Verwaltung" Style="{StaticResource SectionHeader}" />
+
+                <Button Content="Kategorien"
+                        Command="{Binding CategoryCommand}"
+                        Height="38" Margin="0,0,0,4"
+                        ToolTip="Themen, denen die Fragen zugeordnet werden." />
+
+                <Button Content="Fragen"
+                        Command="{Binding QuestionsCommand}"
+                        Height="38" Margin="0,0,0,4"
+                        ToolTip="Fragen anlegen, bearbeiten und in Schritte gliedern." />
+
+                <Button Content="Mitspieler"
+                        Command="{Binding PlayersCommand}"
+                        Height="38" Margin="0,0,0,4"
+                        ToolTip="Wer mitspielt, samt Bild für den Beamer." />
+
+                <TextBlock Text="Spielabend"
+                           Style="{StaticResource SectionHeader}"
+                           Margin="0,20,0,4" />
+
+                <Button Content="Spiele"
+                        Command="{Binding GamesCommand}"
+                        Height="44"
+                        FontWeight="Bold"
+                        ToolTip="Spielfeld bauen, Mitspieler zuordnen und den Abend starten." />
+            </StackPanel>
+        </Border>
+
+        <StackPanel Grid.Column="1"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Margin="24">
+            <TextBlock Text="Quizzer"
+                       Foreground="{StaticResource ForegroundBrush}"
+                       FontSize="44"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center" />
+
+            <TextBlock Text="Quiz im Jeopardy-Stil. Die Mitspieler buzzern über ihr Telefon."
+                       Foreground="{StaticResource ForegroundBrush}"
+                       Opacity="0.6"
+                       FontSize="14"
+                       Margin="0,8,0,0"
+                       HorizontalAlignment="Center" />
+
+            <TextBlock Text="Der Buzzer-Server wird im geöffneten Spiel gestartet."
+                       Foreground="{StaticResource ForegroundBrush}"
+                       Opacity="0.45"
+                       FontSize="12"
+                       Margin="0,24,0,0"
+                       HorizontalAlignment="Center" />
         </StackPanel>
     </Grid>
 </base:WindowBase>

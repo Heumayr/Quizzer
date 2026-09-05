@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Quizzer.Views"
         xmlns:base="clr-namespace:Quizzer.Base"
         mc:Ignorable="d"
-        Title="PlayersView" Height="450" Width="800">
+        Title="Mitspieler" Height="450" Width="800">
     <base:WindowBase.DataContext>
         <local:PlayersViewModel />
     </base:WindowBase.DataContext>
@@ -17,8 +17,8 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Add Player" Margin="0,0,0,10" Command="{Binding AddPlayerCommand}" />
-            <Button Content="Remove Player" Margin="0,0,0,10" Command="{Binding RemovePlayerCommand}" Style="{StaticResource DangerButton}" />
+            <Button Content="Mitspieler anlegen" Margin="0,0,0,10" Command="{Binding AddPlayerCommand}" />
+            <Button Content="Mitspieler entfernen" Margin="0,0,0,10" Command="{Binding RemovePlayerCommand}" Style="{StaticResource DangerButton}" />
         </StackPanel>
 
         <DataGrid Grid.Column="1" ItemsSource="{Binding PlayersView}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True"

@@ -6,7 +6,7 @@
         xmlns:base="clr-namespace:Quizzer.Base"
         xmlns:local="clr-namespace:Quizzer.Views"
         mc:Ignorable="d"
-        Title="CategoriesView" Height="450" Width="800">
+        Title="Kategorien" Height="450" Width="800">
     <base:WindowBase.DataContext>
         <local:CategoriesViewModel />
     </base:WindowBase.DataContext>
@@ -17,12 +17,12 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Save" Command="{Binding SaveCommand}" Style="{StaticResource DangerButton}" />
+            <Button Content="Speichern" Command="{Binding SaveCommand}" Style="{StaticResource DangerButton}" />
         </StackPanel>
 
         <DataGrid Grid.Column="1" ItemsSource="{Binding Categories}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="True">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Designation" Binding="{Binding Designation}" Width="2*" />
+                <DataGridTextColumn Header="Bezeichnung" Binding="{Binding Designation}" Width="2*" />
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

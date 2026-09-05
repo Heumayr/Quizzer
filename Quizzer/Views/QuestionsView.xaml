@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Quizzer.Views"
         xmlns:base="clr-namespace:Quizzer.Base"
         mc:Ignorable="d"
-        Title="QuestionsView" Height="450" Width="800">
+        Title="Fragen" Height="450" Width="800">
     <base:WindowBase.DataContext>
         <local:QuestionsViewModel />
     </base:WindowBase.DataContext>

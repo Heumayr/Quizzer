@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Quizzer.Views.GameViews.QuestionViews.Typed.Media"
         xmlns:base="clr-namespace:Quizzer.Base"
         mc:Ignorable="d"
-        Title="MediaPreviewWindow" Height="450" Width="800">
+        Title="Vorschau" Height="450" Width="800">
     <Grid Background="Black">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Quizzer.Views"
         xmlns:base="clr-namespace:Quizzer.Base"
         mc:Ignorable="d"
-        Title="GamesView" Height="450" Width="800">
+        Title="Spiele" Height="450" Width="800">
     <base:WindowBase.DataContext>
         <local:GamesViewModel />
     </base:WindowBase.DataContext>
@@ -17,16 +17,16 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Start Game" Command="{Binding StartGameCommand}" />
-            <Button Content="Add Game" Command="{Binding AddGameCommand}" />
-            <Button Content="Remove Game" Command="{Binding RemoveGameCommand}" Style="{StaticResource DangerButton}" />
+            <Button Content="Spiel starten" Command="{Binding StartGameCommand}" />
+            <Button Content="Neues Spiel" Command="{Binding AddGameCommand}" />
+            <Button Content="Spiel entfernen" Command="{Binding RemoveGameCommand}" Style="{StaticResource DangerButton}" />
         </StackPanel>
 
         <DataGrid Grid.Column="1" ItemsSource="{Binding GamesView}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True"
                base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedGames}"
                base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenGameCommand}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Designation" Binding="{Binding Designation}" Width="2*" />
+                <DataGridTextColumn Header="Bezeichnung" Binding="{Binding Designation}" Width="2*" />
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

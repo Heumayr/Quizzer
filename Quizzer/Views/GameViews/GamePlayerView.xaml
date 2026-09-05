@@ -10,7 +10,7 @@
         xmlns:questions="clr-namespace:Quizzer.Views.GameViews.QuestionViews"
         xmlns:sub="clr-namespace:Quizzer.Views.GameViews.Sub"
         mc:Ignorable="d"
-        Title="GamePlayerView" Height="450" Width="800">
+        Title="Spieleransicht (Beamer)" Height="450" Width="800">
     <base:WindowBase.DataContext>
         <local:GamePlayerViewModel></local:GamePlayerViewModel>
     </base:WindowBase.DataContext>

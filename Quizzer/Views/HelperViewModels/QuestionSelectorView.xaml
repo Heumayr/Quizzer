@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Quizzer.Views.HelperViewModels"
         xmlns:base="clr-namespace:Quizzer.Base"
         mc:Ignorable="d"
-        Title="QuestionSelectorView" Height="450" Width="800">
+        Title="Frage auswählen" Height="450" Width="800">
     <base:WindowBase.DataContext>
         <local:QuestionSelectorViewModel />
     </base:WindowBase.DataContext>
@@ -17,25 +17,25 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Close" Command="{Binding CloseCommand}" />
+            <Button Content="Schließen" Command="{Binding CloseCommand}" />
         </StackPanel>
 
         <StackPanel Grid.Column="1">
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Button Content="New" Command="{Binding AddQuestionCommand}" />
-                <Button Content="Edit Selected" Command="{Binding EditSelectedQuestionCommand}" />
-                <Label MinWidth="120" Margin="10,0,0,0" Content="Selected Question:" />
+                <Button Content="Neue Frage" Command="{Binding AddQuestionCommand}" />
+                <Button Content="Ausgewählte bearbeiten" Command="{Binding EditSelectedQuestionCommand}" />
+                <Label MinWidth="120" Margin="10,0,0,0" Content="Ausgewählte Frage:" />
                 <Label Content="{Binding Path=CurrentSelectedQuestionDisplay}" MinWidth="200" Margin="5,0,0,0" />
-                <Button Content="Deselect" Command="{Binding DeselectCommand}" Style="{StaticResource DangerButton}" />
+                <Button Content="Auswahl entfernen" Command="{Binding DeselectCommand}" Style="{StaticResource DangerButton}" />
             </StackPanel>
             <DataGrid ItemsSource="{Binding AvailableQuestions}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" SelectionMode="Single" IsReadOnly="True" SelectedItem="{Binding SelectedQuestion}"
                         base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding SelectAndCloseCommand}">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Designation" Binding="{Binding Designation}" Width="2*" />
-                    <DataGridTextColumn Header="Category" Binding="{Binding Category.Designation}" Width="*" />
-                    <DataGridTextColumn Header="Difficulty" Binding="{Binding Difficulty}" Width="*" />
-                    <DataGridTextColumn Header="Points" Binding="{Binding Points}" Width="*" />
-                    <DataGridTextColumn Header="Minus-Points" Binding="{Binding MinusPoints}" Width="*" />
+                    <DataGridTextColumn Header="Bezeichnung" Binding="{Binding Designation}" Width="2*" />
+                    <DataGridTextColumn Header="Kategorie" Binding="{Binding Category.Designation}" Width="*" />
+                    <DataGridTextColumn Header="Schwierigkeit" Binding="{Binding Difficulty}" Width="*" />
+                    <DataGridTextColumn Header="Punkte" Binding="{Binding Points}" Width="*" />
+                    <DataGridTextColumn Header="Minuspunkte" Binding="{Binding MinusPoints}" Width="*" />
                 </DataGrid.Columns>
             </DataGrid>
         </StackPanel>
