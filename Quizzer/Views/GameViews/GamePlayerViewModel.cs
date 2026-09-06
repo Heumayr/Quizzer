@@ -169,6 +169,26 @@ namespace Quizzer.Views.GameViews
 
         public Visibility ShowQuestionText => string.IsNullOrEmpty(QuestionText) ? Visibility.Hidden : Visibility.Visible;
 
+        /// <summary>
+        /// Ob gerade der Startschritt läuft - der erste Bildschirm einer Frage.
+        /// </summary>
+        public bool IsStartStep => QuestionStepResource?.IsStart == true;
+
+        /// <summary>
+        /// Die Frage als schmale Zeile über dem Geschehen. Erst ab dem zweiten Schritt: im
+        /// ersten steht sie groß in der Mitte, und zweimal dieselbe Frage auf einem Bildschirm
+        /// ist unschön.
+        /// </summary>
+        public Visibility ShowQuestionTop =>
+            string.IsNullOrEmpty(QuestionText) || IsStartStep ? Visibility.Collapsed : Visibility.Visible;
+
+        /// <summary>
+        /// Die Frage groß in der Mitte. Nur im Startschritt - dort ist sie das Einzige, worum es
+        /// geht, und die Gäste lesen sie zum ersten Mal.
+        /// </summary>
+        public Visibility ShowQuestionCentered =>
+            !string.IsNullOrEmpty(QuestionText) && IsStartStep ? Visibility.Visible : Visibility.Collapsed;
+
         public string QuestionText
         {
             get => questionText;
@@ -178,6 +198,8 @@ namespace Quizzer.Views.GameViews
                 OnPropertyChanged();
 
                 OnPropertyChanged(nameof(ShowQuestionText));
+                OnPropertyChanged(nameof(ShowQuestionTop));
+                OnPropertyChanged(nameof(ShowQuestionCentered));
             }
         }
 
@@ -188,6 +210,11 @@ namespace Quizzer.Views.GameViews
             {
                 questionStepResource = value;
                 OnPropertyChanged();
+
+                // Mit dem Schritt wechselt auch, wo die Frage steht.
+                OnPropertyChanged(nameof(IsStartStep));
+                OnPropertyChanged(nameof(ShowQuestionTop));
+                OnPropertyChanged(nameof(ShowQuestionCentered));
 
                 if (questionStepResource != null)
                 {

@@ -156,8 +156,13 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" Background="Black" MaxHeight="100">
-                    <Viewbox Margin="5" Stretch="Uniform" Visibility="{Binding ShowQuestionText}">
+                <!-- Die Frage als schmale Kopfzeile - erst ab dem zweiten Schritt. Im ersten
+                     steht sie gross in der Mitte, und zweimal dieselbe Frage auf einem
+                     Bildschirm ist unschoen. Collapsed statt Hidden: sonst bliebe die Zeile
+                     als leerer Streifen stehen. -->
+                <Grid Grid.Row="0" Background="Black" MaxHeight="100"
+                      Visibility="{Binding ShowQuestionTop}">
+                    <Viewbox Margin="5" Stretch="Uniform">
                         <TextBlock Text="{Binding QuestionText}"
                                Foreground="WhiteSmoke"
                                FontWeight="Bold"
@@ -172,6 +177,24 @@
                 <Grid Grid.Row="1">
                     <ContentControl Content="{Binding QuestionStepViewContext}"
                                 ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
+
+                    <!-- Der erste Bildschirm einer Frage: nur die Frage, gross und mittig.
+                         Sie liegt ueber dem Schritt, damit ein leerer Startschritt nicht als
+                         Luecke darunter stehen bleibt. -->
+                    <Border Visibility="{Binding ShowQuestionCentered}"
+                            Background="#CC000000"
+                            Padding="40">
+                        <Viewbox Stretch="Uniform" MaxHeight="620">
+                            <TextBlock Text="{Binding QuestionText}"
+                                       Foreground="WhiteSmoke"
+                                       FontWeight="Bold"
+                                       TextWrapping="Wrap"
+                                       MaxWidth="1100"
+                                       TextAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center" />
+                        </Viewbox>
+                    </Border>
                 </Grid>
             </Grid>
         </Grid>
