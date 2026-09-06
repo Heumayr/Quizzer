@@ -1,5 +1,3 @@
-using Quizzer.DataModels.Enumerations;
-using Quizzer.DataModels.Models.QuestionTypes;
 using System.Text.Json;
 
 namespace Quizzer.DataModels.Questions
@@ -107,12 +105,5 @@ namespace Quizzer.DataModels.Questions
         public static double Rasterung(double start, int schritte, int aufgedeckt)
             => Unschaerfe(start, schritte, aufgedeckt);
 
-        /// <summary>Die Flächen einer Frage - oder eine leere Liste, wenn es keine Aufdeckfrage ist.</summary>
-        public static List<RevealArea> Of(Models.QuestionBase? frage)
-            => frage is RevealQuestion aufdeck ? Parse(aufdeck.AreasJson) : [];
-
-        /// <summary>Ob diese Frage überhaupt eine Aufdeckfrage ist.</summary>
-        public static bool IstAufdeckfrage(Models.QuestionBase? frage)
-            => frage?.Typ == QuestionType.Reveal;
     }
 }

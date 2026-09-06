@@ -1,6 +1,5 @@
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
-using Quizzer.DataModels.Models.QuestionTypes;
 
 namespace Quizzer.DataModels.Questions.Schrittbau
 {
@@ -19,40 +18,6 @@ namespace Quizzer.DataModels.Questions.Schrittbau
         public override string ZeilenTitel => "Aufdeckschritte";
 
         public override string AbschlussTitel => "Was am Ende steht";
-
-        /// <summary>
-        /// Wie viele Aufdeckschritte die Einstellungen verlangen: je Fläche einen, oder so viele
-        /// Schärfestufen wie eingestellt.
-        /// <para>
-        /// <b>Der Schritt ist die Einheit des Aufdeckens.</b> Ohne diesen Abgleich hätte eine
-        /// Frage mit fünf Flächen zwei Schritte, und drei Flächen fielen nie.
-        /// </para>
-        /// </summary>
-        public static int GebrauchteSchritte(RevealQuestion frage, int weicheSchritte)
-        {
-            ArgumentNullException.ThrowIfNull(frage);
-
-            return frage.Mode == RevealMode.Areas
-                ? RevealAreas.Parse(frage.AreasJson).Count
-                : Math.Max(weicheSchritte, 0);
-        }
-
-        /// <summary>
-        /// Gleicht die Zeilenzahl an das an, was die Einrichtung verlangt - hängt an oder nimmt
-        /// weg, und lässt die vorhandenen Zeilen samt ihren Schritten stehen.
-        /// </summary>
-        public void GleicheAn(Schrittbild bild, int gebraucht)
-        {
-            ArgumentNullException.ThrowIfNull(bild);
-
-            gebraucht = Math.Max(gebraucht, 0);
-
-            while (bild.Zeilen.Count > gebraucht)
-                bild.Zeilen.RemoveAt(bild.Zeilen.Count - 1);
-
-            while (bild.Zeilen.Count < gebraucht)
-                bild.Zeilen.Add(NeueZeile());
-        }
 
         public override void Schreib(QuestionBase frage, Schrittbild bild)
         {
