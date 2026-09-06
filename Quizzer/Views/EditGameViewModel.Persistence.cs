@@ -1,4 +1,5 @@
 ﻿using Quizzer.Base;
+using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Logic.Controller.TypedControllers;
 using System.Windows.Input;
@@ -110,6 +111,62 @@ namespace Quizzer.Views
 
                 await ctrlGames.SaveChangesAsync();
             });
+        }
+
+        private AsyncRelayCommand? resetGameBuildCommand;
+
+        public ICommand ResetGameBuildCommand =>
+            resetGameBuildCommand ??= new AsyncRelayCommand(ResetGameBuildAsync, _ => IsBuilding);
+
+        /// <summary>
+        /// Räumt den Spielaufbau leer - Ergebnisse, Zellen, Zuordnungen, Kopfzeilen.
+        /// <para>
+        /// <b>B26.</b> Bis hierher lief das als einziger Schreibweg des Spieleditors <b>ohne</b>
+        /// die Sperre, die <c>RebuildCellsAsync</c> und beide Speicherwege nehmen. Der Fall galt
+        /// als unerreichbar, weil die Rückfrage den 200-ms-Anlauf des Rasteraufbaus längst
+        /// überdauert - genau so eine Begründung hielt aber schon einmal, bis ein Spiel sich
+        /// nicht mehr öffnen ließ.
+        /// </para>
+        /// <para>
+        /// <b>Gefragt wird vor der Sperre, nicht darin.</b> Ein modales Fenster hinter einem
+        /// genommenen Riegel hielte den Rasteraufbau so lange auf, wie der Spielleiter zum Lesen
+        /// braucht.
+        /// </para>
+        /// </summary>
+        private async Task ResetGameBuildAsync(object? commandParameter)
+        {
+            if (Game == null)
+                return;
+
+            if (!UserPrompt.Confirm(
+                    "Spielaufbau wirklich zurücksetzen? Damit werden alle zugewiesenen Fragen "
+                    + "und Spieler aus dem Spiel entfernt.",
+                    "Zurücksetzen bestätigen"))
+            {
+                return;
+            }
+
+            await RunGuardedAsync(async () =>
+            {
+                Game.State = GameState.Building;
+
+                using var ctrlGame = new GamesController();
+                await ctrlGame.SaveChangesAsync();
+
+                using var ctrlErgebnisse = new QuestionResultsController(ctrlGame);
+                await ctrlErgebnisse.DeleteByGameIdAsync(Game.Id);
+
+                using var ctrlZellen = new GameGridCoordinatesController(ctrlGame);
+                await ctrlZellen.DeleteByGameIdAsync(Game.Id);
+
+                using var ctrlZuordnungen = new PlayerXGamesController(ctrlGame);
+                await ctrlZuordnungen.DeleteByGameIdAsync(Game.Id);
+
+                using var ctrlKopfzeilen = new HeadersController(ctrlGame);
+                await ctrlKopfzeilen.DeleteByGameIdAsync(Game.Id);
+            });
+
+            await LoadModel(Game.Id);
         }
 
         private AsyncRelayCommand? saveAndCloseCommand;

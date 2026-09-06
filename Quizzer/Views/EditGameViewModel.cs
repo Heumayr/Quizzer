@@ -552,34 +552,6 @@ namespace Quizzer.Views
 
         public bool IsBuilding => Game?.State == GameState.Building;
 
-        private AsyncRelayCommand? resetGameBuildCommand;
-        public ICommand ResetGameBuildCommand => resetGameBuildCommand ??= new AsyncRelayCommand(ResetGameBuildAsync, (p) => IsBuilding);
-
-        private async Task ResetGameBuildAsync(object? commandParameter)
-        {
-            if (Game == null) return;
-            if (UserPrompt.Confirm("Spielaufbau wirklich zurücksetzen? Damit werden alle zugewiesenen Fragen und Spieler aus dem Spiel entfernt.", "Zurücksetzen bestätigen"))
-            {
-                Game.State = GameState.Building;
-                using var ctrlGame = new GamesController();
-                await ctrlGame.SaveChangesAsync();
-
-                using var ctrl = new QuestionResultsController(ctrlGame);
-                await ctrl.DeleteByGameIdAsync(Game.Id); //immediatly saved
-
-                using var ctrl2 = new GameGridCoordinatesController(ctrlGame);
-                await ctrl2.DeleteByGameIdAsync(Game.Id);
-
-                using var ctrl3 = new PlayerXGamesController(ctrlGame);
-                await ctrl3.DeleteByGameIdAsync(Game.Id);
-
-                using var ctrl4 = new HeadersController(ctrlGame);
-                await ctrl4.DeleteByGameIdAsync(Game.Id);
-
-                await LoadModel(Game.Id);
-            }
-        }
-
         public int TestPhase { get; set; }
 
         private AsyncRelayCommand? refreshGridCommand;
