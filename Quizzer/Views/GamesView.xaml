@@ -17,9 +17,12 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Spiel starten" Command="{Binding StartGameCommand}" />
-            <Button Content="Neues Spiel" Command="{Binding AddGameCommand}" />
-            <Button Content="Spiel entfernen" Command="{Binding RemoveGameCommand}" Style="{StaticResource DangerButton}" />
+            <Button Content="Spiel starten" Command="{Binding StartGameCommand}"
+                    ToolTip="Öffnet das Spielfeld für den Abend. Ein Doppelklick auf die Zeile tut dasselbe." />
+            <Button Content="Neues Spiel" Command="{Binding AddGameCommand}"
+                    ToolTip="Legt ein leeres Spiel an und öffnet den Spielaufbau." />
+            <Button Content="Spiel entfernen" Command="{Binding RemoveGameCommand}" Style="{StaticResource DangerButton}"
+                    ToolTip="Löscht das Spiel samt Spielfeld und dem gesamten Punktestand seines Abends. Nicht rückgängig zu machen." />
 
             <TextBlock Text="Weitergeben" Style="{StaticResource SectionHeader}" Margin="0,20,0,4" />
 

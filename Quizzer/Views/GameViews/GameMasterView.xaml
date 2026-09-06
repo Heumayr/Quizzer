@@ -68,8 +68,10 @@
                             ToolTip="Blendet den Punktestand auf dem Spielerbildschirm ein oder aus." />
 
                     <TextBlock Style="{StaticResource SectionHeader}" Text="Bei mir" Margin="0,18,0,4" />
-                    <Button Content="Vollbild umschalten" Command="{Binding ToggleFullScreenCommand}" />
-                    <Button Content="Zwischen Raster und Punkten wechseln" Command="{Binding ChangeViewCommand}" />
+                    <Button Content="Vollbild umschalten" Command="{Binding ToggleFullScreenCommand}"
+                            ToolTip="Nur dieses Fenster bei dir. Der Beamer bleibt, wie er ist." />
+                    <Button Content="Zwischen Raster und Punkten wechseln" Command="{Binding ChangeViewCommand}"
+                            ToolTip="Zeigt bei dir statt des Spielfelds den Punktestand - und wieder zurück. Der Beamer folgt nicht." />
 
                     <TextBlock Style="{StaticResource SectionHeader}" Text="Telefone" Margin="0,18,0,4" />
                     <Button Content="Buzzer-Server öffnen" Command="{Binding BuzzerServerCommand}"

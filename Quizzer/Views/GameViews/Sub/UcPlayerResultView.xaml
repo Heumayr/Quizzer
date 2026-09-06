@@ -70,10 +70,14 @@
 
                 <Grid Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Button Content="Richtig" Background="DarkGreen" Command="{Binding RightSuggestionCommand}" />
-                        <Button Content="Falsch" Command="{Binding WrongSuggestionCommand}" />
-                        <Button Content="Ohne Wertung" Command="{Binding NoneSuggestionCommand}" />
-                        <Button Content="Eigener Wert" Command="{Binding CorrectionSuggestionCommand}" />
+                        <Button Content="Richtig" Background="DarkGreen" Command="{Binding RightSuggestionCommand}"
+                                ToolTip="Gibt die vollen Punkte der Zelle. Bei Hinweisfragen die, die nach den bisher gezeigten Hinweisen noch übrig sind." />
+                        <Button Content="Falsch" Command="{Binding WrongSuggestionCommand}"
+                                ToolTip="Zieht die Minuspunkte der Zelle ab." />
+                        <Button Content="Ohne Wertung" Command="{Binding NoneSuggestionCommand}"
+                                ToolTip="Weder Punkte noch Abzug - für alle, die gar nicht dran waren." />
+                        <Button Content="Eigener Wert" Command="{Binding CorrectionSuggestionCommand}"
+                                ToolTip="Gibt das Punktefeld frei, um eine eigene Zahl einzutragen - auch eine negative." />
                     </StackPanel>
                 </Grid>
 

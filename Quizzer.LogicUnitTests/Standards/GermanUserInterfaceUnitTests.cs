@@ -116,7 +116,7 @@ namespace Quizzer.LogicUnitTests.Standards
         }
 
         /// <summary>
-        /// <b>B55.</b> Jeder beschriftete Knopf des Fragefensters traegt eine Erklaerung.
+        /// <b>B55.</b> Jeder beschriftete Knopf der Abendfenster traegt eine Erklaerung.
         /// <para>
         /// Das Fragefenster ist die Maske, die der Spielleiter den ganzen Abend bedient, meist
         /// zum ersten Mal seit Wochen. Gemessen 2026-09-06: drei Knoepfe standen ohne
@@ -125,20 +125,20 @@ namespace Quizzer.LogicUnitTests.Standards
         /// (<c>ResourceViewerControl.SetMasterVisibility</c>).
         /// </para>
         /// <para>
-        /// <b>Warum nur dieses Fenster und nicht alle.</b> Nachgemessen: von 110 beschrifteten
-        /// Knoepfen im Projekt tragen 67 keine Erklaerung. Ein Gate ueber alle waere sofort rot
-        /// und damit abgeschaltet (<c>standards-allgemein.md</c> §5). Die uebrigen sind als
-        /// eigener Posten festgehalten, nicht vergessen.
+        /// <b>Der Umfang ist am 2026-09-06 nachts gewachsen</b> - vom Fragefenster auf alles,
+        /// was am Abend offen ist: Spielfeld, Ergebnisfenster samt Spielerkarten,
+        /// Buzzer-Verwaltung und die Spieleliste. Warum nicht weiter, steht bei
+        /// <see cref="AbendDateien"/>.
         /// </para>
         /// </summary>
         [TestMethod]
-        public void EveryLabelledButtonOfTheQuestionWindowExplainsItself()
+        public void EveryLabelledButtonOfTheEveningWindowsExplainsItself()
         {
             var root = RepoRoot();
             var funde = new List<string>();
             var geprueft = 0;
 
-            foreach (var datei in FragefensterDateien(root))
+            foreach (var datei in AbendDateien(root))
             {
                 var inhalt = File.ReadAllText(datei);
 
@@ -160,29 +160,38 @@ namespace Quizzer.LogicUnitTests.Standards
                 }
             }
 
-            Assert.IsTrue(geprueft >= 10,
+            Assert.IsTrue(geprueft >= 25,
                 $"Es wurden nur {geprueft} Knoepfe geprueft - die Suche greift nicht mehr, "
                 + "und die Zusicherung waere gruen, ohne irgendetwas zu messen.");
 
             Assert.AreEqual(0, funde.Count,
-                "Diese Knoepfe des Fragefensters stehen ohne Erklaerung da: "
+                "Diese Knoepfe der Abendfenster stehen ohne Erklaerung da: "
                 + string.Join(", ", funde));
         }
 
         /// <summary>
-        /// Die Masken, die waehrend einer laufenden Frage auf dem Bildschirm des Spielleiters
-        /// stehen - das Fragefenster selbst und alles, was es einbettet.
+        /// Die Masken, die am Quizabend offen sind - Spielfeld, Fragefenster, Ergebnisfenster,
+        /// Buzzer-Verwaltung und die Spieleliste, von der aus der Abend startet.
+        /// <para>
+        /// <b>Warum nicht alle Fenster.</b> Nachgemessen 2026-09-06: von 110 beschrifteten
+        /// Knoepfen im Projekt trugen 67 keine Erklaerung. Ein Gate ueber alle waere sofort rot
+        /// und damit abgeschaltet (<c>standards-allgemein.md</c> §5). Die Trennlinie ist nicht
+        /// Bequemlichkeit, sondern der Zeitdruck: die Verwaltungsfenster bedient der Spielleiter
+        /// in Ruhe, diese hier vor Gaesten.
+        /// </para>
         /// </summary>
-        private static List<string> FragefensterDateien(string root)
+        private static List<string> AbendDateien(string root)
         {
             var dateien = new List<string>
             {
-                Path.Combine(root, "Quizzer", "Views", "GameViews", "QuestionMasterView.xaml"),
+                Path.Combine(root, "Quizzer", "Views", "GamesView.xaml"),
             };
 
-            var unterordner = Path.Combine(root, "Quizzer", "Views", "GameViews", "QuestionViews");
-
-            dateien.AddRange(Directory.EnumerateFiles(unterordner, "*.xaml", SearchOption.AllDirectories));
+            foreach (var ordner in new[] { "GameViews", "BuzzerViews" })
+            {
+                dateien.AddRange(Directory.EnumerateFiles(
+                    Path.Combine(root, "Quizzer", "Views", ordner), "*.xaml", SearchOption.AllDirectories));
+            }
 
             foreach (var datei in dateien)
                 Assert.IsTrue(File.Exists(datei), $"Nicht gefunden: {datei}");

@@ -31,8 +31,10 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="Server starten" Command="{Binding StartServerCommand}" />
-                    <Button Content="Server beenden" Command="{Binding StopServerCommand}" />
+                    <Button Content="Server starten" Command="{Binding StartServerCommand}"
+                            ToolTip="Startet den Webserver, zu dem sich die Telefone verbinden." />
+                    <Button Content="Server beenden" Command="{Binding StopServerCommand}"
+                            ToolTip="Hält den Server an. Alle Telefone verlieren die Verbindung und müssen die Seite neu laden." />
                 </StackPanel>
             </Grid>
         </Border>
@@ -44,7 +46,8 @@
                 <TextBlock Text="{Binding EndpointUrl}" Margin="8,0,0,0" FontSize="15"
                            VerticalAlignment="Center" />
                 <Button Content="Adresse kopieren" Command="{Binding CopyEndpointCommand}"
-                        Margin="12,0,0,0" />
+                        Margin="12,0,0,0"
+                        ToolTip="Legt die Adresse in die Zwischenablage - zum Weitergeben, wenn ein QR-Code nicht geht." />
             </StackPanel>
 
             <Border Visibility="{Binding FirewallHintVisibility}" Margin="0,8,0,0"
@@ -63,7 +66,8 @@
                     </StackPanel>
 
                     <Button Grid.Column="1" Content="Freigeben" Command="{Binding AllowFirewallCommand}"
-                            VerticalAlignment="Center" />
+                            VerticalAlignment="Center"
+                            ToolTip="Legt eine Windows-Firewallregel für den Buzzer-Port an. Braucht Administratorrechte." />
                 </Grid>
             </Border>
         </StackPanel>
@@ -114,6 +118,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button Content="QR-Code zeigen"
+                                        ToolTip="Zeigt den Code, den genau dieser Mitspieler abscannt. Jeder bekommt einen eigenen."
                                         Command="{Binding DataContext.OpenPlayerQRCommand,
                                                   RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
                                         CommandParameter="{Binding}" />
