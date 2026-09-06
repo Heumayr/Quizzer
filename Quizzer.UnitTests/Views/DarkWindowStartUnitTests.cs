@@ -45,6 +45,7 @@ namespace Quizzer.UnitTests.Views
             typeof(Quizzer.Views.BuzzerViews.BuzzerServerView),
             typeof(Quizzer.Views.GameThemesView),
             typeof(Quizzer.Views.LoginView),
+            typeof(Quizzer.Views.SettingsView),
         ];
 
         private static int Helligkeit(Brush? pinsel)

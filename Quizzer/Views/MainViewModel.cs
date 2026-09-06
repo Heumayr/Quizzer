@@ -51,6 +51,20 @@ namespace Quizzer.Views
             window.ShowDialog();
         }
 
+        private RelayCommand? settingsCommand;
+        public ICommand SettingsCommand => settingsCommand ??= new RelayCommand(OpenSettings);
+
+        /// <summary>
+        /// Datenordner und Datenbank. Nach dem Speichern wirken die Werte sofort fuer alles, was
+        /// danach geladen wird - ein Neustart ist nur noetig, wenn die Datenbank gewechselt hat.
+        /// </summary>
+        private void OpenSettings(object? param)
+        {
+            var window = new SettingsView();
+
+            window.ShowDialog();
+        }
+
         private RelayCommand? gamesCommand;
         public ICommand GamesCommand => gamesCommand ??= new RelayCommand(Games);
 

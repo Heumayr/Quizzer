@@ -23,7 +23,13 @@ namespace Quizzer
 
             Settings.LoadSettings();
 
-            if (!DatenbankAufStandBringen())
+            // Die Werte des Nutzers ueber die ausgelieferten Vorgaben. Ausdruecklich hier und
+            // nicht in LoadSettings: DataContext laedt die Einstellungen ebenfalls, und ein
+            // Testlauf, der dabei die Werte des Nutzers erwischt, schreibt in dessen echte
+            // Spieldatenbank.
+            UserSettings.Apply();
+
+            if (!DatenbankMitZweitemVersuch())
             {
                 Shutdown();
                 return;
@@ -83,6 +89,9 @@ namespace Quizzer
         {
             try
             {
+                if (!Logic.Context.DatabaseInitializer.Exists())
+                    return NeueDatenbankAnlegen();
+
                 Logic.Context.DatabaseInitializer.EnsureMigrated();
                 return true;
             }
@@ -91,15 +100,80 @@ namespace Quizzer
                 // Ueber UserPrompt, nicht ueber MessageBox: ein modales Fenster bliebe im Test
                 // stehen (Projektregel, siehe ViewModelIndependenceUnitTests).
                 Base.UserPrompt.Inform(
-                    "Die Datenbank konnte nicht auf den aktuellen Stand gebracht werden."
+                    "Die Datenbank ist nicht erreichbar."
+                    + Environment.NewLine + Environment.NewLine
+                    + "Ziel: " + Logic.Context.DatabaseInitializer.DescribeTarget()
                     + Environment.NewLine + Environment.NewLine
                     + ex.Message
                     + Environment.NewLine + Environment.NewLine
-                    + "Prüfen Sie die Verbindungszeichenfolge in der appsettings.json.",
+                    + "Meist fehlt SQL Server LocalDB. Die Verbindung lässt sich in den "
+                    + "Einstellungen ändern.",
                     "Quizzer");
 
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Der Startschritt mit einem zweiten Versuch: scheitert er, fuehrt der Weg in die
+        /// Einstellungen und danach noch einmal hierher.
+        /// <para>
+        /// <b>Ohne das saesse fest, wer das Programm nur bekommen hat.</b> Die Einstellungen
+        /// haengen sonst am Hauptfenster, und das gibt es an dieser Stelle noch nicht - eine
+        /// falsche Verbindungszeichenfolge waere damit eine Sackgasse.
+        /// </para>
+        /// </summary>
+        private static bool DatenbankMitZweitemVersuch()
+        {
+            if (DatenbankAufStandBringen())
+                return true;
+
+            if (!Base.UserPrompt.Confirm(
+                    "Sollen die Einstellungen jetzt geöffnet werden?",
+                    "Quizzer einrichten"))
+                return false;
+
+            new Views.SettingsView().ShowDialog();
+
+            return DatenbankAufStandBringen();
+        }
+
+        /// <summary>
+        /// Fragt, ob eine lokale Datenbank angelegt werden soll - und legt sie an.
+        /// <para>
+        /// <b>Nutzerentscheidung vom 2026-09-06:</b> „das programm soll wenn keine db da ist
+        /// nachfragen ob eine lokale angelegt werden soll ... damit ich das programm weitergeben
+        /// kann ohne großen aufwand für den endnutzer".
+        /// </para>
+        /// <para>
+        /// <b>Gemessen am selben Tag:</b> vorher entstand sie <b>stillschweigend</b> -
+        /// <c>EnsureMigrated</c> legt eine fehlende Datenbank an und spielt alle Migrationen ein,
+        /// ohne ein Wort. Für den, der das Programm gerade zum ersten Mal startet, geschieht
+        /// damit unsichtbar etwas auf seinem Rechner.
+        /// </para>
+        /// </summary>
+        private static bool NeueDatenbankAnlegen()
+        {
+            var ziel = Logic.Context.DatabaseInitializer.DescribeTarget();
+
+            var ja = Base.UserPrompt.Confirm(
+                "Es wurde noch keine Datenbank gefunden."
+                + Environment.NewLine + Environment.NewLine
+                + "Soll jetzt eine lokale Datenbank angelegt werden?"
+                + Environment.NewLine + Environment.NewLine
+                + "Ziel: " + ziel,
+                "Quizzer einrichten");
+
+            if (!ja)
+                return false;
+
+            Logic.Context.DatabaseInitializer.EnsureMigrated();
+
+            Base.UserPrompt.Inform(
+                "Die Datenbank wurde angelegt:" + Environment.NewLine + ziel,
+                "Quizzer einrichten");
+
+            return true;
         }
 
         /// <summary>

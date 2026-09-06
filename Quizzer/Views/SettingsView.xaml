@@ -1,0 +1,50 @@
+<base:WindowBase x:Class="Quizzer.Views.SettingsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Quizzer.Views"
+        xmlns:base="clr-namespace:Quizzer.Base"
+        Title="Einstellungen" Height="420" Width="760">
+    <base:WindowBase.DataContext>
+        <local:SettingsViewModel />
+    </base:WindowBase.DataContext>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Style="{StaticResource SectionHeader}" Text="Datenordner" />
+
+        <StackPanel Grid.Row="1" Margin="0,0,0,16">
+            <TextBox Text="{Binding Datenordner, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Text="{Binding DatenordnerHinweis}" FontSize="12" Opacity="0.8" Margin="2,4,0,0" />
+            <TextBlock FontSize="12" Opacity="0.8" Margin="2,2,0,0" TextWrapping="Wrap"
+                       Text="Hier liegen Bilder, Medien und Designs. Fehlt eine Datei, weicht die Anzeige auf den Auslieferungsstand aus." />
+        </StackPanel>
+
+        <TextBlock Grid.Row="2" Style="{StaticResource SectionHeader}" Text="Datenbank" />
+
+        <StackPanel Grid.Row="3" VerticalAlignment="Top">
+            <TextBox Text="{Binding Verbindung, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock FontSize="12" Opacity="0.8" Margin="2,4,0,0" TextWrapping="Wrap"
+                       Text="Verbindungszeichenfolge zur Spieldatenbank. Fehlt die Datenbank, fragt das Programm beim nächsten Start, ob es sie anlegen soll." />
+
+            <TextBlock Style="{StaticResource SectionHeader}" Margin="0,20,0,4" Text="Abgelegt unter" />
+            <TextBlock Text="{Binding Ablageort}" FontSize="12" Opacity="0.8" TextWrapping="Wrap" />
+            <TextBlock FontSize="12" Opacity="0.8" Margin="0,4,0,0" TextWrapping="Wrap"
+                       Text="Diese Werte überschreiben die ausgelieferten Vorgaben. Sie liegen im Benutzerordner, nicht im Programmordner." />
+        </StackPanel>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Auf Vorgaben zurücksetzen" Command="{Binding ResetCommand}"
+                    Margin="0,0,8,0" Padding="10,4"
+                    ToolTip="Löscht die eigenen Werte. Danach gelten wieder die ausgelieferten." />
+            <Button Content="Abbrechen" Command="{Binding CancelCommand}" Margin="0,0,8,0" Padding="10,4" />
+            <Button Content="Speichern" Command="{Binding SaveCommand}" Padding="14,4" FontWeight="Bold" />
+        </StackPanel>
+    </Grid>
+</base:WindowBase>

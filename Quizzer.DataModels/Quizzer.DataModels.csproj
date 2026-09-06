@@ -19,4 +19,9 @@
 		</None>
 	</ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Quizzer.LogicUnitTests" />
+    <InternalsVisibleTo Include="Quizzer.UnitTests" />
+  </ItemGroup>
+
 </Project>

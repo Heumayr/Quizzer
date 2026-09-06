@@ -56,7 +56,74 @@ namespace Quizzer.UnitTests
         }
 
         /// <summary>
-        /// Mit der Verbindung des Testlaufs laeuft der Startschritt durch und meldet nichts.
+        /// Eine Verbindungszeichenfolge auf eine Datenbank, die es sicher nicht gibt. Der Name
+        /// endet auf <c>_Tests</c>, damit auch die Sperre in <c>DatabaseInitializer</c> ihn als
+        /// Wegwerfziel erkennt.
+        /// </summary>
+        private static string NeueTestdatenbank()
+            => "Data Source=(localdb)" + "\\" + "MSSQLLocalDB;Database=Quizzer_Neu_"
+               + Guid.NewGuid().ToString("N")[..8] + "_Tests;Integrated Security=True;Connect Timeout=15";
+
+        /// <summary>
+        /// Fehlt die Datenbank, wird gefragt - und bei „Nein" entsteht nichts.
+        /// <para>
+        /// <b>Nutzerentscheidung vom 2026-09-06:</b> „das programm soll wenn keine db da ist
+        /// nachfragen ob eine lokale angelegt werden soll". Vorher entstand sie stillschweigend.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void WithoutADatabaseItAsksFirstAndRespectsANo()
+        {
+            Settings.ConnectionString = NeueTestdatenbank();
+            UserPrompt.Current = new RecordingUserPrompt(answer: false);
+
+            var ergebnis = App.DatenbankAufStandBringen();
+
+            var rekorder = (RecordingUserPrompt)UserPrompt.Current;
+
+            Assert.AreEqual(1, rekorder.Confirms.Count,
+                "Es wurde nicht gefragt. Dann entsteht auf einem fremden Rechner unsichtbar eine "
+                + "Datenbank.");
+
+            Assert.IsFalse(ergebnis,
+                "Ein Nein wurde als Erfolg gemeldet - das Programm liefe ohne Datenbank weiter.");
+
+            Assert.IsFalse(Quizzer.Logic.Context.DatabaseInitializer.Exists(),
+                "Die Datenbank wurde trotz Nein angelegt.");
+        }
+
+        /// <summary>
+        /// Und bei „Ja" entsteht sie wirklich - samt allen Migrationen.
+        /// </summary>
+        [TestMethod]
+        public void WithoutADatabaseAYesCreatesIt()
+        {
+            Settings.ConnectionString = NeueTestdatenbank();
+            UserPrompt.Current = new RecordingUserPrompt(answer: true);
+
+            try
+            {
+                var ergebnis = App.DatenbankAufStandBringen();
+
+                Assert.IsTrue(ergebnis, "Das Anlegen wurde als Fehlschlag gemeldet.");
+
+                Assert.IsTrue(Quizzer.Logic.Context.DatabaseInitializer.Exists(),
+                    "Nach dem Ja gibt es immer noch keine Datenbank.");
+
+                var rekorder = (RecordingUserPrompt)UserPrompt.Current;
+
+                Assert.AreEqual(1, rekorder.Informs.Count,
+                    "Der Nutzer erfaehrt nicht, dass eine Datenbank angelegt wurde.");
+            }
+            finally
+            {
+                Quizzer.Logic.Context.DatabaseInitializer.DropForTests();
+            }
+        }
+
+        /// <summary>
+        /// Mit der Verbindung des Testlaufs laeuft der Startschritt durch und meldet nichts -
+        /// und es wird <b>nicht</b> gefragt.
         /// </summary>
         [TestMethod]
         public void WithAWorkingConnectionTheStartupMigrationSucceeds()
@@ -72,6 +139,10 @@ namespace Quizzer.UnitTests
             Assert.AreEqual(0, prompt.Informs.Count,
                 "Es wurde ein Hinweisfenster gezeigt, obwohl nichts schiefgegangen ist: "
                 + string.Join(" | ", prompt.Informs.Select(i => i.Caption)));
+
+            Assert.AreEqual(0, prompt.Confirms.Count,
+                "Es wurde gefragt, ob eine Datenbank angelegt werden soll - obwohl es sie gibt. "
+                + "Dann kommt die Frage bei jedem Start.");
         }
 
         /// <summary>
@@ -98,9 +169,13 @@ namespace Quizzer.UnitTests
             Assert.AreEqual(1, prompt.Informs.Count,
                 "Der Spielleiter erfaehrt nichts davon, dass die Datenbank nicht erreichbar ist.");
 
-            Assert.IsTrue(prompt.Informs[0].Message.Contains("appsettings.json"),
-                "Die Meldung sagt nicht, wo die Verbindungszeichenfolge steht. Gelesen wurde: "
-                + prompt.Informs[0].Message);
+            Assert.IsTrue(prompt.Informs[0].Message.Contains("Einstellungen"),
+                "Die Meldung sagt nicht, wo sich die Verbindung aendern laesst. Fuer jemanden, "
+                + "der das Programm nur bekommen hat, ist das der einzige Weg weiter. Gelesen "
+                + "wurde: " + prompt.Informs[0].Message);
+
+            Assert.IsTrue(prompt.Informs[0].Message.Contains("LocalDB"),
+                "Die Meldung nennt die haeufigste Ursache nicht - fehlendes SQL Server LocalDB.");
         }
     }
 }
