@@ -1,5 +1,4 @@
 ﻿using Quizzer.Base;
-using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
 using System;
 using System.Windows;
