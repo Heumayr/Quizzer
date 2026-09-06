@@ -16,6 +16,31 @@ namespace Quizzer.Views
     public partial class EditGameViewModel
     {
         /// <summary>
+        /// Führt einen Schreibvorgang unter derselben Sperre aus wie den Rasteraufbau.
+        /// <para>
+        /// <c>RequestGridRebuildAsync</c> läuft entkoppelt und mit 200 ms Verzögerung; es legt
+        /// Zellen an und löscht welche. Wer in diesem Fenster gleichzeitig speichert, schreibt
+        /// auf dieselben Zeilen. Genau diese Bauart - ein losgeschickter Schreibvorgang neben
+        /// einem zweiten - hat am 2026-09-06 im Spielleiter-Fenster dazu geführt, dass sich ein
+        /// Spiel nicht mehr öffnen ließ. Hier ist es dieselbe Lage, und die Sperre gab es schon;
+        /// sie wurde nur von einer Seite genommen.
+        /// </para>
+        /// </summary>
+        private async Task RunGuardedAsync(Func<Task> arbeit)
+        {
+            await rebuildGridLock.WaitAsync();
+
+            try
+            {
+                await arbeit();
+            }
+            finally
+            {
+                rebuildGridLock.Release();
+            }
+        }
+
+        /// <summary>
         /// Schreibt eine einzelne Zelle samt ihrer Punkte.
         /// <para>
         /// Die Punkte sind gespeicherte Spalten. Bis 2026-09-06 blieb die Zuweisung einer Frage
@@ -30,13 +55,16 @@ namespace Quizzer.Views
             if (coordinate == null || Game == null)
                 return;
 
-            coordinate.Game = Game;
-            coordinate.CalculateAndSetCurrentPoints();
+            await RunGuardedAsync(async () =>
+            {
+                coordinate.Game = Game;
+                coordinate.CalculateAndSetCurrentPoints();
 
-            using var ctrlCoords = new GameGridCoordinatesController();
+                using var ctrlCoords = new GameGridCoordinatesController();
 
-            await ctrlCoords.UpsertAsync(coordinate);
-            await ctrlCoords.SaveChangesAsync();
+                await ctrlCoords.UpsertAsync(coordinate);
+                await ctrlCoords.SaveChangesAsync();
+            });
         }
 
         private AsyncRelayCommand? saveCommand;
@@ -68,17 +96,20 @@ namespace Quizzer.Views
         {
             if (Game == null) return;
 
-            Game.CalculateAndSetCurrentPoints();
+            await RunGuardedAsync(async () =>
+            {
+                Game.CalculateAndSetCurrentPoints();
 
-            using var ctrlGames = new GamesController();
-            using var ctrlHeader = new HeadersController(ctrlGames);
-            using var ctrlCells = new GameGridCoordinatesController(ctrlGames);
+                using var ctrlGames = new GamesController();
+                using var ctrlHeader = new HeadersController(ctrlGames);
+                using var ctrlCells = new GameGridCoordinatesController(ctrlGames);
 
-            await ctrlGames.UpsertAsync(Game);
-            await ctrlHeader.UpsertAsync(Game.Headers);
-            await ctrlCells.UpsertAsync(Game.GameGridCoordinates);
+                await ctrlGames.UpsertAsync(Game);
+                await ctrlHeader.UpsertAsync(Game.Headers);
+                await ctrlCells.UpsertAsync(Game.GameGridCoordinates);
 
-            await ctrlGames.SaveChangesAsync();
+                await ctrlGames.SaveChangesAsync();
+            });
         }
 
         private AsyncRelayCommand? saveAndCloseCommand;
