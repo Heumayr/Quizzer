@@ -173,88 +173,6 @@ namespace Quizzer.Views.QuestionTypes.Typed
         });
 
         /// <summary>
-        /// Ob ein Klick auf „richtig" die übrigen Markierungen abräumt.
-        /// <para>
-        /// Nur dort, wo genau eine richtige Antwort der Regelfall ist. Bei Hinweisen darf jeder
-        /// als Lösung gelten.
-        /// </para>
-        /// </summary>
-        protected virtual bool ErzwingtEinzelloesung => false;
-
-        /// <summary>
-        /// Die zuletzt beim Markieren abgeräumte Zeile - der Rückweg zu mehreren Lösungen.
-        /// <para>
-        /// <b>Lebt genau eine Bedienung lang.</b> Kein gespeicherter Zustand, keine Einstellung,
-        /// nichts zu finden: das Angebot entsteht in dem Augenblick, in dem es gebraucht wird,
-        /// und verschwindet, sobald es nicht mehr gilt.
-        /// </para>
-        /// </summary>
-        public StepZeile? ZuletztGeraeumt { get; private set; }
-
-        private bool setztLoesung;
-
-        /// <summary>
-        /// Räumt die übrigen Markierungen ab, wenn eine Zeile zur richtigen wird.
-        /// <para>
-        /// <b>Der Riegel ist nicht optional.</b> Das Abräumen ändert fremde Zeilen, deren
-        /// Beobachter feuert erneut, und der räumt wieder ab - diese Fehlerfamilie hat in diesem
-        /// Projekt schon einmal einen Stapelüberlauf erzeugt, der den Testlauf abbrach und
-        /// trotzdem „Bestanden" meldete.
-        /// </para>
-        /// </summary>
-        private void ErzwingeEinzelloesung(StepZeile ausloeser)
-        {
-            if (!ErzwingtEinzelloesung || setztLoesung || !ausloeser.IstRichtig)
-                return;
-
-            setztLoesung = true;
-
-            try
-            {
-                ZuletztGeraeumt = null;
-
-                foreach (var andere in Zeilen)
-                {
-                    if (ReferenceEquals(andere, ausloeser) || !andere.IstRichtig)
-                        continue;
-
-                    ZuletztGeraeumt ??= andere;
-                    andere.IstRichtig = false;
-                }
-            }
-            finally
-            {
-                setztLoesung = false;
-            }
-        }
-
-        private RelayCommand? restoreCommand;
-
-        /// <summary>Die eben abgeräumte Zeile doch wieder als richtig markieren.</summary>
-        public ICommand RestoreSecondSolutionCommand => restoreCommand ??= new RelayCommand(_ =>
-        {
-            var zurueck = ZuletztGeraeumt;
-
-            if (zurueck == null)
-                return;
-
-            ZuletztGeraeumt = null;
-
-            setztLoesung = true;
-
-            try
-            {
-                zurueck.IstRichtig = true;
-            }
-            finally
-            {
-                setztLoesung = false;
-            }
-
-            Geaendert();
-        });
-
-        /// <summary>
         /// Hört auf eine Zeile - aber nur auf das, was der Nutzer eingibt.
         /// <para>
         /// <b>Gemessen am 2026-09-06:</b> ohne diese Einschränkung lief es rund. Eine Maske
@@ -266,9 +184,6 @@ namespace Quizzer.Views.QuestionTypes.Typed
         private void Beobachte(StepZeile zeile)
             => zeile.PropertyChanged += (_, e) =>
             {
-                if (e.PropertyName == nameof(StepZeile.IstRichtig))
-                    ErzwingeEinzelloesung(zeile);
-
                 if (e.PropertyName is nameof(StepZeile.Text) or nameof(StepZeile.IstRichtig))
                     Geaendert();
             };

@@ -105,16 +105,9 @@
                         ToolTip="Hängt eine leere Zeile an. Leere Zeilen werden nicht gespeichert." />
             </StackPanel>
 
-            <TextBlock Text="{Binding Zeilenhinweis}" Opacity="0.75" Margin="5,0,5,2"
+            <TextBlock Text="{Binding Zeilenhinweis}" Opacity="0.75" Margin="5,0,5,6"
                        TextWrapping="Wrap" />
 
-            <!-- Der Rueckweg zu mehreren richtigen Antworten. Er steht genau dann da, wenn ein
-                 Klick gerade eine andere Markierung abgeraeumt hat - kein Modus, keine
-                 Einstellung, nichts zu finden. -->
-            <Button Content="{Binding Rueckwegtext}" Margin="5,0,5,6" HorizontalAlignment="Left"
-                    Visibility="{Binding RueckwegVisibility}"
-                    Command="{Binding RestoreSecondSolutionCommand}"
-                    ToolTip="Mehrere richtige Antworten sind weiterhin möglich." />
         </StackPanel>
 
         <StackPanel Visibility="{Binding AbschlussVisibility}">

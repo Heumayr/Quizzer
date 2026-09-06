@@ -57,37 +57,9 @@ namespace Quizzer.Views.QuestionTypes.Typed
 
         public override bool DarfSortieren => false;
 
-        /// <summary>
-        /// <b>Ein Klick, nicht zwei.</b>
-        /// <para>
-        /// <b>Nutzerwunsch vom 2026-09-06:</b> „auch das setzten der richtigen antwort muss ein
-        /// klick sein". Das <i>Setzen</i> war schon einer - das <i>Wechseln</i> kostete zwei,
-        /// und der Zustand dazwischen war nicht bloß umständlich, sondern falsch: mit zwei
-        /// Häkchen verlangt die Frage am Telefon zwei Tastendrücke.
-        /// </para>
-        /// <para>
-        /// <b>Mehrere richtige Antworten bleiben möglich</b> - der Rückweg steht im Hinweis, in
-        /// dem Augenblick, in dem er entsteht. Ein Modus wäre etwas, das man finden, verstehen
-        /// und behalten muss; hier gibt es nichts zu finden.
-        /// </para>
-        /// </summary>
-        protected override bool ErzwingtEinzelloesung => true;
-
         public override string Tastenerklaerung
             => "Die Reihenfolge im Editor. Am Telefon werden die Antworten bei jedem Spielen neu "
                + "gemischt - der Buchstabe dort ist ein anderer.";
-
-        /// <summary>Ob gerade ein Rückweg zu mehreren Lösungen angeboten wird.</summary>
-        public System.Windows.Visibility RueckwegVisibility
-            => ZuletztGeraeumt == null
-                ? System.Windows.Visibility.Collapsed
-                : System.Windows.Visibility.Visible;
-
-        /// <summary>Die Beschriftung des Rückweg-Knopfs, mit dem Text der geräumten Zeile.</summary>
-        public string Rueckwegtext
-            => ZuletztGeraeumt == null
-                ? string.Empty
-                : $"„{ZuletztGeraeumt.Text}\" auch richtig lassen";
 
         /// <summary>Was unter der Antwortliste steht.</summary>
         public override string Zeilenhinweis
@@ -127,8 +99,6 @@ namespace Quizzer.Views.QuestionTypes.Typed
 
             OnPropertyChanged(nameof(Tastenzeile));
             OnPropertyChanged(nameof(Korrekturhinweis));
-            OnPropertyChanged(nameof(RueckwegVisibility));
-            OnPropertyChanged(nameof(Rueckwegtext));
         }
     }
 }
