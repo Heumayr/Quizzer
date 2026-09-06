@@ -34,6 +34,36 @@ namespace Quizzer.Views
         /// <summary>Ob die Anmeldung gelungen ist. Der Aufrufer liest das nach dem Schließen.</summary>
         public bool SignedIn { get; private set; }
 
+        private bool istWechsel;
+
+        /// <summary>
+        /// Ob das Fenster als Wechsel im laufenden Betrieb geöffnet wurde statt als Anmeldung
+        /// beim Start.
+        /// <para>
+        /// Es ändert nur zwei Beschriftungen. „Beenden" wäre beim Wechsel schlicht falsch: das
+        /// Programm läuft weiter, wenn man abbricht, und die bisherige Anmeldung bleibt stehen.
+        /// </para>
+        /// </summary>
+        public bool IstWechsel
+        {
+            get => istWechsel;
+            set
+            {
+                istWechsel = value;
+
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(Untertitel));
+                OnPropertyChanged(nameof(AbbruchText));
+            }
+        }
+
+        /// <summary>Die Zeile unter dem Titel.</summary>
+        public string Untertitel =>
+            IstWechsel ? "Wer übernimmt die Spielleitung?" : "Wer leitet heute das Quiz?";
+
+        /// <summary>Was auf dem linken Knopf steht.</summary>
+        public string AbbruchText => IstWechsel ? "Abbrechen" : "Beenden";
+
         /// <summary>Alle, die das Quiz leiten dürfen.</summary>
         public ObservableCollection<Player> Moderators
         {
@@ -110,7 +140,11 @@ namespace Quizzer.Views
                 alle.Where(p => p.IsModerator)
                     .OrderBy(p => p.CalculatedDisplayName, StringComparer.CurrentCultureIgnoreCase));
 
-            SelectedModerator = Moderators.FirstOrDefault();
+            // Beim Wechsel steht der bisher Angemeldete vorgewaehlt - sonst waehlt das Fenster
+            // stillschweigend jemand anderen aus, nur weil er alphabetisch vorn steht.
+            SelectedModerator =
+                Moderators.FirstOrDefault(m => m.Id == Session.CurrentModeratorId)
+                ?? Moderators.FirstOrDefault();
         }
 
         public override Task VMSaveAsync() => Task.CompletedTask;

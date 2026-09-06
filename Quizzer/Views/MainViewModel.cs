@@ -1,4 +1,5 @@
 ﻿using Quizzer.Base;
+using Quizzer.DataModels;
 using Quizzer.Views.BuzzerViews;
 using Quizzer.Views.StaticRessources;
 using System;
@@ -16,6 +17,60 @@ namespace Quizzer.Views
         }
 
         protected override Task OnloadAsync() => Task.CompletedTask;
+
+        /// <summary>
+        /// Wer angemeldet ist - die Zeile im Startfenster.
+        /// <para>
+        /// <b>B38.</b> Die Anmeldung entscheidet, welche Fragen sichtbar sind und wem eine neue
+        /// Frage gehört, und danach stand es in keinem einzigen Fenster. Wer sich vergriff, sah
+        /// seine eigenen Fragen nicht und kam nur über einen Neustart zurück.
+        /// </para>
+        /// </summary>
+        public string AngemeldetAls => Session.CurrentModerator is { } leiter
+            ? $"Angemeldet als {leiter.CalculatedDisplayName}"
+            : "Nicht angemeldet";
+
+        private RelayCommand? switchModeratorCommand;
+
+        /// <summary><b>B04, B06.</b> Die Spielleitung im laufenden Betrieb übergeben.</summary>
+        public ICommand SwitchModeratorCommand =>
+            switchModeratorCommand ??= new RelayCommand(SwitchModerator);
+
+        /// <summary>
+        /// Wie das Anmeldefenster für den Wechsel geöffnet wird. Gekapselt wie
+        /// <c>IUserPrompt</c>: ein Fenster bliebe im Testlauf stehen.
+        /// </summary>
+        public static Func<bool> SwitchModeratorHandler { get; set; } = StandardWechsel;
+
+        /// <summary>Setzt auf das echte Fenster zurueck.</summary>
+        public static void ResetSwitchModeratorHandler() => SwitchModeratorHandler = StandardWechsel;
+
+        private static bool StandardWechsel()
+        {
+            var fenster = new LoginView();
+
+            if (fenster.DataContext is not LoginViewModel vm)
+                return false;
+
+            vm.IstWechsel = true;
+
+            fenster.ShowDialog();
+
+            return vm.SignedIn;
+        }
+
+        /// <summary>
+        /// <b>Ausdrücklich kein <c>Session.SignOut()</c> davor.</b> Wird der Wechsel
+        /// abgebrochen, bliebe sonst niemand angemeldet - und der Fragenfilter ließe schlagartig
+        /// den gesamten Bestand durch, ohne dass irgendetwas darauf hinweist.
+        /// </summary>
+        private void SwitchModerator(object? _)
+        {
+            if (!SwitchModeratorHandler())
+                return;
+
+            OnPropertyChanged(nameof(AngemeldetAls));
+        }
 
         private RelayCommand? startQuizCommand;
         public ICommand StartQuizCommand => startQuizCommand ??= new RelayCommand(StartQuiz);

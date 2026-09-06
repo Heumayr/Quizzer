@@ -29,7 +29,7 @@
             <TextBlock Text="Quizzer"
                        FontSize="34" FontWeight="Bold"
                        Foreground="{StaticResource ForegroundBrush}" />
-            <TextBlock Text="Wer leitet heute das Quiz?"
+            <TextBlock Text="{Binding Untertitel}"
                        Opacity="0.65" FontSize="14" Margin="0,4,0,0" />
         </StackPanel>
 
@@ -72,7 +72,7 @@
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right"
                     Margin="0,20,0,0">
-            <Button Content="Beenden" Command="{Binding CancelCommand}"
+            <Button Content="{Binding AbbruchText}" Command="{Binding CancelCommand}"
                     MinWidth="120" Height="36" Margin="0,0,8,0" />
             <Button Content="Anmelden" Command="{Binding SignInCommand}"
                     MinWidth="160" Height="36" FontWeight="Bold"

@@ -59,6 +59,24 @@
                         Height="44"
                         FontWeight="Bold"
                         ToolTip="Spielfeld bauen, Mitspieler zuordnen und den Abend starten." />
+
+                <!--
+                    B38: die Anmeldung entscheidet, welche Fragen sichtbar sind und wem eine neue
+                    Frage gehoert - und bis 2026-09-06 stand sie in keinem einzigen Fenster.
+                -->
+                <TextBlock Text="Spielleitung"
+                           Style="{StaticResource SectionHeader}"
+                           Margin="0,20,0,4" />
+
+                <TextBlock Text="{Binding AngemeldetAls}"
+                           TextWrapping="Wrap"
+                           Opacity="0.75"
+                           Margin="0,0,0,6" />
+
+                <Button Content="Spielleiter wechseln"
+                        Command="{Binding SwitchModeratorCommand}"
+                        Height="32"
+                        ToolTip="Öffnet die Anmeldung erneut. Wer abbricht, bleibt angemeldet wie bisher." />
             </StackPanel>
         </Border>
 
