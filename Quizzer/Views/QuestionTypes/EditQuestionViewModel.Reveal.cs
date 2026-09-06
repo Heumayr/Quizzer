@@ -72,7 +72,10 @@ namespace Quizzer.Views.QuestionTypes
             if (!fenster.Uebernommen)
                 return;
 
-            if (!vm.SchritteAngleichen(fenster.GewuenschteSchritte))
+            // Erst fragen, dann schreiben. Umgekehrt trug die Frage nach einem "Nein" die neue
+            // Flaechenaufteilung UND die alte Schrittzahl - am Quizabend zeigten die letzten
+            // Bildschirme dann nichts Neues mehr.
+            if (!vm.SchritteAngleichen(fenster.GewuenschteSchritte, () => fenster.SchreibNach(frage)))
                 return;
 
             vm.MeldeRevealGeaendert();
@@ -87,7 +90,13 @@ namespace Quizzer.Views.QuestionTypes
         /// und Verpixelung bestimmt der Schieberegler im Editor die Zahl.
         /// </para>
         /// </summary>
-        internal bool SchritteAngleichen(int gebraucht)
+        /// <param name="nachDerZusage">
+        /// Läuft, sobald die Rückfrage bejaht ist und <b>bevor</b> die Maske neu gelesen wird.
+        /// Dort schreibt der Aufdeck-Editor seine vier Felder hinein - täte er es vorher, trüge
+        /// die Frage nach einem „Nein" die neue Flächenaufteilung samt der alten Schrittzahl;
+        /// täte er es nachher, läse die neu gebaute Maske noch den alten Stand.
+        /// </param>
+        internal bool SchritteAngleichen(int gebraucht, Action? nachDerZusage = null)
         {
             if (Question is not RevealQuestion frage)
                 return false;
@@ -121,6 +130,8 @@ namespace Quizzer.Views.QuestionTypes
 
             for (var i = vorhanden.Count - 1; i >= gebraucht; i--)
                 frage.Steps.Remove(vorhanden[i]);
+
+            nachDerZusage?.Invoke();
 
             // Die Typmaske haelt ihr eigenes Bild der Schritte, gelesen beim Oeffnen. Ohne
             // Neuaufbau schreibt SchreibZurueck die gerade entfernten Zeilen beim Speichern

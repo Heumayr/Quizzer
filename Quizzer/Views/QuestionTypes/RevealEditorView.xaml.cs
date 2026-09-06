@@ -217,17 +217,36 @@ namespace Quizzer.Views.QuestionTypes
             Close();
         }
 
+        /// <summary>
+        /// Schreibt das Ergebnis in die Frage.
+        /// <para>
+        /// <b>Erst wenn feststeht, dass es auch gilt.</b> Bis 2026-09-07 schrieb der
+        /// Übernehmen-Knopf die vier Felder sofort - die Rückfrage nach den wegfallenden
+        /// Schritten kam aber erst danach. Wer dort „Nein" wählte, um seine Texte zu behalten,
+        /// bekam trotzdem die neue Flächenaufteilung: die Frage trug dann drei Aufdeckschritte
+        /// und fünf Inhaltsschritte, und am Quizabend zeigten die letzten beiden Bildschirme
+        /// nichts Neues mehr.
+        /// </para>
+        /// <para>
+        /// Der Klassenkommentar behauptete schon vorher „gearbeitet wird auf einer Kopie" -
+        /// kopiert wurde aber nur die Flächenliste.
+        /// </para>
+        /// </summary>
+        internal void SchreibNach(RevealQuestion ziel)
+        {
+            ziel.Mode = art;
+            ziel.ImageFileName = bilddatei;
+            ziel.BlurStart = staerke;
+
+            // Normalisiert erzwingt die drei Zusagen, auf denen alles Weitere ruht: sortiert,
+            // lueckenlos ab 0, mindestens eine Flaeche je Schritt - und zieht die Huelle nach.
+            ziel.AreasJson = RevealAreas.ToJson(RevealAreas.Normalisiert(flaechen));
+        }
+
         private void Uebernehmen_Click(object sender, RoutedEventArgs e)
         {
             if (frage == null)
                 return;
-
-            frage.Mode = art;
-            frage.ImageFileName = bilddatei;
-            frage.BlurStart = staerke;
-            // Normalisiert erzwingt die drei Zusagen, auf denen alles Weitere ruht: sortiert,
-            // lueckenlos ab 0, mindestens eine Flaeche je Schritt - und zieht die Huelle nach.
-            frage.AreasJson = RevealAreas.ToJson(RevealAreas.Normalisiert(flaechen));
 
             Uebernommen = true;
             Close();

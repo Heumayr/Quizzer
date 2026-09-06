@@ -6,7 +6,9 @@ using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Questions;
 using Quizzer.DataModels.Questions.Schrittbau;
+using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.Views.QuestionTypes;
+using Quizzer.Views.QuestionTypes.Typed;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -227,6 +229,102 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
             Assert.AreEqual(EditResultState.None, vm.ResultState,
                 "Eine Frage ohne Bezeichnung wurde gespeichert, obwohl der Pruefer sie "
                 + "beanstandet.");
+        }
+
+        /// <summary>
+        /// <b>Ein „Nein" lässt keinen halben Stand zurück.</b>
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> der Aufdeck-Editor schrieb Bild, Betriebsart, Stärke und
+        /// Flächen sofort in die Frage - die Rückfrage nach den wegfallenden Schritten kam erst
+        /// danach. Wer dort „Nein" wählte, um seine Texte zu behalten, bekam trotzdem die neue
+        /// Flächenaufteilung: drei Aufdeckschritte, fünf Inhaltsschritte, und am Quizabend
+        /// zeigten die letzten beiden Bildschirme nichts Neues mehr.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void ANoLeavesTheRevealSettingsUntouched()
+        {
+            var vm = Mit(QuestionType.Reveal, f =>
+            {
+                ((RevealQuestion)f).AreasJson = "[]";
+
+                for (var i = 0; i < 4; i++)
+                {
+                    f.Steps.Add(new QuestionStepResource
+                    {
+                        Id = Guid.NewGuid(),
+                        SequenceNumber = (i + 1) * 10,
+                        Designation = $"Aufdecken {i + 1}",
+                        StepText = "Ein Text, den niemand verlieren will",
+                    });
+                }
+            });
+
+            UserPrompt.Current = new RecordingUserPrompt(answer: false);
+
+            try
+            {
+                var geschrieben = 0;
+
+                Assert.IsFalse(
+                    vm.SchritteAngleichen(2, () => geschrieben++),
+                    "Trotz Ablehnung wurde angeglichen.");
+
+                Assert.AreEqual(0, geschrieben,
+                    "Die Einstellungen des Aufdeck-Editors wurden trotz Ablehnung geschrieben - "
+                    + "die Frage traegt dann die neue Flaechenaufteilung UND die alte "
+                    + "Schrittzahl.");
+
+                Assert.AreEqual(4, vm.Question!.Steps.Count(s => !s.IsStart && !s.IsFinish),
+                    "Es wurden Schritte entfernt, obwohl abgelehnt wurde.");
+            }
+            finally
+            {
+                UserPrompt.Reset();
+            }
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung.</b> Nach einem „Ja" wird geschrieben - und zwar bevor die Maske
+        /// neu gelesen wird, sonst zeigte sie den alten Stand.
+        /// </summary>
+        [TestMethod]
+        public void AYesWritesTheRevealSettingsBeforeTheMaskIsRebuilt()
+        {
+            var vm = Mit(QuestionType.Reveal, f =>
+            {
+                for (var i = 0; i < 4; i++)
+                {
+                    f.Steps.Add(new QuestionStepResource
+                    {
+                        Id = Guid.NewGuid(),
+                        SequenceNumber = (i + 1) * 10,
+                        Designation = $"Aufdecken {i + 1}",
+                        StepText = "Text",
+                    });
+                }
+            });
+
+            UserPrompt.Current = new RecordingUserPrompt(answer: true);
+
+            try
+            {
+                ZeileneditorViewModel? maskeBeimSchreiben = null;
+
+                Assert.IsTrue(
+                    vm.SchritteAngleichen(2, () => maskeBeimSchreiben = vm.Zeileneditor),
+                    "Das Angleichen wurde abgelehnt.");
+
+                Assert.IsNotNull(maskeBeimSchreiben, "Es wurde gar nicht geschrieben.");
+
+                Assert.AreNotSame(maskeBeimSchreiben, vm.Zeileneditor,
+                    "Geschrieben wurde erst NACH dem Neuaufbau der Maske - sie liest damit den "
+                    + "alten Stand und zeigt die alte Flaechenzahl an.");
+            }
+            finally
+            {
+                UserPrompt.Reset();
+            }
         }
 
         /// <summary>
