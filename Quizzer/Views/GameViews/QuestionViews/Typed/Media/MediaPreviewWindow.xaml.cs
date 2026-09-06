@@ -1,4 +1,5 @@
 ﻿using Quizzer.Base;
+using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
 using System;
 using System.Windows;
@@ -42,12 +43,17 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed.Media
             {
                 case ResourceType.Image:
                     {
-                        var image = new BitmapImage();
-                        image.BeginInit();
-                        image.CacheOption = BitmapCacheOption.OnLoad;
-                        image.UriSource = new Uri(FilePath, UriKind.Absolute);
-                        image.EndInit();
-                        image.Freeze();
+                        var image = Bildlader.Lade(FilePath);
+
+                        if (image == null)
+                        {
+                            // Ohne diesen Zweig wirft der Fensteraufbau, und der Spielleiter
+                            // bekommt statt der Vorschau ein Fehlerfenster.
+                            Hinweis.Text = "Dieses Bild lässt sich nicht anzeigen: "
+                                         + System.IO.Path.GetFileName(FilePath);
+                            Hinweis.Visibility = Visibility.Visible;
+                            break;
+                        }
 
                         ImageViewer.Source = image;
                         ImageViewer.Visibility = Visibility.Visible;

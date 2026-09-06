@@ -1,4 +1,5 @@
-﻿using Quizzer.DataModels.Enumerations;
+﻿using Quizzer.Base;
+using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Views.GameViews.QuestionViews.Typed.Media;
 using System;
@@ -144,6 +145,9 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
             AudioPlaceholder.Source = null;
             AudioPlaceholder.Visibility = Visibility.Collapsed;
 
+            MediaHinweis.Text = string.Empty;
+            MediaHinweis.Visibility = Visibility.Collapsed;
+
             try
             {
                 MediaPlayer.Stop();
@@ -176,19 +180,31 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
         {
             if (!_imageCache.TryGetValue(fullPath, out var image))
             {
-                image = new BitmapImage();
-                image.BeginInit();
-                image.CacheOption = BitmapCacheOption.OnLoad;
-                image.UriSource = new Uri(fullPath, UriKind.Absolute);
-                image.EndInit();
-                image.Freeze();
+                var geladen = Bildlader.Lade(fullPath);
 
+                if (geladen == null)
+                {
+                    // Nicht in den Zwischenspeicher: ein spaeter ersetztes Bild soll beim
+                    // naechsten Schritt wieder versucht werden.
+                    ZeigeHinweis($"Dieses Bild lässt sich nicht anzeigen: {Path.GetFileName(fullPath)}");
+
+                    return;
+                }
+
+                image = geladen;
                 _imageCache[fullPath] = image;
             }
 
             ImgPreview.Source = image;
             ImgPreview.Visibility = Visibility.Visible;
             ImageContainer.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>Zeigt statt des Mediums einen lesbaren Satz.</summary>
+        private void ZeigeHinweis(string text)
+        {
+            MediaHinweis.Text = text;
+            MediaHinweis.Visibility = Visibility.Visible;
         }
 
         private void ShowAudio(string fullPath)
@@ -199,18 +215,21 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
             {
                 if (!_imageCache.TryGetValue(AudioPlaceholderFile, out var image))
                 {
-                    image = new BitmapImage();
-                    image.BeginInit();
-                    image.CacheOption = BitmapCacheOption.OnLoad;
-                    image.UriSource = new Uri(AudioPlaceholderFile, UriKind.Absolute);
-                    image.EndInit();
-                    image.Freeze();
+                    var geladen = Bildlader.Lade(AudioPlaceholderFile);
 
-                    _imageCache[AudioPlaceholderFile] = image;
+                    if (geladen != null)
+                        _imageCache[AudioPlaceholderFile] = geladen;
+
+                    image = geladen!;
                 }
 
-                AudioPlaceholder.Source = image;
-                AudioPlaceholder.Visibility = Visibility.Visible;
+                // Anders als beim eigentlichen Bild kein Hinweis: der Platzhalter ist Schmuck,
+                // der Ton laeuft ohne ihn genauso. Ein Satz darueber waere nur Laerm.
+                if (image != null)
+                {
+                    AudioPlaceholder.Source = image;
+                    AudioPlaceholder.Visibility = Visibility.Visible;
+                }
             }
 
             MediaPlayerBorder.Visibility = Visibility.Visible;

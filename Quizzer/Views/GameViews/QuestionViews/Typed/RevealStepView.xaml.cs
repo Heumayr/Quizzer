@@ -125,13 +125,17 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
                 return false;
             }
 
-            var bitmap = new BitmapImage();
+            var bitmap = Bildlader.Lade(pfad);
 
-            bitmap.BeginInit();
-            bitmap.UriSource = new Uri(pfad);
-            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.EndInit();
-            bitmap.Freeze();
+            if (bitmap == null)
+            {
+                // Die Datei liegt da, WPF kann sie nur nicht lesen - etwa eine .webp auf einem
+                // Rechner ohne deren Codec. Ohne diesen Zweig warf der Schrittaufbau.
+                Bild.Source = null;
+                Hinweis.Text = "Das Bild dieser Frage lässt sich nicht anzeigen.";
+
+                return false;
+            }
 
             // Eine vorherige Rasterung darf nicht am Steuerelement hängenbleiben - sonst zeigt der
             // nächste Schritt das scharfe Bild in Klötzchen.

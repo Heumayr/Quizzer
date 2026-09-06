@@ -132,13 +132,16 @@ namespace Quizzer.Views.QuestionTypes
                 return;
             }
 
-            var bitmap = new BitmapImage();
+            var bitmap = Bildlader.Lade(pfad);
 
-            bitmap.BeginInit();
-            bitmap.UriSource = new Uri(pfad);
-            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.EndInit();
-            bitmap.Freeze();
+            if (bitmap == null)
+            {
+                original = null;
+                Bild.Source = null;
+                Bildname.Text = bilddatei + " (lässt sich nicht anzeigen)";
+
+                return;
+            }
 
             original = bitmap;
             Bild.Source = bitmap;

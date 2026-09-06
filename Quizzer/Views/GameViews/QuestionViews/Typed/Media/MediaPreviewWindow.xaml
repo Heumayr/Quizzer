@@ -18,6 +18,18 @@
                    Stretch="Uniform"
                    Visibility="Collapsed" />
 
+            <!--
+                Was zu sehen ist, wenn sich das Medium nicht anzeigen laesst. Der Grund steht in
+                Bildlader: ein vorhandener Pfad heisst nicht, dass WPF die Datei lesen kann.
+            -->
+            <TextBlock x:Name="Hinweis"
+                       Foreground="White"
+                       TextWrapping="Wrap"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="24"
+                       Visibility="Collapsed" />
+
             <MediaElement x:Name="VideoViewer"
                           LoadedBehavior="Manual"
                           UnloadedBehavior="Manual"

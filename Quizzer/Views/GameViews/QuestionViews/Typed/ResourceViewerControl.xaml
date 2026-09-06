@@ -20,6 +20,18 @@
                    Margin="0,0,0,8"
                    Visibility="Collapsed" />
 
+        <!--
+            Was zu sehen ist, wenn ein Medium sich nicht anzeigen laesst. Ohne diese Zeile warf
+            der Aufbau des Schrittes, und der Spielleiter bekam ein Fehlerfenster vor den Gaesten.
+        -->
+        <TextBlock Grid.Row="1"
+                   x:Name="MediaHinweis"
+                   TextWrapping="Wrap"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Opacity="0.8"
+                   Visibility="Collapsed" />
+
         <!-- IMAGE -->
         <Border x:Name="ImageContainer"
                 Grid.Row="1"
