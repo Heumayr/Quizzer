@@ -130,6 +130,51 @@ namespace Quizzer.UnitTests.Views
         /// dieselbe Wette mit einem anderen Einsatz.
         /// </para>
         /// </summary>
+        /// <summary>
+        /// Läuft die Nachrichtenschleife weiter, bis die Bedingung eintritt.
+        /// <para>
+        /// <b>Die Ursache ist gemessen:</b> die Tastenkürzel lösen einen
+        /// <c>AsyncRelayCommand</c> aus, dessen <c>Execute</c> <c>async void</c> ist - es kehrt
+        /// zurück, bevor der Schritt gewechselt ist. Beim <b>ersten</b> Fenster einer Klasse zahlt
+        /// WPF seine Aufwärmzeit (gemessen 4 Sekunden gegen 0,65), und die Fortsetzung kam erst
+        /// nach der Zusicherung.
+        /// </para>
+        /// <para>
+        /// <b>Weder Schleife noch <c>Sleep</c> lösen das.</b> Beides wurde am 2026-09-06
+        /// ausprobiert und gemessen: reines Pumpen läuft in Mikrosekunden durch, weil die
+        /// Fortsetzung noch gar nicht in der Schlange steht; <c>Thread.Sleep</c> blockiert genau
+        /// den Thread, auf dem sie laufen müsste, und machte es <i>schlechter</i> (2 von 5 grün,
+        /// bei 25 Sekunden Laufzeit). Was trägt, ist ein <see cref="DispatcherFrame"/> - eine
+        /// verschachtelte Schleife, die die Warteschlange am Leben hält, während gewartet wird.
+        /// </para>
+        /// </summary>
+        private static void WarteBis(Func<bool> bedingung)
+        {
+            if (bedingung())
+                return;
+
+            var uhr = System.Diagnostics.Stopwatch.StartNew();
+            var rahmen = new DispatcherFrame();
+
+            var takt = new DispatcherTimer(DispatcherPriority.Background)
+            {
+                Interval = TimeSpan.FromMilliseconds(10),
+            };
+
+            takt.Tick += (_, _) =>
+            {
+                if (!bedingung() && uhr.Elapsed < TimeSpan.FromSeconds(5))
+                    return;
+
+                takt.Stop();
+                rahmen.Continue = false;
+            };
+
+            takt.Start();
+
+            Dispatcher.PushFrame(rahmen);
+        }
+
         private static void WarteBisGeladen(FrameworkElement fenster)
         {
             for (var i = 0; i < 50 && !fenster.IsLoaded; i++)
@@ -160,6 +205,7 @@ namespace Quizzer.UnitTests.Views
                 try
                 {
                     Druecke(fenster, Key.Enter);
+                    WarteBis(() => vm.CurrentStep != null);
 
                     var ersterSchritt = vm.CurrentStep;
 
@@ -175,6 +221,7 @@ namespace Quizzer.UnitTests.Views
                         "Der Knopf hat den Fokus nicht bekommen - dann misst der Test nichts.");
 
                     Druecke(fenster, Key.Enter);
+                    WarteBis(() => !ReferenceEquals(ersterSchritt, vm.CurrentStep));
 
                     Assert.AreNotSame(ersterSchritt, vm.CurrentStep,
                         "Enter wirkte nicht mehr, weil der Knopf die Taste verschluckt hat. "
@@ -203,7 +250,12 @@ namespace Quizzer.UnitTests.Views
                 try
                 {
                     Druecke(fenster, Key.Enter);
+                    WarteBis(() => vm.CurrentStep != null);
+
+                    var vorher = vm.CurrentStep;
+
                     Druecke(fenster, Key.Enter);
+                    WarteBis(() => !ReferenceEquals(vorher, vm.CurrentStep));
 
                     var zweiterSchritt = vm.CurrentStep;
 
@@ -212,6 +264,7 @@ namespace Quizzer.UnitTests.Views
                     Descendants<Button>(fenster).First(b => b.IsEnabled && b.IsVisible).Focus();
 
                     Druecke(fenster, Key.Back);
+                    WarteBis(() => !ReferenceEquals(zweiterSchritt, vm.CurrentStep));
 
                     Assert.AreNotSame(zweiterSchritt, vm.CurrentStep,
                         "Die Ruecktaste kam bei fokussiertem Knopf nicht durch.");
