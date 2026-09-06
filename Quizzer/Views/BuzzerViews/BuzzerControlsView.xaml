@@ -1,70 +1,75 @@
-﻿<UserControl x:Class="Quizzer.Views.BuzzerViews.BuzzerControlsView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:Quizzer.Views.BuzzerViews"
-             xmlns:base="clr-namespace:Quizzer.Base"
-             mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-
-        <!-- Kopfzeile: welche Frage laeuft, und der Knopf zum Neustart der Runde -->
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-
-            <TextBlock Grid.Column="0" Text="{Binding RoundHeadline}"
-                       Foreground="WhiteSmoke" FontWeight="Bold"
-                       VerticalAlignment="Center" Margin="4,2"
-                       TextTrimming="CharacterEllipsis" />
-
-            <Button Grid.Column="1" Content="Runde zurücksetzen" Margin="4,2"
-                    Command="{Binding ResetRoundCommand}"
-                    CommandParameter="{Binding DataContext.CurrentBuzzerLayout, RelativeSource={RelativeSource AncestorType={x:Type base:WindowBase}}}" />
-        </Grid>
-
-        <!-- Was richtig waere. Nur hier - die Spieleransicht bindet dieses ViewModel nicht ein. -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="4,2"
-                    Visibility="{Binding SolutionVisibility}">
-            <TextBlock Text="Lösung: " Foreground="Wheat" />
-            <TextBlock Text="{Binding SolutionText}" Foreground="Wheat" FontWeight="Bold"
-                       TextTrimming="CharacterEllipsis" />
-        </StackPanel>
-
-        <!-- Wer hat schon abgegeben, und was -->
-        <ItemsControl Grid.Row="2" ItemsSource="{Binding LivePlayers}" Margin="4,2">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Grid Margin="0,1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" MinWidth="90" />
-                            <ColumnDefinition Width="Auto" MinWidth="90" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock Grid.Column="0" Text="{Binding DisplayName}"
-                                   Foreground="WhiteSmoke" Margin="0,0,8,0"
-                                   TextTrimming="CharacterEllipsis" />
-
-                        <TextBlock Grid.Column="1" Text="{Binding StatusText}"
-                                   Foreground="{Binding StatusBrush}" FontWeight="SemiBold"
-                                   Margin="0,0,8,0" />
-
-                        <TextBlock Grid.Column="2" Text="{Binding AnswerText}"
-                                   Foreground="LightGreen"
-                                   Visibility="{Binding AnswerVisibility}"
-                                   TextTrimming="CharacterEllipsis" />
-                    </Grid>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </Grid>
-</UserControl>
+﻿<UserControl x:Class="Quizzer.Views.BuzzerViews.BuzzerControlsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Quizzer.Views.BuzzerViews"
+             xmlns:base="clr-namespace:Quizzer.Base"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Kopfzeile: welche Frage laeuft, und der Knopf zum Neustart der Runde -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="{Binding RoundHeadline}"
+                       Foreground="WhiteSmoke" FontWeight="Bold"
+                       VerticalAlignment="Center" Margin="4,2"
+                       TextTrimming="CharacterEllipsis" />
+
+            <Button Grid.Column="1" Content="Runde zurücksetzen" Margin="4,2"
+                    Command="{Binding ResetRoundCommand}"
+                    CommandParameter="{Binding DataContext.CurrentBuzzerLayout, RelativeSource={RelativeSource AncestorType={x:Type base:WindowBase}}}" />
+        </Grid>
+
+        <!-- Was richtig waere. Nur hier - die Spieleransicht bindet dieses ViewModel nicht ein. -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="4,2"
+                    Visibility="{Binding SolutionVisibility}">
+            <TextBlock Text="Lösung: " Foreground="Wheat" />
+            <TextBlock Text="{Binding SolutionText}" Foreground="Wheat" FontWeight="Bold"
+                       TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+
+        <!--
+            Wer hat schon abgegeben, und was. Die Hoehe ist gedeckelt und rollt: die Liste steht in
+            einer Auto-Zeile und nimmt sonst bei vielen Mitspielern dem Bereich darunter den Platz.
+        -->
+        <ScrollViewer Grid.Row="2" MaxHeight="220" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding LivePlayers}" Margin="4,2">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0,1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" MinWidth="90" />
+                                <ColumnDefinition Width="Auto" MinWidth="90" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}"
+                                       Foreground="WhiteSmoke" Margin="0,0,8,0"
+                                       TextTrimming="CharacterEllipsis" />
+
+                            <TextBlock Grid.Column="1" Text="{Binding StatusText}"
+                                       Foreground="{Binding StatusBrush}" FontWeight="SemiBold"
+                                       Margin="0,0,8,0" />
+
+                            <TextBlock Grid.Column="2" Text="{Binding AnswerText}"
+                                       Foreground="LightGreen"
+                                       Visibility="{Binding AnswerVisibility}"
+                                       TextTrimming="CharacterEllipsis" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
