@@ -40,6 +40,35 @@ namespace Quizzer.Views.GameViews.Sub
             .Count(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly) ?? 0;
         public int PreviousStepsCount => CurrentQuestionViewModel?.CurrentStepContext?.PreviousStepsCount ?? 0;
 
+        /// <summary>
+        /// Wie viele Hinweise der Spieler <b>sieht</b>, während er antwortet.
+        /// <para>
+        /// <b>Gemessen 2026-09-07, nicht angenommen:</b> auf dem Bildschirm mit allen drei
+        /// Hinweisen gab das Spiel 68 von 200 Punkten, während der Frageneditor neben denselben
+        /// dritten Hinweis „danach noch 2" schrieb. Der Abzug hing genau einen Schritt
+        /// hinterher, weil <c>PreviousStepsCount</c> nur die Schritte <i>davor</i> zählt - der
+        /// gerade gezeigte steht aber sehr wohl auf dem Beamer.
+        /// </para>
+        /// <para>
+        /// Der Abschlussbildschirm zählt sich selbst nicht mit: er trägt die Lösung, keinen
+        /// Hinweis. Ebenso der Startbildschirm und der ergänzte Fragebildschirm.
+        /// </para>
+        /// </summary>
+        public int GezeigteSchritte
+        {
+            get
+            {
+                var schritt = CurrentQuestionViewModel?.CurrentStep;
+
+                var aktuellerZaehlt = schritt != null
+                                   && !schritt.IsStart
+                                   && !schritt.IsFinish
+                                   && !schritt.IsQuestionOnly;
+
+                return aktuellerZaehlt ? PreviousStepsCount + 1 : PreviousStepsCount;
+            }
+        }
+
         public Player Player
         {
             get => player;
@@ -216,7 +245,7 @@ namespace Quizzer.Views.GameViews.Sub
                 // Die Rechnung steht in Punkteabzug, damit der Frageneditor beim Anlegen
                 // dieselbe anzeigen kann - eine zweite Abschrift liefe der ersten davon.
                 return DataModels.Questions.Punkteabzug.Verbleibend(
-                    Coordinate?.CurrentPoints ?? 0, RegularStepCount, PreviousStepsCount);
+                    Coordinate?.CurrentPoints ?? 0, RegularStepCount, GezeigteSchritte);
             }
             else
             {

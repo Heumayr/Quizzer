@@ -47,7 +47,19 @@ namespace Quizzer.UnitTests.PlayThrough
         /// </summary>
         /// <summary>Was bei einem Schritt gemessen wurde: wie viele Schritte davor lagen und
         /// welchen Punktevorschlag „richtig" dort macht.</summary>
-        private sealed record Messpunkt(int Aufgedeckt, int Vorschlag);
+        /// <param name="Sichtbar">
+        /// Wie viele Inhaltsschritte <b>auf dem Bildschirm stehen</b> - gezählt an den
+        /// <c>DisplaySteps</c>, die der Beamer bindet, nicht an der Größe, mit der die Punkte
+        /// gerechnet werden.
+        /// <para>
+        /// <b>Das ist der springende Punkt dieser Probe.</b> Die erste Fassung nahm dafür
+        /// <c>GezeigteSchritte</c> - also genau den Wert, den auch die Punkterechnung benutzt.
+        /// Sie verglich damit die Formel gegen sich selbst und blieb grün, als der Fehler
+        /// absichtlich wieder eingebaut wurde. Gemessen wird jetzt gegen eine <b>unabhängige</b>
+        /// Größe: was der Spieler sieht.
+        /// </para>
+        /// </param>
+        private sealed record Messpunkt(int Sichtbar, int Regular, int Punkte, int Vorschlag);
 
         private async Task<List<Messpunkt>> VorschlaegeJeSchrittAsync(QuestionType typ)
         {
@@ -70,7 +82,11 @@ namespace Quizzer.UnitTests.PlayThrough
                 karte.Suggestion = PlayerResultContext.ScoreSuggestion.None;
                 karte.Suggestion = PlayerResultContext.ScoreSuggestion.Right;
 
-                verlauf.Add(new Messpunkt(karte.PreviousStepsCount, karte.CurrentScoreManipulation));
+                verlauf.Add(new Messpunkt(
+                    vm.CurrentStepContext?.DisplaySteps?.Count(d => d.IsVisibleSlot) ?? -1,
+                    karte.RegularStepCount,
+                    karte.Coordinate?.CurrentPoints ?? 0,
+                    karte.CurrentScoreManipulation));
 
                 if (vm.NextStep == null)
                     break;
@@ -89,7 +105,7 @@ namespace Quizzer.UnitTests.PlayThrough
         {
             var verlauf = await VorschlaegeJeSchrittAsync(QuestionType.MultipleChoice);
 
-            Assert.IsTrue(verlauf[^1].Aufgedeckt >= 4,
+            Assert.IsTrue(verlauf[^1].Sichtbar >= 4,
                 "Die Probe ist nicht bis hinter alle vier Antwortmoeglichkeiten gekommen - dann "
                 + "sagt sie nichts ueber das Aufdecken. Verlauf: " + Zeig(verlauf));
 
@@ -119,7 +135,67 @@ namespace Quizzer.UnitTests.PlayThrough
         }
 
         private static string Zeig(List<Messpunkt> verlauf)
-            => string.Join(", ", verlauf.Select(m => $"{m.Aufgedeckt}:{m.Vorschlag}"));
+            => string.Join(", ", verlauf.Select(m => $"{m.Sichtbar}/{m.Regular}:{m.Vorschlag}"));
+
+        /// <summary>
+        /// <b>Was der Editor neben einen Hinweis schreibt, gibt das Spiel auch.</b>
+        /// <para>
+        /// <b>Gemessen 2026-09-07 mit einer Sonde, bevor etwas geändert wurde:</b> auf dem
+        /// Bildschirm mit allen drei Hinweisen gab das Spiel 68 von 200 Punkten, während der
+        /// Frageneditor neben denselben dritten Hinweis „danach noch 2" schreibt. Der Abzug hing
+        /// genau einen Schritt hinterher - der gerade gezeigte Hinweis wurde nicht mitgezählt,
+        /// obwohl er auf dem Beamer steht.
+        /// </para>
+        /// <para>
+        /// <c>Punkteabzug</c> nennt genau diesen Gleichlauf als seinen Daseinsgrund: <i>„Was der
+        /// Editor verspricht, muss das Spiel auch geben."</i>
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task TheGameGivesWhatTheEditorPromises()
+        {
+            var verlauf = await VorschlaegeJeSchrittAsync(QuestionType.Properties);
+
+            // Hinweiszahl und Punkte werden GEMESSEN, nicht angenommen: die erste Fassung dieser
+            // Probe hatte beides geraten und meldete daraufhin einen Fehler, den es nicht gab.
+            var abweichungen = verlauf
+                .Where(m => m.Sichtbar > 0)
+                .Select(m => new
+                {
+                    m.Sichtbar,
+                    Spiel = m.Vorschlag,
+                    Editor = Punkteabzug.Verbleibend(m.Punkte, m.Regular, m.Sichtbar),
+                })
+                .Where(x => x.Spiel != x.Editor)
+                .ToList();
+
+            Assert.IsTrue(verlauf.Any(m => m.Sichtbar == verlauf[0].Regular && m.Regular > 0),
+                "Die Probe ist nie bis hinter den letzten Hinweis gekommen - dann sagt sie "
+                + "nichts. Verlauf: " + Zeig(verlauf));
+
+            Assert.AreEqual(0, abweichungen.Count,
+                "Das Spiel gibt andere Punkte als der Editor ansagt: "
+                + string.Join(", ", abweichungen.Select(x =>
+                    $"bei {x.Sichtbar} sichtbaren Hinweisen Spiel={x.Spiel} Editor={x.Editor}")));
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung.</b> Ohne sie wäre die obige auch dann grün, wenn <i>gar keine</i>
+        /// Punkte mehr abgezogen würden und der Editor dasselbe behauptete - der Vergleich prüft
+        /// ja nur Gleichlauf. Hier steht, dass der Abzug überhaupt greift.
+        /// </summary>
+        [TestMethod]
+        public async Task TheFirstHintAlreadyCosts()
+        {
+            var verlauf = await VorschlaegeJeSchrittAsync(QuestionType.Properties);
+
+            var voll = world.Coordinate.CurrentPoints;
+            var beimErsten = verlauf.First(m => m.Sichtbar == 1).Vorschlag;
+
+            Assert.IsTrue(beimErsten < voll,
+                $"Der erste Hinweis kostet nichts ({beimErsten} von {voll}) - dann ist er "
+                + "geschenkt, und der Punkteabzug beginnt erst beim zweiten.");
+        }
 
         /// <summary>
         /// Und der Typ selbst legt es fest: der Abzug ist bei Multiple Choice keine Einstellung,
