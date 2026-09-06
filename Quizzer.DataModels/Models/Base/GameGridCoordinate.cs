@@ -47,15 +47,26 @@ namespace Quizzer.DataModels.Models.Base
         /// Stelle auch dann, und aus einer Zelle mit 600 Punkten wurde still eine mit null.
         /// </para>
         /// </summary>
+        /// <summary>
+        /// Ob an dieser Rasterstelle überhaupt eine Frage hängt.
+        /// <para>
+        /// <b>Der Rasteraufbau legt für jede Position eine Zeile an</b>, auch für die leeren
+        /// (<c>GridBuilder</c>, „Ensure full matrix exists"). Eine unbelegte Stelle ist damit
+        /// ein vollwertiger Datensatz - und wer Zellen zählt, zählt sie mit.
+        /// </para>
+        /// <para>
+        /// Eine Frage kann über die Navigation da sein, über die Kennung, oder über beides.
+        /// </para>
+        /// </summary>
+        [NotMapped]
+        public bool HatFrage => QuestionBase != null
+                             || (QuestionBaseId.HasValue && QuestionBaseId.Value != Guid.Empty);
+
         public void CalculateAndSetCurrentPoints()
         {
             if (IsDone) return;
 
-            // Eine Frage kann ueber die Navigation da sein, ueber die Kennung, oder ueber beides.
-            var hatFrage = QuestionBase != null
-                        || (QuestionBaseId.HasValue && QuestionBaseId.Value != Guid.Empty);
-
-            if (!hatFrage)
+            if (!HatFrage)
             {
                 CurrentPoints = 0;
                 CurrentMinusPoints = 0;

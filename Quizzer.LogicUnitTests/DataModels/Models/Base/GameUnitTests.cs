@@ -15,7 +15,14 @@ namespace Quizzer.LogicUnitTests.DataModels.Models.Base
             var game = new Game { SuggestedPhases = suggestedPhases };
 
             for (var i = 0; i < coordinateCount; i++)
-                game.GameGridCoordinates.Add(new GameGridCoordinate { Game = game, X = i, Y = 0 });
+                // Seit dem 2026-09-07 zaehlen nur belegte Zellen fuer die Phasenschwelle. Eine
+                // Zelle ohne Frage wird nie gespielt; zaehlte sie mit, waere die Schwelle
+                // unerreichbar. Diese Testraster trugen bis dahin gar keine Fragen - sie
+                // stuetzten sich also selbst auf den Fehler.
+                game.GameGridCoordinates.Add(new GameGridCoordinate
+                {
+                    Game = game, X = i, Y = 0, QuestionBaseId = Guid.NewGuid(),
+                });
 
             return game;
         }

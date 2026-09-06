@@ -61,6 +61,105 @@ namespace Quizzer.UnitTests.PlayThrough
         }
 
         /// <summary>
+        /// <b>Ein Raster mit leeren Zellen wird trotzdem fertig.</b>
+        /// <para>
+        /// Der Rasteraufbau legt für <i>jede</i> Position eine Zeile an, auch für die
+        /// unbelegten. <c>IsGameFinished</c> zählte sie bis zum 2026-09-07 mit - und weil eine
+        /// leere Zelle nie gespielt wird, kam die Siegerehrung nie. In der Spieldatenbank
+        /// gemessen: „Test Spiel" 25 Zellen, davon <b>19 ohne Frage</b>.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void AGridWithEmptyCellsStillFinishes()
+        {
+            var vm = new GameMasterViewModel();
+            var spiel = new Game { Id = Guid.NewGuid(), Designation = "Probe", Phase = 1, SuggestedPhases = 1 };
+
+            for (var i = 0; i < 2; i++)
+            {
+                spiel.GameGridCoordinates.Add(new GameGridCoordinate
+                {
+                    Id = Guid.NewGuid(), GameId = spiel.Id, X = i, Y = 0,
+                    QuestionBaseId = Guid.NewGuid(), IsDone = true,
+                });
+            }
+
+            for (var i = 0; i < 5; i++)
+            {
+                spiel.GameGridCoordinates.Add(new GameGridCoordinate
+                {
+                    Id = Guid.NewGuid(), GameId = spiel.Id, X = i, Y = 1,
+                    QuestionBaseId = null,
+                });
+            }
+
+            vm.Game = spiel;
+
+            Assert.IsTrue(vm.IsGameFinished,
+                "Das Spiel gilt als offen, obwohl jede Zelle MIT Frage gespielt ist - dann "
+                + "kommt die Siegerehrung nie und der Spielerbildschirm bleibt beim Raster.");
+
+            Assert.AreEqual(2, vm.GameGridCoordinatesCount,
+                "Die Leiste zaehlt die leeren Zellen mit und meldet dauerhaft offene Fragen.");
+
+            Assert.AreEqual("Alle Fragen gespielt", vm.OpenCellsText,
+                "Die Leiste meldet weiterhin offene Fragen: " + vm.OpenCellsText);
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung.</b> Ohne sie wäre die obige auch dann grün, wenn
+        /// <c>IsGameFinished</c> immer <c>true</c> lieferte - dann käme die Siegerehrung sofort
+        /// nach der ersten Frage.
+        /// </summary>
+        [TestMethod]
+        public void AnUnplayedCellKeepsTheGameOpen()
+        {
+            var vm = new GameMasterViewModel();
+            var spiel = new Game { Id = Guid.NewGuid(), Designation = "Probe", Phase = 1, SuggestedPhases = 1 };
+
+            spiel.GameGridCoordinates.Add(new GameGridCoordinate
+            {
+                Id = Guid.NewGuid(), GameId = spiel.Id, X = 0, Y = 0,
+                QuestionBaseId = Guid.NewGuid(), IsDone = true,
+            });
+
+            spiel.GameGridCoordinates.Add(new GameGridCoordinate
+            {
+                Id = Guid.NewGuid(), GameId = spiel.Id, X = 1, Y = 0,
+                QuestionBaseId = Guid.NewGuid(), IsDone = false,
+            });
+
+            vm.Game = spiel;
+
+            Assert.IsFalse(vm.IsGameFinished,
+                "Das Spiel gilt als fertig, obwohl eine belegte Zelle offen ist.");
+
+            Assert.AreEqual("Noch eine offen", vm.OpenCellsText,
+                "Die Leiste sagt nicht, dass noch etwas aussteht: " + vm.OpenCellsText);
+        }
+
+        /// <summary>
+        /// Ein Raster ganz ohne Frage ist nicht „fertig" - sonst begruesste das Beamerfenster
+        /// die Sieger, bevor eine einzige Frage gestellt wurde.
+        /// </summary>
+        [TestMethod]
+        public void AGridWithoutAnyQuestionIsNotFinished()
+        {
+            var vm = new GameMasterViewModel();
+            var spiel = new Game { Id = Guid.NewGuid(), Designation = "Leer", Phase = 1, SuggestedPhases = 1 };
+
+            spiel.GameGridCoordinates.Add(new GameGridCoordinate
+            {
+                Id = Guid.NewGuid(), GameId = spiel.Id, X = 0, Y = 0, QuestionBaseId = null,
+            });
+
+            vm.Game = spiel;
+
+            Assert.IsFalse(vm.IsGameFinished,
+                "Ein Raster ohne jede Frage gilt als fertig gespielt.");
+        }
+
+        /// <summary>
         /// Ein unbekanntes Spiel wird gemeldet, nicht stillschweigend als leer geladen.
         /// </summary>
         [TestMethod]
@@ -166,6 +265,12 @@ namespace Quizzer.UnitTests.PlayThrough
                     Y = 0,
                     Phase = 1,
                     IsDone = i < gespielt,
+
+                    // Seit dem 2026-09-07 zaehlen nur belegte Zellen fuer Fortschritt und
+                    // Phasenschwelle. Diese drei trugen bis dahin KEINE Frage - der Test
+                    // stuetzte sich also auf genau den Fehler, den er nicht meinte: ein
+                    // "Vier-Zellen-Raster", in dem drei Zellen nie spielbar waren.
+                    QuestionBaseId = world.Question.Id,
                 });
             }
 

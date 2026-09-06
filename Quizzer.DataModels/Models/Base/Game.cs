@@ -61,15 +61,29 @@ namespace Quizzer.DataModels.Models.Base
         [NotMapped]
         public List<int> PhaseTrashholds { get; set; } = new();
 
+        /// <summary>
+        /// Die Zellen, an denen wirklich eine Frage hängt.
+        /// <para>
+        /// <b>Nur die zählen für den Fortschritt.</b> Ein Raster, das größer ist als die Zahl
+        /// der zugewiesenen Fragen, hat leere Zellen - und die werden nie gespielt. Zählte man
+        /// sie mit, wäre das Spiel nie zu Ende und die Phasenschwelle nie erreicht.
+        /// </para>
+        /// </summary>
+        [NotMapped]
+        public IEnumerable<GameGridCoordinate> SpielbareZellen
+            => GameGridCoordinates.Where(c => c.HatFrage);
+
         public void CalculatetThreshold()
         {
             PhaseTrashholds.Clear();
-            if (GameGridCoordinates.Count == 0 || SuggestedPhases <= 0)
+
+            var coordsCount = SpielbareZellen.Count();
+
+            if (coordsCount == 0 || SuggestedPhases <= 0)
             {
                 return;
             }
 
-            var coordsCount = GameGridCoordinates.Count;
             var span = (int)Math.Ceiling((double)coordsCount / SuggestedPhases);
 
             var currTH = 0;

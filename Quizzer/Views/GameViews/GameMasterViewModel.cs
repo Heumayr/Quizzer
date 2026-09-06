@@ -179,7 +179,11 @@ namespace Quizzer.Views.GameViews
             await ctrlCells.SaveChangesAsync();
         }
 
-        private Game? Game
+        /// <summary>
+        /// Das geladene Spiel. <c>internal</c> statt <c>private</c>, damit eine Zusicherung ein
+        /// Raster mit leeren Zellen hineingeben kann, ohne den Umweg ueber die Datenbank.
+        /// </summary>
+        internal Game? Game
         {
             get => game;
             set
@@ -383,7 +387,18 @@ namespace Quizzer.Views.GameViews
             }
         }
 
-        public bool IsGameFinished => Game?.GameGridCoordinates.All(c => c.IsDone) ?? false;
+        /// <summary>
+        /// Ob alle spielbaren Zellen abgeschlossen sind.
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> hier stand <c>GameGridCoordinates.All(...)</c> - und der
+        /// Rasteraufbau legt für <i>jede</i> Position eine Zeile an, auch die leeren. In der
+        /// Spieldatenbank hatte „Test Spiel" 25 Zellen, davon <b>19 ohne Frage</b>. Das Spiel
+        /// konnte damit nie fertig werden: keine Siegerehrung, kein Phasenwechsel, und die
+        /// Leiste meldete bis zuletzt „Noch 19 offen".
+        /// </para>
+        /// </summary>
+        public bool IsGameFinished =>
+            Game != null && Game.SpielbareZellen.Any() && Game.SpielbareZellen.All(c => c.IsDone);
 
         private void InitStatContext(Game game)
         {
@@ -497,8 +512,8 @@ namespace Quizzer.Views.GameViews
             }
         }
 
-        public int GameGridCoordinatesCount => Game?.GameGridCoordinates.Count() ?? 0;
-        public int GameGridCoordinatesDoneCount => Game?.GameGridCoordinates.Count(c => c.IsDone) ?? 0;
+        public int GameGridCoordinatesCount => Game?.SpielbareZellen.Count() ?? 0;
+        public int GameGridCoordinatesDoneCount => Game?.SpielbareZellen.Count(c => c.IsDone) ?? 0;
 
         /// <summary>Titel des Fensters, mit dem Namen des Spiels.</summary>
         public string WindowTitle =>
