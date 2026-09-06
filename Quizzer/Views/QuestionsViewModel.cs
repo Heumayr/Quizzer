@@ -19,7 +19,7 @@ using System.Windows.Input;
 
 namespace Quizzer.Views
 {
-    internal class QuestionsViewModel : ViewModelBase
+    internal partial class QuestionsViewModel : ViewModelBase
     {
         private ObservableCollection<QuestionBase> _questions = new();
 

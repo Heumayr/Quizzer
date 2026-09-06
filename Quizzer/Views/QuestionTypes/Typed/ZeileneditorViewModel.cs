@@ -189,6 +189,36 @@ namespace Quizzer.Views.QuestionTypes.Typed
                     Geaendert();
             });
 
+        /// <summary>
+        /// Wie eine Zeile im Schritt-Dialog geöffnet wird. Die Schale hängt das ein - das
+        /// ViewModel kennt kein Fenster.
+        /// </summary>
+        internal Func<StepZeile, Task>? Erweitert { get; set; }
+
+        private AsyncRelayCommand? advancedCommand;
+
+        /// <summary>
+        /// Den Schritt-Dialog für diese Zeile öffnen.
+        /// <para>
+        /// <b>Der Ausnahmeweg, nicht der Pflichtweg.</b> Was die Typmaske nicht zeigt, gibt es
+        /// trotzdem: ein Medium am Schritt, die Kennung „Startschritt", eine abweichende
+        /// Bezeichnung. Ohne diesen Weg wären Medien am Schritt mit dem Umbau verloren gegangen.
+        /// </para>
+        /// </summary>
+        public ICommand AdvancedCommand => advancedCommand ??= new AsyncRelayCommand(
+            async parameter =>
+            {
+                if (parameter is not StepZeile zeile || Erweitert == null)
+                    return;
+
+                await Erweitert(zeile);
+
+                // Der Dialog hat denselben Schritt veraendert und meldet nichts an diese Zeile.
+                zeile.MeldeAlles();
+
+                Geaendert();
+            });
+
         private RelayCommand<StepZeile>? moveUpCommand;
 
         /// <summary>Eine Zeile nach oben schieben - ein Klick statt vier.</summary>

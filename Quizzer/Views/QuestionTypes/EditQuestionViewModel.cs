@@ -240,7 +240,7 @@ namespace Quizzer.Views.QuestionTypes
             Revalidate();
         }
 
-        private async Task EditStepAsync(QuestionStepResource step)
+        internal async Task EditStepAsync(QuestionStepResource step)
         {
             if (Question == null) return;
 

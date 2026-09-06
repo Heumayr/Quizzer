@@ -19,6 +19,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
                             <CheckBox Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0"
@@ -32,7 +33,17 @@
                                        ToolTip="Diese Taste liegt im Spiel auf dieser Zeile." />
 
                             <TextBox Grid.Column="2" VerticalContentAlignment="Center"
-                                     Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" />
+                                     Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}">
+                                <TextBox.InputBindings>
+                                    <!-- Enter haengt an, statt zu speichern: in einer Maske
+                                         voller einzeiliger Felder ist das die haeufigere
+                                         Absicht, und der Sprung in die neue Zeile spart den
+                                         Griff zur Maus. -->
+                                    <KeyBinding Key="Return"
+                                                Command="{Binding DataContext.AddRowCommand,
+                                                          RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                </TextBox.InputBindings>
+                            </TextBox>
 
                             <TextBlock Grid.Column="3" Text="{Binding Zusatz}" Opacity="0.7"
                                        VerticalAlignment="Center" Margin="8,0,0,0" />
@@ -50,7 +61,13 @@
                                         CommandParameter="{Binding}" />
                             </StackPanel>
 
-                            <Button Grid.Column="5" Content="✕" Width="26" Margin="4,0,0,0"
+                            <Button Grid.Column="5" Content="…" Width="26" Margin="4,0,0,0"
+                                    ToolTip="Erweitert: Medium anhängen, Bezeichnung abweichend setzen."
+                                    Command="{Binding DataContext.AdvancedCommand,
+                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}" />
+
+                            <Button Grid.Column="6" Content="✕" Width="26" Margin="4,0,0,0"
                                     ToolTip="Diese Zeile entfernen"
                                     Visibility="{Binding DataContext.ZeilenAendernVisibility,
                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"

@@ -165,6 +165,17 @@ namespace Quizzer.DataModels.Questions.Schrittbau
 
         private string? letzterVorschlag;
 
+        /// <summary>
+        /// Meldet alle Felder neu. <b>Nötig, nachdem der Schritt-Dialog daran war</b> - er
+        /// verändert denselben Schritt, meldet aber nichts an diese Zeile.
+        /// </summary>
+        public void MeldeAlles()
+        {
+            Melde(nameof(Text));
+            Melde(nameof(IstRichtig));
+            Melde(nameof(IstLeer));
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         private void Melde([CallerMemberName] string? name = null)

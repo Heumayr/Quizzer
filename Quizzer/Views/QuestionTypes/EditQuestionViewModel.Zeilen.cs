@@ -47,7 +47,13 @@ namespace Quizzer.Views.QuestionTypes
 
             var composer = StepComposers.For(Question.Typ);
 
-            Zeileneditor = Zeileneditoren.Fuer(composer, Question, Revalidate);
+            var editor = Zeileneditoren.Fuer(composer, Question, Revalidate);
+
+            // Der Schritt-Dialog bleibt erreichbar - was die Typmaske nicht zeigt (ein Medium am
+            // Schritt, die Kennung "Startschritt"), gibt es trotzdem.
+            editor.Erweitert = zeile => EditStepAsync(zeile.Schritt);
+
+            Zeileneditor = editor;
         }
 
         /// <summary>
