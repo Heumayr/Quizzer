@@ -1,4 +1,5 @@
 ﻿using Quizzer.Base;
+using Quizzer.DataModels;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Logic.Controller.TypedControllers;
@@ -145,6 +146,25 @@ namespace Quizzer.Views
         /// </summary>
         private static async Task<bool> ConfirmRemovalAsync(List<Player> toRemove)
         {
+            // Sich selbst zu entfernen ist der Weg in einen Zustand ohne Ausweg: Session zeigt
+            // danach auf eine geloeschte Kennung, und die naechste neue Frage traegt sie als
+            // Besitzer ein - das INSERT verletzt seit dem 2026-09-06 den Fremdschluessel
+            // FK_QuestionBase_Player_OwnerPlayerId. Der Spielleiter saehe einen rohen
+            // Datenbankfehler, und nur ein Neustart brachte ihn heraus.
+            var selbst = toRemove.FirstOrDefault(p => p.Id == Session.CurrentModeratorId);
+
+            if (selbst != null)
+            {
+                UserPrompt.Inform(
+                    $"{selbst.CalculatedDisplayName} ist gerade selbst als Spielleitung "
+                    + "angemeldet und lässt sich deshalb nicht entfernen."
+                    + Environment.NewLine + Environment.NewLine
+                    + "Zuerst im Startfenster die Spielleitung wechseln.",
+                    "Mitspieler entfernen");
+
+                return false;
+            }
+
             using (var ctrlSpiele = new GamesController())
             {
                 var leitet = new List<string>();

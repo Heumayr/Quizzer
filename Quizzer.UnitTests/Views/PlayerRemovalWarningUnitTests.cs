@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.Base;
+using Quizzer.DataModels;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
@@ -227,6 +228,79 @@ namespace Quizzer.UnitTests.Views
 
             Assert.AreEqual(1, prompt.Confirms.Count,
                 "Die gewoehnliche Rueckfrage kam nicht mehr - die Abweisung greift zu weit.");
+        }
+
+        /// <summary>
+        /// <b>Wer selbst angemeldet ist, lässt sich nicht entfernen.</b>
+        /// <para>
+        /// <b>Ein Rückschritt aus B11, gefunden im Nachtlauf vom 2026-09-07.</b> Seit
+        /// <c>OwnerPlayerId</c> einen Fremdschlüssel hat, zeigt <c>Session</c> nach dem
+        /// Selbstlöschen auf eine gelöschte Kennung - und die nächste neue Frage trägt sie als
+        /// Besitzer ein. Das INSERT verletzt den Fremdschlüssel, der Spielleiter sieht einen
+        /// rohen Datenbankfehler, und nur ein Neustart bringt ihn heraus.
+        /// </para>
+        /// <para>
+        /// Abweisen statt stillschweigend abmelden: ein <c>SignOut</c> im Hintergrund ließe die
+        /// Fragenliste schlagartig anders aussehen, ohne dass irgendwo stünde, warum.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task TheSignedInModeratorCannotRemoveThemselves()
+        {
+            Session.SignIn(world.Players[0]);
+
+            try
+            {
+                var vm = await BuildViewModelAsync();
+
+                await TestEnvironment.RunCommandAsync(vm.RemovePlayerCommand);
+
+                Assert.AreEqual(0, prompt.Confirms.Count,
+                    "Es wurde nach der Punktehistorie gefragt, obwohl das Entfernen abgewiesen "
+                    + "werden muss.");
+
+                Assert.AreEqual(1, prompt.Informs.Count, "Es wurde nicht abgewiesen.");
+
+                StringAssert.Contains(prompt.Informs[0].Message, "angemeldet",
+                    "Die Abweisung nennt den Grund nicht: " + prompt.Informs[0].Message);
+
+                using var ctrl = new PlayersController();
+
+                Assert.IsNotNull(await ctrl.GetAsync(world.Players[0].Id),
+                    "Der angemeldete Spielleiter wurde entfernt.");
+            }
+            finally
+            {
+                Session.SignOut();
+            }
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung.</b> Ein anderer Mitspieler lässt sich weiterhin entfernen -
+        /// sonst wäre die Liste unbenutzbar.
+        /// </summary>
+        [TestMethod]
+        public async Task SomebodyElseCanStillBeRemoved()
+        {
+            Session.SignIn(world.Players[1]);
+
+            try
+            {
+                var vm = await BuildViewModelAsync();
+
+                await TestEnvironment.RunCommandAsync(vm.RemovePlayerCommand);
+
+                Assert.AreEqual(0, prompt.Informs.Count,
+                    "Es wurde abgewiesen, obwohl jemand anderes gemeint war: "
+                    + string.Join(" | ", prompt.Informs.Select(i => i.Message)));
+
+                Assert.AreEqual(1, prompt.Confirms.Count,
+                    "Die gewoehnliche Rueckfrage kam nicht - die Abweisung greift zu weit.");
+            }
+            finally
+            {
+                Session.SignOut();
+            }
         }
 
         /// <summary>

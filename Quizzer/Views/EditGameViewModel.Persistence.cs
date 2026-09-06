@@ -122,7 +122,7 @@ namespace Quizzer.Views
         /// Räumt den Spielaufbau leer - Ergebnisse, Zellen, Zuordnungen, Kopfzeilen.
         /// <para>
         /// <b>B26.</b> Bis hierher lief das als einziger Schreibweg des Spieleditors <b>ohne</b>
-        /// die Sperre, die <c>RebuildCellsAsync</c> und beide Speicherwege nehmen. Der Fall galt
+        /// die Sperre, die <c>RequestGridRebuildAsync</c> und beide Speicherwege nehmen. Der Fall galt
         /// als unerreichbar, weil die Rückfrage den 200-ms-Anlauf des Rasteraufbaus längst
         /// überdauert - genau so eine Begründung hielt aber schon einmal, bis ein Spiel sich
         /// nicht mehr öffnen ließ.
@@ -166,7 +166,11 @@ namespace Quizzer.Views
                 await ctrlKopfzeilen.DeleteByGameIdAsync(Game.Id);
             });
 
-            await LoadModel(Game.Id);
+            // Das Neuladen baut das Raster neu auf und SCHREIBT dabei (GridBuilder legt
+            // Kopfzeilen und Zellen an) - es gehoert deshalb ebenfalls unter die Sperre.
+            // Ein zweiter Aufruf statt eines erweiterten: SemaphoreSlim ist nicht
+            // wiedereintrittsfaehig, ein Guard im Guard verklemmte sich selbst.
+            await RunGuardedAsync(() => LoadModel(Game.Id));
         }
 
         private AsyncRelayCommand? saveAndCloseCommand;
