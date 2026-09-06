@@ -172,7 +172,7 @@
                       3  Beschriftungen nach dem Ergebnis statt nach der Mechanik
                       4  die Ueberschrift heisst nicht mehr wie einer der Knoepfe
                       5  der Zustand steht oben, vor der Entscheidung, nicht darunter
-                      6  "Runde zuruecksetzen" hat eine eigene Gruppe - es ist das Einzige hier,
+                      6  der Neustart der Runde hat eine eigene Gruppe - er ist das Einzige hier,
                          das die Telefone anfasst
                 -->
                 <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" VerticalAlignment="Top"

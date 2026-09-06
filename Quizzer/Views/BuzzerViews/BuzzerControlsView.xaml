@@ -15,7 +15,7 @@
         </Grid.RowDefinitions>
 
         <!--
-            Kopfzeile: welche Frage laeuft. Der Knopf "Runde zuruecksetzen" stand bis 2026-09-06
+            Kopfzeile: welche Frage laeuft. Der Knopf zum Neustart der Runde stand bis 2026-09-06
             hier und ist in die Handlungsspalte des Fragefensters gewandert - er hatte hier
             dasselbe Gewicht wie die Rundenzeile, obwohl er als Einziges die Telefone anfasst
             (Nutzerentscheidung F10).
