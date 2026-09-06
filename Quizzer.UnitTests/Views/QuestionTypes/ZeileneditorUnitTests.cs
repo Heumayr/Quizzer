@@ -5,6 +5,9 @@ using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Questions;
 using Quizzer.Views.QuestionTypes;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace Quizzer.UnitTests.Views.QuestionTypes
 {
@@ -32,6 +35,79 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
             vm.Question = frage;
 
             return vm;
+        }
+
+        /// <summary>
+        /// <b>Kein Knopf schneidet sein Zeichen weg.</b>
+        /// <para>
+        /// <b>Nutzermeldung vom 2026-09-06:</b> die Knöpfe in der Antwortzeile standen als leere
+        /// abgerundete Rechtecke da. Nicht die Farbe fehlte - der implizite Knopfstil setzt
+        /// <c>Padding="12,6"</c>, und bei einer festen Breite von 26 blieben davon <b>null</b>
+        /// Punkte für den Inhalt.
+        /// </para>
+        /// <para>
+        /// Gemessen wird die ausgelegte Breite gegen Polsterung und Rahmen - nicht die
+        /// Schriftfarbe, die war nie das Problem.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void NoButtonClipsItsOwnGlyph()
+        {
+            var eng = new List<string>();
+
+            UiTestHost.Run(() =>
+            {
+                var view = new EditQuestionsView();
+                var vm = (EditQuestionViewModel)view.DataContext;
+                var frage = Factory.CreateNewQuestion(QuestionType.MultipleChoice);
+
+                frage.Id = Guid.NewGuid();
+                frage.Designation = "Probe";
+                frage.CategoryId = Guid.NewGuid();
+                vm.Question = frage;
+
+                var inhalt = (FrameworkElement)view.Content;
+
+                inhalt.Measure(new Size(1400, 900));
+                inhalt.Arrange(new Rect(0, 0, 1400, 900));
+                inhalt.UpdateLayout();
+
+                foreach (var knopf in Nachfahren<Button>(inhalt))
+                {
+                    if (knopf.Content is not string text || text.Length == 0
+                        || knopf.ActualWidth <= 0)
+                        continue;
+
+                    var innen = knopf.ActualWidth - knopf.Padding.Left - knopf.Padding.Right
+                                - knopf.BorderThickness.Left - knopf.BorderThickness.Right;
+
+                    if (innen < 8)
+                        eng.Add($"[{text}] ausgelegt {knopf.ActualWidth:0}, innen {innen:0}");
+                }
+
+                view.Close();
+            });
+
+            Assert.AreEqual(0, eng.Count,
+                "Diese Knoepfe haben keinen Platz fuer ihren Inhalt:" + Environment.NewLine
+                + string.Join(Environment.NewLine, eng));
+        }
+
+        private static IEnumerable<T> Nachfahren<T>(DependencyObject wurzel)
+            where T : DependencyObject
+        {
+            var anzahl = VisualTreeHelper.GetChildrenCount(wurzel);
+
+            for (var i = 0; i < anzahl; i++)
+            {
+                var kind = VisualTreeHelper.GetChild(wurzel, i);
+
+                if (kind is T treffer)
+                    yield return treffer;
+
+                foreach (var tiefer in Nachfahren<T>(kind))
+                    yield return tiefer;
+            }
         }
 
         /// <summary>Jeder Fragetyp bekommt eine Maske - keiner fällt durch.</summary>

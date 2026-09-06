@@ -89,6 +89,26 @@
         </Setter>
     </Style>
 
+    <!--
+        Ein Knopf, der nur ein Zeichen traegt.
+
+        Der implizite Stil setzt Padding="12,6" - bei einer festen Breite von 26 bleiben davon
+        rechnerisch NULL Punkte fuer den Inhalt uebrig, und das Zeichen verschwindet restlos.
+        Am 2026-09-06 gemessen: vier solche Knoepfe je Antwortzeile, alle mit innen=0, und auf
+        dem Bildschirm nur leere abgerundete Rechtecke. Wer einen kleinen Knopf braucht, nimmt
+        diesen Stil - nicht Width plus dem impliziten Padding.
+    -->
+    <Style x:Key="IconButton"
+           TargetType="{x:Type Button}"
+           BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Padding" Value="2,0" />
+        <Setter Property="Margin" Value="2,0,0,0" />
+        <Setter Property="MinWidth" Value="30" />
+        <Setter Property="MinHeight" Value="26" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontWeight" Value="Normal" />
+    </Style>
+
     <!-- Optional variant: "Danger" button -->
     <Style x:Key="DangerButton"
            TargetType="{x:Type Button}"
