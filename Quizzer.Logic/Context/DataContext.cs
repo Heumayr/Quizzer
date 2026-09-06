@@ -54,6 +54,20 @@ namespace Quizzer.Logic.Context
                 .HasForeignKey(qr => qr.GameId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            // B11: OwnerPlayerId war eine nackte Guid?-Spalte ohne Fremdschluessel. Wurde der
+            // Besitzer entfernt, blieb die Kennung stehen und zeigte ins Leere -
+            // QuestionOwnership.IsVisible laesst nur null oder die eigene Id durch, die Frage
+            // war damit fuer JEDEN unsichtbar, ohne Meldung und ohne Weg zurueck.
+            // SetNull statt NoAction: die Frage soll den Besitzerwechsel ueberleben und in den
+            // gemeinsamen Bestand fallen, nicht das Loeschen des Mitspielers verhindern.
+            // Der Riegel gehoert ins Schema und nicht an eine Aufrufstelle: DemoDataSeeder.Remove
+            // ist ein zweiter Weg, der Besitzer loescht, ohne OwnerPlayerId je anzufassen.
+            modelBuilder.Entity<QuestionBase>()
+                .HasOne<Player>()
+                .WithMany()
+                .HasForeignKey(q => q.OwnerPlayerId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             base.OnModelCreating(modelBuilder);
         }
 
