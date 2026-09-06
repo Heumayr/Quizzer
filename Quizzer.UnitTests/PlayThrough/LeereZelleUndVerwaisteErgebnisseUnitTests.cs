@@ -1,0 +1,152 @@
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Quizzer.Base;
+using Quizzer.DataModels.Enumerations;
+using Quizzer.DataModels.Models;
+using Quizzer.DataModels.Models.Base;
+using Quizzer.Logic.Controller.TypedControllers;
+using Quizzer.Views.GameViews;
+
+namespace Quizzer.UnitTests.PlayThrough
+{
+    /// <summary>
+    /// Zwei Wege, auf denen der Spielleiter mitten im Abend ein Fehlerfenster bekam.
+    /// <para>
+    /// Beide entstehen aus demselben Missverständnis über <c>null</c>: einmal, weil
+    /// <c>Guid? == Guid.Empty</c> bei <c>null</c> <b>false</b> ist, und einmal, weil ein
+    /// <c>!</c> neben einem <c>FirstOrDefault</c> nur die Warnung unterdrückt.
+    /// </para>
+    /// </summary>
+    [TestClass]
+    public class LeereZelleUndVerwaisteErgebnisseUnitTests
+    {
+        private RecordingUserPrompt prompt = null!;
+        private TestGameBuilder world = null!;
+
+        [TestInitialize]
+        public async Task SetUp()
+        {
+            prompt = new RecordingUserPrompt(answer: true);
+            UserPrompt.Current = prompt;
+
+            TestEnvironment.ClearSwallowedExceptions();
+
+            world = await TestGameBuilder.CreateAsync(QuestionType.Default, normalStepCount: 1, playerCount: 2);
+        }
+
+        [TestCleanup]
+        public async Task TearDown()
+        {
+            await world.DisposeAsync();
+            UserPrompt.Reset();
+        }
+
+        /// <summary>
+        /// <b>Eine leere Zelle sagt „Keine Frage gesetzt" statt einer Stapelspur.</b>
+        /// <para>
+        /// Der Rasteraufbau legt leere Zellen mit <c>QuestionBaseId = null</c> an - nicht mit
+        /// <c>Guid.Empty</c>. Der Riegel verglich aber gegen <c>Guid.Empty</c>, und der gehobene
+        /// Operator liefert bei <c>null</c> <c>false</c>: er wurde also gerade in dem Fall
+        /// übersprungen, für den es ihn gibt.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task AnEmptyCellIsRefusedWithAReadableSentence()
+        {
+            var leer = new GameGridCoordinate
+            {
+                Id = Guid.NewGuid(),
+                GameId = world.Game.Id,
+                X = 9,
+                Y = 9,
+                QuestionBaseId = null,
+            };
+
+            using (var ctrl = new GameGridCoordinatesController())
+            {
+                await ctrl.InsertAsync(leer);
+                await ctrl.SaveChangesAsync();
+            }
+
+            var vm = new TestableCurrentQuestionViewModel { Coordinate = leer };
+
+            await vm.LoadForTestAsync();
+
+            TestEnvironment.ThrowIfAnythingWasSwallowed();
+
+            Assert.AreEqual(1, prompt.Informs.Count,
+                "Es kam keine Meldung - dann laeuft der Aufbau weiter und wirft spaeter.");
+
+            StringAssert.Contains(prompt.Informs[0].Message, "Keine Frage",
+                "Die Meldung sagt nicht, was los ist: " + prompt.Informs[0].Message);
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung.</b> Eine belegte Zelle wird nicht abgewiesen - sonst liesse sich
+        /// keine Frage mehr oeffnen.
+        /// </summary>
+        [TestMethod]
+        public async Task ACellWithAQuestionOpensWithoutComplaint()
+        {
+            var vm = new TestableCurrentQuestionViewModel { Coordinate = world.Coordinate };
+
+            await vm.LoadForTestAsync();
+
+            TestEnvironment.ThrowIfAnythingWasSwallowed();
+
+            Assert.AreEqual(0, prompt.Informs.Count,
+                "Eine belegte Zelle wurde abgewiesen: "
+                + string.Join(" | ", prompt.Informs.Select(i => i.Message)));
+        }
+
+        /// <summary>
+        /// <b>Eine Ergebniszeile eines entfernten Mitspielers reisst „Nächster wählt aus" nicht
+        /// mehr um.</b>
+        /// <para>
+        /// <c>GamesController</c> setzt <c>result.Player</c> aus der Mannschaft des Spiels. Wer
+        /// herausgenommen wurde, steht dort nicht mehr - der Eintrag ist <c>null</c>, und das
+        /// <c>!</c> daneben unterdrückt nur die Warnung. In der Spieldatenbank liegen drei
+        /// solche Zeilen.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void AResultOfARemovedPlayerDoesNotBreakTheWinnerList()
+        {
+            var vm = new TestableCurrentQuestionViewModel { Coordinate = world.Coordinate };
+
+            world.Coordinate.QuestionResults.Add(new QuestionResult
+            {
+                Id = Guid.NewGuid(),
+                PlayerId = world.Players[0].Id,
+                Player = world.Players[0],
+                GameId = world.Game.Id,
+                GameGridCoordinateId = world.Coordinate.Id,
+                QuestionBaseId = world.Question.Id,
+                CorrectAnswered = true,
+            });
+
+            // Die Zeile eines Ehemaligen: die Kennung steht noch da, die Person nicht mehr.
+            world.Coordinate.QuestionResults.Add(new QuestionResult
+            {
+                Id = Guid.NewGuid(),
+                PlayerId = Guid.NewGuid(),
+                Player = null!,
+                GameId = world.Game.Id,
+                GameGridCoordinateId = world.Coordinate.Id,
+                QuestionBaseId = world.Question.Id,
+                CorrectAnswered = true,
+            });
+
+            var gewinner = vm.CoordinateCorrectedAnsweredPlayers;
+
+            Assert.AreEqual(1, gewinner.Count,
+                "Die Liste enthaelt die Zeile eines entfernten Mitspielers - der naechste Griff "
+                + "darauf liest winners[0].Id und faellt mit einer NullReferenceException.");
+
+            Assert.IsFalse(gewinner.Any(p => p == null),
+                "In der Gewinnerliste steht ein leerer Eintrag.");
+
+            Assert.AreEqual(world.Players[0].Id, gewinner[0].Id,
+                "Der verbliebene Gewinner ist der falsche.");
+        }
+    }
+}

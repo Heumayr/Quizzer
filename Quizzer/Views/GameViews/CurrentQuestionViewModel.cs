@@ -62,7 +62,12 @@ namespace Quizzer.Views.GameViews
             if (Coordinate == null)
                 return;
 
-            if (Coordinate.QuestionBaseId == Guid.Empty)
+            // Auf null MIT pruefen: QuestionBaseId ist Guid?, und "Guid? == Guid.Empty" ist bei
+            // null FALSE - der Riegel wurde also gerade in dem Fall uebersprungen, fuer den es
+            // ihn gibt. Leere Zellen legt der Rasteraufbau mit null an, nicht mit Guid.Empty;
+            // der Spielleiter bekam dafuer ein Fehlerfenster mit "No question set to coordinate"
+            // samt Stapelspur, statt der vorgesehenen Meldung.
+            if (Coordinate.QuestionBaseId is null || Coordinate.QuestionBaseId == Guid.Empty)
             {
                 UserPrompt.Inform("Keine Frage gesetzt.");
                 return;
@@ -584,7 +589,27 @@ namespace Quizzer.Views.GameViews
             Coordinate.QuestionResults = newResults;
         }
 
-        public List<Player> CoordinateCorrectedAnsweredPlayers => Coordinate?.QuestionResults.Where(r => r.CorrectAnswered).Select(r => r.Player).ToList() ?? new List<Player>();
+        /// <summary>
+        /// Wer die Zelle richtig beantwortet hat - und noch mitspielt.
+        /// <para>
+        /// <b>Der Filter auf <c>Player != null</c> ist nicht kosmetisch.</b>
+        /// <c>GamesController</c> setzt beim Laden <c>result.Player</c> aus der Mannschaft; wer
+        /// aus dem Spiel genommen wurde, steht dort nicht mehr, und das <c>!</c> daneben
+        /// unterdrueckt nur die Warnung. „Naechster waehlt aus" las danach
+        /// <c>winners[0].Id</c> und fiel mit einer NullReferenceException - mitten im Abend, auf
+        /// einer bereits gespielten Zelle. In der Spieldatenbank liegen heute drei solche
+        /// Ergebniszeilen.
+        /// </para>
+        /// <para>
+        /// Derselbe Filter steht in <c>GameGridCoordinateViewModel.WinnerEntries</c> schon
+        /// laenger - hier fehlte er.
+        /// </para>
+        /// </summary>
+        public List<Player> CoordinateCorrectedAnsweredPlayers =>
+            Coordinate?.QuestionResults
+                .Where(r => r.CorrectAnswered && r.Player != null)
+                .Select(r => r.Player)
+                .ToList() ?? new List<Player>();
 
         public bool SetNextChoosingPlayer { get; private set; } = false;
 
