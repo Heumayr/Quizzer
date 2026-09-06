@@ -39,6 +39,7 @@ namespace Quizzer.Base
             StateChanged += (_, __) => SavePlacementThrottled();
 
             KeyDown += DefaultKeyDown;
+            PreviewKeyDown += TastenkuerzelVorrangGeben;
 
             ChromeBackground = Colors.Black;
             ChromeForeground = Colors.WhiteSmoke;
@@ -122,6 +123,66 @@ namespace Quizzer.Base
                 Close();
                 e.Handled = true;
             }
+        }
+
+        /// <summary>
+        /// Laesst die Tastenkuerzel des Fensters vor den Bedienelementen zum Zug kommen.
+        /// <para>
+        /// <b>Gemessen 2026-09-06:</b> die Kuerzel im Fragefenster (Enter = weiter,
+        /// Ruecktaste = zurueck) wirkten nur, solange nichts angeklickt war. Sobald ein Knopf
+        /// den Fokus hatte, verschluckte er die Taste, und die Bindung am Fenster kam nie an -
+        /// <c>InputBindings</c> greifen erst, wenn das Ereignis bis zum Fenster hochblubbert.
+        /// Im Spielabend heisst das: das Kuerzel geht nach dem ersten Mausklick verloren.
+        /// </para>
+        /// <para>
+        /// <b>Texteingaben bleiben ausgenommen.</b> In einem mehrzeiligen Textfeld gehoert Enter
+        /// dem Text, und in jedem Textfeld gehoert die Ruecktaste dem Loeschen. Sonst liesse sich
+        /// im Editor keine Zeile mehr schreiben.
+        /// </para>
+        /// </summary>
+        private void TastenkuerzelVorrangGeben(object? sender, KeyEventArgs e)
+        {
+            if (e.Handled || InputBindings.Count == 0)
+                return;
+
+            if (SchreibtGeradeText(Keyboard.FocusedElement, e.Key))
+                return;
+
+            foreach (var bindung in InputBindings)
+            {
+                if (bindung is not KeyBinding taste)
+                    continue;
+
+                if (taste.Key != e.Key || taste.Modifiers != Keyboard.Modifiers)
+                    continue;
+
+                var befehl = taste.Command;
+
+                if (befehl == null || !befehl.CanExecute(taste.CommandParameter))
+                    continue;
+
+                befehl.Execute(taste.CommandParameter);
+                e.Handled = true;
+
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Ob der Tastendruck einer Texteingabe gehoert und deshalb nicht abgefangen werden darf.
+        /// </summary>
+        private static bool SchreibtGeradeText(IInputElement? fokus, Key taste)
+        {
+            if (fokus is System.Windows.Controls.TextBox feld)
+                return taste != Key.Enter || feld.AcceptsReturn;
+
+            if (fokus is System.Windows.Controls.ComboBox { IsEditable: true })
+                return true;
+
+            if (fokus is System.Windows.Controls.Primitives.TextBoxBase)
+                return true;
+
+            return false;
         }
 
         protected override void OnSourceInitialized(EventArgs e)
