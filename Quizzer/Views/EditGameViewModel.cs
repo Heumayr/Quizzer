@@ -43,8 +43,10 @@ namespace Quizzer.Views
             {
                 var game = new Game();
 
+                // B15: stand bis 2026-09-06 als "No Name - New Game" englisch in einer sonst
+                // durchgehend deutschen Maske - und in der Datenbank, bevor das Fenster aufging.
                 if (string.IsNullOrEmpty(game.Designation))
-                    game.Designation = "No Name - New Game";
+                    game.Designation = "Neues Spiel";
 
                 var inserted = await ctrl.InsertAsync(game);
                 await ctrl.SaveChangesAsync();
