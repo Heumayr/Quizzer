@@ -95,6 +95,112 @@ namespace Quizzer.LogicUnitTests.Logic.Controller.TypedControllers
             Assert.AreEqual(question.Id, converted.Id, "Die Id bleibt - daran haengt alles andere.");
         }
 
+        /// <summary>
+        /// <b>Jeder Fragetyp laesst sich als Ziel erreichen - und wieder verlassen.</b>
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> das Umwandeln IN eine Aufdeckfrage scheiterte immer mit
+        /// einem rohen <c>SqlException 515</c>. <c>InsertStatementFor</c> kannte genau einen
+        /// Sonderfall (die Schaetzfrage) und schrieb sonst nur die Id - <c>RevealQuestion</c>
+        /// hat aber vier Pflichtspalten ohne Vorgabewert (an der Datenbank nachgemessen:
+        /// Mode, ImageFileName, AreasJson, BlurStart, alle <c>is_nullable = 0</c>, kein
+        /// <c>default_constraint</c>).
+        /// </para>
+        /// <para>
+        /// <b>Die alte Liste konnte das nicht finden</b>, weil sie fuenf von Hand gewaehlte
+        /// Paare aufzaehlte und den fuenften Typ nicht kannte. Diese hier laeuft ueber
+        /// <c>QuestionTypeProfiles.All</c> - ein neuer Fragetyp ist damit ab dem Tag seiner
+        /// Aufnahme abgedeckt.
+        /// </para>
+        /// </summary>
+        /// <summary>
+        /// <b>Was verloren geht, steht vorher da - auch bei der Aufdeckfrage.</b>
+        /// <para>
+        /// Die Rückfrage sagte bis 2026-09-07 zu, dass „Schritte, Medien, Spielfeldzellen und
+        /// bisherige Ergebnisse unberührt bleiben" - und löschte dabei Bild, Flächen und
+        /// Betriebsart der Aufdeckfrage. Zurückwandeln ging nicht (siehe
+        /// <see cref="EveryTypeCanBeReachedAndLeft"/>), und selbst dann wären die gezogenen
+        /// Flächen weg gewesen.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void ConvertingAwayFromRevealWarnsAboutTheImage()
+        {
+            var effekte = QuestionBasesController.DescribeConversionEffects(
+                QuestionType.Reveal, QuestionType.Default);
+
+            Assert.IsTrue(effekte.Any(e => e.Contains("Bild", StringComparison.Ordinal)),
+                "Kein Wort ueber das Bild: " + string.Join(" | ", effekte));
+
+            // Der alte Wortlaut sagte "Schritte, Medien, ..." zu und meinte damit auch das Bild.
+            // Gepruefte Unterscheidung: das Wort "Medien" darf nur noch an den SCHRITTEN haengen.
+            Assert.IsFalse(
+                effekte.Any(e => e.Contains("Schritte, Medien", StringComparison.Ordinal)),
+                "Die alte Zusage steht noch da - sie sprach ueber das Bild mit und war beim "
+                + "Verlassen der Aufdeckfrage falsch: " + string.Join(" | ", effekte));
+
+            Assert.IsTrue(
+                effekte.Any(e => e.Contains("Schritte samt ihrer Medien", StringComparison.Ordinal)),
+                "Die Zusage nennt nicht mehr, worauf sie sich bezieht: "
+                + string.Join(" | ", effekte));
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung.</b> Ohne sie waere die obige auch dann gruen, wenn die Warnung
+        /// bei <i>jeder</i> Umwandlung erschiene - dann liest sie niemand mehr.
+        /// </summary>
+        [TestMethod]
+        public void OtherConversionsDoNotMentionTheRevealImage()
+        {
+            var effekte = QuestionBasesController.DescribeConversionEffects(
+                QuestionType.Default, QuestionType.Properties);
+
+            Assert.IsFalse(effekte.Any(e => e.Contains("Aufdeckflächen", StringComparison.Ordinal)),
+                "Die Aufdeck-Warnung erscheint auch dort, wo es keine Aufdeckfrage gibt: "
+                + string.Join(" | ", effekte));
+
+            Assert.IsTrue(effekte.Any(e => e.Contains("bleiben unberührt", StringComparison.Ordinal)),
+                "Die Zusage ueber Schritte und Ergebnisse ist ganz verschwunden.");
+        }
+
+        [TestMethod]
+        public async Task EveryTypeCanBeReachedAndLeft()
+        {
+            var typen = QuestionTypeProfiles.All.Select(p => p.Typ).ToList();
+
+            Assert.IsTrue(typen.Count >= 5,
+                $"Es wurden nur {typen.Count} Fragetypen gefunden - dann misst diese Probe "
+                + "weniger, als es gibt.");
+
+            var fehler = new List<string>();
+
+            foreach (var ziel in typen)
+            {
+                foreach (var start in typen.Where(t => t != ziel))
+                {
+                    var frage = await CreateAsync(start, stepCount: 1);
+
+                    try
+                    {
+                        using var ctrl = new QuestionBasesController();
+
+                        var umgewandelt = await ctrl.ConvertTypeAsync(frage.Id, ziel);
+
+                        if (umgewandelt.Typ != ziel)
+                            fehler.Add($"{start} -> {ziel}: kam als {umgewandelt.Typ} zurueck");
+                    }
+                    catch (Exception ex)
+                    {
+                        fehler.Add($"{start} -> {ziel}: {ex.GetType().Name} - "
+                                   + ex.Message.Split(Environment.NewLine)[0]);
+                    }
+                }
+            }
+
+            Assert.AreEqual(0, fehler.Count,
+                "Diese Umwandlungen scheitern - der Spielleiter bekommt dafuer ein Fehlerfenster:"
+                + Environment.NewLine + string.Join(Environment.NewLine, fehler));
+        }
+
         [TestMethod]
         public async Task ConvertingKeepsTheStepsAndTheirContent()
         {

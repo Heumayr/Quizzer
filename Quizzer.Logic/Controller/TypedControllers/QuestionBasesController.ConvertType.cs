@@ -119,14 +119,37 @@ namespace Quizzer.Logic.Controller.TypedControllers
             => $"DELETE FROM [question].[{tableName}] WHERE [Id] = @id";
 
         /// <summary>
-        /// Die Schaetzfrage ist die einzige Untertabelle mit eigenen Spalten; sie bekommt beim
-        /// Anlegen ausdrueckliche Startwerte, damit sie nicht von Standardwerten der Datenbank
-        /// abhaengt.
+        /// Startwerte fuer die Untertabellen, die eigene Pflichtspalten haben.
+        /// <para>
+        /// <b>Der Kommentar hier behauptete bis 2026-09-07, die Schaetzfrage sei die einzige
+        /// solche Tabelle</b> - das galt fuer vier Typen und stimmt seit der Aufdeckfrage nicht
+        /// mehr. Die Folge: jede Umwandlung IN eine Aufdeckfrage scheiterte mit einem rohen
+        /// <c>SqlException 515</c>, weil das <c>INSERT</c> nur die Id schrieb.
+        /// </para>
+        /// <para>
+        /// <b>Die Werte sind dieselben, die der jeweilige Konstruktor setzt.</b> Sie stehen hier
+        /// ausdruecklich, statt sich auf Standardwerte der Datenbank zu verlassen -
+        /// <c>RevealQuestion</c> hat naemlich keine (nachgemessen ueber
+        /// <c>sys.default_constraints</c>).
+        /// </para>
+        /// <para>
+        /// Wer einen Fragetyp hinzufuegt und das hier vergisst, wird von
+        /// <c>QuestionTypeConversionUnitTests.EveryTypeCanBeReachedAndLeft</c> erwischt - die
+        /// laeuft ueber <c>QuestionTypeProfiles.All</c> und nicht ueber eine Liste von Hand.
+        /// </para>
         /// </summary>
+        private static readonly Dictionary<string, string> Startwerte = new()
+        {
+            [nameof(AppreciateQestion)] =
+                "([Id], [ValueKind], [Unit], [ExpectedValue], [ExpectedDate]) VALUES (@id, 0, 0, 0, NULL)",
+
+            [nameof(RevealQuestion)] =
+                "([Id], [Mode], [ImageFileName], [AreasJson], [BlurStart]) VALUES (@id, 0, N'', N'[]', 40)",
+        };
+
         private static string InsertStatementFor(string tableName)
-            => tableName == nameof(AppreciateQestion)
-                ? $"INSERT INTO [question].[{tableName}] ([Id], [ValueKind], [Unit], [ExpectedValue], [ExpectedDate]) "
-                  + "VALUES (@id, 0, 0, 0, NULL)"
+            => Startwerte.TryGetValue(tableName, out var spalten)
+                ? $"INSERT INTO [question].[{tableName}] {spalten}"
                 : $"INSERT INTO [question].[{tableName}] ([Id]) VALUES (@id)";
 
         /// <summary>
@@ -157,8 +180,22 @@ namespace Quizzer.Logic.Controller.TypedControllers
                 effects.Add("Mindestens ein Schritt muss als Lösung markiert sein, und die Zahl "
                           + "der wählbaren Antworten muss dazu passen.");
 
+            // Die Aufdeckfrage ist neben der Schaetzfrage die zweite Untertabelle mit eigenen
+            // Spalten. Bis 2026-09-07 stand hier kein Wort davon - stattdessen die Zusage, dass
+            // Medien unberuehrt bleiben, waehrend das Bild samt Flaechen geloescht wurde.
+            if (from == QuestionType.Reveal)
+                effects.Add("Bild, Aufdeckflächen und Betriebsart der Aufdeckfrage gehen "
+                          + "verloren und lassen sich nicht wiederherstellen.");
+
+            if (to == QuestionType.Reveal)
+                effects.Add("Bild und Aufdeckflächen müssen danach neu eingerichtet werden.");
+
             effects.Add($"Anzeige und Bedienung wechseln auf die Vorgaben für {target.DisplayName}.");
-            effects.Add("Schritte, Medien, Spielfeldzellen und bisherige Ergebnisse bleiben unberührt.");
+
+            // "Medien" hiess hier bis 2026-09-07 auch das Bild der Aufdeckfrage mit - und das
+            // ging sehr wohl verloren. Gemeint waren immer nur die Medien AN DEN SCHRITTEN.
+            effects.Add("Schritte samt ihrer Medien, Spielfeldzellen und bisherige Ergebnisse "
+                      + "bleiben unberührt.");
 
             return effects;
         }
