@@ -156,6 +156,79 @@ namespace Quizzer.UnitTests.Views
                 + prompt.Confirms[0].Message);
         }
 
+        /// <summary>Trägt dem Testspiel die Spielleitung des ersten Mitspielers ein.</summary>
+        private async Task SetModeratorAsync()
+        {
+            using var ctrl = new GamesController();
+
+            var spiel = await ctrl.GetAsync(world.Game.Id);
+
+            spiel!.ModeratorPlayerId = world.Players[0].Id;
+
+            await ctrl.UpdateAsync(spiel);
+            await ctrl.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// <b>B48.</b> Leitet der Mitspieler ein Spiel, wird abgewiesen - und zwar
+        /// <b>bevor</b> gefragt wird.
+        /// <para>
+        /// <c>Game.ModeratorPlayerId</c> steht auf NO ACTION. Bis hierher fragte die Maske
+        /// zuerst nach der Punktehistorie, löschte dann und lief in einen rohen
+        /// Fremdschlüsselfehler - der Spielleiter hatte also bereits „Ja" gedrückt, als der
+        /// Stacktrace kam.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task AModeratingPlayerIsRejectedBeforeAnythingIsAsked()
+        {
+            await SetModeratorAsync();
+
+            var vm = await BuildViewModelAsync();
+
+            await TestEnvironment.RunCommandAsync(vm.RemovePlayerCommand);
+
+            Assert.AreEqual(0, prompt.Confirms.Count,
+                "Es wurde nach der Punktehistorie gefragt, obwohl das Entfernen ohnehin "
+                + "scheitern muss.");
+
+            Assert.AreEqual(1, prompt.Informs.Count,
+                "Es wurde gar nicht abgewiesen - damit laeuft das Loeschen in den "
+                + "Fremdschluesselfehler.");
+
+            StringAssert.Contains(prompt.Informs[0].Message, world.Game.Designation,
+                "Die Abweisung nennt das Spiel nicht, das im Weg steht: "
+                + prompt.Informs[0].Message);
+
+            StringAssert.Contains(prompt.Informs[0].Message, world.Players[0].CalculatedDisplayName,
+                "Die Abweisung nennt nicht, wen sie betrifft.");
+
+            using var ctrlSpieler = new PlayersController();
+
+            Assert.IsNotNull(await ctrlSpieler.GetAsync(world.Players[0].Id),
+                "Der Mitspieler wurde trotz Abweisung entfernt.");
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung.</b> Ohne die zweite Zusicherung wäre die obige auch dann grün,
+        /// wenn <i>jeder</i> Mitspieler abgewiesen würde - dann könnte man niemanden mehr
+        /// entfernen, und der Testlauf bliebe stumm.
+        /// </summary>
+        [TestMethod]
+        public async Task WithoutModerationTheRejectionStaysAway()
+        {
+            var vm = await BuildViewModelAsync();
+
+            await TestEnvironment.RunCommandAsync(vm.RemovePlayerCommand);
+
+            Assert.AreEqual(0, prompt.Informs.Count,
+                "Es wurde abgewiesen, obwohl der Mitspieler kein Spiel leitet: "
+                + string.Join(" | ", prompt.Informs.Select(i => i.Message)));
+
+            Assert.AreEqual(1, prompt.Confirms.Count,
+                "Die gewoehnliche Rueckfrage kam nicht mehr - die Abweisung greift zu weit.");
+        }
+
         /// <summary>
         /// Ist nichts ausgewählt, wird gar nicht erst gefragt.
         /// </summary>

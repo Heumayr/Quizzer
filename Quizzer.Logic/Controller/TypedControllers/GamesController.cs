@@ -19,6 +19,29 @@ namespace Quizzer.Logic.Controller.TypedControllers
         {
         }
 
+        /// <summary>
+        /// Liefert die Bezeichnungen der Spiele, die von der genannten Person geleitet werden.
+        /// <para>
+        /// Gebraucht wird das vor dem Loeschen eines Mitspielers: <c>Game.ModeratorPlayerId</c>
+        /// steht auf NO ACTION (Migration <c>20260414180046_Moderator</c> legt den
+        /// Fremdschluessel ohne <c>onDelete</c> an), das Loeschen scheitert also in der
+        /// Datenbank. Ohne diese Abfrage bekaeme der Spielleiter einen rohen
+        /// Fremdschluesselfehler zu sehen - dieselbe Stelle, die bei den Fragen schon
+        /// <see cref="GameGridCoordinatesController.GameNamesUsingQuestionAsync"/> abfaengt.
+        /// </para>
+        /// </summary>
+        public async Task<List<string>> GameNamesModeratedByAsync(Guid playerId)
+        {
+            if (playerId == Guid.Empty)
+                return [];
+
+            return await EntitySet
+                .Where(g => g.ModeratorPlayerId == playerId)
+                .Select(g => g.Designation)
+                .Distinct()
+                .ToListAsync();
+        }
+
         protected override IQueryable<Game> SetQueryAttributes(IQueryable<Game> query, Actions action)
         {
             if (action == Actions.Get)

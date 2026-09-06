@@ -133,10 +133,44 @@ namespace Quizzer.Views
         }
 
         /// <summary>
-        /// Fragt nach und beziffert dabei, wie viele Ergebniszeilen mitgelöscht würden.
+        /// Weist ab, wenn die Person ein Spiel leitet, und fragt sonst nach - mit dem, was dabei
+        /// verloren geht.
+        /// <para>
+        /// <b>B48.</b> Bis hierher zählte die Rückfrage nur Ergebniszeilen und löschte danach
+        /// ungeprüft. <c>Game.ModeratorPlayerId</c> steht aber auf NO ACTION - wer eine Person
+        /// entfernt, die ein Spiel leitet, bekam einen rohen Fremdschlüsselfehler zu sehen,
+        /// <b>nach</b> der bestätigten Rückfrage. Dieselbe Abweisung gibt es bei den Fragen
+        /// seit Längerem (<c>QuestionsViewModel.ConfirmRemovalAsync</c>).
+        /// </para>
         /// </summary>
         private static async Task<bool> ConfirmRemovalAsync(List<Player> toRemove)
         {
+            using (var ctrlSpiele = new GamesController())
+            {
+                var leitet = new List<string>();
+
+                foreach (var player in toRemove)
+                {
+                    var spiele = await ctrlSpiele.GameNamesModeratedByAsync(player.Id);
+
+                    if (spiele.Count > 0)
+                        leitet.Add($"{player.CalculatedDisplayName} - leitet: {string.Join(", ", spiele)}");
+                }
+
+                if (leitet.Count > 0)
+                {
+                    UserPrompt.Inform(
+                        "Diese Mitspieler leiten ein Spiel und lassen sich nicht entfernen:"
+                        + Environment.NewLine + Environment.NewLine
+                        + string.Join(Environment.NewLine, leitet)
+                        + Environment.NewLine + Environment.NewLine
+                        + "Zuerst im Spielaufbau eine andere Spielleitung eintragen.",
+                        "Mitspieler entfernen");
+
+                    return false;
+                }
+            }
+
             int ergebnisse;
 
             using (var ctrlResults = new QuestionResultsController())
