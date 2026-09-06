@@ -45,8 +45,13 @@
                 <Button Content="Speichern" Command="{Binding SaveCommand}"
                         ToolTip="Schreibt die Punkte, das Fenster bleibt offen." />
                 <Button Content="Speichern und schließen" Command="{Binding SaveAndCloseCommand}" />
+                <!--
+                    Dieselbe Handlung wie "Zelle abschliessen" im Fragefenster und deshalb
+                    dieselbe Farbe. Bis 2026-09-06 stand hier DarkRed - dieselbe Sache sah in
+                    zwei Fenstern verschieden gefaehrlich aus.
+                -->
                 <Button Content="Speichern und Zelle abschließen" Command="{Binding SaveIsDoneFinishStateCommand}"
-                        Background="DarkRed"
+                        Background="DarkGreen"
                         ToolTip="Schreibt die Punkte und markiert die Zelle als gespielt." />
             </StackPanel>
         </Border>
