@@ -1,4 +1,4 @@
-using Quizzer.DataModels;
+﻿using Quizzer.DataModels;
 using Quizzer.Logic.Demo;
 
 // Startprojekt fuer die EF-Werkzeuge - und ein schmaler Weg, Demodaten anzulegen oder wieder
@@ -34,7 +34,9 @@ switch (args[0])
             Console.WriteLine($"Angelegt: \"{e.Spiel.Designation}\"");
             Console.WriteLine($"  Kategorien:  {e.Kategorien}");
             Console.WriteLine($"  Fragen:      {e.Fragen}");
-            Console.WriteLine($"  Mitspieler:  {e.Mitspieler} (davon 1 Moderator)");
+            // Hier stand "(davon 1 Moderator)" als eingetippte Zahl - schon vor dem 2026-09-06
+            // falsch, es waren zwei. Eine Zahl im Fliesstext altert lautlos.
+            Console.WriteLine($"  Mitspieler:  {e.Mitspieler}");
             Console.WriteLine($"  Belegte Zellen: {e.Zellen}");
             return 0;
         }

@@ -108,9 +108,9 @@ namespace Quizzer.Logic.Demo
             using var ctrl = new CategoriesController();
             using var fragenCtrl = new QuestionBasesController(ctrl);
 
+            // CategoryId ist nicht nullbar - eine Pruefung darauf waere immer wahr (CS8073).
             var belegt = (await fragenCtrl.GetAllAsync())
                 .Select(q => q.CategoryId)
-                .Where(id => id != null)
                 .Distinct()
                 .ToHashSet();
 

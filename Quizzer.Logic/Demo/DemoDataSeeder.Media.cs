@@ -33,6 +33,23 @@ namespace Quizzer.Logic.Demo
         private static readonly string[] TonEndungen = [".mp3", ".wav"];
 
         /// <summary>
+        /// Dateien, die zwar Bilder sind, aber keinen Fragen-Inhalt tragen: Platzhalter und
+        /// Hintergrundtexturen des Programms.
+        /// <para>
+        /// <b>Gemessen am 2026-09-06:</b> ohne diese Liste bekam die Bilderrunde
+        /// <c>AudioPlaceholderFile_….png</c> - alphabetisch die erste Datei im Ordner, und
+        /// ausgerechnet das Symbol, das sonst für „hier läuft Ton" steht.
+        /// </para>
+        /// </summary>
+        private static readonly string[] KeineInhalte =
+        [
+            "AudioPlaceholderFile", "Background", "CellBackground", "CellBackgroundHover",
+            "CellBackgroundIsDone", "GridBackground", "GridBackgroundResult",
+            "HeaderColumnBackground", "HeaderRowBackground", "HorizontalBackground",
+            "PlaceholderPlayer", "PlayerCardBackground", "PlayerCardBackgroundWinner",
+        ];
+
+        /// <summary>
         /// Haengt der Frage ein Medium an, wenn sie eine der beiden vorgesehenen ist.
         /// <para>
         /// Das Medium landet auf dem <b>ersten normalen Schritt</b>, nicht auf dem Startschritt.
@@ -90,9 +107,26 @@ namespace Quizzer.Logic.Demo
 
             return Directory.EnumerateFiles(ordner)
                 .Where(p => endungen.Contains(Path.GetExtension(p), StringComparer.OrdinalIgnoreCase))
-                .OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase)
                 .Select(Path.GetFileName)
+                .Where(name => name != null && !IstTextur(name))
+                .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
                 .FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Ob der Dateiname zu einer Textur oder einem Platzhalter des Programms gehoert. Die
+        /// Dateien tragen im Ressourcenordner eine angehaengte Kennung, deshalb wird auf den
+        /// Namensanfang vor dem ersten Unterstrich verglichen.
+        /// </summary>
+        private static bool IstTextur(string dateiname)
+        {
+            var stamm = Path.GetFileNameWithoutExtension(dateiname);
+            var trennung = stamm.IndexOf('_');
+
+            if (trennung > 0)
+                stamm = stamm[..trennung];
+
+            return KeineInhalte.Contains(stamm, StringComparer.OrdinalIgnoreCase);
         }
     }
 }

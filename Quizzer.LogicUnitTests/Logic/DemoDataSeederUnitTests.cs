@@ -367,6 +367,10 @@ namespace Quizzer.LogicUnitTests.Logic
 
                 Assert.AreEqual(ResourceType.Image, bildschritt.ResourceTyp,
                     "Die Bilderrunde traegt kein Bild.");
+
+                Assert.AreEqual("probe.png", bildschritt.ResourceFileName,
+                    "Die Bilderrunde traegt eine Textur des Programms statt eines Inhalts. "
+                    + "Gewaehlt wurde: " + bildschritt.ResourceFileName);
                 Assert.AreEqual(ResourceType.Audio, tonschritt.ResourceTyp,
                     "Die Musikrunde traegt keinen Ton.");
 
@@ -427,7 +431,16 @@ namespace Quizzer.LogicUnitTests.Logic
             Directory.CreateDirectory(Path.Combine(wurzel, "Resources"));
 
             if (bild)
+            {
+                // Der Platzhalter steht alphabetisch VOR der Probe - er darf trotzdem nicht
+                // gewaehlt werden. Genau das ist am 2026-09-06 passiert: die Bilderrunde bekam
+                // das Symbol, das sonst "hier laeuft Ton" bedeutet.
+                File.WriteAllText(
+                    Path.Combine(wurzel, "Resources", "AudioPlaceholderFile_abc.png"),
+                    "Platzhalter, kein Inhalt");
+
                 File.WriteAllText(Path.Combine(wurzel, "Resources", "probe.png"), "kein echtes Bild");
+            }
 
             if (ton)
                 File.WriteAllText(Path.Combine(wurzel, "Resources", "probe.mp3"), "kein echter Ton");
