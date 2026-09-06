@@ -1,3 +1,4 @@
+using Quizzer.Base;
 using Quizzer.DataModels;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.QuestionTypes;
@@ -12,7 +13,8 @@ using System.Windows.Media.Imaging;
 namespace Quizzer.Views.GameViews.QuestionViews.Typed
 {
     /// <summary>
-    /// Die Aufdeckfrage auf dem Bildschirm - Flächen fallen weg, oder die Unschärfe nimmt ab.
+    /// Die Aufdeckfrage auf dem Bildschirm - Flächen fallen weg, oder Unschärfe und Raster
+    /// nehmen ab.
     /// <para>
     /// <b>Nutzerwunsch vom 2026-09-06.</b> Die Rechnung, was auf welchem Schritt zu sehen ist,
     /// steht in <see cref="RevealAreas"/> - hier wird sie nur gezeichnet.
@@ -50,29 +52,51 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
                 return;
 
             var gezeigt = Kontext.PreviousStepsCount;
+            var schritte = Kontext.LayoutReferenceSteps.Length;
 
-            if (frage.Mode == RevealMode.Blur)
+            if (frage.Mode == RevealMode.Areas)
             {
-                var radius = RevealAreas.Unschaerfe(
-                    frage.BlurStart, Kontext.LayoutReferenceSteps.Length, gezeigt);
+                var flaechen = RevealAreas.Parse(frage.AreasJson);
 
-                Bild.Effect = radius > 0 ? new BlurEffect { Radius = radius } : null;
+                ZeichneFlaechen(flaechen, gezeigt);
 
-                // Der Spielleiter soll sehen, wo er steht - die Mitspieler nicht.
-                if (IsMasterView)
-                    Hinweis.Text = radius > 0 ? $"Unschärfe {radius:0}" : "Bild scharf";
+                Melde($"{Math.Min(gezeigt, flaechen.Count)} von {flaechen.Count} Flächen aufgedeckt");
 
                 return;
             }
 
-            ZeichneFlaechen(RevealAreas.Parse(frage.AreasJson), gezeigt);
+            VerschleiereGanzesBild(frage, schritte, gezeigt);
+        }
 
-            if (IsMasterView)
+        /// <summary>
+        /// Unschärfe und Raster - beide verschleiern das <b>ganze</b> Bild und nehmen je Schritt
+        /// gleichmäßig ab; verdeckt wird nichts.
+        /// </summary>
+        private void VerschleiereGanzesBild(RevealQuestion frage, int schritte, int gezeigt)
+        {
+            if (frage.Mode == RevealMode.Pixelate)
             {
-                var gesamt = RevealAreas.Parse(frage.AreasJson).Count;
+                var kante = RevealAreas.Rasterung(frage.BlurStart, schritte, gezeigt);
 
-                Hinweis.Text = $"{Math.Min(gezeigt, gesamt)} von {gesamt} Flächen aufgedeckt";
+                Bildraster.Zeige(Bild, Bild.Source as BitmapSource, kante, Bildlage()?.Breite ?? 0);
+
+                Melde(kante > 0 ? $"Raster {kante:0}" : "Bild scharf");
+
+                return;
             }
+
+            var radius = RevealAreas.Unschaerfe(frage.BlurStart, schritte, gezeigt);
+
+            Bild.Effect = radius > 0 ? new BlurEffect { Radius = radius } : null;
+
+            Melde(radius > 0 ? $"Unschärfe {radius:0}" : "Bild scharf");
+        }
+
+        /// <summary>Der Spielleiter soll sehen, wo er steht - die Mitspieler nicht.</summary>
+        private void Melde(string text)
+        {
+            if (IsMasterView)
+                Hinweis.Text = text;
         }
 
         /// <summary>Lädt das Bild. Meldet, ob überhaupt eines da ist.</summary>
@@ -104,9 +128,32 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
             bitmap.EndInit();
             bitmap.Freeze();
 
+            // Eine vorherige Rasterung darf nicht am Steuerelement hängenbleiben - sonst zeigt der
+            // nächste Schritt das scharfe Bild in Klötzchen.
+            RenderOptions.SetBitmapScalingMode(Bild, BitmapScalingMode.Unspecified);
+
             Bild.Source = bitmap;
 
             return true;
+        }
+
+        /// <summary>
+        /// Wo das Bild wirklich liegt. <c>Stretch=Uniform</c>: es sitzt mittig, mit Rand oben und
+        /// unten oder links und rechts.
+        /// </summary>
+        private (double Links, double Oben, double Breite, double Hoehe)? Bildlage()
+        {
+            if (Bild.Source is not BitmapSource quelle || Buehne.ActualWidth <= 0)
+                return null;
+
+            var faktor = Math.Min(
+                Buehne.ActualWidth / quelle.PixelWidth,
+                Buehne.ActualHeight / quelle.PixelHeight);
+
+            var breite = quelle.PixelWidth * faktor;
+            var hoehe = quelle.PixelHeight * faktor;
+
+            return ((Buehne.ActualWidth - breite) / 2, (Buehne.ActualHeight - hoehe) / 2, breite, hoehe);
         }
 
         /// <summary>
@@ -115,18 +162,12 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
         /// </summary>
         private void ZeichneFlaechen(IReadOnlyList<RevealArea> alle, int aufgedeckt)
         {
-            if (Bild.Source is not BitmapSource quelle || Buehne.ActualWidth <= 0)
+            var lage = Bildlage();
+
+            if (lage == null)
                 return;
 
-            // Stretch=Uniform: das Bild sitzt mittig, mit Rand oben/unten oder links/rechts.
-            var faktor = Math.Min(
-                Buehne.ActualWidth / quelle.PixelWidth,
-                Buehne.ActualHeight / quelle.PixelHeight);
-
-            var breite = quelle.PixelWidth * faktor;
-            var hoehe = quelle.PixelHeight * faktor;
-            var links = (Buehne.ActualWidth - breite) / 2;
-            var oben = (Buehne.ActualHeight - hoehe) / 2;
+            var (links, oben, breite, hoehe) = lage.Value;
 
             foreach (var flaeche in RevealAreas.NochVerdeckt(alle, aufgedeckt))
             {

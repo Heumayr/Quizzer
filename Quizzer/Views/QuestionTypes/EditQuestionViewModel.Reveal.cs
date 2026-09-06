@@ -35,9 +35,12 @@ namespace Quizzer.Views.QuestionTypes
                 if (string.IsNullOrWhiteSpace(frage.ImageFileName))
                     return "Noch kein Bild hinterlegt.";
 
-                return frage.Mode == RevealMode.Blur
-                    ? $"Unschärfe von {frage.BlurStart:0} an, je Schritt schärfer."
-                    : $"{RevealAreas.Parse(frage.AreasJson).Count} Fläche(n) über dem Bild.";
+                return frage.Mode switch
+                {
+                    RevealMode.Blur => $"Unschärfe von {frage.BlurStart:0} an, je Schritt schärfer.",
+                    RevealMode.Pixelate => $"Raster von {frage.BlurStart:0} an, je Schritt feiner.",
+                    _ => $"{RevealAreas.Parse(frage.AreasJson).Count} Fläche(n) über dem Bild.",
+                };
             }
         }
 
@@ -69,25 +72,25 @@ namespace Quizzer.Views.QuestionTypes
             if (!fenster.Uebernommen)
                 return;
 
-            vm.SchritteAnFlaechenAngleichen();
+            vm.SchritteAngleichen(fenster.GewuenschteSchritte);
             vm.MeldeRevealGeaendert();
         }
 
         /// <summary>
-        /// Legt so viele Inhaltsschritte an, wie es Flaechen gibt - und entfernt ueberzaehlige.
+        /// Legt so viele Inhaltsschritte an, wie die Einstellung verlangt - und entfernt
+        /// ueberzaehlige.
         /// <para>
         /// <b>Der Schritt ist die Einheit des Aufdeckens.</b> Ohne diese Angleichung haette eine
-        /// Frage mit fuenf Flaechen zwei Schritte, und drei Flaechen fielen nie.
+        /// Frage mit fuenf Flaechen zwei Schritte, und drei Flaechen fielen nie. Bei Unschaerfe
+        /// und Verpixelung bestimmt der Schieberegler im Editor die Zahl.
         /// </para>
         /// </summary>
-        internal void SchritteAnFlaechenAngleichen()
+        internal void SchritteAngleichen(int gebraucht)
         {
             if (Question is not RevealQuestion frage)
                 return;
 
-            var gebraucht = frage.Mode == RevealMode.Blur
-                ? Math.Max(frage.Steps.Count(s => !s.IsStart && !s.IsFinish), 1)
-                : RevealAreas.Parse(frage.AreasJson).Count;
+            gebraucht = Math.Max(gebraucht, 0);
 
             var vorhanden = frage.Steps
                 .Where(s => !s.IsStart && !s.IsFinish)

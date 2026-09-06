@@ -87,6 +87,26 @@ namespace Quizzer.DataModels.Questions
             return start * offen / schritte;
         }
 
+        /// <summary>
+        /// Wie grob das Raster auf diesem Schritt ist - als Kantenlänge eines Blocks, gemessen in
+        /// Punkten der Anzeige.
+        /// <para>
+        /// Läuft von grob auf fein und ist im letzten Schritt <c>0</c>, also unverpixelt. Ohne
+        /// Inhaltsschritte gibt es nichts zu verfeinern, dann ist das Bild sofort scharf -
+        /// dieselbe Regel wie bei der Unschärfe, und aus demselben Grund.
+        /// </para>
+        /// <para>
+        /// <b>Dieselbe Einheit wie der Unschärferadius</b>, und deshalb dieselbe Rechnung: der
+        /// Schieber im Editor stellt beide Betriebsarten, ein Wert von 40 muss in beiden ungefähr
+        /// gleich stark wirken.
+        /// </para>
+        /// </summary>
+        /// <param name="start">Die Blockkante im ersten Schritt.</param>
+        /// <param name="schritte">Wie viele Inhaltsschritte es gibt.</param>
+        /// <param name="aufgedeckt">Wie viele davon schon gezeigt wurden.</param>
+        public static double Rasterung(double start, int schritte, int aufgedeckt)
+            => Unschaerfe(start, schritte, aufgedeckt);
+
         /// <summary>Die Flächen einer Frage - oder eine leere Liste, wenn es keine Aufdeckfrage ist.</summary>
         public static List<RevealArea> Of(Models.QuestionBase? frage)
             => frage is RevealQuestion aufdeck ? Parse(aufdeck.AreasJson) : [];

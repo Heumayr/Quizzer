@@ -16,5 +16,15 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Das Bild ist unscharf; je Schritt wird es schaerfer.</summary>
         Blur = 1,
+
+        /// <summary>
+        /// Das Bild ist grob verpixelt; je Schritt wird die Rasterung feiner.
+        /// <para>
+        /// Eigene Betriebsart und nicht dasselbe wie Unschaerfe: ein verpixeltes Bild behaelt
+        /// harte Kanten und gibt Farben und Umrisse frueher preis als ein weichgezeichnetes.
+        /// Der Nutzer hat beide Woerter genannt (2026-09-06).
+        /// </para>
+        /// </summary>
+        Pixelate = 2,
     }
 }
