@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Quizzer.UnitTests.Views
 {
@@ -102,7 +103,37 @@ namespace Quizzer.UnitTests.Views
             fenster.Show();
             fenster.UpdateLayout();
 
+            WarteBisGeladen(fenster);
+
             return fenster;
+        }
+
+        /// <summary>
+        /// Arbeitet die Warteschlange ab, bis das Fenster sein <c>Loaded</c> hinter sich hat.
+        /// <para>
+        /// <b>Kein Stabilisieren, sondern das Auflösen eines echten Rennens.</b> Die
+        /// Tastenkürzel werden erst scharf, wenn <c>WindowBase_Loaded</c> gelaufen ist;
+        /// <c>Show()</c> stellt das nur in die Warteschlange. Die <b>erste</b> Prüfung einer
+        /// Klasse zahlt dabei die WPF-Aufwärmzeit - gemessen 4 Sekunden gegen 0,65 - und drückte
+        /// bis hierher Enter, bevor das Fenster zuhören konnte. Im Volllauf fiel es nie auf, weil
+        /// eine frühere Klasse den Oberflächen-Thread schon warm hatte.
+        /// </para>
+        /// <para>
+        /// Gewartet wird auf eine <b>Bedingung</b>, nicht eine Zeitspanne: ein <c>Sleep</c> wäre
+        /// dieselbe Wette mit einem anderen Einsatz.
+        /// </para>
+        /// </summary>
+        private static void WarteBisGeladen(FrameworkElement fenster)
+        {
+            for (var i = 0; i < 50 && !fenster.IsLoaded; i++)
+            {
+                Dispatcher.CurrentDispatcher.Invoke(
+                    () => { }, System.Windows.Threading.DispatcherPriority.Loaded);
+            }
+
+            Assert.IsTrue(fenster.IsLoaded,
+                "Das Fenster hat sein Loaded nicht erreicht - dann sind die Tastenkuerzel nicht "
+                + "scharf und der Test misst nichts.");
         }
 
         /// <summary>

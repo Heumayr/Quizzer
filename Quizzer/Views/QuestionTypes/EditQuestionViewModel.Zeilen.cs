@@ -1,3 +1,5 @@
+using Quizzer.Base;
+using Quizzer.DataModels;
 using Quizzer.DataModels.Questions.Schrittbau;
 using Quizzer.Views.QuestionTypes.Typed;
 
@@ -52,8 +54,54 @@ namespace Quizzer.Views.QuestionTypes
             // Der Schritt-Dialog bleibt erreichbar - was die Typmaske nicht zeigt (ein Medium am
             // Schritt, die Kennung "Startschritt"), gibt es trotzdem.
             editor.Erweitert = zeile => EditStepAsync(zeile.Schritt);
+            editor.MediumWaehlen = HaengeMediumAn;
 
             Zeileneditor = editor;
+        }
+
+        /// <summary>
+        /// Hängt eine Mediendatei an eine Zeile - <b>ohne Umweg über den Schritt-Dialog</b>.
+        /// <para>
+        /// <b>Nutzerwunsch vom 2026-09-06:</b> „gut wäre ein button für media". Derselbe Weg wie
+        /// dort: die Datei landet über <c>FileHelper</c> im Ressourcenordner und bekommt dort
+        /// ihren Namen.
+        /// </para>
+        /// <para>
+        /// <b>Der Dateityp wird vorher geprüft, nicht hinterher gefangen.</b>
+        /// <c>DetectResourceType</c> <i>wirft</i> bei einer unbekannten Endung; ein Filter im
+        /// Dialog hält niemanden davon ab, „Alle Dateien" zu wählen, und eine Ausnahme daraus
+        /// wäre ein Fehlerfenster für einen Bedienfehler.
+        /// </para>
+        /// </summary>
+        private static bool HaengeMediumAn(StepZeile zeile)
+        {
+            var quelle = FilePicker.AskForExistingFile(
+                "Medium wählen",
+                "Bilder|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp"
+                + "|Ton|*.mp3;*.wav;*.ogg;*.flac"
+                + "|Video|*.mp4;*.avi;*.mov;*.wmv;*.mkv");
+
+            if (quelle == null)
+                return false;
+
+            try
+            {
+                var (dateiname, typ) = FileHelper.HandleSelectedResourceFile(
+                    quelle, Settings.ResourceRootFolder);
+
+                zeile.Schritt.ResourceFileName = dateiname;
+                zeile.Schritt.ResourceTyp = typ;
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                UserPrompt.Inform(
+                    "Die Datei ließ sich nicht übernehmen:" + Environment.NewLine + ex.Message,
+                    "Medium");
+
+                return false;
+            }
         }
 
         /// <summary>

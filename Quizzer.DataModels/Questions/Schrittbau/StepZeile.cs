@@ -125,6 +125,24 @@ namespace Quizzer.DataModels.Questions.Schrittbau
 
         private string zusatz = string.Empty;
 
+        /// <summary>Ob an dieser Zeile eine Mediendatei hängt.</summary>
+        public bool HatMedium
+            => Schritt.ResourceTyp != ResourceType.None
+               && !string.IsNullOrWhiteSpace(Schritt.ResourceFileName);
+
+        /// <summary>
+        /// Was auf dem Medienknopf steht - <b>ein Wort, kein Zeichen</b>. Eine Büroklammer sagt
+        /// nicht, ob schon etwas dranhängt und was es ist; „Bild" und „Ton" sagen beides.
+        /// </summary>
+        public string Mediumtext => Schritt.ResourceTyp switch
+        {
+            ResourceType.Image => "Bild",
+            ResourceType.Video => "Video",
+            ResourceType.Audio => "Ton",
+            ResourceType.Document => "Datei",
+            _ => "Medium …",
+        };
+
         /// <summary>Ob die Zeile Text und Medium leer lässt - dann wird sie nicht geschrieben.</summary>
         public bool IstLeer
             => string.IsNullOrWhiteSpace(Schritt.StepText)
@@ -174,6 +192,8 @@ namespace Quizzer.DataModels.Questions.Schrittbau
             Melde(nameof(Text));
             Melde(nameof(IstRichtig));
             Melde(nameof(IstLeer));
+            Melde(nameof(HatMedium));
+            Melde(nameof(Mediumtext));
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

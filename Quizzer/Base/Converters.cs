@@ -52,4 +52,19 @@ namespace Quizzer.Base
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => Binding.DoNothing;
     }
+    /// <summary>
+    /// Hebt hervor, was schon da ist: ein Knopf mit angehängtem Medium steht fett, ein leerer
+    /// normal. <b>Nicht die einzige Unterscheidung</b> - die Beschriftung sagt es ebenfalls
+    /// („Bild" gegen „Medium …"), denn Information nur über die Darstellung zu tragen, hält
+    /// `standards-bedienbarkeit.md` nicht für zulässig.
+    /// </summary>
+    public class BoolToFontWeightConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => value is true ? FontWeights.Bold : FontWeights.Normal;
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotSupportedException();
+    }
+
 }

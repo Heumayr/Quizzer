@@ -1,7 +1,12 @@
 <UserControl x:Class="Quizzer.Views.QuestionTypes.Typed.ZeileneditorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Quizzer.Views.QuestionTypes.Typed">
+             xmlns:local="clr-namespace:Quizzer.Views.QuestionTypes.Typed"
+             xmlns:base="clr-namespace:Quizzer.Base">
+    <UserControl.Resources>
+        <base:BoolToFontWeightConverter x:Key="MediumGewicht" />
+    </UserControl.Resources>
+
     <StackPanel>
 
         <StackPanel Visibility="{Binding ZeilenVisibility}">
@@ -20,17 +25,23 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
+                            <!-- Beschriftet, nicht nackt: die Trefferflaeche umfasst Kaestchen
+                                 UND Wort statt nur 13 Bildpunkte, und "richtig" beantwortet die
+                                 Frage, die eine leere Box offenlaesst - richtig was? -->
                             <CheckBox Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0"
+                                      Content="richtig" Padding="4,0,0,0"
                                       IsChecked="{Binding IstRichtig, UpdateSourceTrigger=PropertyChanged}"
                                       Visibility="{Binding DataContext.RichtigVisibility,
                                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                      ToolTip="Diese Antwort ist richtig." />
+                                      ToolTip="Ein Klick markiert diese Antwort als richtig." />
 
                             <TextBlock Grid.Column="1" Text="{Binding Taste}" MinWidth="22"
                                        VerticalAlignment="Center" Opacity="0.7" FontWeight="Bold"
-                                       ToolTip="Diese Taste liegt im Spiel auf dieser Zeile." />
+                                       ToolTip="{Binding DataContext.Tastenerklaerung,
+                                                 RelativeSource={RelativeSource AncestorType=UserControl}}" />
 
                             <TextBox Grid.Column="2" VerticalContentAlignment="Center"
                                      Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}">
@@ -61,13 +72,22 @@
                                         CommandParameter="{Binding}" />
                             </StackPanel>
 
-                            <Button Grid.Column="5" Content="…" Style="{StaticResource IconButton}"
+                            <Button Grid.Column="5" Content="{Binding Mediumtext}"
+                                    Style="{StaticResource IconButton}" MinWidth="66"
+                                    FontWeight="{Binding HatMedium,
+                                                 Converter={StaticResource MediumGewicht}}"
+                                    ToolTip="Bild, Ton oder Video an diese Zeile hängen."
+                                    Command="{Binding DataContext.MediaCommand,
+                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}" />
+
+                            <Button Grid.Column="6" Content="…" Style="{StaticResource IconButton}"
                                     ToolTip="Erweitert: Startschritt, abweichende Bezeichnung."
                                     Command="{Binding DataContext.AdvancedCommand,
                                               RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}" />
 
-                            <Button Grid.Column="6" Content="✕" Style="{StaticResource IconButton}"
+                            <Button Grid.Column="7" Content="✕" Style="{StaticResource IconButton}"
                                     ToolTip="Diese Zeile entfernen"
                                     Visibility="{Binding DataContext.ZeilenAendernVisibility,
                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -85,8 +105,16 @@
                         ToolTip="Hängt eine leere Zeile an. Leere Zeilen werden nicht gespeichert." />
             </StackPanel>
 
-            <TextBlock Text="{Binding Zeilenhinweis}" Opacity="0.75" Margin="5,0,5,6"
+            <TextBlock Text="{Binding Zeilenhinweis}" Opacity="0.75" Margin="5,0,5,2"
                        TextWrapping="Wrap" />
+
+            <!-- Der Rueckweg zu mehreren richtigen Antworten. Er steht genau dann da, wenn ein
+                 Klick gerade eine andere Markierung abgeraeumt hat - kein Modus, keine
+                 Einstellung, nichts zu finden. -->
+            <Button Content="{Binding Rueckwegtext}" Margin="5,0,5,6" HorizontalAlignment="Left"
+                    Visibility="{Binding RueckwegVisibility}"
+                    Command="{Binding RestoreSecondSolutionCommand}"
+                    ToolTip="Mehrere richtige Antworten sind weiterhin möglich." />
         </StackPanel>
 
         <StackPanel Visibility="{Binding AbschlussVisibility}">

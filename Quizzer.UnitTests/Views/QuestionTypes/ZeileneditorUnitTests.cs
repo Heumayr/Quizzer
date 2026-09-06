@@ -4,6 +4,7 @@ using Quizzer.DataModels.Helpers;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Questions;
+using Quizzer.DataModels.Questions.Schrittbau;
 using Quizzer.Views.QuestionTypes;
 using System.Windows;
 using System.Windows.Controls;
@@ -278,6 +279,126 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
                     $"Fuer \"{zeile.Text}\" steht in der Maske \"{zeile.Taste}\", im Spiel "
                     + $"aber \"{imSpiel[zeile.Text]}\".");
             }
+        }
+
+        /// <summary>
+        /// <b>Die richtige Antwort zu wechseln kostet einen Klick, nicht zwei.</b>
+        /// <para>
+        /// <b>Nutzerwunsch vom 2026-09-06:</b> „auch das setzten der richtigen antwort muss ein
+        /// klick sein". Das <i>Setzen</i> war schon einer; das <i>Wechseln</i> kostete zwei, und
+        /// der Zwischenzustand war nicht bloß umständlich, sondern falsch - mit zwei Häkchen
+        /// verlangt die Frage am Telefon zwei Tastendrücke.
+        /// </para>
+        /// <para>
+        /// <b>Gemessen wird der Verlauf, nicht der Endzustand.</b> „Am Ende ist genau eine
+        /// markiert" wäre auch dann wahr, wenn das Abräumen sich selbst wieder aufriefe - genau
+        /// die Fehlerfamilie, die in diesem Projekt schon einen Stapelüberlauf erzeugt hat.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void SwitchingTheRightAnswerCostsOneClick()
+        {
+            var vm = Mit(QuestionType.MultipleChoice);
+            var mc = (Quizzer.Views.QuestionTypes.Typed.AntwortlisteViewModel)vm.Zeileneditor!;
+
+            mc.Zeilen[0].Text = "Sydney";
+            mc.Zeilen[1].Text = "Canberra";
+
+            mc.Zeilen[0].IstRichtig = true;
+
+            // Ab hier den Verlauf mitschreiben.
+            var meldungen = 0;
+
+            foreach (var zeile in mc.Zeilen)
+                zeile.PropertyChanged += (_, e) =>
+                {
+                    if (e.PropertyName == nameof(StepZeile.IstRichtig))
+                        meldungen++;
+                };
+
+            mc.Zeilen[1].IstRichtig = true;
+
+            Assert.IsFalse(mc.Zeilen[0].IstRichtig,
+                "Die vorherige Antwort ist noch markiert - das Wechseln kostet weiter zwei Klicks.");
+
+            Assert.IsTrue(mc.Zeilen[1].IstRichtig);
+
+            Assert.AreEqual(2, meldungen,
+                $"Es sind {meldungen} Meldungen gelaufen statt zwei (die gesetzte und die "
+                + "geraeumte). Mehr heisst, das Abraeumen ruft sich selbst wieder auf.");
+
+            Assert.AreEqual(1, vm.Question!.BuzzerMaxAllowedKeySelect,
+                "Die Frage verlangt am Telefon mehr als einen Tastendruck.");
+        }
+
+        /// <summary>
+        /// Und der Rückweg: mehrere richtige Antworten bleiben möglich, <b>ohne einen Modus</b>.
+        /// Ohne diese Zusicherung wäre „einfach immer alles abräumen" grün - und die vom Bestand
+        /// ausdrücklich geschützte Mehrfachlösung wäre still abgeschafft.
+        /// </summary>
+        [TestMethod]
+        public void MultipleRightAnswersStayReachable()
+        {
+            var vm = Mit(QuestionType.MultipleChoice);
+            var mc = (Quizzer.Views.QuestionTypes.Typed.AntwortlisteViewModel)vm.Zeileneditor!;
+
+            mc.Zeilen[0].Text = "Wien";
+            mc.Zeilen[1].Text = "Linz";
+
+            mc.Zeilen[0].IstRichtig = true;
+            mc.Zeilen[1].IstRichtig = true;
+
+            Assert.AreEqual(System.Windows.Visibility.Visible, mc.RueckwegVisibility,
+                "Nach dem Abraeumen wird kein Rueckweg angeboten - dann sind mehrere richtige "
+                + "Antworten von dieser Maske aus unerreichbar.");
+
+            StringAssert.Contains(mc.Rueckwegtext, "Wien",
+                "Der Rueckweg sagt nicht, welche Antwort er zurueckholt.");
+
+            mc.RestoreSecondSolutionCommand.Execute(null);
+
+            Assert.IsTrue(mc.Zeilen[0].IstRichtig && mc.Zeilen[1].IstRichtig,
+                "Der Rueckweg hat die zweite Antwort nicht wieder markiert.");
+
+            Assert.AreEqual(2, vm.Question!.BuzzerMaxAllowedKeySelect,
+                "Zwei Loesungen ergeben nicht zwei waehlbare Tasten.");
+
+            Assert.AreEqual(System.Windows.Visibility.Collapsed, mc.RueckwegVisibility,
+                "Das Angebot bleibt stehen, obwohl es nicht mehr gilt.");
+        }
+
+        /// <summary>
+        /// <b>Das Abräumen darf beim Öffnen nie laufen.</b> Eine Bestandsfrage mit zwei Häkchen
+        /// verlöre sonst allein durchs Hinsehen eine Markierung - und
+        /// <c>BuzzerMaxAllowedKeySelect</c> fiele von 2 auf 1.
+        /// </summary>
+        [TestMethod]
+        public void OpeningAQuestionNeverClearsAnExistingSecondSolution()
+        {
+            var vm = Mit(QuestionType.MultipleChoice, f =>
+            {
+                f.BuzzerMaxAllowedKeySelect = 2;
+
+                foreach (var text in new[] { "Wien", "Linz" })
+                {
+                    f.Steps.Add(new QuestionStepResource
+                    {
+                        Id = Guid.NewGuid(),
+                        SequenceNumber = f.Steps.Count * 10 + 10,
+                        Designation = text,
+                        StepText = text,
+                        IsResult = true,
+                    });
+                }
+            });
+
+            var mc = vm.Zeileneditor!;
+
+            Assert.AreEqual(2, mc.Zeilen.Count(z => z.IstRichtig),
+                "Das blosse Oeffnen hat eine Markierung abgeraeumt - stiller Datenverlust.");
+
+            Assert.AreEqual(2, vm.Question!.BuzzerMaxAllowedKeySelect,
+                "Die Zahl der waehlbaren Tasten ist beim Oeffnen gefallen.");
         }
 
         /// <summary>
