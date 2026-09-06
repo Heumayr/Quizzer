@@ -104,13 +104,33 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
                 Hinweis.Text = text;
         }
 
+        /// <summary>
+        /// Meldet ein fehlendes oder unlesbares Bild - <b>nur dem Spielleiter</b>.
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> die drei Meldungen schrieben direkt an das Hinweisfeld und
+        /// damit an <see cref="Melde"/> vorbei. Das Beamerfenster benutzt dieselbe Ansicht, also
+        /// stand mitten im Bild vor den Gästen ein Satz, der für den Spielleiter gedacht ist -
+        /// etwa „Das Bild dieser Frage liegt nicht im Datenordner."
+        /// </para>
+        /// <para>
+        /// Auf dem Beamer bleibt die Zeile leer. Ein neutraler Ersatztext wäre schlechter: die
+        /// Mitspieler sollen gar nicht merken, dass etwas fehlt, sonst raten sie darüber statt
+        /// über die Frage.
+        /// </para>
+        /// </summary>
+        private void MeldeFehlendesBild(string text)
+        {
+            Bild.Source = null;
+
+            Melde(IsMasterView ? text : string.Empty);
+        }
+
         /// <summary>Lädt das Bild. Meldet, ob überhaupt eines da ist.</summary>
         private bool LadeBild(RevealQuestion frage)
         {
             if (string.IsNullOrWhiteSpace(frage.ImageFileName))
             {
-                Bild.Source = null;
-                Hinweis.Text = "Für diese Aufdeckfrage ist noch kein Bild hinterlegt.";
+                MeldeFehlendesBild("Für diese Aufdeckfrage ist noch kein Bild hinterlegt.");
 
                 return false;
             }
@@ -119,8 +139,7 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
 
             if (!File.Exists(pfad))
             {
-                Bild.Source = null;
-                Hinweis.Text = "Das Bild dieser Frage liegt nicht im Datenordner.";
+                MeldeFehlendesBild("Das Bild dieser Frage liegt nicht im Datenordner.");
 
                 return false;
             }
@@ -131,8 +150,7 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
             {
                 // Die Datei liegt da, WPF kann sie nur nicht lesen - etwa eine .webp auf einem
                 // Rechner ohne deren Codec. Ohne diesen Zweig warf der Schrittaufbau.
-                Bild.Source = null;
-                Hinweis.Text = "Das Bild dieser Frage lässt sich nicht anzeigen.";
+                MeldeFehlendesBild("Das Bild dieser Frage lässt sich nicht anzeigen.");
 
                 return false;
             }
