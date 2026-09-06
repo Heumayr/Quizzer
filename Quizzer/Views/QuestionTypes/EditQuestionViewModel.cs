@@ -110,6 +110,8 @@ namespace Quizzer.Views.QuestionTypes
             // aufgeloest, solange Question noch null ist, und danach meldet niemand mehr.
             MeldeRevealGeaendert();
 
+            BaueZeileneditor();
+
             //OnDatagridSourceChanged();
         }
 
@@ -152,6 +154,11 @@ namespace Quizzer.Views.QuestionTypes
         public override async Task VMSaveAsync()
         {
             if (Question == null) return;
+
+            // Was in der Typmaske steht, geht erst hier in die Frage. Liefe das bei jedem
+            // Tastendruck, verschwaende eine Zeile unter dem Cursor, sobald man ihren Text
+            // loescht - der Uebersetzer raeumt leere Zeilen weg.
+            UebernimmZeilen();
 
             var wasNew = Question.Id == Guid.Empty;
 

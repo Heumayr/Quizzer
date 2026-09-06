@@ -213,14 +213,10 @@ namespace Quizzer.Views.GameViews.Sub
         {
             if (Coordinate?.QuestionBase?.UseProportionalScoreReductionOnStep == true)
             {
-                var regularStepCount = RegularStepCount;
-                var points = Coordinate?.CurrentPoints ?? 0;
-
-                if (regularStepCount <= 0 || points <= 0)
-                    return 0;
-
-                var reduction = points / RegularStepCount * PreviousStepsCount;
-                return points - reduction;
+                // Die Rechnung steht in Punkteabzug, damit der Frageneditor beim Anlegen
+                // dieselbe anzeigen kann - eine zweite Abschrift liefe der ersten davon.
+                return DataModels.Questions.Punkteabzug.Verbleibend(
+                    Coordinate?.CurrentPoints ?? 0, RegularStepCount, PreviousStepsCount);
             }
             else
             {

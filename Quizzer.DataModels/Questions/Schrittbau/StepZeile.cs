@@ -109,6 +109,22 @@ namespace Quizzer.DataModels.Questions.Schrittbau
 
         private string taste = string.Empty;
 
+        /// <summary>
+        /// Ein abgeleiteter Zusatz neben der Zeile - etwa, was nach diesem Hinweis noch zu holen
+        /// ist. <b>Nur Anzeige</b>, gefüllt von der Maske.
+        /// </summary>
+        public string Zusatz
+        {
+            get => zusatz;
+            set
+            {
+                zusatz = value ?? string.Empty;
+                Melde();
+            }
+        }
+
+        private string zusatz = string.Empty;
+
         /// <summary>Ob die Zeile Text und Medium leer lässt - dann wird sie nicht geschrieben.</summary>
         public bool IstLeer
             => string.IsNullOrWhiteSpace(Schritt.StepText)

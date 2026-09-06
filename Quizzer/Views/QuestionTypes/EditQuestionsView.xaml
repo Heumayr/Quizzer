@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:Quizzer.Views.QuestionTypes"
         xmlns:base="clr-namespace:Quizzer.Base"
         xmlns:val="clr-namespace:Quizzer.Validators"
+        xmlns:typed="clr-namespace:Quizzer.Views.QuestionTypes.Typed"
         mc:Ignorable="d"
         Title="Frage bearbeiten" Height="720" Width="900">
     <base:WindowBase.DataContext>
@@ -181,26 +182,6 @@
                 <TextBlock Text="{Binding TypeDisplayName, StringFormat=Einstellungen für {0}}"
                            Style="{StaticResource SectionHeader}" />
 
-                <!-- Nur Multiple Choice -->
-                <StackPanel Style="{StaticResource FieldRow}" Visibility="{Binding MaxAllowedKeySelectVisibility}">
-                    <Label Style="{StaticResource FieldLabel}" Content="Wählbare Antworten"
-                           ToolTip="Wie viele Tasten ein Spieler wählen darf. Muss der Anzahl der als Lösung markierten Schritte entsprechen." />
-                    <TextBox VerticalContentAlignment="Center" MinWidth="80">
-                        <TextBox.Text>
-                            <Binding Path="Question.BuzzerMaxAllowedKeySelect"
-                                     UpdateSourceTrigger="PropertyChanged"
-                                     ValidatesOnExceptions="True"
-                                     NotifyOnValidationError="True">
-                                <Binding.ValidationRules>
-                                    <val:PositiveIntValidationRule />
-                                </Binding.ValidationRules>
-                            </Binding>
-                        </TextBox.Text>
-                    </TextBox>
-                    <TextBlock Text="Für mehrere richtige Antworten diesen Wert erhöhen."
-                               Opacity="0.7" VerticalAlignment="Center" Margin="10,0,0,0" />
-                </StackPanel>
-
                 <StackPanel Style="{StaticResource FieldRow}" Visibility="{Binding ShowTextOnKeySelectVisibility}">
                     <Label Style="{StaticResource FieldLabel}" Content="Text auf den Tasten"
                            ToolTip="Ob die Spieler den Antworttext am Telefon sehen oder nur den Buchstaben." />
@@ -298,35 +279,17 @@
                     </StackPanel>
                 </Expander>
 
-                <TextBlock Text="Schritte" Style="{StaticResource SectionHeader}" />
+                <!-- Die Maske des Fragetyps. Was hier steht, entscheidet der Typ -
+                     Antwortliste, Hinweisleiter, Sollwert oder Aufdeckschritte. -->
+                <ContentControl Content="{Binding Zeileneditor}" Margin="0,4,0,0">
+                    <ContentControl.ContentTemplate>
+                        <DataTemplate>
+                            <typed:ZeileneditorView />
+                        </DataTemplate>
+                    </ContentControl.ContentTemplate>
+                </ContentControl>
 
-                <StackPanel Style="{StaticResource FieldRow}">
-                    <Button Content="Schritt hinzufügen" Command="{Binding AddStepCommnad}"
-                            MinWidth="150" Margin="0,0,8,0" />
-                    <Button Content="Schritt entfernen" Command="{Binding RemoveStepCommnad}"
-                            Style="{StaticResource DangerButton}" MinWidth="150" />
-                </StackPanel>
 
-                <DataGrid ItemsSource="{Binding StepsView}" AutoGenerateColumns="False"
-                          Margin="5" MinHeight="180" CanUserAddRows="False" IsReadOnly="True"
-                          base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedSteps}"
-                          base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenStepCommand}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Nr." Binding="{Binding SequenceNumber}" Width="55" />
-                        <DataGridTextColumn Header="Taste" Binding="{Binding QuestionViewKey}" Width="55" />
-                        <DataGridTextColumn Header="Bezeichnung" Binding="{Binding Designation}" Width="*" />
-                        <DataGridTextColumn Header="Text" Binding="{Binding StepText}" Width="2*" />
-                        <DataGridCheckBoxColumn Header="Ist Lösung" Binding="{Binding IsResult}" Width="85"
-                                                Visibility="{Binding DataContext.IsResultColumnVisibility,
-                                                             RelativeSource={RelativeSource AncestorType=DataGrid}}" />
-                        <DataGridCheckBoxColumn Header="Abschluss" Binding="{Binding IsFinish}" Width="80" />
-                        <DataGridTextColumn Header="Medium" Binding="{Binding ResourceTyp}" Width="80" />
-                        <DataGridTextColumn Header="Datei" Binding="{Binding ResourceFileName}" Width="*" />
-                    </DataGrid.Columns>
-                </DataGrid>
-
-                <TextBlock Text="Doppelklick auf eine Zeile öffnet den Schritt."
-                           Opacity="0.7" Margin="5,0,5,10" />
             </StackPanel>
         </ScrollViewer>
     </DockPanel>

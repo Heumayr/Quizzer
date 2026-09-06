@@ -1,0 +1,85 @@
+<UserControl x:Class="Quizzer.Views.QuestionTypes.Typed.ZeileneditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Quizzer.Views.QuestionTypes.Typed">
+    <StackPanel>
+
+        <StackPanel Visibility="{Binding ZeilenVisibility}">
+
+            <TextBlock Text="{Binding ZeilenTitel}" Style="{StaticResource SectionHeader}" />
+
+            <ItemsControl ItemsSource="{Binding Zeilen}" Margin="5,0,5,4">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <CheckBox Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0"
+                                      IsChecked="{Binding IstRichtig, UpdateSourceTrigger=PropertyChanged}"
+                                      Visibility="{Binding DataContext.RichtigVisibility,
+                                                   RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                      ToolTip="Diese Antwort ist richtig." />
+
+                            <TextBlock Grid.Column="1" Text="{Binding Taste}" MinWidth="22"
+                                       VerticalAlignment="Center" Opacity="0.7" FontWeight="Bold"
+                                       ToolTip="Diese Taste liegt im Spiel auf dieser Zeile." />
+
+                            <TextBox Grid.Column="2" VerticalContentAlignment="Center"
+                                     Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock Grid.Column="3" Text="{Binding Zusatz}" Opacity="0.7"
+                                       VerticalAlignment="Center" Margin="8,0,0,0" />
+
+                            <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="4,0,0,0"
+                                        Visibility="{Binding DataContext.SortierenVisibility,
+                                                     RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                <Button Content="↑" Width="26" ToolTip="Nach oben"
+                                        Command="{Binding DataContext.MoveUpCommand,
+                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" />
+                                <Button Content="↓" Width="26" Margin="2,0,0,0" ToolTip="Nach unten"
+                                        Command="{Binding DataContext.MoveDownCommand,
+                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" />
+                            </StackPanel>
+
+                            <Button Grid.Column="5" Content="✕" Width="26" Margin="4,0,0,0"
+                                    ToolTip="Diese Zeile entfernen"
+                                    Visibility="{Binding DataContext.ZeilenAendernVisibility,
+                                                 RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    Command="{Binding DataContext.RemoveRowCommand,
+                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <StackPanel Orientation="Horizontal" Margin="5,0,5,4"
+                        Visibility="{Binding ZeilenAendernVisibility}">
+                <Button Content="+ Zeile" Command="{Binding AddRowCommand}" MinWidth="110"
+                        ToolTip="Hängt eine leere Zeile an. Leere Zeilen werden nicht gespeichert." />
+            </StackPanel>
+
+            <TextBlock Text="{Binding Zeilenhinweis}" Opacity="0.75" Margin="5,0,5,6"
+                       TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Visibility="{Binding AbschlussVisibility}">
+            <TextBlock Text="{Binding AbschlussTitel}" Style="{StaticResource SectionHeader}" />
+            <TextBox Margin="5,0,5,4" MinHeight="54" AcceptsReturn="True" TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Auto"
+                     Text="{Binding Abschluss.Text, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Text="Steht am Ende der Frage auf dem Beamer." Opacity="0.75"
+                       Margin="5,0,5,6" TextWrapping="Wrap" />
+        </StackPanel>
+
+    </StackPanel>
+</UserControl>
