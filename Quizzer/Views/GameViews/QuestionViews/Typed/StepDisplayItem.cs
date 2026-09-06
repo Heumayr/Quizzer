@@ -83,9 +83,9 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
         public Visibility TextAndMediaVisibility =>
             HasText && HasResource ? Visibility.Visible : Visibility.Collapsed;
 
-        public Brush GridBackgroundBrush => StaticResources.ChoiceBackgroundImageBrush;
-        public Brush GridBackgroundResultBrush => StaticResources.ChoiceBackgroundResultImageBrush;
-        public Brush HorizontalBackgroundBrush => StaticResources.HorizontalBackgroundImageBrush;
+        public Brush GridBackgroundBrush => ThemeBrushes.Current.Auswahlfeld;
+        public Brush GridBackgroundResultBrush => ThemeBrushes.Current.AuswahlfeldRichtig;
+        public Brush HorizontalBackgroundBrush => ThemeBrushes.Current.Schrittleiste;
 
         public Brush GridBackground =>
             IsVisibleSlot && ((owner.IsMasterView && Step.IsResult) || owner.Step?.IsFinish == true && Step.IsResult)

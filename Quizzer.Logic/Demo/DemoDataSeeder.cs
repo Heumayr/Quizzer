@@ -21,7 +21,7 @@ namespace Quizzer.Logic.Demo
     /// Loesungsschritt und braucht Sollwert samt passender Einheit.
     /// </para>
     /// </summary>
-    public static class DemoDataSeeder
+    public static partial class DemoDataSeeder
     {
         /// <summary>Woran die Demodaten zu erkennen sind. Steht in jeder Bezeichnung.</summary>
         public const string Marke = "[Demo]";

@@ -141,7 +141,17 @@ namespace Quizzer.LogicUnitTests.Standards
                 }
 
                 foreach (Match treffer in Regex.Matches(zeile, "\"([^\"\\\\]{3,})\""))
-                    yield return (i + 1, treffer.Groups[1].Value);
+                {
+                    var wert = treffer.Groups[1].Value;
+
+                    // Eine Bindung ist kein Anzeigetext, sondern ein Pfad auf einen Bezeichner -
+                    // und Bezeichner tragen die Umschrift zu Recht. Gemessen 2026-09-06 an
+                    // Text="{Binding Erklaerung}" im Design-Editor.
+                    if (wert.TrimStart().StartsWith('{'))
+                        continue;
+
+                    yield return (i + 1, wert);
+                }
 
                 if (istMarkup)
                 {

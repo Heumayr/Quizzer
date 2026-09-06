@@ -51,6 +51,24 @@
                 <Label MinWidth="210" Content="Moderator:" VerticalAlignment="Center" />
                 <ComboBox ItemsSource="{Binding ModeratorPlayersView}" DisplayMemberPath="CalculatedDisplayName" SelectedValuePath="Id" SelectedValue="{Binding ModeratorPlayerId}" Width="200" Margin="0,8,10,8" />
             </StackPanel>
+            <!-- Das Design gehoert zum Spielabend. Das Raster rechts zeigt die Wahl sofort. -->
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="210" Content="Design:" VerticalAlignment="Center"
+                       ToolTip="Texturen und Farben dieses Spielabends. Das Raster rechts zeigt die Wahl sofort." />
+                <ComboBox ItemsSource="{Binding AvailableThemes}"
+                          DisplayMemberPath="DisplayName"
+                          SelectedValuePath="Id"
+                          SelectedValue="{Binding GameThemeId}"
+                          Width="200" Margin="0,8,10,8" />
+                <Button Content="Designs bearbeiten" Command="{Binding OpenThemesCommand}"
+                        Height="30" MinWidth="150"
+                        ToolTip="Designs anlegen und ihre Texturen austauschen." />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="5,0,5,5">
+                <Label MinWidth="210" Content="" />
+                <TextBlock Text="{Binding ThemeHint}" Opacity="0.6" FontSize="12"
+                           TextWrapping="Wrap" MaxWidth="420" VerticalAlignment="Center" />
+            </StackPanel>
             <StackPanel Orientation="Vertical">
                 <StackPanel Orientation="Horizontal" Margin="5">
                     <ComboBox ItemsSource="{Binding AvailablePlayersView}" DisplayMemberPath="CalculatedDisplayName" SelectedItem="{Binding CmbSelectedPlayer}" Width="200" Margin="0,8,10,8" />

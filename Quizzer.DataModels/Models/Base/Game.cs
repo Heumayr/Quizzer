@@ -49,6 +49,12 @@ namespace Quizzer.DataModels.Models.Base
 
         public Guid? ModeratorPlayerId { get; set; }
 
+        /// <summary>
+        /// Das Design dieses Spielabends. <c>null</c> heisst: der Auslieferungsstand, also genau
+        /// das Aussehen, das es vor Einfuehrung der Designs gab.
+        /// </summary>
+        public Guid? GameThemeId { get; set; }
+
         public Guid RegularChoosingPlayerId { get; set; } = Guid.Empty;
         public Guid CurrentChoosingPlayerId { get; set; } = Guid.Empty;
 
@@ -111,6 +117,9 @@ namespace Quizzer.DataModels.Models.Base
         [ForeignKey(nameof(ModeratorPlayerId))]
         public Player? Moderator { get; set; }
 
+        [ForeignKey(nameof(GameThemeId))]
+        public GameTheme? GameTheme { get; set; }
+
         [NotMapped]
         public IEnumerable<QuestionResult> QuestionResults => GameGridCoordinates.SelectMany(x => x.QuestionResults);
 
@@ -156,6 +165,7 @@ namespace Quizzer.DataModels.Models.Base
                 Phase = Phase,
                 SuggestedPhases = SuggestedPhases,
                 ModeratorPlayerId = ModeratorPlayerId,
+                GameThemeId = GameThemeId,
                 RegularChoosingPlayerId = RegularChoosingPlayerId,
                 CurrentChoosingPlayerId = CurrentChoosingPlayerId,
                 Headers = new List<Header>(),

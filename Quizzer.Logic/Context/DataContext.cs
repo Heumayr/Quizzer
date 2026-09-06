@@ -59,6 +59,7 @@ namespace Quizzer.Logic.Context
 
         public DbSet<Category> Categories { get; set; }
         public DbSet<Game> Games { get; set; }
+        public DbSet<GameTheme> GameThemes { get; set; }
         public DbSet<GameGridCoordinate> GameGridCoordinates { get; set; }
         public DbSet<Player> Players { get; set; }
         public DbSet<Header> Headers { get; set; }

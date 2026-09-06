@@ -15,6 +15,7 @@ if (args.Length == 0)
     Console.WriteLine("Quizzer.EF - Startprojekt fuer die EF-Werkzeuge.");
     Console.WriteLine();
     Console.WriteLine("  demo-anlegen     legt einen vollstaendigen Demo-Quizabend an");
+    Console.WriteLine("  demo-design      legt ein zweites Design mit eigenen Texturen an");
     Console.WriteLine("  demo-entfernen   entfernt alles mit der Marke " + DemoDataSeeder.Marke);
     return 0;
 }
@@ -35,6 +36,16 @@ switch (args[0])
             Console.WriteLine($"  Fragen:      {e.Fragen}");
             Console.WriteLine($"  Mitspieler:  {e.Mitspieler} (davon 1 Moderator)");
             Console.WriteLine($"  Belegte Zellen: {e.Zellen}");
+            return 0;
+        }
+
+    case "demo-design":
+        {
+            var d = await DemoDataSeeder.CreateThemeAsync();
+
+            Console.WriteLine(d == null
+                ? "Das Demo-Design gab es schon."
+                : $"Angelegt: Design \"{d.Designation}\", Ordner Themes/{d.FolderName}");
             return 0;
         }
 

@@ -131,9 +131,9 @@ namespace Quizzer.Views.GameViews.Sub
         private Brush GetBackgroundBrush()
         {
             if (StatsContext != null && StatsContext.Winners.Select(p => p.Id).Contains(Player.Id))
-                return StaticRessources.StaticResources.PlayerCardWinnerImageBrush;
+                return StaticRessources.ThemeBrushes.Current.SpielerkarteSieger;
 
-            return StaticRessources.StaticResources.PlayerCardImageBrush;
+            return StaticRessources.ThemeBrushes.Current.Spielerkarte;
         }
 
         public int ActualScore => CalculateScore();

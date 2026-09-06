@@ -37,10 +37,10 @@ namespace Quizzer.Views.GameViews
 
         private BuzzerServerView? buzzerServerView = null;
 
-        public Brush HeaderColumnBrush { get; set; } = StaticResources.HeaderColumnImageBrush;
-        public Brush HeaderRowBrush { get; set; } = StaticResources.HeaderRowImageBrush;
+        public Brush HeaderColumnBrush => ThemeBrushes.Current.SpaltenKopf;
+        public Brush HeaderRowBrush => ThemeBrushes.Current.ZeilenKopf;
 
-        public Brush PlayGroundBackGroundBrush => StaticResources.PlayGroundBackGround;
+        public Brush PlayGroundBackGroundBrush => ThemeBrushes.Current.Hintergrund;
 
         public GameMasterViewModel()
         {
@@ -256,6 +256,10 @@ namespace Quizzer.Views.GameViews
 
             Game = dbGame;
             StaticManager.BuzzerServerViewModel.Game = Game;
+
+            // Ab hier zeichnen Spielfeld und Beamer mit dem Design dieses Abends. Ohne
+            // gewaehltes Design bleibt es beim Auslieferungsstand.
+            ThemeBrushes.SetCurrent(dbGame.GameTheme);
 
             await SetPhaseAndSetCoordinatesPhaseAsync(null);
             await OnModelChangedAsync();

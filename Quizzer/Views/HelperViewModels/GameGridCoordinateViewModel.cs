@@ -172,8 +172,8 @@ namespace Quizzer.ViewModels
 
         public bool ShowDefaultContent => !IsDone;
 
-        public Brush IsDoneBrush => IsDone ? StaticResources.CellImageBrushIsDone : StaticResources.CellImageBrush;
-        public Brush HoverBrush => StaticResources.CellHoverImageBrush;
+        public Brush IsDoneBrush => IsDone ? ThemeBrushes.Current.ZelleGespielt : ThemeBrushes.Current.Zelle;
+        public Brush HoverBrush => ThemeBrushes.Current.ZelleHover;
         public Brush IsDoneTextBrush => IsDone ? Brushes.Wheat : Brushes.WhiteSmoke;
 
         public QuestionBase? Question

@@ -1,0 +1,132 @@
+﻿<base:WindowBase x:Class="Quizzer.Views.GameThemesView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:base="clr-namespace:Quizzer.Base"
+        xmlns:local="clr-namespace:Quizzer.Views"
+        mc:Ignorable="d"
+        Title="Designs" Height="720" Width="1000">
+    <base:WindowBase.DataContext>
+        <local:GameThemesViewModel />
+    </base:WindowBase.DataContext>
+
+    <DockPanel Background="{StaticResource AppBgBrush}">
+
+        <!-- Knopfleiste unten, damit sie bei jeder Fenstergroesse erreichbar bleibt. -->
+        <Border DockPanel.Dock="Bottom" Background="{StaticResource PanelBgBrush}"
+                BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="0,1,0,0"
+                Padding="12">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Speichern" Command="{Binding SaveCommand}"
+                        MinWidth="150" Height="34" Margin="0,0,8,0"
+                        ToolTip="Schreibt Namen und Notizen. Texturen sind sofort gespeichert." />
+                <Button Content="Schließen" Command="{Binding CloseCommand}"
+                        MinWidth="120" Height="34" />
+            </StackPanel>
+        </Border>
+
+        <!-- Links die Designs, rechts ihre Texturen. -->
+        <Border DockPanel.Dock="Left" Width="260" Padding="12"
+                Background="{StaticResource PanelBgBrush}"
+                BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="0,0,1,0">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Designs" Style="{StaticResource SectionHeader}" />
+
+                <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                    <Button Content="Design anlegen" Command="{Binding AddThemeCommand}"
+                            Height="32" Margin="0,0,0,4"
+                            ToolTip="Legt ein Design an und dazu seinen Ordner unter Themes." />
+                    <Button Content="Design entfernen" Command="{Binding RemoveThemeCommand}"
+                            Height="32" Style="{StaticResource DangerButton}"
+                            ToolTip="Entfernt das Design. Der Ordner mit den Bildern bleibt liegen." />
+                </StackPanel>
+
+                <ListBox ItemsSource="{Binding Themes}"
+                         SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
+                         DisplayMemberPath="DisplayName"
+                         Margin="0,4,0,0" />
+            </DockPanel>
+        </Border>
+
+        <Grid Margin="12" Visibility="{Binding SelectionVisibility}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0">
+                <TextBlock Text="Dieses Design" Style="{StaticResource SectionHeader}" />
+
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <Label Content="Name:" MinWidth="90" VerticalAlignment="Center" />
+                    <TextBox Text="{Binding SelectedTheme.Designation, UpdateSourceTrigger=PropertyChanged}"
+                             MinWidth="280" VerticalContentAlignment="Center" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <Label Content="Notiz:" MinWidth="90" VerticalAlignment="Center" />
+                    <TextBox Text="{Binding SelectedTheme.Notes, UpdateSourceTrigger=PropertyChanged}"
+                             MinWidth="500" VerticalContentAlignment="Center" />
+                </StackPanel>
+
+                <TextBlock Text="{Binding FolderHint}" Opacity="0.6" FontSize="12"
+                           TextWrapping="Wrap" Margin="0,2,0,0" />
+            </StackPanel>
+
+            <TextBlock Grid.Row="1" Text="Texturen" Style="{StaticResource SectionHeader}"
+                       Margin="0,16,0,4" />
+
+            <!-- Jede Zeile zeigt, was im Spiel wirklich erscheinen wuerde: die eigene Textur,
+                 wenn es eine gibt, sonst die mitgelieferte. -->
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Textures}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{StaticResource ControlBgBrush}"
+                                    BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1"
+                                    CornerRadius="4" Padding="8" Margin="0,0,0,6">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Grid.Column="0" Width="120" Height="68"
+                                            Background="{Binding Vorschau}"
+                                            BorderBrush="{StaticResource BorderBrushLight}"
+                                            BorderThickness="1" CornerRadius="3" />
+
+                                    <StackPanel Grid.Column="1" Margin="12,0,12,0"
+                                                VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Beschriftung}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding Erklaerung}" Opacity="0.65"
+                                                   FontSize="12" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding HerkunftText}" Opacity="0.5"
+                                                   FontSize="11" Margin="0,4,0,0" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                        <Button Content="Bild wählen"
+                                                Command="{Binding DataContext.ChooseTextureCommand,
+                                                          RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                MinWidth="130" Height="30" Margin="0,0,0,4" />
+                                        <Button Content="Zurücknehmen"
+                                                Command="{Binding DataContext.ResetTextureCommand,
+                                                          RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                IsEnabled="{Binding IsOwn}"
+                                                MinWidth="130" Height="30" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</base:WindowBase>

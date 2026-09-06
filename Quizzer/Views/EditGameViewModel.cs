@@ -51,6 +51,7 @@ namespace Quizzer.Views
                 Game = inserted.Entity;
             }
 
+            await LoadThemesAsync();
             await OnModelChangedAsync();
         }
 

@@ -11,17 +11,28 @@ namespace Quizzer.Views.StaticRessources
     public static class StaticResources
     {
         private static Brush CreateImageBrushOrBlack(string? path, Stretch stretch = Stretch.Fill)
+            => CreateImageBrushOrFallback(path, stretch, Brushes.Black);
+
+        /// <summary>
+        /// Laedt ein Bild als Pinsel; kommt es nicht zustande, bleibt es beim Rueckfall.
+        /// <para>
+        /// Der Rueckfall ist der Grund fuer diese Ueberladung: <see cref="ThemeBrushes"/> laedt
+        /// damit nur, was ein Design wirklich mitbringt, und faellt sonst auf den
+        /// Auslieferungsstand zurueck statt auf Schwarz.
+        /// </para>
+        /// </summary>
+        internal static Brush CreateImageBrushOrFallback(string? path, Stretch stretch, Brush fallback)
         {
             if (string.IsNullOrWhiteSpace(path))
-                return Brushes.Black;
+                return fallback;
 
             try
             {
                 if (!Uri.TryCreate(path, UriKind.Absolute, out var uri))
-                    return Brushes.Black;
+                    return fallback;
 
                 if (uri.IsFile && !File.Exists(uri.LocalPath))
-                    return Brushes.Black;
+                    return fallback;
 
                 var bitmap = new BitmapImage();
                 bitmap.BeginInit();
@@ -40,7 +51,7 @@ namespace Quizzer.Views.StaticRessources
             }
             catch
             {
-                return Brushes.Black;
+                return fallback;
             }
         }
 

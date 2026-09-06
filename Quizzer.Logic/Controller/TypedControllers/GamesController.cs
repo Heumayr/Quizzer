@@ -29,7 +29,8 @@ namespace Quizzer.Logic.Controller.TypedControllers
                  .Include(q => q.GameGridCoordinates).ThenInclude(t => t.QuestionBase).ThenInclude(q => q!.Category)
                  .Include(q => q.GameGridCoordinates).ThenInclude(t => t.QuestionResults)
                  .Include(q => q.PlayerXGames).ThenInclude(t => t.Player)
-                 .Include(q => q.Moderator);
+                 .Include(q => q.Moderator)
+                 .Include(q => q.GameTheme);
             }
 
             return base.SetQueryAttributes(query, action);

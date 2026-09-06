@@ -27,10 +27,10 @@ namespace Quizzer.Views.GameViews
         // von Hand einschalten - viele Abende liefen deshalb ganz ohne.
         private Visibility showPlayerStats = Visibility.Visible;
 
-        public Brush HeaderColumnBrush { get; set; } = StaticResources.HeaderColumnImageBrush;
-        public Brush HeaderRowBrush { get; set; } = StaticResources.HeaderRowImageBrush;
+        public Brush HeaderColumnBrush => ThemeBrushes.Current.SpaltenKopf;
+        public Brush HeaderRowBrush => ThemeBrushes.Current.ZeilenKopf;
 
-        public Brush PlayGroundBackGroundBrush => StaticResources.PlayGroundBackGround;
+        public Brush PlayGroundBackGroundBrush => ThemeBrushes.Current.Hintergrund;
 
         public GameMasterViewModel? GameMasterViewModel { get; set; }
 
