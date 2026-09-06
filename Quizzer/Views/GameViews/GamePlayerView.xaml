@@ -150,82 +150,9 @@
                 </Grid>
             </Viewbox>
 
-            <Grid Visibility="{Binding ShowQuestionView}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-
-                <!-- Die Frage als schmale Kopfzeile - erst ab dem dritten Bildschirm. Davor
-                     steht auf dem Startbildschirm nur die Fragenart und auf dem ersten
-                     Inhaltsbildschirm die Frage gross in der Mitte; zweimal dieselbe Frage auf
-                     einem Bildschirm ist unschoen. Collapsed statt Hidden: sonst bliebe die
-                     Zeile als leerer Streifen stehen. -->
-                <Grid Grid.Row="0" Background="Black" MaxHeight="100"
-                      Visibility="{Binding ShowQuestionTop}">
-                    <Viewbox Margin="5" Stretch="Uniform">
-                        <TextBlock Text="{Binding QuestionText}"
-                               Foreground="WhiteSmoke"
-                               FontWeight="Bold"
-                               TextWrapping="Wrap"
-                               MaxWidth="900"
-                               TextAlignment="Center"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Center" />
-                    </Viewbox>
-                </Grid>
-
-                <Grid Grid.Row="1">
-                    <ContentControl Content="{Binding QuestionStepViewContext}"
-                                ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
-
-                    <!-- Bildschirm 1: nur die Fragenart, gross und mittig. KEIN Fragetext -
-                         der Spielleiter liest die Frage vor, und wer buzzert, bevor sie zu Ende
-                         gelesen ist, darf sie nicht lesen koennen (Nutzerwort vom 2026-09-06).
-
-                         Deckend schwarz, nicht durchscheinend: darunter liegt der Startschritt,
-                         und dessen Text ist bei jeder Demofrage der Fragetext selbst. Bei 80
-                         Prozent Deckung waere er lesbar - und die Spielregel waere ausgehebelt,
-                         ohne dass es jemandem auffiele. -->
-                    <Border Visibility="{Binding ShowQuestionTypeCentered}"
-                            Background="Black"
-                            Padding="40">
-                        <!--
-                            Deutlich kleiner als der Fragetext darunter: der Name einer Fragenart
-                            ist EIN Wort, und eine Viewbox zieht ein Wort auf die volle Hoehe auf.
-                            Bis 2026-09-06 stand er in demselben Rahmen wie ein ganzer Fragesatz
-                            und fuellte den Beamer - gemeldet als "etwas zu gross".
-                        -->
-                        <Viewbox Stretch="Uniform" MaxHeight="200" MaxWidth="900">
-                            <TextBlock Text="{Binding QuestionTypeName}"
-                                       Foreground="WhiteSmoke"
-                                       FontWeight="Bold"
-                                       TextWrapping="Wrap"
-                                       MaxWidth="1100"
-                                       TextAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Center" />
-                        </Viewbox>
-                    </Border>
-
-                    <!-- Bildschirm 2: die Frage gross und mittig - der Augenblick, in dem der
-                         Spielleiter sie freigibt. Ab dem naechsten Bildschirm steht sie oben. -->
-                    <Border Visibility="{Binding ShowQuestionCentered}"
-                            Background="Black"
-                            Padding="40">
-                        <Viewbox Stretch="Uniform" MaxHeight="620">
-                            <TextBlock Text="{Binding QuestionText}"
-                                       Foreground="WhiteSmoke"
-                                       FontWeight="Bold"
-                                       TextWrapping="Wrap"
-                                       MaxWidth="1100"
-                                       TextAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Center" />
-                        </Viewbox>
-                    </Border>
-                </Grid>
-            </Grid>
+            <!-- Die Frageanzeige liegt in QuestionScreenView, damit die Vorschau im
+                 Frageneditor dieselbe benutzt und nicht daneben etwas Eigenes zeichnet. -->
+            <local:QuestionScreenView Visibility="{Binding ShowQuestionView}" />
         </Grid>
 
         <!-- BOTTOM STATS -->

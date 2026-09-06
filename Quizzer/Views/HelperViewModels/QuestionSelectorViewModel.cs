@@ -132,11 +132,34 @@ namespace Quizzer.Views.HelperViewModels
         private AsyncRelayCommand? addQuestionCommand;
         public ICommand AddQuestionCommand => addQuestionCommand ??= new AsyncRelayCommand(AddQuestionAsync);
 
-        private Task AddQuestionAsync(object? commandParameter)
+        /// <summary>
+        /// Legt eine neue Frage an - und legt sie danach auf die Kachel.
+        /// <para>
+        /// <b>Nutzerwunsch vom 2026-09-06:</b> „wenn man ein spiel editiert sollte man wenn man
+        /// eine kachel wählt dort nicht nur bestehende fragen auswählen können sonder ggf. auch
+        /// neue anlegen über den fragen editor".
+        /// </para>
+        /// <para>
+        /// <b>Den Knopf gab es schon</b> - was fehlte, war der letzte Schritt: die neu angelegte
+        /// Frage landete in der Liste, und man musste sie dort noch einmal suchen und anklicken.
+        /// Wer aus einer Kachel heraus anlegt, meint diese Kachel.
+        /// </para>
+        /// </summary>
+        private async Task AddQuestionAsync(object? commandParameter)
         {
             var question = AskForNewQuestion();
 
-            return question == null ? Task.CompletedTask : EditQuestionAsync(question);
+            if (question == null)
+                return;
+
+            var gespeichert = await EditQuestionAsync(question);
+
+            if (!gespeichert || question.Id == Guid.Empty)
+                return;
+
+            SelectedQuestion = question;
+
+            Window?.Close();
         }
 
         /// <summary>
@@ -154,21 +177,23 @@ namespace Quizzer.Views.HelperViewModels
         }
 
 
-        private async Task EditQuestionAsync(QuestionBase questionBase)
+        /// <summary>
+        /// Öffnet den Frageneditor. Meldet zurück, ob wirklich gespeichert wurde - ein Abbruch
+        /// darf nichts auf die Kachel legen.
+        /// </summary>
+        private async Task<bool> EditQuestionAsync(QuestionBase questionBase)
         {
             var window = new EditQuestionsView();
 
-            if (window.DataContext is EditQuestionViewModel vm)
-            {
-                await vm.SetModel(questionBase);
-                window.ShowDialog();
-
-                await OnloadAsync();
-            }
-            else
-            {
+            if (window.DataContext is not EditQuestionViewModel vm)
                 throw new InvalidOperationException("DataContext is not of type EditQuestionViewModel");
-            }
+
+            await vm.SetModel(questionBase);
+            window.ShowDialog();
+
+            await OnloadAsync();
+
+            return vm.ResultState is EditResultState.New or EditResultState.Updated;
         }
 
         private RelayCommand? closeCommand;
