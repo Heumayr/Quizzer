@@ -49,6 +49,54 @@ namespace Quizzer.UnitTests.Views
             typeof(Quizzer.Views.QuestionTypes.RevealEditorView),
         ];
 
+        /// <summary>
+        /// Fenster, die <b>nicht</b> in der Liste stehen duerfen - jedes mit seinem Grund im
+        /// Klartext.
+        /// </summary>
+        private static readonly Dictionary<string, string> Ausnahmen = new()
+        {
+            [nameof(Quizzer.Views.GameViews.QuestionViews.Typed.Media.MediaPreviewWindow)] =
+                "hat keinen parameterlosen Konstruktor - es braucht Datei, Typ und Gruppe. "
+                + "Eigener Test: MediaPreviewWindowUnitTests",
+        };
+
+        /// <summary>
+        /// <b>Die Liste oben ist vollstaendig.</b>
+        /// <para>
+        /// Sie wird von Hand gepflegt, und genau so entsteht eine Luecke: gemessen am
+        /// 2026-09-06 nachts fehlte <c>MediaPreviewWindow</c> in dieser Liste <b>und</b> in
+        /// <c>LesbarkeitUnitTests</c> - ein Fenster, das waehrend des Abends aufgeht, war in
+        /// keiner der beiden Pruefungen. Aufgefallen ist es nur, weil jemand nachgezaehlt hat.
+        /// </para>
+        /// <para>
+        /// Diese Zusicherung zaehlt jetzt fuer alle nach: ein neues Fenster ist rot, bis es in
+        /// der Liste steht oder mit Grund in den Ausnahmen.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void TheListCoversEveryWindowOfTheApplication()
+        {
+            var alle = typeof(Quizzer.MainWindow).Assembly
+                .GetTypes()
+                .Where(t => !t.IsAbstract && typeof(Window).IsAssignableFrom(t))
+                .Where(t => t != typeof(Quizzer.Base.WindowBase))
+                .ToList();
+
+            Assert.IsTrue(alle.Count >= 20,
+                $"Es wurden nur {alle.Count} Fenster gefunden - die Suche greift nicht mehr, "
+                + "und die Zusicherung waere gruen, ohne etwas zu messen.");
+
+            var fehlend = alle
+                .Where(t => !Fenster.Contains(t) && !Ausnahmen.ContainsKey(t.Name))
+                .Select(t => t.FullName ?? t.Name)
+                .ToList();
+
+            Assert.AreEqual(0, fehlend.Count,
+                "Diese Fenster stehen in keiner Liste - sie werden also nie aufgebaut und nie "
+                + "auf Lesbarkeit geprueft. Entweder gehoeren sie in Fenster[], oder der Grund "
+                + "dagegen gehoert in Ausnahmen: " + string.Join(", ", fehlend));
+        }
+
         private static IEnumerable<T> Descendants<T>(DependencyObject root) where T : DependencyObject
         {
             var count = VisualTreeHelper.GetChildrenCount(root);
