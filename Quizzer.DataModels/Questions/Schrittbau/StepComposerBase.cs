@@ -77,6 +77,12 @@ namespace Quizzer.DataModels.Questions.Schrittbau
             ArgumentNullException.ThrowIfNull(frage);
             ArgumentNullException.ThrowIfNull(bild);
 
+            // Auch hier neu vergeben, nicht nur beim Lesen: beim Lesen waren die Geruestzeilen
+            // leer und trugen darum keine Taste. Nach dem Schreiben muss auf jeder Zeile die
+            // stehen, die das Telefon zeigen wird - sonst haengt die Richtigkeit der Anzeige
+            // daran, ob eine Maske dazwischengeschaltet war.
+            VergibTasten(frage, bild.Zeilen);
+
             bild.SchreibNach(frage);
         }
 
@@ -94,16 +100,35 @@ namespace Quizzer.DataModels.Questions.Schrittbau
         /// Schreibt auf jede Zeile die Taste, die im Spiel darauf liegt - nur zur Anzeige.
         /// <para>
         /// <b>Dieselbe Vergabe wie <c>CalculateOrderdSteps</c></b>, sonst steht in der Maske ein
-        /// anderer Buchstabe als auf dem Telefon. Die Spalte „Taste" im heutigen Raster ist immer
+        /// anderer Buchstabe als auf dem Telefon. Die Spalte „Taste" im alten Raster war immer
         /// leer, weil das Ordnen auf der Editorstrecke nie läuft.
         /// </para>
+        /// <para>
+        /// <b>Nach jeder Änderung neu, nicht nur beim Lesen</b> (Nutzermeldung 2026-09-06:
+        /// „a b c d setzt sich selbst wenn man zeilen ändert"). Wer eine Zeile anhängt, entfernt
+        /// oder verschiebt, bekäme sonst eine Liste, in der die Buchstaben nicht mehr zu dem
+        /// passen, was das Telefon zeigt - und eine angehängte Zeile trüge gar keinen.
+        /// </para>
+        /// <para>
+        /// <b>Leere Zeilen zählen nicht mit.</b> Sie werden nicht geschrieben, bekommen im Spiel
+        /// also auch keine Taste; würden sie mitgezählt, verschöben sie alle folgenden.
+        /// </para>
         /// </summary>
-        protected static void VergibTasten(QuestionBase frage, List<StepZeile> zeilen)
+        public static void VergibTasten(QuestionBase frage, IEnumerable<StepZeile> zeilen)
         {
+            ArgumentNullException.ThrowIfNull(frage);
+            ArgumentNullException.ThrowIfNull(zeilen);
+
             var taste = Helpers.Helper.GetNextViewKey(string.Empty, frage.QuestionViewKeyType);
 
             foreach (var zeile in zeilen)
             {
+                if (zeile.IstLeer)
+                {
+                    zeile.Taste = string.Empty;
+                    continue;
+                }
+
                 zeile.Taste = taste;
                 taste = Helpers.Helper.GetNextViewKey(taste, frage.QuestionViewKeyType);
             }

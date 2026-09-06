@@ -21,11 +21,14 @@ namespace Quizzer.Views.QuestionTypes.Typed
     {
         private readonly IStepComposer composer;
         private readonly Action melde;
+        private readonly QuestionBase frage;
 
         internal ZeileneditorViewModel(IStepComposer composer, QuestionBase frage, Action melde)
         {
             this.composer = composer ?? throw new ArgumentNullException(nameof(composer));
             this.melde = melde ?? (() => { });
+
+            this.frage = frage ?? throw new ArgumentNullException(nameof(frage));
 
             Bild = composer.Lies(frage);
             Zeilen = new ObservableCollection<StepZeile>(Bild.Zeilen);
@@ -158,6 +161,9 @@ namespace Quizzer.Views.QuestionTypes.Typed
         /// </summary>
         protected virtual void Melde()
         {
+            // Die Buchstaben folgen der Liste, nicht dem Zustand beim Oeffnen.
+            StepComposerBase.VergibTasten(frage, Zeilen);
+
             OnPropertyChanged(nameof(Zeilen));
             OnPropertyChanged(nameof(Zeilenhinweis));
         }

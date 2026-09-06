@@ -128,6 +128,83 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
         }
 
         /// <summary>
+        /// <b>Die Antworttasten folgen der Liste, nicht dem Zustand beim Öffnen.</b>
+        /// <para>
+        /// <b>Nutzermeldung vom 2026-09-06:</b> „a b c d setzt sich selbst wenn man zeilen
+        /// ändert". Vergeben wurde bisher nur beim Lesen - eine angehängte Zeile trug gar keinen
+        /// Buchstaben, und nach einer Entfernung stand in der Maske ein anderer als auf dem
+        /// Telefon.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void TheAnswerKeysFollowTheRows()
+        {
+            var vm = Mit(QuestionType.MultipleChoice);
+            var mc = vm.Zeileneditor!;
+
+            Assert.IsTrue(mc.Zeilen.All(z => z.Taste.Length == 0),
+                "Leere Geruestzeilen tragen eine Taste - die verspricht einen Buchstaben, den "
+                + "das Telefon nie zeigt, weil die Zeile gar nicht geschrieben wird.");
+
+            mc.Zeilen[0].Text = "Sydney";
+            mc.Zeilen[1].Text = "Canberra";
+            mc.Zeilen[2].Text = "Melbourne";
+
+            CollectionAssert.AreEqual(new[] { "A", "B", "C", "" },
+                mc.Zeilen.Select(z => z.Taste).ToArray(),
+                "Die Tasten stimmen nach dem Tippen nicht: "
+                + string.Join(",", mc.Zeilen.Select(z => $"'{z.Taste}'")));
+
+            // Eine Zeile anhaengen und fuellen - sie muss die naechste Taste bekommen.
+            mc.AddRowCommand.Execute(null);
+            mc.Zeilen[^1].Text = "Perth";
+
+            Assert.AreEqual("D", mc.Zeilen[^1].Taste,
+                "Die angehaengte Zeile hat keine Taste bekommen.");
+
+            // Die erste entfernen - alles rutscht nach.
+            mc.RemoveRowCommand.Execute(mc.Zeilen[0]);
+
+            CollectionAssert.AreEqual(new[] { "A", "B", "", "C" },
+                mc.Zeilen.Select(z => z.Taste).ToArray(),
+                "Nach dem Entfernen sind die Tasten nicht nachgerueckt: "
+                + string.Join(",", mc.Zeilen.Select(z => $"'{z.Taste}'")));
+        }
+
+        /// <summary>
+        /// Und die Probe darauf, dass die Maske dieselbe Vergabe zeigt wie das Spiel - nach
+        /// einer Änderung, nicht nur beim Öffnen.
+        /// </summary>
+        [TestMethod]
+        public void TheKeysStillMatchTheGameAfterEditing()
+        {
+            var vm = Mit(QuestionType.MultipleChoice, f => f.UseRandomSequenceOnNoneFinishSteps = false);
+            var mc = vm.Zeileneditor!;
+
+            mc.Zeilen[0].Text = "Sydney";
+            mc.Zeilen[1].Text = "Canberra";
+            mc.Zeilen[2].Text = "Melbourne";
+
+            mc.RemoveRowCommand.Execute(mc.Zeilen[0]);
+            mc.AddRowCommand.Execute(null);
+            mc.Zeilen[^1].Text = "Perth";
+
+            vm.UebernimmZeilen();
+            vm.Question!.CalculateOrderdSteps();
+
+            var imSpiel = vm.Question.OrderedSteps
+                .Where(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly)
+                .ToDictionary(s => s.StepText, s => s.QuestionViewKey);
+
+            foreach (var zeile in mc.Zeilen.Where(z => !z.IstLeer))
+            {
+                Assert.AreEqual(imSpiel[zeile.Text], zeile.Taste,
+                    $"Fuer \"{zeile.Text}\" steht in der Maske \"{zeile.Taste}\", im Spiel "
+                    + $"aber \"{imSpiel[zeile.Text]}\".");
+            }
+        }
+
+        /// <summary>
         /// Was in der Maske steht, landet beim Speichern in der Frage - und leere Gerüstzeilen
         /// nicht.
         /// </summary>
