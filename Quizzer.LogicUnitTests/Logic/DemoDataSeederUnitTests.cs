@@ -137,6 +137,89 @@ namespace Quizzer.LogicUnitTests.Logic
         /// Die Gegenrichtung zum Entfernen: erst steht alles da, danach nichts mehr - und was
         /// nicht die Marke traegt, bleibt unberuehrt.
         /// </summary>
+        /// <summary>
+        /// <b>B42.</b> Das Demo-Design verschwindet mit den Demodaten.
+        /// <para>
+        /// Es trug die Marke bisher gar nicht, und der Aufraeumweg kannte Designs nicht - es
+        /// blieb also stehen, waehrend alles andere ging.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task RemovingTakesTheDemoThemeAlong()
+        {
+            await DemoDataSeeder.CreateThemeAsync();
+
+            using (var ctrl = new GameThemesController())
+            {
+                Assert.IsTrue(
+                    (await ctrl.GetAllAsync()).Any(t => t.FolderName == DemoDataSeeder.DemoThemeFolder),
+                    "Das Demo-Design wurde gar nicht erst angelegt - dann sagt die Probe nichts.");
+            }
+
+            var entfernt = await DemoDataRemover.RemoveAsync();
+
+            Assert.AreEqual(1, entfernt.Designs, "Das Demo-Design wurde nicht mitgenommen.");
+
+            using (var ctrl = new GameThemesController())
+            {
+                Assert.IsFalse(
+                    (await ctrl.GetAllAsync()).Any(t => t.FolderName == DemoDataSeeder.DemoThemeFolder),
+                    "Das Demo-Design steht noch da.");
+            }
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung, und sie ist hier kein Beiwerk:</b>
+        /// <c>FK_Game_GameTheme_GameThemeId</c> steht auf NO ACTION. Ein Design zu loeschen, auf
+        /// dem noch ein Spiel steht, wuerfe denselben rohen Datenbankfehler wie B48 - mitten im
+        /// Aufraeumen, nachdem schon Fragen und Mitspieler weg sind.
+        /// </summary>
+        [TestMethod]
+        public async Task AThemeStillUsedByAGameSurvivesTheRemoval()
+        {
+            var design = await DemoDataSeeder.CreateThemeAsync();
+
+            Assert.IsNotNull(design, "Das Demo-Design wurde nicht angelegt.");
+
+            var eigenesSpiel = new Game
+            {
+                Id = Guid.NewGuid(),
+                Designation = "Mein eigener Abend",
+                Phase = 1,
+                SuggestedPhases = 1,
+                GameThemeId = design!.Id,
+            };
+
+            using (var ctrl = new GamesController())
+            {
+                await ctrl.UpsertAsync(eigenesSpiel);
+                await ctrl.SaveChangesAsync();
+            }
+
+            try
+            {
+                var entfernt = await DemoDataRemover.RemoveAsync();
+
+                Assert.AreEqual(0, entfernt.Designs,
+                    "Ein Design, auf dem noch ein Spiel steht, wurde geloescht.");
+
+                Assert.AreEqual(1, entfernt.BehalteneDesigns,
+                    "Das Stehenbleiben wurde nicht gemeldet - dann sieht es aus wie ein "
+                    + "vollstaendiges Aufraeumen.");
+
+                using var ctrlDesigns = new GameThemesController();
+
+                Assert.IsNotNull(await ctrlDesigns.GetAsync(design.Id),
+                    "Das benutzte Design ist weg.");
+            }
+            finally
+            {
+                using var ctrl = new GamesController();
+                await ctrl.DeleteAsync(eigenesSpiel.Id);
+                await ctrl.SaveChangesAsync();
+            }
+        }
+
         [TestMethod]
         public async Task RemovingTakesTheDemoAndNothingElse()
         {

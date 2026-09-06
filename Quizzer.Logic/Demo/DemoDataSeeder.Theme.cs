@@ -33,7 +33,7 @@ namespace Quizzer.Logic.Demo
             var design = new GameTheme
             {
                 Id = Guid.NewGuid(),
-                Designation = "Abendrot",
+                Designation = $"{Marke} Abendrot",
                 FolderName = DemoThemeFolder,
                 Notes = $"Warme Töne. {eigene} von {ThemeAssets.Texturen.Count} Texturen eigen, "
                       + "der Rest kommt aus dem mitgelieferten Design.",

@@ -13,8 +13,14 @@ namespace Quizzer.Logic.Demo
         /// Anzahl der Demo-Kategorien, die stehen bleiben mussten, weil noch eine fremde Frage
         /// darin liegt.
         /// </param>
+        /// <param name="Designs">Anzahl geloeschter Demo-Designs.</param>
+        /// <param name="BehalteneDesigns">
+        /// Anzahl der Demo-Designs, die stehen bleiben mussten, weil noch ein fremdes Spiel
+        /// darauf steht.
+        /// </param>
         public sealed record Ergebnis(
-            int Spiele, int Fragen, int Mitspieler, int Kategorien, int BehalteneKategorien = 0);
+            int Spiele, int Fragen, int Mitspieler, int Kategorien, int BehalteneKategorien = 0,
+            int Designs = 0, int BehalteneDesigns = 0);
 
         /// <summary>
         /// Entfernt alles, was <see cref="DemoDataSeeder.Marke"/> in der Bezeichnung traegt.
@@ -35,8 +41,56 @@ namespace Quizzer.Logic.Demo
             var fragen = await LoescheFragenAsync();
             var spieler = await LoescheMitspielerAsync();
             var (kategorien, behalten) = await LoescheKategorienAsync();
+            var (designs, behalteneDesigns) = await LoescheDesignsAsync();
 
-            return new Ergebnis(spiele, fragen, spieler, kategorien, behalten);
+            return new Ergebnis(
+                spiele, fragen, spieler, kategorien, behalten, designs, behalteneDesigns);
+        }
+
+        /// <summary>
+        /// Loescht die Demo-Designs - aber nur die, auf denen kein Spiel mehr steht.
+        /// <para>
+        /// <b>B42.</b> Das Demo-Design "Abendrot" ueberlebte das Aufraeumen bisher: es trug die
+        /// Marke gar nicht, und der Aufraeumweg kannte Designs nicht.
+        /// </para>
+        /// <para>
+        /// <b>Gemessen:</b> <c>FK_Game_GameTheme_GameThemeId</c> steht auf NO ACTION. Ein noch
+        /// benutztes Design zu loeschen wirft denselben rohen Datenbankfehler wie das Entfernen
+        /// einer Spielleitung (B48) - also dieselbe Vorsicht wie bei den Kategorien: was noch
+        /// gebraucht wird, bleibt stehen und wird gemeldet.
+        /// </para>
+        /// <para>
+        /// Erkannt wird auch das Design, das <b>vor</b> dieser Aenderung angelegt wurde und
+        /// deshalb keine Marke traegt: der Ordnername ist die Kennung, an der schon der Seeder
+        /// entscheidet, ob es das Design bereits gibt.
+        /// </para>
+        /// </summary>
+        private static async Task<(int Geloescht, int Behalten)> LoescheDesignsAsync()
+        {
+            using var ctrl = new GameThemesController();
+            using var spieleCtrl = new GamesController(ctrl);
+
+            var benutzt = (await spieleCtrl.GetAllAsync())
+                .Select(g => g.GameThemeId)
+                .Where(id => id != null)
+                .Select(id => id!.Value)
+                .ToHashSet();
+
+            var treffer = (await ctrl.GetAllAsync())
+                .Where(t => IstDemo(t.Designation)
+                         || string.Equals(t.FolderName, DemoDataSeeder.DemoThemeFolder,
+                                          StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            var frei = treffer.Where(t => !benutzt.Contains(t.Id)).ToList();
+
+            foreach (var design in frei)
+                await ctrl.DeleteAsync(design.Id);
+
+            if (frei.Count > 0)
+                await ctrl.SaveChangesAsync();
+
+            return (frei.Count, treffer.Count - frei.Count);
         }
 
         private static bool IstDemo(string? bezeichnung)

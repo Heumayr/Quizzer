@@ -60,6 +60,12 @@ switch (args[0])
             Console.WriteLine($"  Fragen:      {e.Fragen}");
             Console.WriteLine($"  Mitspieler:  {e.Mitspieler}");
             Console.WriteLine($"  Kategorien:  {e.Kategorien}");
+            Console.WriteLine($"  Designs:     {e.Designs}");
+
+            if (e.BehalteneDesigns > 0)
+                Console.WriteLine(
+                    $"  {e.BehalteneDesigns} Demo-Design(s) blieben stehen: es steht noch ein "
+                    + "Spiel darauf. Das Löschen wäre am Fremdschlüssel gescheitert.");
 
             if (e.BehalteneKategorien > 0)
                 Console.WriteLine(
