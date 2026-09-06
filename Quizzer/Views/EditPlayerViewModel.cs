@@ -14,7 +14,7 @@ using System.Windows.Input;
 
 namespace Quizzer.Views
 {
-    public class EditPlayerViewModel : ViewModelBase
+    public partial class EditPlayerViewModel : ViewModelBase
     {
         public void SetPlayer(Player player)
         {

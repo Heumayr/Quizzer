@@ -150,6 +150,12 @@ namespace Quizzer.Views.QuestionTypes
 
             var wasNew = Question.Id == Guid.Empty;
 
+            // Nur eine neue Frage bekommt einen Besitzer. Eine bestehende ohne Besitzer gehoert
+            // allen - sie beim blossen Oeffnen zu vereinnahmen wuerde sie den anderen
+            // Spielleitern wegnehmen.
+            if (wasNew)
+                DataModels.QuestionOwnership.ClaimIfUnowned(Question);
+
             using var ctrl = new QuestionBasesController();
             await ctrl.SaveWithStepsAsync(Question);
             await ctrl.SaveChangesAsync();

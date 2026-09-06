@@ -42,6 +42,12 @@ namespace Quizzer.DataModels.Models
         /// </summary>
         public bool UseProportionalScoreReductionOnStep { get; set; } = false;
 
+        /// <summary>
+        /// Wem diese Frage gehoert. <c>null</c> heisst: sie gehoert allen - so stehen die Fragen
+        /// aus der Zeit vor den Anmeldungen weiterhin jedem zur Verfuegung.
+        /// </summary>
+        public Guid? OwnerPlayerId { get; set; }
+
         /// <summary>Interne Notizen des Spielleiters zur Frage (nicht für Spieler sichtbar).</summary>
         public string Notes { get; set; } = string.Empty;
 
@@ -269,6 +275,10 @@ namespace Quizzer.DataModels.Models
             target.ShowTextOnKeySelect = ShowTextOnKeySelect;
 
             target.StepDisplayLayoutMode = StepDisplayLayoutMode;
+
+            // Ohne diese Zeile wuerde der Besitzer beim Speichern still verlorengehen -
+            // CloneCompletenessUnitTests faengt genau das ab.
+            target.OwnerPlayerId = OwnerPlayerId;
 
             target.Steps = new List<QuestionStepResource>();
             target.Category = null;

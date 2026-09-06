@@ -41,8 +41,8 @@ namespace Quizzer.Logic.Demo
         public static async Task<Ergebnis> CreateAsync()
         {
             var kategorien = await CreateCategoriesAsync();
-            var fragen = await CreateQuestionsAsync(kategorien);
             var spieler = await CreatePlayersAsync();
+            var fragen = await CreateQuestionsAsync(kategorien, spieler);
             var spiel = await CreateGameAsync(kategorien, fragen, spieler);
 
             return new Ergebnis(spiel, kategorien.Count, fragen.Count, spieler.Count,
@@ -75,26 +75,29 @@ namespace Quizzer.Logic.Demo
 
         private static async Task<List<Player>> CreatePlayersAsync()
         {
+            // Zwei duerfen leiten: nur so laesst sich der Wechsel und der getrennte
+            // Fragenbestand ueberhaupt vorfuehren.
             var namen = new[]
             {
-                ("Anna", "Anna"),
-                ("Bert", "Bert"),
-                ("Clara", "Clara"),
-                ("Dennis", "Dennis"),
-                ("Moderator", "Der Spielleiter"),
+                ("Anna", "Anna", true),
+                ("Bert", "Bert", false),
+                ("Clara", "Clara", false),
+                ("Dennis", "Dennis", false),
+                ("Moderator", "Der Spielleiter", true),
             };
 
             var ergebnis = new List<Player>();
 
             using var ctrl = new PlayersController();
 
-            foreach (var (kurz, anzeige) in namen)
+            foreach (var (kurz, anzeige, leitet) in namen)
             {
                 var spieler = new Player
                 {
                     Id = Guid.NewGuid(),
                     Designation = $"{Marke} {kurz}",
                     DisplayName = anzeige,
+                    IsModerator = leitet,
                 };
 
                 await ctrl.InsertAsync(spieler);
@@ -133,12 +136,27 @@ namespace Quizzer.Logic.Demo
                 IsFinish = istAbschluss,
             };
 
-        private static async Task<List<QuestionBase>> CreateQuestionsAsync(List<Category> kategorien)
+        /// <summary>
+        /// Legt die zwoelf Fragen an und verteilt den Besitz so, dass sich die Wirkung der
+        /// Anmeldung vorfuehren laesst: je vier gehoeren einem der beiden Spielleiter, vier
+        /// bleiben ohne Besitzer und damit gemeinsam.
+        /// </summary>
+        private static async Task<List<QuestionBase>> CreateQuestionsAsync(
+            List<Category> kategorien, List<Player> spieler)
         {
+            var leiter = spieler.Where(p => p.IsModerator).ToList();
             var alle = new List<QuestionBase>();
+            var nummer = 0;
 
             foreach (var frage in BaueFragen(kategorien))
             {
+                // 0,1,2 -> ohne Besitzer, dann abwechselnd die beiden Spielleiter.
+                frage.OwnerPlayerId = nummer < 4 || leiter.Count == 0
+                    ? null
+                    : leiter[(nummer - 4) % leiter.Count].Id;
+
+                nummer++;
+
                 await SaveQuestionAsync(frage);
                 alle.Add(frage);
             }

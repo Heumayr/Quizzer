@@ -21,9 +21,45 @@ namespace Quizzer
 
             Settings.LoadSettings();
 
+            if (!Anmelden())
+            {
+                Shutdown();
+                return;
+            }
+
             var mainVm = new MainViewModel();
             var window = new MainWindow { DataContext = mainVm };
             window.Show();
+        }
+
+        /// <summary>
+        /// Fragt am Anfang, wer das Quiz leitet.
+        /// <para>
+        /// Die Wahl entscheidet, welche Fragen zur Verfuegung stehen. Sie steht deshalb vor dem
+        /// Hauptfenster und nicht darin.
+        /// </para>
+        /// <para>
+        /// <b>Solange niemand als Spielleiter angelegt ist, geht es ohne Anmeldung weiter.</b>
+        /// Sonst waere das Programm nach dem Einspielen dieser Aenderung nicht mehr zu oeffnen -
+        /// und der Haken laesst sich nur darin setzen.
+        /// </para>
+        /// </summary>
+        private static bool Anmelden()
+        {
+            var fenster = new Views.LoginView();
+
+            if (fenster.DataContext is Views.LoginViewModel vm)
+            {
+                fenster.ShowDialog();
+
+                if (vm.SignedIn)
+                    return true;
+
+                // Kein Spielleiter angelegt: weitermachen, sonst sperrt sich der Nutzer aus.
+                return !vm.HasModerators;
+            }
+
+            return true;
         }
 
         /// <summary>

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Quizzer.Views"
         xmlns:base="clr-namespace:Quizzer.Base"
         mc:Ignorable="d"
-        Title="Mitspieler bearbeiten" Height="450" Width="800">
+        Title="Mitspieler bearbeiten" Height="560" Width="1000">
     <base:WindowBase.DataContext>
         <local:EditPlayerViewModel />
     </base:WindowBase.DataContext>
@@ -35,6 +35,29 @@
                 <Label MinWidth="120" Content="Bilddatei:" VerticalAlignment="Center" />
                 <TextBox IsEnabled="False" Height="25" VerticalContentAlignment="Center" Text="{Binding Path=Player.UserPictureFileName, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" Margin="5,0,0,0" Width="350" />
                 <Button Content="Auswählen" Command="{Binding SelectResourceCommnad}" />
+            </StackPanel>
+
+            <!-- Wer leiten darf, steht bei der Anmeldung zur Wahl. Ohne diesen Haken taucht
+                 niemand dort auf, und die Fragen bleiben ungeteilt. -->
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Darf leiten:" VerticalAlignment="Center" />
+                <CheckBox IsChecked="{Binding Path=Player.IsModerator}"
+                          VerticalAlignment="Center" Margin="5,0,0,0"
+                          Content="Kann das Quiz leiten"
+                          ToolTip="Nur Personen mit diesem Haken stehen bei der Anmeldung zur Wahl." />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Kennwort:" VerticalAlignment="Center" />
+                <PasswordBox x:Name="Kennwortfeld" Width="200" Height="25"
+                             VerticalContentAlignment="Center" Margin="5,0,0,0" />
+                <Button Content="Kennwort setzen" Command="{Binding SetPasswordCommand}"
+                        CommandParameter="{Binding ElementName=Kennwortfeld}"
+                        Margin="8,0,0,0" />
+                <Button Content="Kennwort entfernen" Command="{Binding ClearPasswordCommand}"
+                        Margin="8,0,0,0" />
+                <TextBlock Text="{Binding PasswordState}" VerticalAlignment="Center"
+                           Opacity="0.65" Margin="12,0,0,0" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">

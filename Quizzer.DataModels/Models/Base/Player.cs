@@ -32,6 +32,19 @@ namespace Quizzer.DataModels.Models.Base
         /// <summary>Dateiname des Spieler-Profilbilds (relativ zu <c>Settings.FilePathQuizzer</c>).</summary>
         public string UserPictureFileName { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Ob diese Person das Quiz leiten darf. Nur solche stehen bei der Anmeldung zur Wahl -
+        /// sonst waere die Liste an einem Abend mit zwanzig Gaesten unbrauchbar.
+        /// </summary>
+        public bool IsModerator { get; set; }
+
+        /// <summary>
+        /// Kennwort dieses Spielleiters, als PBKDF2-Ableitung. Leer heisst: kein Kennwort, die
+        /// Anmeldung genuegt. Das Feld ist da, damit ein Kennwort spaeter dazukommen kann, ohne
+        /// dass die Anmeldung umgebaut werden muss.
+        /// </summary>
+        public string PasswordHash { get; set; } = string.Empty;
+
         /// <summary>Backing-Field für <see cref="ConnectionState"/>; nicht in der DB gespeichert.</summary>
         [NotMapped]
         private PlayerConnection connectionState = PlayerConnection.Unknown;
@@ -86,6 +99,8 @@ namespace Quizzer.DataModels.Models.Base
                 DisplayName = DisplayName,
                 CurrentQuestionResults = new List<QuestionResult>(),
                 UserPictureFileName = UserPictureFileName,
+                IsModerator = IsModerator,
+                PasswordHash = PasswordHash,
                 ConnectionState = ConnectionState
             };
 

@@ -43,6 +43,7 @@ namespace Quizzer.UnitTests.Views
             typeof(Quizzer.Views.QuestionTypes.NewQuestionView),
             typeof(Quizzer.Views.BuzzerViews.BuzzerServerView),
             typeof(Quizzer.Views.GameThemesView),
+            typeof(Quizzer.Views.LoginView),
         ];
 
         private static IEnumerable<T> Descendants<T>(DependencyObject root) where T : DependencyObject

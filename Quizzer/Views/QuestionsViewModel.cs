@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Quizzer.Base;
+using Quizzer.DataModels;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Helpers;
 using Quizzer.DataModels.Models;
@@ -61,7 +62,7 @@ namespace Quizzer.Views
             using var ctrl = new QuestionBasesController();
             var questions = await ctrl.GetAllAsync();
 
-            Questions = new ObservableCollection<QuestionBase>(questions);
+            Questions = new ObservableCollection<QuestionBase>(QuestionOwnership.VisibleTo(questions));
         }
 
         public ObservableCollection<QuestionBase> SelectedQuestions { get; set; } = new();

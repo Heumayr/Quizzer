@@ -1,4 +1,5 @@
 ﻿using Quizzer.Base;
+using Quizzer.DataModels;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
@@ -44,7 +45,10 @@ namespace Quizzer.Views.HelperViewModels
         protected override async Task OnloadAsync()
         {
             using var qCtrl = new QuestionBasesController();
-            AllQuestion = await qCtrl.GetAllAsync();
+
+            // Derselbe Filter wie in der Fragenliste: was der angemeldete Spielleiter nicht
+            // sieht, darf er auch nicht auf eine Zelle legen.
+            AllQuestion = QuestionOwnership.VisibleTo(await qCtrl.GetAllAsync()).ToArray();
             CalculateAvailableQuestions();
         }
 
