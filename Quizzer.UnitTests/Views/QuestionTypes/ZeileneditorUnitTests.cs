@@ -111,6 +111,73 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
             }
         }
 
+        /// <summary>
+        /// <b>Eine frisch ausgefüllte Maske lässt sich speichern.</b>
+        /// <para>
+        /// <b>Gemessen am 2026-09-06, und es war eine Regression aus dem Maskenumbau:</b> die
+        /// Prüfung lief gegen <c>Question.Steps</c>, und dort steht bis zum Speichern nichts - die
+        /// Maske schreibt erst in <c>SaveAsync</c> zurück. Eine neue Multiple-Choice-Frage trug
+        /// damit <c>TooFewSteps</c> und <c>ResultStepMissing</c>, obwohl vier Antworten dastanden.
+        /// <c>CanSave</c> blieb falsch, und weil das Zurückschreiben nur <i>innerhalb</i> des
+        /// gesperrten Speicherbefehls läuft, gab es keinen Weg heraus: <b>sie war überhaupt nicht
+        /// speicherbar.</b>
+        /// </para>
+        /// <para>
+        /// Geprüft wird für die beiden Typen, die Schritte verlangen - bei den anderen wäre die
+        /// Zusicherung auch ohne Behebung grün und sagte nichts.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void AFreshlyFilledMaskCanBeSaved()
+        {
+            foreach (var typ in new[] { QuestionType.MultipleChoice, QuestionType.Properties })
+            {
+                var vm = Mit(typ, f =>
+                {
+                    f.DesignationShort = "P";
+                    f.CategoryId = Guid.NewGuid();
+                });
+
+                var editor = vm.Zeileneditor!;
+
+                Assert.IsFalse(vm.CanSave,
+                    $"Bei {typ} ist die leere Maske speicherbar - dann sagt der Rest nichts.");
+
+                editor.Zeilen[0].Text = "Canberra";
+                editor.Zeilen[0].IstRichtig = true;
+                editor.Zeilen[1].Text = "Sydney";
+
+                Assert.IsTrue(vm.CanSave,
+                    $"Bei {typ} laesst sich eine ausgefuellte Maske nicht speichern. Offen: "
+                    + string.Join(" | ", vm.Issues.Where(i => i.IsError).Select(i => i.Code)));
+            }
+        }
+
+        /// <summary>
+        /// Und die Prüfung schreibt dabei <b>nichts</b> in die Frage - sie rechnet auf einem Klon.
+        /// Liefe sie auf der Frage selbst, räumte sie bei jedem Tastendruck leere Zeilen weg, und
+        /// eine Zeile verschwände unter dem Cursor, sobald man ihren Text löscht.
+        /// </summary>
+        [TestMethod]
+        public void ValidatingNeverWritesIntoTheQuestion()
+        {
+            var vm = Mit(QuestionType.MultipleChoice, f => f.CategoryId = Guid.NewGuid());
+            var editor = vm.Zeileneditor!;
+
+            editor.Zeilen[0].Text = "Canberra";
+            editor.Zeilen[0].IstRichtig = true;
+            editor.Zeilen[1].Text = "Sydney";
+
+            Assert.AreEqual(0, vm.Question!.Steps.Count,
+                "Die Pruefung hat in die Frage geschrieben. Dann raeumt sie bei jedem "
+                + "Tastendruck leere Zeilen weg, und eine Zeile verschwindet unter dem Cursor.");
+
+            vm.UebernimmZeilen();
+
+            Assert.AreEqual(2, vm.Question.Steps.Count,
+                "Erst das Uebernehmen schreibt - und dann genau die gefuellten Zeilen.");
+        }
+
         /// <summary>Jeder Fragetyp bekommt eine Maske - keiner fällt durch.</summary>
         [TestMethod]
         public void EveryQuestionTypeGetsItsOwnMask()

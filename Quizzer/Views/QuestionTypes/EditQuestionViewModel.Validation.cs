@@ -34,14 +34,25 @@ namespace Quizzer.Views.QuestionTypes
         /// <summary>
         /// Rechnet die Beanstandungen neu. Wird nach jeder Aenderung an der Frage oder an den
         /// Schritten aufgerufen.
+        /// <para>
+        /// <b>Geprueft wird der Stand der MASKE, nicht der der Frage.</b> Die Typmaske schreibt
+        /// erst beim Speichern zurueck; gegen <c>Question.Steps</c> geprueft trug eine frische
+        /// Multiple-Choice-Frage <c>TooFewSteps</c>, obwohl vier Antworten dastanden - und weil
+        /// <c>CanSave</c> das Speichern sperrt, kam sie nie dazu, ihre Schritte zu schreiben.
+        /// Gemessen am 2026-09-06: sie war ueberhaupt nicht speicherbar.
+        /// </para>
         /// </summary>
         public void Revalidate()
         {
             Issues.Clear();
 
-            if (Question != null)
+            var geprueft = Zeileneditor != null && Question != null
+                ? Zeileneditor.Vorschau(Question)
+                : Question;
+
+            if (geprueft != null)
             {
-                foreach (var issue in QuestionValidator.Validate(Question))
+                foreach (var issue in QuestionValidator.Validate(geprueft))
                     Issues.Add(issue);
             }
 

@@ -188,6 +188,53 @@ namespace Quizzer.Views.QuestionTypes.Typed
                     Geaendert();
             };
 
+        /// <summary>
+        /// Wie die Frage aussähe, wenn man jetzt speicherte - <b>auf einem Klon, ohne die Frage
+        /// oder das gelesene Bild anzufassen</b>.
+        /// <para>
+        /// <b>Der Grund ist ein gemessener Defekt vom 2026-09-06:</b> die Prüfung lief gegen
+        /// <c>Question.Steps</c>, und dort steht bis zum Speichern nichts - die Maske schreibt
+        /// erst in <c>SaveAsync</c> zurück. Eine frische Multiple-Choice-Frage trug damit
+        /// <c>TooFewSteps</c> und <c>ResultStepMissing</c>, obwohl vier Antworten dastanden;
+        /// <c>CanSave</c> blieb falsch, und weil <c>UebernimmZeilen</c> nur <i>innerhalb</i> von
+        /// <c>SaveAsync</c> läuft, gab es keinen Weg heraus. <b>Sie war nicht speicherbar.</b>
+        /// </para>
+        /// <para>
+        /// <b>Warum nicht einfach laufend zurückschreiben:</b> der Übersetzer räumt leere Zeilen
+        /// weg und stempelt die Reihenfolge. Liefe das bei jedem Tastendruck, verschwände eine
+        /// Zeile unter dem Cursor, sobald man ihren Text löscht.
+        /// </para>
+        /// </summary>
+        internal QuestionBase Vorschau(QuestionBase frage)
+        {
+            ArgumentNullException.ThrowIfNull(frage);
+
+            var klon = frage.CloneWithoutReferences();
+
+            var mitgefuehrt = new List<DataModels.Models.Base.QuestionStepResource>(Bild.Mitgefuehrt);
+
+            // Was seit dem Lesen von aussen dazukam, gehoert in die Vorschau - sonst meldet die
+            // Pruefung "zu wenige Schritte" fuer Schritte, die es gibt. Anders als beim Speichern
+            // wird hier NICHTS gemerkt: taete es das, hielte der naechste Speichervorgang sie fuer
+            // bekannt und liesse sie fallen.
+            foreach (var schritt in frage.Steps)
+            {
+                if (!bekannt.Contains(schritt.Id) && !mitgefuehrt.Contains(schritt))
+                    mitgefuehrt.Add(schritt);
+            }
+
+            var bild = new Schrittbild
+            {
+                Zeilen = [.. Zeilen],
+                Abschluss = Bild.Abschluss,
+                Mitgefuehrt = mitgefuehrt,
+            };
+
+            composer.Schreib(klon, bild);
+
+            return klon;
+        }
+
         /// <summary>Meldet der Schale, dass sich etwas geändert hat - sie prüft dann neu.</summary>
         protected void Geaendert()
         {
