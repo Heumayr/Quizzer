@@ -126,5 +126,115 @@ namespace Quizzer.UnitTests.PlayThrough
 
             TestEnvironment.ThrowIfAnythingWasSwallowed();
         }
+
+        /// <summary>
+        /// Erweitert das Testspiel auf vier Zellen und markiert die genannte Zahl als gespielt.
+        /// Bei vier Zellen und zwei Phasen liegt die Schwelle nach der zweiten Runde. Moderator,
+        /// Rastergröße und Rundenstand gehen in <b>einem</b> Schreibvorgang mit.
+        /// <para>
+        /// Bewusst nicht in zwei: <c>RowVersion</c> ist vorhanden, aber niemand behandelt einen
+        /// Konflikt. Wer dasselbe Objekt aus dem Speicher zweimal hintereinander schreibt,
+        /// bekommt eine <c>DbUpdateConcurrencyException</c> — gemessen 2026-09-06 beim Bau
+        /// dieses Tests.
+        /// </para>
+        /// </summary>
+        private async Task BuildFourCellGridAsync(int gespielt)
+        {
+            using var ctrlSpiel = new GamesController();
+            using var ctrl = new GameGridCoordinatesController(ctrlSpiel);
+
+            // Frisch laden statt die Objekte aus dem Aufbau zu benutzen: RowVersion ist als
+            // Nebenläufigkeitsmarke vorhanden, aber niemand behandelt einen Konflikt. Ein Schreiben
+            // über ein Objekt, dessen Marke nicht mehr stimmt, wirft eine
+            // DbUpdateConcurrencyException - gemessen 2026-09-06, und zwar nur im Gesamtlauf,
+            // nicht in der Klasse allein. Wer Testdaten nachträgt, lädt vorher.
+            var zelle = await ctrl.GetAsync(world.Coordinate.Id);
+
+            Assert.IsNotNull(zelle, "Die Zelle des Testspiels fehlt.");
+
+            zelle!.IsDone = gespielt > 0;
+
+            await ctrl.UpdateAsync(zelle);
+
+            for (var i = 1; i < 4; i++)
+            {
+                await ctrl.InsertAsync(new GameGridCoordinate
+                {
+                    Id = Guid.NewGuid(),
+                    GameId = world.Game.Id,
+                    X = i,
+                    Y = 0,
+                    Phase = 1,
+                    IsDone = i < gespielt,
+                });
+            }
+
+            var spiel = await ctrlSpiel.GetAsync(world.Game.Id);
+
+            Assert.IsNotNull(spiel, "Das Testspiel fehlt.");
+
+            spiel!.ModeratorPlayerId = world.Players[0].Id;
+            spiel.SuggestedPhases = 2;
+            spiel.Height = 1;
+            spiel.Width = 4;
+            spiel.CurrentRound = gespielt;
+
+            await ctrlSpiel.UpdateAsync(spiel);
+            await ctrlSpiel.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Ist die Punkteschwelle erreicht, fragt das Spiel beim Öffnen nach dem Phasenwechsel.
+        /// <para>
+        /// Der Moment kommt mitten im Abend und war nie geprüft. Bleibt die Rückfrage aus, spielt
+        /// die zweite Hälfte mit den Punkten der ersten weiter.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task ReachingTheThresholdAsksForThePhaseChange()
+        {
+            // Eine von vier Zellen gespielt: die nächste Runde ist die zweite, und dort liegt
+            // bei zwei Phasen die Schwelle. Der Moderator wird gleich mitgesetzt.
+            await BuildFourCellGridAsync(gespielt: 1);
+
+            var vm = new GameMasterViewModel();
+
+            var geladen = await vm.LoadModel(world.Game.Id);
+
+            Assert.IsNotNull(geladen, "Das Spiel liess sich nicht oeffnen. Gemeldet wurde: "
+                + string.Join(" | ", prompt.Informs.Select(i => i.Message)));
+
+            Assert.AreEqual(1, prompt.Confirms.Count,
+                "Beim Erreichen der Schwelle wurde nicht nach dem Phasenwechsel gefragt.");
+
+            StringAssert.Contains(prompt.Confirms[0].Message, "Phase",
+                "Die Rueckfrage handelt nicht von der Phase: " + prompt.Confirms[0].Message);
+
+            // RecordingUserPrompt antwortet hier mit true - die Phase muss steigen.
+            Assert.AreEqual(2, geladen!.Phase,
+                "Die Phase wurde trotz Zustimmung nicht erhoeht.");
+        }
+
+        /// <summary>
+        /// Die Gegenrichtung: liegt die Schwelle noch nicht an, wird auch nicht gefragt.
+        /// Ohne sie wäre die Probe oben auch dann grün, wenn beim Öffnen immer gefragt würde.
+        /// </summary>
+        [TestMethod]
+        public async Task BelowTheThresholdNothingIsAsked()
+        {
+            await BuildFourCellGridAsync(gespielt: 0);
+
+            var vm = new GameMasterViewModel();
+
+            var geladen = await vm.LoadModel(world.Game.Id);
+
+            Assert.IsNotNull(geladen, "Das Spiel liess sich nicht oeffnen.");
+
+            Assert.AreEqual(0, prompt.Confirms.Count,
+                "Es wurde nach der Phase gefragt, obwohl die Schwelle nicht erreicht ist: "
+                + string.Join(" | ", prompt.Confirms.Select(c => c.Message)));
+
+            Assert.AreEqual(1, geladen!.Phase, "Die Phase wurde ungefragt erhoeht.");
+        }
     }
 }

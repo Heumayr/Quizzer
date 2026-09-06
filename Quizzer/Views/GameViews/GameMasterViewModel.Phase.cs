@@ -53,21 +53,6 @@ namespace Quizzer.Views.GameViews
         }
 
         /// <summary>
-        /// Startet den Phasenwechsel aus einem synchronen Zusammenhang heraus.
-        /// <para>
-        /// <c>UpdateGameState</c> ist synchron und wird an mehreren Stellen gerufen; der Wechsel
-        /// muss dort also losgeschickt statt abgewartet werden. Bis 2026-09-06 stand hier ein
-        /// blosses <c>_ =</c>: scheiterte das Schreiben, verschwand der Fehler in einer
-        /// unbeobachteten Aufgabe, und der Spielleiter sah eine neue Phase, die in der Datenbank
-        /// nicht stand. Jetzt faengt der Aufruf selbst.
-        /// </para>
-        /// </summary>
-        private void StartPhaseChangeSave()
-        {
-            _ = SaveAndRefreshAfterPhaseChangeAsync();
-        }
-
-        /// <summary>
         /// Schreibt den Phasenwechsel und zieht die Zellen nach. Wirft nicht: der Aufruf kommt
         /// teils aus einem synchronen Zusammenhang, in dem niemand faengt.
         /// </summary>

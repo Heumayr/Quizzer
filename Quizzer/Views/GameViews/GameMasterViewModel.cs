@@ -262,7 +262,7 @@ namespace Quizzer.Views.GameViews
 
             InitStatContext(Game);
             Game.CalculatetThreshold();
-            UpdateGameState();
+            await UpdateGameStateAsync();
             InitChoosingPlayer();
 
             await VMSaveAsync();
@@ -475,7 +475,7 @@ namespace Quizzer.Views.GameViews
                 await SetNextChoosingPlayer(context.CoordinateCorrectedAnsweredPlayers);
             }
 
-            UpdateGameState();
+            await UpdateGameStateAsync();
 
             // War das die letzte Zelle, wechselt der Spielerbildschirm auf die Siegerehrung.
             // Bis 2026-09-06 geschah das nur, wenn der Spielleiter den Punktestand danach von
@@ -540,7 +540,20 @@ namespace Quizzer.Views.GameViews
             }
         }
 
-        private void UpdateGameState()
+        /// <summary>
+        /// Zieht Rundenzähler und Anzeige nach und fragt an einer Punkteschwelle nach dem
+        /// Phasenwechsel.
+        /// <para>
+        /// <b>Wartet den Phasenwechsel ab.</b> Bis 2026-09-06 wurde er nur losgeschickt, während
+        /// der Aufrufer weiterlief - in <c>LoadModel</c> lief unmittelbar danach ein zweites
+        /// <c>VMSaveAsync</c> auf dasselbe Spiel. Zwei gleichzeitige Schreibvorgänge auf einer
+        /// Zeile: einer gewinnt, der andere bekommt eine
+        /// <c>DbUpdateConcurrencyException</c> - und das Spiel ließ sich genau dann nicht
+        /// öffnen, wenn eine Schwelle anstand. Aufgedeckt hat es ein Test, der nur im
+        /// Gesamtlauf umfiel.
+        /// </para>
+        /// </summary>
+        private async Task UpdateGameStateAsync()
         {
             if (Game == null) return;
 
@@ -556,7 +569,7 @@ namespace Quizzer.Views.GameViews
                     if (advance)
                     {
                         Game.RaisePhase();
-                        StartPhaseChangeSave();
+                        await SaveAndRefreshAfterPhaseChangeAsync();
                     }
                 }
             }
