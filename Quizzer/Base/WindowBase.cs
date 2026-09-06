@@ -41,10 +41,31 @@ namespace Quizzer.Base
             KeyDown += DefaultKeyDown;
             PreviewKeyDown += TastenkuerzelVorrangGeben;
 
+            // Sofort dunkel, nicht erst wenn der Stil greift. WPF setzt den Grund eines Fensters
+            // sonst auf SystemColors.WindowBrush - also Weiss -, und genau das blitzt beim
+            // Oeffnen auf, bevor der erste Bildaufbau kommt. Ein oertlicher Wert schlaegt den
+            // Stil aus App.xaml und steht schon vor dem ersten Auslegen fest.
+            Background = DunklerGrund;
+
             ChromeBackground = Colors.Black;
             ChromeForeground = Colors.WhiteSmoke;
             ChromeBorderColor = Colors.Black;
             UseDarkChrome = true;
+        }
+
+        /// <summary>
+        /// Der Grund, mit dem jedes Fenster startet. Derselbe Ton wie <c>AppBgBrush</c> in
+        /// <c>App.xaml</c> - eingefroren, damit alle Fenster sich denselben Pinsel teilen.
+        /// </summary>
+        internal static readonly Brush DunklerGrund = ErzeugeDunklenGrund();
+
+        private static Brush ErzeugeDunklenGrund()
+        {
+            var pinsel = new SolidColorBrush(Color.FromRgb(0x11, 0x11, 0x11));
+
+            pinsel.Freeze();
+
+            return pinsel;
         }
 
         #region Chrome Properties
@@ -193,7 +214,12 @@ namespace Quizzer.Base
                 hwndSource.AddHook(WindowProc);
 
             _sourceInitialized = true;
-            QueueApplyChrome();
+
+            // Sofort statt in der Warteschlange: OnSourceInitialized laeuft, bevor das Fenster
+            // sichtbar wird. Der frueher hier stehende QueueApplyChrome-Aufruf faerbte die
+            // Titelleiste erst bei DispatcherPriority.Loaded - also nachdem das Fenster schon
+            // hell auf dem Bildschirm stand.
+            ApplyChrome();
         }
 
         private IntPtr WindowProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
