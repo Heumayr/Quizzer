@@ -200,37 +200,77 @@ namespace Quizzer.LogicUnitTests.DataModels
         /// <summary>
         /// Sammlungen bleiben zurueck - das ist Absicht und die Grundlage des Schreibpfads. Ein
         /// Klon, der sie mitnaehme, wuerde beim Speichern Kindzeilen doppeln.
+        /// <para>
+        /// <b>Bis 2026-09-07 pruefte diese Zusicherung nichts.</b> Sie klonte eine frisch
+        /// erzeugte Entitaet, deren Sammlungen alle leer sind - der Klon war damit in jedem Fall
+        /// leer, ob er die Referenz mitnimmt, sie neu anlegt oder gar nichts tut. Jetzt wird
+        /// vorher je Sammlung ein Element hineingelegt, und eine Zaehlschranke sagt, dass
+        /// ueberhaupt etwas geprueft wurde.
+        /// </para>
         /// </summary>
         [TestMethod]
         public void CollectionsAreLeftBehind()
         {
+            var geprueft = 0;
+
             foreach (var typ in EntityTypes())
             {
                 var original = (ModelBase)Activator.CreateInstance(typ)!;
+
+                var sammlungen = typ.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(p => p.CanRead && p.CanWrite)
+                    .Where(p => p.GetCustomAttribute<NotMappedAttribute>() == null)
+                    .Where(p => p.PropertyType.IsGenericType
+                             && p.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                    .ToList();
+
+                // ERST FUELLEN, dann klonen - sonst ist "der Klon ist leer" von "das Original
+                // war leer" nicht zu unterscheiden.
+                var gefuellt = new List<string>();
+
+                foreach (var sammlung in sammlungen)
+                {
+                    if (sammlung.GetValue(original) is not System.Collections.IList liste)
+                        continue;
+
+                    var elementTyp = sammlung.PropertyType.GetGenericArguments()[0];
+
+                    if (elementTyp.IsAbstract || elementTyp.GetConstructor(Type.EmptyTypes) == null)
+                        continue;
+
+                    liste.Add(Activator.CreateInstance(elementTyp)!);
+                    gefuellt.Add(sammlung.Name);
+                }
 
                 var methode = typ.GetMethod(nameof(ICloneWithoutReferences<ModelBase>.CloneWithoutReferences),
                     BindingFlags.Public | BindingFlags.Instance)!;
 
                 var klon = methode.Invoke(original, new object[] { true })!;
 
-                var sammlungen = typ.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(p => p.CanRead && p.CanWrite)
-                    .Where(p => p.GetCustomAttribute<NotMappedAttribute>() == null)
-                    .Where(p => p.PropertyType.IsGenericType
-                             && p.PropertyType.GetGenericTypeDefinition() == typeof(List<>));
-
                 foreach (var sammlung in sammlungen)
                 {
-                    var wert = sammlung.GetValue(klon);
+                    if (!gefuellt.Contains(sammlung.Name))
+                        continue;
 
-                    if (wert is System.Collections.ICollection liste)
+                    Assert.AreEqual(1, ((System.Collections.ICollection)sammlung.GetValue(original)!).Count,
+                        $"{typ.Name}.{sammlung.Name}: das Original wurde beim Klonen selbst "
+                        + "veraendert.");
+
+                    if (sammlung.GetValue(klon) is System.Collections.ICollection liste)
                     {
+                        geprueft++;
+
                         Assert.AreEqual(0, liste.Count,
                             $"{typ.Name}.{sammlung.Name} kommt gefuellt aus dem Klon - "
                             + "beim Speichern entstuenden doppelte Kindzeilen.");
                     }
                 }
             }
+
+            Assert.IsTrue(geprueft >= 5,
+                $"Es wurden nur {geprueft} Sammlungen geprueft - dann sagt diese Zusicherung "
+                + "nichts. Entweder fuellt die Probe nicht mehr, oder es gibt die Sammlungen "
+                + "nicht mehr.");
         }
     }
 }
