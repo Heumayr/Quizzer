@@ -164,6 +164,15 @@ namespace Quizzer.Views.QuestionTypes
             // loescht - der Uebersetzer raeumt leere Zeilen weg.
             UebernimmZeilen();
 
+            // Das letzte Tor, und zwar HIER und nicht nur am Knopf: Bezeichnung, Punkte und
+            // Fragetext binden unmittelbar ans Modell, das keine Aenderungen meldet. Ohne diese
+            // Zeile liess sich eine Frage mit geleerter Bezeichnung speichern, und in der
+            // Fragenliste stand danach eine namenlose Zeile.
+            Revalidate();
+
+            if (!CanSave)
+                return;
+
             var wasNew = Question.Id == Guid.Empty;
 
             // Nur eine neue Frage bekommt einen Besitzer. Eine bestehende ohne Besitzer gehoert

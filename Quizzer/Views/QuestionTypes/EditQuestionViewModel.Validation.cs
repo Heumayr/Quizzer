@@ -18,8 +18,26 @@ namespace Quizzer.Views.QuestionTypes
         /// <summary>Ob es mindestens eine Beanstandung gibt - steuert die Sichtbarkeit der Liste.</summary>
         public bool HasIssues => Issues.Count > 0;
 
-        /// <summary>Ob gespeichert werden darf.</summary>
-        public bool CanSave => Question != null && !Issues.Any(i => i.IsError);
+        /// <summary>
+        /// Ob gespeichert werden darf.
+        /// <para>
+        /// <b>Frisch gerechnet, nicht aus der Liste gelesen.</b> Bezeichnung, Kurzform, Punkte
+        /// und Fragetext binden unmittelbar ans Modell, und <c>QuestionBase</c> meldet keine
+        /// Änderungen - es gibt also keinen Haken, an dem eine Neuprüfung hinge. Gemessen
+        /// 2026-09-07 in <b>beide</b> Richtungen: eine geleerte Bezeichnung liess sich speichern
+        /// (die Liste blieb leer), und eine erst nach der Kategorie eingetippte Bezeichnung
+        /// liess den Knopf grau, obwohl sie dastand - bei der Schätzfrage ohne jeden Ausweg,
+        /// weil es dort keine Zeilenliste gibt, über die man versehentlich eine Neuprüfung
+        /// auslöst.
+        /// </para>
+        /// <para>
+        /// <c>CommandManager.RequerySuggested</c> feuert bei jedem Tastendruck; der Knopf folgt
+        /// damit sofort. <see cref="Issues"/> bleibt an <see cref="Revalidate"/> gebunden - eine
+        /// Fehlerliste, die sich beim Tippen laufend umbaut, ist unlesbar.
+        /// </para>
+        /// </summary>
+        public bool CanSave => Question != null
+                            && QuestionValidator.IsSavable(Zeileneditor?.Vorschau(Question) ?? Question);
 
         /// <summary>Das Profil des aktuellen Fragetyps - die Maske richtet sich danach.</summary>
         public QuestionTypeProfile? Profile

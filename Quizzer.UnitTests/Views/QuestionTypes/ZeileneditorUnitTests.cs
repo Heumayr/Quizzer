@@ -180,6 +180,56 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
         }
 
         /// <summary>
+        /// <b>Der Speichern-Knopf folgt der Bezeichnung sofort - in beide Richtungen.</b>
+        /// <para>
+        /// <b>Gemessen 2026-09-07.</b> Bezeichnung, Kurzform, Punkte und Fragetext binden
+        /// unmittelbar ans Modell, und <c>QuestionBase</c> meldet keine Änderungen - es gab also
+        /// keinen Haken, an dem eine Neuprüfung hinge. Folge in beide Richtungen: eine geleerte
+        /// Bezeichnung ließ sich speichern, und eine erst nach der Kategorie eingetippte ließ
+        /// den Knopf grau. Bei der Schätzfrage gab es dafür keinen Ausweg - dort gibt es keine
+        /// Zeilenliste, über die man versehentlich eine Neuprüfung auslöst.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void TheSaveButtonFollowsTheDesignationImmediately()
+        {
+            var vm = Mit(QuestionType.Appreciate);
+
+            vm.Question!.CategoryId = Guid.NewGuid();
+            vm.Question.Designation = string.Empty;
+
+            Assert.IsFalse(vm.CanSave,
+                "Eine Frage ohne Bezeichnung laesst sich speichern - in der Fragenliste stuende "
+                + "danach eine namenlose Zeile.");
+
+            // Wie beim Tippen: direkt ans Modell, ohne dass irgendetwas eine Aenderung meldet.
+            vm.Question.Designation = "Wie hoch ist der Grossglockner?";
+
+            Assert.IsTrue(vm.CanSave,
+                "Der Speichern-Knopf bleibt grau, obwohl die Bezeichnung dasteht - und bei der "
+                + "Schaetzfrage gibt es keinen Weg, eine Neupruefung von Hand auszuloesen.");
+        }
+
+        /// <summary>
+        /// <b>Und das Speichern selbst hat sein eigenes Tor.</b> Ein Knopf, der grau ist,
+        /// schützt nur, solange niemand die Tastenkombination oder einen anderen Weg nimmt.
+        /// </summary>
+        [TestMethod]
+        public async Task SavingItselfRefusesAnInvalidQuestion()
+        {
+            var vm = Mit(QuestionType.Appreciate);
+
+            vm.Question!.CategoryId = Guid.NewGuid();
+            vm.Question.Designation = string.Empty;
+
+            await vm.VMSaveAsync();
+
+            Assert.AreEqual(EditResultState.None, vm.ResultState,
+                "Eine Frage ohne Bezeichnung wurde gespeichert, obwohl der Pruefer sie "
+                + "beanstandet.");
+        }
+
+        /// <summary>
         /// <b>Was der Aufdeck-Editor entfernt, bleibt auch nach dem Speichern entfernt.</b>
         /// <para>
         /// <b>Gefunden 2026-09-07 nachts.</b> <c>SchritteAngleichen</c> raeumt in
