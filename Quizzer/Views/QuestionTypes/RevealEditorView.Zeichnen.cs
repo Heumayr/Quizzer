@@ -85,9 +85,22 @@ namespace Quizzer.Views.QuestionTypes
                 return "Wählen Sie rechts unter Schritt 2 ein Bild.";
 
             if (art == RevealMode.Areas)
-                return flaechen.Count == 0
-                    ? "Ziehen Sie mit der Maus eine Fläche über das Bild."
-                    : $"{flaechen.Count} Fläche(n) gezeichnet - die Zahl zeigt die Reihenfolge.";
+            {
+                var imSchritt = flaechen.Count(f => (f.Step ?? 0) == aktuellerSchritt);
+
+                var kopf = $"Schritt {aktuellerSchritt + 1} von "
+                    + $"{Math.Max(RevealAreas.Schrittzahl(flaechen), aktuellerSchritt + 1)} - "
+                    + (imSchritt == 0
+                        ? "noch keine Fläche. Ziehen Sie eine über das Bild."
+                        : $"{imSchritt} Fläche(n) in diesem Schritt.");
+
+                // Was gewaehlt ist, steht im Klartext daneben - die Randstaerke allein traegt das
+                // nicht, und Information nur ueber die Darstellung ist ohnehin unzulaessig.
+                return gewaehlt >= 0 && gewaehlt < flaechen.Count
+                    ? kopf + $" Gewählt: Fläche {gewaehlt + 1} aus Schritt "
+                        + $"{(flaechen[gewaehlt].Step ?? 0) + 1}."
+                    : kopf + " Ein Klick ohne Ziehen wählt eine Fläche aus.";
+            }
 
             return "So sieht das Bild im ersten Schritt aus.";
         }
@@ -103,8 +116,19 @@ namespace Quizzer.Views.QuestionTypes
 
             if (art == RevealMode.Areas)
             {
-                for (var i = 0; i < flaechen.Count; i++)
-                    liste.Add($"{i + 3}. Fläche {i + 1} fällt weg");
+                var gruppen = flaechen
+                    .GroupBy(f => f.Step ?? 0)
+                    .OrderBy(g => g.Key)
+                    .ToList();
+
+                for (var i = 0; i < gruppen.Count; i++)
+                {
+                    var anzahl = gruppen[i].Count();
+
+                    liste.Add(anzahl == 1
+                        ? $"{i + 3}. eine Fläche fällt weg"
+                        : $"{i + 3}. {anzahl} Flächen fallen zusammen weg");
+                }
             }
             else
             {
@@ -119,6 +143,20 @@ namespace Quizzer.Views.QuestionTypes
             return liste;
         }
 
+        /// <summary>
+        /// Malt die Flächen über das Bild.
+        /// <para>
+        /// <b>Der laufende Schritt ist dreifach zu erkennen</b>, nie nur über Farbe: die Zahl auf
+        /// jeder Fläche ist ihre <i>Schrittnummer</i> und wiederholt sich deshalb; die Flächen des
+        /// laufenden Schritts haben einen dicken durchgezogenen Rand, fremde einen dünnen
+        /// gestrichelten; und der Bühnentext sagt es in Worten.
+        /// </para>
+        /// <para>
+        /// <b>Die Beschriftung sitzt auf dem Schwerpunkt der Ecken</b>, nicht auf der Ecke der
+        /// Hülle: bei einem gedrehten Dreieck läge die dort außerhalb der Figur, unter Umständen
+        /// über der Nachbarfläche.
+        /// </para>
+        /// </summary>
         private void ZeichneFlaechen()
         {
             var lage = Bildlage();
@@ -127,35 +165,37 @@ namespace Quizzer.Views.QuestionTypes
                 return;
 
             var (links, oben, breite, hoehe) = lage.Value;
-            var nummer = 0;
+            var bild = new Bildlage(links, oben, breite, hoehe);
 
-            foreach (var flaeche in flaechen)
+            for (var i = 0; i < flaechen.Count; i++)
             {
-                nummer++;
+                var flaeche = flaechen[i];
+                var schritt = flaeche.Step ?? 0;
+                var laeuft = schritt == aktuellerSchritt;
+                var ecken = RevealFormen.EckenAnzeige(flaeche, bild);
 
-                var rechteck = new System.Windows.Shapes.Rectangle
+                var vieleck = new System.Windows.Shapes.Polygon
                 {
-                    Width = Math.Max(flaeche.W * breite, 0),
-                    Height = Math.Max(flaeche.H * hoehe, 0),
-                    Fill = new SolidColorBrush(Color.FromArgb(200, 0, 0, 0)),
-                    Stroke = Brushes.Wheat,
-                    StrokeThickness = 1,
+                    Fill = new SolidColorBrush(Color.FromArgb(laeuft ? (byte)200 : (byte)120, 0, 0, 0)),
+                    Stroke = i == gewaehlt ? Brushes.Orange : Brushes.Wheat,
+                    StrokeThickness = i == gewaehlt ? 3 : laeuft ? 2 : 1,
+                    StrokeDashArray = laeuft ? null : [3, 3],
                 };
 
-                Canvas.SetLeft(rechteck, links + flaeche.X * breite);
-                Canvas.SetTop(rechteck, oben + flaeche.Y * hoehe);
+                foreach (var (x, y) in ecken)
+                    vieleck.Points.Add(new Point(x, y));
 
-                Ueberdeckungen.Children.Add(rechteck);
+                Ueberdeckungen.Children.Add(vieleck);
 
                 var beschriftung = new TextBlock
                 {
-                    Text = nummer.ToString(),
+                    Text = (schritt + 1).ToString(),
                     Foreground = Brushes.Wheat,
                     FontWeight = FontWeights.Bold,
                 };
 
-                Canvas.SetLeft(beschriftung, links + flaeche.X * breite + 4);
-                Canvas.SetTop(beschriftung, oben + flaeche.Y * hoehe + 2);
+                Canvas.SetLeft(beschriftung, ecken.Average(e => e.X) - 5);
+                Canvas.SetTop(beschriftung, ecken.Average(e => e.Y) - 9);
 
                 Ueberdeckungen.Children.Add(beschriftung);
             }
@@ -169,6 +209,11 @@ namespace Quizzer.Views.QuestionTypes
 
             if (art == RevealMode.Areas && flaechen.Count == 0)
                 return "Noch keine Fläche gezogen - das Bild wäre von Anfang an ganz zu sehen.";
+
+            if (art == RevealMode.Areas
+                && !flaechen.Any(f => (f.Step ?? 0) == aktuellerSchritt))
+                return $"In Schritt {aktuellerSchritt + 1} liegt keine Fläche. Beim Übernehmen "
+                    + "fällt er weg.";
 
             return string.Empty;
         }

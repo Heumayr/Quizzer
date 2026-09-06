@@ -66,7 +66,14 @@ namespace Quizzer.UnitTests.Views
         /// </summary>
         private static bool Druecke(Window fenster, Key taste)
         {
-            var ui = (Keyboard.FocusedElement as UIElement) ?? fenster;
+            // Der Fokus ist PROZESSWEIT, nicht fensterweit. Im Volllauf haelt ein Fenster aus
+            // einer frueheren Klasse den Tastaturfokus, und die Taste ginge dorthin - der Test
+            // maesse dann ein fremdes Fenster und meldete "Enter wirkt nicht".
+            // Gemessen am 2026-09-06: genau daran hing die wackelige Zusicherung.
+            var ui = Keyboard.FocusedElement is UIElement fokussiert
+                     && Window.GetWindow(fokussiert) == fenster
+                ? fokussiert
+                : fenster;
             var quelle = PresentationSource.FromVisual(fenster);
 
             var vorschau = new KeyEventArgs(Keyboard.PrimaryDevice, quelle, 0, taste)

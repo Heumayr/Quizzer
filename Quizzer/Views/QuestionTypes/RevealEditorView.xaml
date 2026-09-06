@@ -45,7 +45,7 @@
                 <RadioButton x:Name="ArtAufdecken" GroupName="Art" Checked="Art_Changed" Margin="0,0,0,4">
                     <StackPanel>
                         <TextBlock Text="Aufdecken" FontWeight="Bold" />
-                        <TextBlock Text="Sie zeichnen Flächen über das Bild. Je Schritt fällt eine weg."
+                        <TextBlock Text="Sie zeichnen Flächen über das Bild - je Schritt fällt eine Gruppe weg."
                                    FontSize="12" Opacity="0.8" TextWrapping="Wrap" MaxWidth="260" />
                     </StackPanel>
                 </RadioButton>
@@ -87,8 +87,29 @@
 
                 <StackPanel x:Name="ZeichenBlock" Visibility="Collapsed">
                     <TextBlock TextWrapping="Wrap" FontSize="12" Opacity="0.8" Margin="2,0,0,6"
-                               Text="Ziehen Sie mit gedrückter Maustaste Flächen über das Bild, bis nichts mehr zu erkennen ist. Jede Fläche ist ein Schritt - die zuerst gezeichnete fällt zuerst." />
-                    <Button Content="Letzte Fläche entfernen" Click="LetzteEntfernen_Click" Margin="0,0,0,4" />
+                               Text="Ziehen Sie mit gedrückter Maustaste Flächen über das Bild. Mehrere Flächen dürfen zusammen zu einem Schritt gehören - erst „Nächster Schritt“ beginnt den nächsten. Ein Klick ohne Ziehen wählt eine Fläche aus; ein zweiter an derselben Stelle die darunter." />
+
+                    <TextBlock Text="Form" FontSize="12" Opacity="0.8" Margin="2,4,0,2" />
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <RadioButton x:Name="FormRechteck" GroupName="Form" Content="Rechteck"
+                                     IsChecked="True" Margin="0,0,12,0" />
+                        <RadioButton x:Name="FormDreieck" GroupName="Form" Content="Dreieck" />
+                    </StackPanel>
+
+                    <TextBlock Text="Ausgewählte Fläche drehen" FontSize="12" Opacity="0.8"
+                               Margin="2,0,0,2" />
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <Button Content="15° links" Tag="-15" Click="Drehen_Click" />
+                        <Button Content="15° rechts" Tag="15" Click="Drehen_Click" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <Button Content="Voriger Schritt" Click="VorigerSchritt_Click" />
+                        <Button Content="Nächster Schritt" Click="NaechsterSchritt_Click" />
+                    </StackPanel>
+
+                    <Button Content="Ausgewählte Fläche entfernen" Click="AusgewaehlteEntfernen_Click"
+                            Margin="0,0,0,4" />
                     <Button Content="Alle Flächen entfernen" Click="AlleEntfernen_Click"
                             Style="{StaticResource DangerButton}" Margin="0,0,0,8" />
                 </StackPanel>

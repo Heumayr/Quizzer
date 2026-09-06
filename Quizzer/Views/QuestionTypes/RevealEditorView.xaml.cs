@@ -49,6 +49,22 @@ namespace Quizzer.Views.QuestionTypes
         /// <summary>Ob übernommen wurde.</summary>
         public bool Uebernommen { get; private set; }
 
+        /// <summary>
+        /// Der Schritt, in den neu gezeichnete Flächen fallen.
+        /// <para>
+        /// <b>Ein Feld, kein aus der Bühne gelesener Zustand</b> - <c>Zeichne()</c> leert den
+        /// Canvas und baut die Schrittliste neu, und es läuft bei jeder Größenänderung. Stünde der
+        /// laufende Schritt in der Oberfläche, spränge er beim Ziehen des Fensters zurück.
+        /// </para>
+        /// </summary>
+        private int aktuellerSchritt;
+
+        /// <summary>
+        /// Welche Fläche ausgewählt ist, oder -1. Aus demselben Grund ein Feld wie
+        /// <see cref="aktuellerSchritt"/>: sonst träfe der nächste Drehklick die falsche.
+        /// </summary>
+        private int gewaehlt = -1;
+
         private RevealMode art = RevealMode.Areas;
         private string bilddatei = string.Empty;
         private double staerke = 40;
@@ -69,7 +85,14 @@ namespace Quizzer.Views.QuestionTypes
             staerke = vorlage.BlurStart <= 0 ? 40 : vorlage.BlurStart;
 
             flaechen.Clear();
-            flaechen.AddRange(RevealAreas.Parse(vorlage.AreasJson));
+
+            // MitSchritt nagelt die Taktung fest, BEVOR jemand etwas entfernt. Ohne das haengt
+            // der Schritt einer Altflaeche an ihrer Position - und das Loeschen der dritten von
+            // fuenf verschoebe lautlos alle folgenden.
+            flaechen.AddRange(RevealAreas.MitSchritt(RevealAreas.Parse(vorlage.AreasJson)));
+
+            aktuellerSchritt = Math.Max(RevealAreas.Schrittzahl(flaechen) - 1, 0);
+            gewaehlt = -1;
 
             weicheSchritte = Math.Max(vorlage.Steps.Count(s => !s.IsStart && !s.IsFinish), 1);
 
@@ -199,7 +222,9 @@ namespace Quizzer.Views.QuestionTypes
             frage.Mode = art;
             frage.ImageFileName = bilddatei;
             frage.BlurStart = staerke;
-            frage.AreasJson = RevealAreas.ToJson(flaechen);
+            // Normalisiert erzwingt die drei Zusagen, auf denen alles Weitere ruht: sortiert,
+            // lueckenlos ab 0, mindestens eine Flaeche je Schritt - und zieht die Huelle nach.
+            frage.AreasJson = RevealAreas.ToJson(RevealAreas.Normalisiert(flaechen));
 
             Uebernommen = true;
             Close();
@@ -207,6 +232,8 @@ namespace Quizzer.Views.QuestionTypes
 
         /// <summary>Wie viele Inhaltsschritte die Einstellungen verlangen.</summary>
         internal int GewuenschteSchritte
-            => art == RevealMode.Areas ? flaechen.Count : weicheSchritte;
+            => art == RevealMode.Areas
+                ? RevealAreas.Schrittzahl(RevealAreas.Normalisiert(flaechen))
+                : weicheSchritte;
     }
 }
