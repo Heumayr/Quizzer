@@ -47,6 +47,7 @@ namespace Quizzer.UnitTests.Views
             typeof(Quizzer.Views.SettingsView),
             typeof(Quizzer.Views.ImportPlayersView),
             typeof(Quizzer.Views.QuestionTypes.QuestionPreviewView),
+            typeof(Quizzer.Views.QuestionTypes.RevealEditorView),
         ];
 
         private static IEnumerable<T> Descendants<T>(DependencyObject root) where T : DependencyObject
