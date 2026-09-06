@@ -156,6 +156,17 @@
                     <Border BorderBrush="WhiteSmoke">
                         <buzzerServer:BuzzerControlsView DataContext="{Binding BuzzerControlsViewModel}" />
                     </Border>
+
+                    <!--
+                        Laeuft der Buzzer-Server nicht, blieb diese Zeile bis 2026-09-07 einfach
+                        leer - und weil das Fragefenster modal ist, kam der Spielleiter nicht
+                        einmal an das Buzzer-Fenster heran, um ihn zu starten.
+                    -->
+                    <Border Visibility="{Binding BuzzerFehltVisibility}"
+                            Background="#3A2F10" BorderBrush="#8A6D1F" BorderThickness="1"
+                            CornerRadius="6" Padding="10" Margin="4">
+                        <TextBlock Text="{Binding BuzzerFehltText}" TextWrapping="Wrap" />
+                    </Border>
                 </Grid>
 
                 <Grid Grid.Row="1" Grid.Column="0">

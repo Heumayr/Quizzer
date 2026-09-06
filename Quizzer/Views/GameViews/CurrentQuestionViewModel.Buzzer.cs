@@ -3,6 +3,7 @@ using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.Extentions;
 using System.Collections.Concurrent;
+using System.Windows;
 
 namespace Quizzer.Views.GameViews
 {
@@ -12,10 +13,40 @@ namespace Quizzer.Views.GameViews
     /// </summary>
     public partial class CurrentQuestionViewModel
     {
+        /// <summary>
+        /// Ob diese Frage die Telefone braucht, der Buzzer-Server aber nicht laeuft.
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> wurde eine Frage geoeffnet, ohne dass der Server lief,
+        /// stieg die Vorbereitung <b>stumm</b> aus. Kein Layout ging auf die Telefone, die
+        /// Buzzer-Zeile blieb leer, und "Runde zuruecksetzen" war tot. Das Fragefenster ist
+        /// modal - der Spielleiter kam an das Buzzer-Fenster gar nicht mehr heran und musste
+        /// erst die Frage schliessen. Auf dem Bildschirm stand kein Grund.
+        /// </para>
+        /// </summary>
+        public bool BuzzerFehlt =>
+            BuzzerControlsViewModel == null
+            && (Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None) != BuzzerControlsLayout.None;
+
+        /// <summary>Der Satz dazu - leer, solange nichts fehlt.</summary>
+        public string BuzzerFehltText => BuzzerFehlt
+            ? "Der Buzzer-Server läuft nicht. Diese Frage geht nicht auf die Telefone - "
+              + "Frage schließen, im Spielfeld „Buzzer-Server öffnen“ drücken, dann erneut öffnen."
+            : string.Empty;
+
+        public Visibility BuzzerFehltVisibility =>
+            BuzzerFehlt ? Visibility.Visible : Visibility.Collapsed;
+
         private async Task PrepareBuzzerlayoutAsync()
         {
             if (BuzzerControlsViewModel == null || Coordinate == null)
+            {
+                // Nicht mehr stumm: die drei Eigenschaften oben tragen den Grund ins Fenster.
+                OnPropertyChanged(nameof(BuzzerFehlt));
+                OnPropertyChanged(nameof(BuzzerFehltText));
+                OnPropertyChanged(nameof(BuzzerFehltVisibility));
+
                 return;
+            }
 
             var layout = Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None;
 

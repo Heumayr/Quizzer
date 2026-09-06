@@ -5,6 +5,7 @@ using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.Views.GameViews;
+using System.Windows;
 
 namespace Quizzer.UnitTests.PlayThrough
 {
@@ -96,6 +97,71 @@ namespace Quizzer.UnitTests.PlayThrough
             Assert.AreEqual(0, prompt.Informs.Count,
                 "Eine belegte Zelle wurde abgewiesen: "
                 + string.Join(" | ", prompt.Informs.Select(i => i.Message)));
+        }
+
+        /// <summary>
+        /// <b>Ein fehlender Buzzer-Server steht im Fragefenster.</b>
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> wurde eine Frage geöffnet, ohne dass der Server lief,
+        /// stieg die Buzzer-Vorbereitung <b>stumm</b> aus. Kein Layout ging auf die Telefone,
+        /// die Buzzer-Zeile blieb leer, und „Runde zurücksetzen" war tot. Das Fragefenster ist
+        /// modal - der Spielleiter kam an das Buzzer-Fenster gar nicht mehr heran. Auf dem
+        /// Bildschirm stand kein Grund.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task AMissingBuzzerServerIsSaidOutLoud()
+        {
+            var vm = new TestableCurrentQuestionViewModel { Coordinate = world.Coordinate };
+
+            await vm.LoadForTestAsync();
+
+            // Die Standardfrage des Testspiels braucht den Buzzer, und im Testlauf laeuft er
+            // nicht - genau die Lage, um die es geht.
+            Assert.IsTrue(vm.BuzzerFehlt,
+                "Die Probe steht gar nicht in der gemeinten Lage - laeuft hier ein "
+                + "Buzzer-Server? Dann misst sie nichts.");
+
+            StringAssert.Contains(vm.BuzzerFehltText, "Buzzer-Server",
+                "Es steht kein Grund im Fenster: '" + vm.BuzzerFehltText + "'");
+
+            StringAssert.Contains(vm.BuzzerFehltText, "schließen",
+                "Der Satz sagt nicht, was zu tun ist - und das Fenster ist modal, der "
+                + "Spielleiter kommt sonst nirgends hin: '" + vm.BuzzerFehltText + "'");
+
+            Assert.AreEqual(Visibility.Visible, vm.BuzzerFehltVisibility,
+                "Der Hinweis ist eingeklappt.");
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung.</b> Eine Frage, die die Telefone gar nicht braucht, bekommt
+        /// keinen Warnhinweis - sonst stünde er bei jeder Frage da und würde nicht mehr gelesen.
+        /// </summary>
+        [TestMethod]
+        public void AQuestionWithoutPhonesShowsNoWarning()
+        {
+            var frage = new Quizzer.DataModels.Models.QuestionTypes.DefaultQuestion
+            {
+                Id = Guid.NewGuid(),
+                Designation = "Ohne Telefone",
+                BuzzerControlsLayout = BuzzerControlsLayout.None,
+            };
+
+            var vm = new TestableCurrentQuestionViewModel
+            {
+                Coordinate = new GameGridCoordinate
+                {
+                    Id = Guid.NewGuid(),
+                    QuestionBaseId = frage.Id,
+                    QuestionBase = frage,
+                },
+            };
+
+            Assert.IsFalse(vm.BuzzerFehlt,
+                "Auch eine Frage ohne Telefone warnt vor dem fehlenden Buzzer-Server.");
+
+            Assert.AreEqual(Visibility.Collapsed, vm.BuzzerFehltVisibility,
+                "Der Hinweis steht da, obwohl nichts fehlt.");
         }
 
         /// <summary>
