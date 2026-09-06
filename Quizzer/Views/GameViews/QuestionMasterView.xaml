@@ -37,6 +37,10 @@
         <DataTemplate x:Key="AppreciateStepTemplate">
             <typed:AppreciateStepView IsMasterView="True" />
         </DataTemplate>
+
+        <DataTemplate x:Key="RevealStepTemplate">
+            <typed:RevealStepView IsMasterView="True" />
+        </DataTemplate>
     </Window.Resources>
 
     <Grid>

@@ -47,6 +47,10 @@
                 <Button Content="In anderen Typ umwandeln" Command="{Binding ConvertTypeCommand}"
                         MinWidth="190" Margin="0,0,8,0"
                         ToolTip="Behält Schritte, Medien und bisherige Ergebnisse. Nur für bereits gespeicherte Fragen." />
+                <Button Content="Aufdecken einrichten …" Command="{Binding RevealCommand}"
+                        Visibility="{Binding RevealVisibility}"
+                        MinWidth="180" Margin="0,0,8,0"
+                        ToolTip="Bild wählen und Flächen darüberziehen - oder die Unschärfe einstellen." />
                 <Button Content="Vorschau …" Command="{Binding PreviewCommand}"
                         MinWidth="120" Margin="0,0,8,0"
                         ToolTip="Zeigt die Frage so, wie die Mitspieler sie am Beamer sehen - durchschaltbar." />

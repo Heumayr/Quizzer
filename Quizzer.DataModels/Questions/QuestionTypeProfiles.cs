@@ -1,4 +1,4 @@
-using Quizzer.DataModels.Enumerations;
+﻿using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.QuestionTypes;
 
 namespace Quizzer.DataModels.Questions
@@ -83,9 +83,32 @@ namespace Quizzer.DataModels.Questions
             AllowsMultipleResultSteps = false,
         };
 
+        private static readonly QuestionTypeProfile Reveal = new()
+        {
+            Typ = QuestionType.Reveal,
+            DisplayName = "Aufdeckfrage",
+            HelpText = "Ein Bild wird schrittweise sichtbar - entweder fallen nacheinander "
+                     + "verdeckende Flächen weg, oder das Bild wird von Schritt zu Schritt "
+                     + "schärfer. Wer zuerst buzzert, darf raten.",
+            TableName = nameof(RevealQuestion),
+            BuzzerControlsLayout = BuzzerControlsLayout.Buzzer,
+            StepDisplayLayoutMode = StepDisplayLayoutMode.Vertical,
+            QuestionViewKeyType = QuestionViewKeyType.Numerical,
+            UseRandomSequenceOnNoneFinishSteps = false,
+
+            // Wer frueh raet, sieht weniger - der Punkteabzug je Schritt ist hier der Sinn der
+            // Sache und keine Einstellung.
+            UseProportionalScoreReductionOnStep = true,
+
+            ShowRevealImage = true,
+            MinNormalSteps = 1,
+            RequiresResultStep = false,
+            AllowsMultipleResultSteps = false,
+        };
+
         /// <summary>Alle Profile in der Reihenfolge, in der sie angeboten werden.</summary>
         public static IReadOnlyList<QuestionTypeProfile> All { get; } =
-            [Default, MultipleChoice, Properties, Appreciate];
+            [Default, MultipleChoice, Properties, Appreciate, Reveal];
 
         /// <summary>Liefert das Profil zu einem Fragetyp.</summary>
         /// <exception cref="ArgumentOutOfRangeException">Bei einem unbekannten Typ.</exception>

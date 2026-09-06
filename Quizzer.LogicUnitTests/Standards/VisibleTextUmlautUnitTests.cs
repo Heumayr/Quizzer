@@ -140,9 +140,22 @@ namespace Quizzer.LogicUnitTests.Standards
                     continue;
                 }
 
-                foreach (Match treffer in Regex.Matches(zeile, "\"([^\"\\\\]{3,})\""))
+                // In Markup zaehlt nur, was auch wirklich auf dem Bildschirm landet. Ein
+                // x:Name, ein Ereignisname oder ein Stilverweis ist ein Bezeichner - und
+                // Bezeichner tragen die Umschrift zu Recht (standards-allgemein.md §1).
+                // Gemessen 2026-09-06: der Waechter meldete x:Name="Flaechen" und
+                // Click="BildWaehlen_Click" im Editor der Aufdeckfrage.
+                var muster = istMarkup
+                    ? @"(?<attr>[A-Za-z:.]+)\s*=\s*""(?<wert>[^""]{3,})"""
+                    : @"""(?<wert>[^""\\]{3,})""";
+
+                foreach (Match treffer in Regex.Matches(zeile, muster))
                 {
-                    var wert = treffer.Groups[1].Value;
+                    if (istMarkup && !AnzeigeAttribute.Contains(
+                            treffer.Groups["attr"].Value, StringComparer.OrdinalIgnoreCase))
+                        continue;
+
+                    var wert = treffer.Groups["wert"].Value;
 
                     // Eine Bindung ist kein Anzeigetext, sondern ein Pfad auf einen Bezeichner -
                     // und Bezeichner tragen die Umschrift zu Recht. Gemessen 2026-09-06 an
@@ -173,6 +186,16 @@ namespace Quizzer.LogicUnitTests.Standards
         /// Entfernt den Inhalt geschweifter Klammern - in einer interpolierten Zeichenfolge steht
         /// dort ein Code-Bezeichner, und der trägt die Umschrift zu Recht.
         /// </summary>
+        /// <summary>
+        /// Die Markup-Attribute, deren Wert der Nutzer wirklich liest. Alles andere ist ein
+        /// Bezeichner.
+        /// </summary>
+        private static readonly string[] AnzeigeAttribute =
+        [
+            "Text", "Content", "Header", "Title", "ToolTip", "Watermark",
+            "AutomationProperties.Name", "AutomationProperties.HelpText",
+        ];
+
         private static string OhneKlammerinhalt(string wert)
             => Regex.Replace(wert, @"\{[^{}]*\}", " ");
 

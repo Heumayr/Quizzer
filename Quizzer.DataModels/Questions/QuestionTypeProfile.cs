@@ -61,6 +61,9 @@ namespace Quizzer.DataModels.Questions
         /// <summary>Ob der Typ einen Schaetzwert samt Einheit braucht.</summary>
         public bool ShowExpectedValue { get; init; }
 
+        /// <summary>Ob der Typ ein Bild und die Aufdeck-Einstellungen braucht.</summary>
+        public bool ShowRevealImage { get; init; }
+
         // --- Regeln fuer das Schrittmodell, gelesen von der Pruefung ---
 
         /// <summary>Wie viele normale Schritte dieser Typ mindestens braucht.</summary>

@@ -74,6 +74,8 @@ namespace Quizzer.Logic.Context
         public DbSet<PropertiesQuestion> PropertiesQuestions { get; set; }
         public DbSet<AppreciateQestion> AppreciateQestions { get; set; }
 
+        public DbSet<RevealQuestion> RevealQuestions { get; set; }
+
         /// <summary>
         /// Get the data set according to the entity type.
         /// </summary>

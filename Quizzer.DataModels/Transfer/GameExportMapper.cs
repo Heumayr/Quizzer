@@ -151,6 +151,21 @@ namespace Quizzer.DataModels.Transfer
                 };
             }
 
+            if (frage is RevealQuestion aufdeck)
+            {
+                daten.Typeigen = new GameExportDocument.TypeSpecificData
+                {
+                    Mode = aufdeck.Mode,
+                    AreasJson = aufdeck.AreasJson,
+                    BlurStart = aufdeck.BlurStart,
+
+                    // Das Bild geht ueber dieselbe Medienliste wie ein Schritt-Medium.
+                    BildSchluessel = string.IsNullOrWhiteSpace(aufdeck.ImageFileName)
+                        ? null
+                        : medium(aufdeck.ImageFileName),
+                };
+            }
+
             foreach (var schritt in frage.Steps.OrderBy(s => s.SequenceNumber))
             {
                 daten.Schritte.Add(new GameExportDocument.StepData
@@ -294,6 +309,17 @@ namespace Quizzer.DataModels.Transfer
                 schaetz.Unit = daten.Typeigen.Unit ?? schaetz.Unit;
                 schaetz.ExpectedValue = daten.Typeigen.ExpectedValue ?? schaetz.ExpectedValue;
                 schaetz.ExpectedDate = daten.Typeigen.ExpectedDate;
+            }
+
+            if (frage is RevealQuestion aufdeck && daten.Typeigen != null)
+            {
+                aufdeck.Mode = daten.Typeigen.Mode ?? aufdeck.Mode;
+                aufdeck.AreasJson = daten.Typeigen.AreasJson ?? aufdeck.AreasJson;
+                aufdeck.BlurStart = daten.Typeigen.BlurStart ?? aufdeck.BlurStart;
+
+                aufdeck.ImageFileName = daten.Typeigen.BildSchluessel == null
+                    ? string.Empty
+                    : medienDatei(daten.Typeigen.BildSchluessel) ?? string.Empty;
             }
 
             foreach (var schritt in daten.Schritte.OrderBy(s => s.SequenceNumber))

@@ -90,7 +90,10 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
                 view.UpdateLayout();
 
                 Assert.IsNotNull(view.ViewModel);
-                Assert.AreEqual(4, view.ViewModel.Profiles.Count);
+                // Bewusst gegen die Profilliste und nicht gegen eine Zahl: sie war bis
+                // 2026-09-06 eine 4, und mit der Aufdeckfrage waere sie still falsch geworden.
+                Assert.AreEqual(QuestionTypeProfiles.All.Count, view.ViewModel.Profiles.Count,
+                    "Die Auswahl bietet nicht jeden Fragetyp an.");
             });
         }
     }

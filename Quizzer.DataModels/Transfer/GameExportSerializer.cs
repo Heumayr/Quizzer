@@ -114,6 +114,11 @@ namespace Quizzer.DataModels.Transfer
                         throw new InvalidDataException(
                             $"Frage {i + 1} verweist auf ein Medium, das im Bündel fehlt.");
                 }
+
+                if (frage.Typeigen?.BildSchluessel is string bild
+                    && !medienSchluessel.Contains(bild))
+                    throw new InvalidDataException(
+                        $"Frage {i + 1} verweist auf ein Bild, das im Bündel fehlt.");
             }
 
             foreach (var zelle in dokument.Zellen)

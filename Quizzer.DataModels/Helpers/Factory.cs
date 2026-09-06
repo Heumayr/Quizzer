@@ -28,6 +28,7 @@ namespace Quizzer.DataModels.Helpers
                 QuestionType.MultipleChoice => new MultipleChoiceQuestion(),
                 QuestionType.Properties => new PropertiesQuestion(),
                 QuestionType.Appreciate => new AppreciateQestion(),
+                QuestionType.Reveal => new RevealQuestion(),
                 _ => new DefaultQuestion()
             };
         }

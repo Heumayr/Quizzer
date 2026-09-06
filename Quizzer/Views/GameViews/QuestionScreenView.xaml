@@ -29,6 +29,10 @@
         <DataTemplate x:Key="AppreciateStepTemplate">
             <typed:AppreciateStepView />
         </DataTemplate>
+
+        <DataTemplate x:Key="RevealStepTemplate">
+            <typed:RevealStepView />
+        </DataTemplate>
     </UserControl.Resources>
 
         <Grid Visibility="{Binding ShowQuestionView}">

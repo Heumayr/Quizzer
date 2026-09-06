@@ -22,6 +22,7 @@ namespace Quizzer.Views.GameViews.QuestionViews
                 QuestionType.MultipleChoice => fe.FindResource("MultipleChoiceStepTemplate") as DataTemplate,
                 QuestionType.Properties => fe.FindResource("PropertiesStepTemplate") as DataTemplate,
                 QuestionType.Appreciate => fe.FindResource("AppreciateStepTemplate") as DataTemplate,
+                QuestionType.Reveal => fe.FindResource("RevealStepTemplate") as DataTemplate,
                 _ => fe.FindResource("DefaultStepTemplate") as DataTemplate
             };
         }

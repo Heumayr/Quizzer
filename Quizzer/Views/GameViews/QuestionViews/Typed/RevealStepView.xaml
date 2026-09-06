@@ -1,0 +1,32 @@
+<local:UserControlStepViewBase x:Class="Quizzer.Views.GameViews.QuestionViews.Typed.RevealStepView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Quizzer.Views.GameViews.QuestionViews.Typed">
+    <!--
+        Die Aufdeckfrage auf dem Bildschirm.
+
+        Zwei Betriebsarten in einem Steuerelement: entweder liegen Flaechen ueber dem Bild, die
+        je Schritt eine nach der anderen wegfallen, oder das Bild ist unscharf und wird je
+        Schritt schaerfer. Gerechnet wird beides in RevealAreas, nicht hier - der Beamer, das
+        Spielleiterfenster und die Vorschau zeigen dasselbe Bild, und drei Stellen mit derselben
+        Rechnung laufen auseinander.
+    -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" x:Name="Buehne" ClipToBounds="True">
+            <Image x:Name="Bild" Stretch="Uniform" />
+
+            <!-- Die Flaechen liegen ueber dem Bild und werden im Code-Behind gesetzt, weil sie
+                 sich nach der tatsaechlich ausgelegten Bildgroesse richten. -->
+            <Canvas x:Name="Flaechen" IsHitTestVisible="False" />
+        </Grid>
+
+        <TextBlock Grid.Row="1" x:Name="Hinweis" Margin="8,6"
+                   TextWrapping="Wrap" TextAlignment="Center"
+                   FontWeight="SemiBold" />
+    </Grid>
+</local:UserControlStepViewBase>

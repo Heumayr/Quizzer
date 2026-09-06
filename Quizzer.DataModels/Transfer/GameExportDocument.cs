@@ -159,6 +159,14 @@ namespace Quizzer.DataModels.Transfer
             public AppreciateUnit? Unit { get; set; }
             public double? ExpectedValue { get; set; }
             public DateTime? ExpectedDate { get; set; }
+
+            // Aufdeckfrage
+            public RevealMode? Mode { get; set; }
+            public string? AreasJson { get; set; }
+            public double? BlurStart { get; set; }
+
+            /// <summary>Zeigt in <see cref="Medien"/> - das Bild der Aufdeckfrage.</summary>
+            public string? BildSchluessel { get; set; }
         }
 
         /// <summary>Ein Schritt einer Frage.</summary>

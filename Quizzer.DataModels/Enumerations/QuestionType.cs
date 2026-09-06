@@ -22,5 +22,15 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Schätzfrage: Spieler geben einen Freitext-Wert ein; wird über das Input-Layout des Buzzers beantwortet.</summary>
         Appreciate = 3,
+
+        /// <summary>
+        /// Aufdeckfrage: ein Bild wird schrittweise sichtbar - entweder fallen nacheinander
+        /// verdeckende Flächen weg, oder das Bild wird von Schritt zu Schritt schärfer.
+        /// <para>
+        /// <b>Am Ende angefügt, nicht dazwischen.</b> Die Werte stehen als Zahlen in der
+        /// Datenbank; ein verschobener Wert machte aus jeder gespeicherten Frage eine andere.
+        /// </para>
+        /// </summary>
+        Reveal = 4,
     }
 }
