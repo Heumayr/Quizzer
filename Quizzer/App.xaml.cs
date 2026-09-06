@@ -17,6 +17,8 @@ namespace Quizzer
         {
             base.OnStartup(e);
 
+            FensterModusFuerAnmeldungSetzen();
+
             CatchWhatWouldEndTheEvening();
 
             Settings.LoadSettings();
@@ -35,8 +37,32 @@ namespace Quizzer
 
             var mainVm = new MainViewModel();
             var window = new MainWindow { DataContext = mainVm };
+
+            // Ab hier beendet das Schliessen des Hauptfensters das Programm - vorher durfte es
+            // das ausdruecklich nicht (siehe FensterModusFuerAnmeldungSetzen).
+            window.Closed += (_, _) => Shutdown();
+
+            MainWindow = window;
             window.Show();
         }
+
+        /// <summary>
+        /// Sorgt dafuer, dass das Schliessen des Anmeldefensters das Programm nicht beendet.
+        /// <para>
+        /// <b>Gemeldet 2026-09-06:</b> „sobald ich anmelden klicke ... beendet das programm".
+        /// Die Ursache ist der Standard von WPF: <c>ShutdownMode</c> ist
+        /// <c>OnLastWindowClose</c>, und beim Start ist das Anmeldefenster das <b>einzige</b>
+        /// Fenster. Sobald es sich schliesst, sind null Fenster offen - WPF beendet die
+        /// Anwendung, und das <c>Show()</c> des Hauptfensters kommt nie zum Zug.
+        /// </para>
+        /// <para>
+        /// <b>Kein Test konnte das je finden.</b> <c>UiTestHost</c> erzeugt seine
+        /// <c>Application</c> mit <c>ShutdownMode = OnExplicitShutdown</c> - also genau mit der
+        /// Einstellung, deren Fehlen der Defekt ist. Der Pruefstand hat den Fehler zugedeckt.
+        /// </para>
+        /// </summary>
+        internal static void FensterModusFuerAnmeldungSetzen()
+            => Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
         /// <summary>
         /// Zieht die Datenbank auf den Stand der Migrationen, bevor irgendetwas sie liest.

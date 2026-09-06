@@ -64,7 +64,11 @@ namespace Quizzer.UnitTests.Views
             {
                 foreach (var typ in Fenster)
                 {
-                    var fenster = (Window)Activator.CreateInstance(typ)!;
+                    // Siehe FensterAufraeumer: ohne Schliessen bleibt jedes erzeugte Fenster
+                    // fuer den ganzen Testlauf in Application.Windows stehen.
+                    using var wegraeumen = new FensterAufraeumer(typ);
+
+                    var fenster = wegraeumen.Fenster;
 
                     geprueft++;
 

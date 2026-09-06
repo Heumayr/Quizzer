@@ -56,10 +56,7 @@ namespace Quizzer.UnitTests
                 try
                 {
                     if (Application.Current == null)
-                    {
-                        var app = new Quizzer.App { ShutdownMode = ShutdownMode.OnExplicitShutdown };
-                        app.InitializeComponent();
-                    }
+                        ErzeugeAnwendungOhneStart();
 
                     erzeugt = Dispatcher.CurrentDispatcher;
                     bereit.Set();
@@ -87,6 +84,47 @@ namespace Quizzer.UnitTests
                     $"Der Oberflaechen-Thread liess sich nicht starten: {fehler.Message}", fehler);
 
             return erzeugt!;
+        }
+
+        /// <summary>
+        /// Erzeugt die WPF-Anwendung fuer den Testlauf - <b>ohne</b> die Startlogik der echten
+        /// Anwendung.
+        /// <para>
+        /// <b>Gemessen am 2026-09-06, und es war eine Ueberraschung.</b> Der Konstruktor von
+        /// <see cref="Application"/> stellt die <c>Startup</c>-Nachricht selbst in die
+        /// Warteschlange des Dispatchers; das <c>Dispatcher.Run()</c> weiter oben hat sie dann
+        /// abgearbeitet. Wer hier ein <c>Quizzer.App</c> erzeugte, liess also
+        /// <c>App.OnStartup</c> laufen - mit allem, was daranhaengt:
+        /// </para>
+        /// <list type="bullet">
+        ///   <item><description><c>Settings.LoadSettings()</c> ueberschrieb mitten im Lauf die
+        ///   Verbindungszeichenfolge, die eine Zusicherung gerade gesetzt hatte</description></item>
+        ///   <item><description>die Datenbank wurde auf den Migrationsstand gezogen</description></item>
+        ///   <item><description>und das <b>Anmeldefenster stand modal offen</b>, den ganzen
+        ///   Testlauf lang - alle Zusicherungen liefen in dessen verschachtelter
+        ///   Dispatcher-Schleife</description></item>
+        /// </list>
+        /// <para>
+        /// Aufgefallen ist es erst, als eine Zusicherung wissen musste, ob ihr Fenster das
+        /// <b>letzte</b> ist. Nichts davon hat je einen Test rot gemacht.
+        /// </para>
+        /// <para>
+        /// Deshalb eine schlichte <see cref="Application"/> - deren <c>OnStartup</c> tut nichts -
+        /// und die Gestaltung aus <c>App.xaml</c> von Hand hineingeladen. Genau das macht das
+        /// erzeugte <c>InitializeComponent</c> auch, nur eben ohne die Startlogik.
+        /// </para>
+        /// </summary>
+        private static void ErzeugeAnwendungOhneStart()
+        {
+            var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+
+            // Dieselbe Gestaltung, die App.xaml einbindet. Ein LoadComponent auf App.xaml selbst
+            // ginge nicht: die Datei traegt x:Class="Quizzer.App", und dann verlangt WPF genau
+            // diesen Typ - womit die Startlogik wieder mitkaeme.
+            app.Resources.MergedDictionaries.Add(new ResourceDictionary
+            {
+                Source = new Uri("pack://application:,,,/Quizzer;component/Styles/AppResources.xaml"),
+            });
         }
 
         /// <summary>

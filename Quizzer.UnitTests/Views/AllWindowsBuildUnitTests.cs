@@ -76,7 +76,12 @@ namespace Quizzer.UnitTests.Views
                     {
                         using var wache = new BindingErrorWatch();
 
-                        var fenster = (Window)Activator.CreateInstance(typ)!;
+                        // Schliessen nicht vergessen: WPF haelt jedes erzeugte Fenster in
+                        // Application.Windows fest, und der Oberflaechen-Thread lebt bis zum
+                        // Prozessende. Ohne das sammeln sich Fenster ueber den ganzen Testlauf.
+                        using var wegraeumen = new FensterAufraeumer(typ);
+
+                        var fenster = wegraeumen.Fenster;
                         var inhalt = (FrameworkElement)fenster.Content;
 
                         inhalt.Measure(new Size(1200, 800));
