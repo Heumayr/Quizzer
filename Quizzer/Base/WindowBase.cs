@@ -47,6 +47,18 @@ namespace Quizzer.Base
             // Stil aus App.xaml und steht schon vor dem ersten Auslegen fest.
             Background = DunklerGrund;
 
+            // Und die Schriftfarbe aus demselben Grund - nur ist der hier schwerer zu sehen.
+            // Gemessen am 2026-09-06: Foreground eines jeden Fensters war #FF000000 aus
+            // DefaultStyle. Der Stil <Style TargetType="{x:Type base:WindowBase}"> in
+            // AppResources greift NIE: ein impliziter Stil bindet in WPF auf den GENAUEN Typ,
+            // und kein Fenster IST ein WindowBase - alle leiten davon ab.
+            //
+            // Sichtbar war das bisher nirgends, weil jedes Textelement seine Farbe vom
+            // impliziten TextBlock-Stil bekommt. Es ist das Auffangnetz darunter: faellt ein
+            // gekeyter Stil ohne BasedOn irgendwo durch, erbt der Text von hier - und nicht
+            // mehr Schwarz.
+            Foreground = HelleSchrift;
+
             ChromeBackground = Colors.Black;
             ChromeForeground = Colors.WhiteSmoke;
             ChromeBorderColor = Colors.Black;
@@ -59,9 +71,16 @@ namespace Quizzer.Base
         /// </summary>
         internal static readonly Brush DunklerGrund = ErzeugeDunklenGrund();
 
-        private static Brush ErzeugeDunklenGrund()
+        /// <summary>
+        /// Die Schrift, mit der jedes Fenster startet - derselbe Ton wie <c>ForegroundBrush</c>.
+        /// </summary>
+        internal static readonly Brush HelleSchrift = Eingefroren(Colors.WhiteSmoke);
+
+        private static Brush ErzeugeDunklenGrund() => Eingefroren(Color.FromRgb(0x11, 0x11, 0x11));
+
+        private static Brush Eingefroren(Color farbe)
         {
-            var pinsel = new SolidColorBrush(Color.FromRgb(0x11, 0x11, 0x11));
+            var pinsel = new SolidColorBrush(farbe);
 
             pinsel.Freeze();
 

@@ -148,6 +148,54 @@ namespace Quizzer.UnitTests.Views
         }
 
         /// <summary>
+        /// Das Auffangnetz unter allem: <b>jedes Fenster startet mit heller Schrift.</b>
+        /// <para>
+        /// <b>Gemessen am 2026-09-06:</b> der Vordergrund jedes Fensters war <c>#FF000000</c> aus
+        /// <c>DefaultStyle</c>. Der Stil <c>&lt;Style TargetType="{x:Type base:WindowBase}"&gt;</c>
+        /// greift nie - ein impliziter Stil bindet in WPF auf den <b>genauen</b> Typ, und kein
+        /// Fenster <i>ist</i> ein <c>WindowBase</c>, alle leiten davon ab.
+        /// </para>
+        /// <para>
+        /// Sichtbar war das nirgends, weil jedes Textelement seine Farbe vom impliziten
+        /// TextBlock-Stil bekommt. Genau deshalb steht es hier: es ist die Ebene, die trägt, wenn
+        /// darüber einmal etwas durchfällt.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void EveryWindowStartsWithLightText()
+        {
+            var dunkel = new List<string>();
+
+            UiTestHost.Run(() =>
+            {
+                foreach (var typ in Fenster)
+                {
+                    using var wegraeumen = new FensterAufraeumer(typ);
+
+                    var vg = (wegraeumen.Fenster.Foreground as SolidColorBrush)?.Color;
+                    var bg = (wegraeumen.Fenster.Background as SolidColorBrush)?.Color;
+
+                    if (vg == null || bg == null)
+                    {
+                        dunkel.Add($"{typ.Name}: vg={vg} bg={bg}");
+                        continue;
+                    }
+
+                    var k = (Helligkeit(vg.Value.R, vg.Value.G, vg.Value.B) + 0.05)
+                            / (Helligkeit(bg.Value.R, bg.Value.G, bg.Value.B) + 0.05);
+
+                    if (k < Mindestspanne)
+                        dunkel.Add($"{typ.Name}: {k:0.0}:1 vg={vg} bg={bg}");
+                }
+            });
+
+            Assert.AreEqual(0, dunkel.Count,
+                "Diese Fenster starten mit einer Schriftfarbe, die sich vom eigenen Grund nicht "
+                + "abhebt - faellt darueber ein Stil durch, ist der Text weg:" + Environment.NewLine
+                + string.Join(Environment.NewLine, dunkel));
+        }
+
+        /// <summary>
         /// <b>Die Gegenrichtung.</b> Ohne sie prüfte die Zusicherung oben nur eine Abwesenheit:
         /// misst die Probe gar nichts - falsche Bildgröße, falscher Versatz, kein Text gefunden -,
         /// bliebe sie ebenso grün. Bei einer absurd hohen Schwelle muss <b>jeder</b> Text
