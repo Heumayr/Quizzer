@@ -277,6 +277,63 @@ namespace Quizzer.LogicUnitTests.Logic
                     .Count(g => g.Designation.StartsWith(DemoDataSeeder.Marke, StringComparison.Ordinal)));
         }
         /// <summary>
+        /// Kein Demo-Startbildschirm verrät die Frage.
+        /// <para>
+        /// <b>Die Spielregel</b> (Nutzerwort vom 2026-09-06): der Spielleiter liest die Frage
+        /// vor, und wer buzzert, bevor sie zu Ende gelesen ist, darf sie nicht lesen können. Auf
+        /// dem ersten Beamerbildschirm steht deshalb nur die Fragenart.
+        /// </para>
+        /// <para>
+        /// <b>Und genau daran scheiterte der Demoabend.</b> Bis zum 2026-09-06 übergab der Seeder
+        /// den Fragetext als Text des Startschritts - bei allen zwölf Fragen, wörtlich. Die
+        /// Schritt-Ansicht darunter hätte ihn gezeichnet, und die Regel wäre am ersten Abend
+        /// ausgehebelt gewesen, ohne dass es jemandem auffiele.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task NoDemoStartScreenGivesTheQuestionAway()
+        {
+            await DemoDataSeeder.CreateAsync();
+
+            using var ctrl = new QuestionBasesController();
+
+            var verraeter = new List<string>();
+            var geprueft = 0;
+
+            foreach (var kurz in (await ctrl.GetAllAsync())
+                     .Where(q => q.Designation.StartsWith(DemoDataSeeder.Marke, StringComparison.Ordinal)))
+            {
+                var frage = await ctrl.GetAsync(kurz.Id);
+
+                Assert.IsNotNull(frage, $"Die Frage {kurz.Designation} liess sich nicht laden.");
+
+                frage!.CalculateOrderdSteps();
+
+                geprueft++;
+
+                var erster = frage.OrderedSteps.FirstOrDefault();
+
+                if (erster == null || !erster.IsStart)
+                {
+                    verraeter.Add($"{frage.Designation}: der erste Bildschirm ist kein Startschritt");
+                    continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(frage.QuestionText)
+                    && (erster.StepText ?? string.Empty).Contains(frage.QuestionText, StringComparison.Ordinal))
+                {
+                    verraeter.Add($"{frage.Designation}: der Startschritt traegt den Fragetext");
+                }
+            }
+
+            Assert.AreEqual(12, geprueft, "Es wurden nicht alle zwoelf Demofragen geprueft.");
+
+            Assert.AreEqual(0, verraeter.Count,
+                "Diese Demofragen zeigen die Frage schon auf dem ersten Beamerbildschirm:"
+                + Environment.NewLine + string.Join(Environment.NewLine, verraeter));
+        }
+
+        /// <summary>
         /// Bilderrunde und Musikrunde: zwei Demofragen tragen ein Medium, und zwar auf einem
         /// normalen Schritt - nicht auf dem Startschritt.
         /// <para>

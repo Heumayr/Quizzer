@@ -12,7 +12,7 @@ using static Quizzer.Views.HelperViewModels.GridBuilder;
 
 namespace Quizzer.Views.GameViews
 {
-    public class GamePlayerViewModel : ViewModelBase
+    public partial class GamePlayerViewModel : ViewModelBase
     {
         private GameGridVMs gameGridVMs = new();
         private QuestionStepResource? questionStepResource;
@@ -167,28 +167,6 @@ namespace Quizzer.Views.GameViews
             }
         }
 
-        public Visibility ShowQuestionText => string.IsNullOrEmpty(QuestionText) ? Visibility.Hidden : Visibility.Visible;
-
-        /// <summary>
-        /// Ob gerade der Startschritt läuft - der erste Bildschirm einer Frage.
-        /// </summary>
-        public bool IsStartStep => QuestionStepResource?.IsStart == true;
-
-        /// <summary>
-        /// Die Frage als schmale Zeile über dem Geschehen. Erst ab dem zweiten Schritt: im
-        /// ersten steht sie groß in der Mitte, und zweimal dieselbe Frage auf einem Bildschirm
-        /// ist unschön.
-        /// </summary>
-        public Visibility ShowQuestionTop =>
-            string.IsNullOrEmpty(QuestionText) || IsStartStep ? Visibility.Collapsed : Visibility.Visible;
-
-        /// <summary>
-        /// Die Frage groß in der Mitte. Nur im Startschritt - dort ist sie das Einzige, worum es
-        /// geht, und die Gäste lesen sie zum ersten Mal.
-        /// </summary>
-        public Visibility ShowQuestionCentered =>
-            !string.IsNullOrEmpty(QuestionText) && IsStartStep ? Visibility.Visible : Visibility.Collapsed;
-
         public string QuestionText
         {
             get => questionText;
@@ -197,9 +175,7 @@ namespace Quizzer.Views.GameViews
                 questionText = value;
                 OnPropertyChanged();
 
-                OnPropertyChanged(nameof(ShowQuestionText));
-                OnPropertyChanged(nameof(ShowQuestionTop));
-                OnPropertyChanged(nameof(ShowQuestionCentered));
+                RaiseQuestionPlacementChanged();
             }
         }
 
@@ -212,17 +188,21 @@ namespace Quizzer.Views.GameViews
                 OnPropertyChanged();
 
                 // Mit dem Schritt wechselt auch, wo die Frage steht.
-                OnPropertyChanged(nameof(IsStartStep));
-                OnPropertyChanged(nameof(ShowQuestionTop));
-                OnPropertyChanged(nameof(ShowQuestionCentered));
+                RaiseQuestionPlacementChanged();
 
                 if (questionStepResource != null)
                 {
-                    QuestionText = QuestionStepViewContext?.Question?.QuestionText ?? "";
+                    var frage = QuestionStepViewContext?.Question;
+
+                    OrderedSteps = frage?.OrderedSteps ?? [];
+                    QuestionTypeName = frage?.TypDisplayName ?? string.Empty;
+                    QuestionText = frage?.QuestionText ?? "";
                     ShowQuestionView = Visibility.Visible;
                 }
                 else
                 {
+                    OrderedSteps = [];
+                    QuestionTypeName = string.Empty;
                     QuestionText = "";
                     ShowQuestionView = Visibility.Hidden;
                 }

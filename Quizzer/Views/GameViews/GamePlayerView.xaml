@@ -156,10 +156,11 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <!-- Die Frage als schmale Kopfzeile - erst ab dem zweiten Schritt. Im ersten
-                     steht sie gross in der Mitte, und zweimal dieselbe Frage auf einem
-                     Bildschirm ist unschoen. Collapsed statt Hidden: sonst bliebe die Zeile
-                     als leerer Streifen stehen. -->
+                <!-- Die Frage als schmale Kopfzeile - erst ab dem dritten Bildschirm. Davor
+                     steht auf dem Startbildschirm nur die Fragenart und auf dem ersten
+                     Inhaltsbildschirm die Frage gross in der Mitte; zweimal dieselbe Frage auf
+                     einem Bildschirm ist unschoen. Collapsed statt Hidden: sonst bliebe die
+                     Zeile als leerer Streifen stehen. -->
                 <Grid Grid.Row="0" Background="Black" MaxHeight="100"
                       Visibility="{Binding ShowQuestionTop}">
                     <Viewbox Margin="5" Stretch="Uniform">
@@ -178,11 +179,33 @@
                     <ContentControl Content="{Binding QuestionStepViewContext}"
                                 ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
 
-                    <!-- Der erste Bildschirm einer Frage: nur die Frage, gross und mittig.
-                         Sie liegt ueber dem Schritt, damit ein leerer Startschritt nicht als
-                         Luecke darunter stehen bleibt. -->
+                    <!-- Bildschirm 1: nur die Fragenart, gross und mittig. KEIN Fragetext -
+                         der Spielleiter liest die Frage vor, und wer buzzert, bevor sie zu Ende
+                         gelesen ist, darf sie nicht lesen koennen (Nutzerwort vom 2026-09-06).
+
+                         Deckend schwarz, nicht durchscheinend: darunter liegt der Startschritt,
+                         und dessen Text ist bei jeder Demofrage der Fragetext selbst. Bei 80
+                         Prozent Deckung waere er lesbar - und die Spielregel waere ausgehebelt,
+                         ohne dass es jemandem auffiele. -->
+                    <Border Visibility="{Binding ShowQuestionTypeCentered}"
+                            Background="Black"
+                            Padding="40">
+                        <Viewbox Stretch="Uniform" MaxHeight="620">
+                            <TextBlock Text="{Binding QuestionTypeName}"
+                                       Foreground="WhiteSmoke"
+                                       FontWeight="Bold"
+                                       TextWrapping="Wrap"
+                                       MaxWidth="1100"
+                                       TextAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center" />
+                        </Viewbox>
+                    </Border>
+
+                    <!-- Bildschirm 2: die Frage gross und mittig - der Augenblick, in dem der
+                         Spielleiter sie freigibt. Ab dem naechsten Bildschirm steht sie oben. -->
                     <Border Visibility="{Binding ShowQuestionCentered}"
-                            Background="#CC000000"
+                            Background="Black"
                             Padding="40">
                         <Viewbox Stretch="Uniform" MaxHeight="620">
                             <TextBlock Text="{Binding QuestionText}"

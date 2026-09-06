@@ -1,4 +1,4 @@
-using Quizzer.DataModels.Enumerations;
+﻿using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.QuestionTypes;
@@ -262,7 +262,9 @@ namespace Quizzer.Logic.Demo
             Grunddaten(frage, kategorieId, bezeichnung, kurz, punkte, stufe);
             frage.QuestionText = frageText;
 
-            frage.Steps.Add(Schritt(frage.Id, 1, frageText, istStart: true));
+            // Bewusst KEIN eigener Startschritt: CalculateOrderdSteps ergaenzt einen leeren.
+            // Hier stand bis 2026-09-06 der Fragetext - und damit stand er auf dem ersten
+            // Beamerbildschirm, wo ihn niemand sehen darf, solange der Spielleiter vorliest.
 
             for (var i = 0; i < hinweise.Length; i++)
                 frage.Steps.Add(Schritt(frage.Id, (i + 1) * 10, hinweise[i]));
@@ -284,7 +286,9 @@ namespace Quizzer.Logic.Demo
             Grunddaten(frage, kategorieId, bezeichnung, kurz, punkte, stufe);
             frage.QuestionText = frageText;
 
-            frage.Steps.Add(Schritt(frage.Id, 1, frageText, istStart: true));
+            // Bewusst KEIN eigener Startschritt: CalculateOrderdSteps ergaenzt einen leeren.
+            // Hier stand bis 2026-09-06 der Fragetext - und damit stand er auf dem ersten
+            // Beamerbildschirm, wo ihn niemand sehen darf, solange der Spielleiter vorliest.
 
             for (var i = 0; i < hinweise.Length; i++)
                 frage.Steps.Add(Schritt(frage.Id, (i + 1) * 10, hinweise[i]));
@@ -313,7 +317,9 @@ namespace Quizzer.Logic.Demo
             frage.BuzzerMaxAllowedKeySelect = optionen.Count(o => o.IstLoesung);
             frage.ShowTextOnKeySelect = true;
 
-            frage.Steps.Add(Schritt(frage.Id, 1, frageText, istStart: true));
+            // Bewusst KEIN eigener Startschritt: CalculateOrderdSteps ergaenzt einen leeren.
+            // Hier stand bis 2026-09-06 der Fragetext - und damit stand er auf dem ersten
+            // Beamerbildschirm, wo ihn niemand sehen darf, solange der Spielleiter vorliest.
 
             for (var i = 0; i < optionen.Length; i++)
                 frage.Steps.Add(Schritt(frage.Id, (i + 1) * 10, optionen[i].Text,
@@ -337,7 +343,9 @@ namespace Quizzer.Logic.Demo
             frage.Unit = einheit;
             frage.ExpectedValue = sollwert;
 
-            frage.Steps.Add(Schritt(frage.Id, 1, frageText, istStart: true));
+            // Bewusst KEIN eigener Startschritt: CalculateOrderdSteps ergaenzt einen leeren.
+            // Hier stand bis 2026-09-06 der Fragetext - und damit stand er auf dem ersten
+            // Beamerbildschirm, wo ihn niemand sehen darf, solange der Spielleiter vorliest.
             frage.Steps.Add(Schritt(frage.Id, 900, aufloesung, istLoesung: true, istAbschluss: true));
 
             return frage;
@@ -355,7 +363,9 @@ namespace Quizzer.Logic.Demo
             frage.Unit = AppreciateUnit.Datum;
             frage.ExpectedDate = solldatum;
 
-            frage.Steps.Add(Schritt(frage.Id, 1, frageText, istStart: true));
+            // Bewusst KEIN eigener Startschritt: CalculateOrderdSteps ergaenzt einen leeren.
+            // Hier stand bis 2026-09-06 der Fragetext - und damit stand er auf dem ersten
+            // Beamerbildschirm, wo ihn niemand sehen darf, solange der Spielleiter vorliest.
             frage.Steps.Add(Schritt(frage.Id, 900, aufloesung, istLoesung: true, istAbschluss: true));
 
             return frage;
