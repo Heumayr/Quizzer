@@ -37,14 +37,6 @@ namespace Quizzer.UnitTests.PlayThrough
             UserPrompt.Reset();
         }
 
-        /// <summary>
-        /// Spielt die Frage Schritt für Schritt durch und schreibt mit, welchen Punktevorschlag
-        /// die Bewertung „richtig" bei jedem Schritt macht.
-        /// <para>
-        /// <b>Der Verlauf wird mitgeschrieben, nicht der Endzustand nachgesehen.</b> „Am Ende
-        /// stimmen die Punkte" wäre auch dann wahr, wenn sie zwischendurch eingebrochen wären.
-        /// </para>
-        /// </summary>
         /// <summary>Was bei einem Schritt gemessen wurde: wie viele Schritte davor lagen und
         /// welchen Punktevorschlag „richtig" dort macht.</summary>
         /// <param name="Sichtbar">
@@ -61,6 +53,14 @@ namespace Quizzer.UnitTests.PlayThrough
         /// </param>
         private sealed record Messpunkt(int Sichtbar, int Regular, int Punkte, int Vorschlag);
 
+        /// <summary>
+        /// Spielt die Frage Schritt für Schritt durch und schreibt mit, welchen Punktevorschlag
+        /// die Bewertung „richtig" bei jedem Schritt macht.
+        /// <para>
+        /// <b>Der Verlauf wird mitgeschrieben, nicht der Endzustand nachgesehen.</b> „Am Ende
+        /// stimmen die Punkte" wäre auch dann wahr, wenn sie zwischendurch eingebrochen wären.
+        /// </para>
+        /// </summary>
         private async Task<List<Messpunkt>> VorschlaegeJeSchrittAsync(QuestionType typ)
         {
             UserPrompt.Current = new RecordingUserPrompt(answer: true);

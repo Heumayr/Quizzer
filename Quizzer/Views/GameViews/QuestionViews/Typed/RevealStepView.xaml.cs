@@ -51,7 +51,7 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
             if (!LadeBild(frage))
                 return;
 
-            var gezeigt = Kontext.PreviousStepsCount;
+            var gezeigt = GezeigteSchritte();
             var schritte = Kontext.LayoutReferenceSteps.Length;
 
             if (frage.Mode == RevealMode.Areas)
@@ -95,6 +95,35 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
             Bild.Effect = radius > 0 ? new BlurEffect { Radius = radius } : null;
 
             Melde(radius > 0 ? $"Unschärfe {radius:0}" : "Bild scharf");
+        }
+
+        /// <summary>
+        /// Wie viele Aufdeckschritte <b>bis einschließlich diesem</b> gezeigt sind.
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> hier stand <c>PreviousStepsCount</c>, also die Schritte
+        /// <i>davor</i>. Auf dem ersten Aufdeckschritt fiel damit gar nichts, und die letzte
+        /// Fläche fiel erst auf dem Auflösungsbildschirm - solange geraten werden konnte, war
+        /// das Bild also nie ganz zu sehen. Bei drei Aufdeckschritten deckten nur zwei etwas
+        /// auf. Bei Unschärfe dasselbe: scharf wurde es erst auf der Auflösung.
+        /// </para>
+        /// <para>
+        /// <b>Derselbe Versatz wie beim Punkteabzug</b>, der am selben Tag gefunden wurde - und
+        /// dieselbe Regel: Start- und Fragebildschirm zählen nicht mit, der Abschluss bleibt bei
+        /// der vollen Zahl.
+        /// </para>
+        /// </summary>
+        private int GezeigteSchritte()
+        {
+            var schritt = Kontext?.Step;
+
+            if (schritt == null)
+                return 0;
+
+            var zaehltMit = !schritt.IsStart && !schritt.IsFinish && !schritt.IsQuestionOnly;
+
+            return zaehltMit
+                ? (Kontext?.PreviousStepsCount ?? 0) + 1
+                : Kontext?.PreviousStepsCount ?? 0;
         }
 
         /// <summary>Der Spielleiter soll sehen, wo er steht - die Mitspieler nicht.</summary>

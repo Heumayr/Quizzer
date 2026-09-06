@@ -134,10 +134,6 @@ namespace Quizzer.LogicUnitTests.Logic
         }
 
         /// <summary>
-        /// Die Gegenrichtung zum Entfernen: erst steht alles da, danach nichts mehr - und was
-        /// nicht die Marke traegt, bleibt unberuehrt.
-        /// </summary>
-        /// <summary>
         /// <b>B42.</b> Das Demo-Design verschwindet mit den Demodaten.
         /// <para>
         /// Es trug die Marke bisher gar nicht, und der Aufraeumweg kannte Designs nicht - es
@@ -220,6 +216,10 @@ namespace Quizzer.LogicUnitTests.Logic
             }
         }
 
+        /// <summary>
+        /// Die Gegenrichtung zum Entfernen: erst steht alles da, danach nichts mehr - und was
+        /// nicht die Marke traegt, bleibt unberuehrt.
+        /// </summary>
         [TestMethod]
         public async Task RemovingTakesTheDemoAndNothingElse()
         {
