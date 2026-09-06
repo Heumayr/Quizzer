@@ -34,7 +34,10 @@ namespace Quizzer.Views.GameViews.Sub
 
         public GameGridCoordinate? Coordinate => PlayersResultViewModel?.Coordinate;
 
-        public int RegularStepCount => Coordinate?.QuestionBase?.OrderedSteps.Count(s => !s.IsStart && !s.IsFinish) ?? 0;
+        // Der ergaenzte Fragebildschirm zaehlt nicht mit: er traegt keinen Hinweis, und der
+        // Punkteabzug je Hinweis wuerde sich sonst verschieben.
+        public int RegularStepCount => Coordinate?.QuestionBase?.OrderedSteps
+            .Count(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly) ?? 0;
         public int PreviousStepsCount => CurrentQuestionViewModel?.CurrentStepContext?.PreviousStepsCount ?? 0;
 
         public Player Player

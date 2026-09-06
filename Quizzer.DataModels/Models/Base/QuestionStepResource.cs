@@ -78,6 +78,28 @@ namespace Quizzer.DataModels.Models.Base
         /// </summary>
         public bool IsStart { get; set; }
 
+        /// <summary>
+        /// Der Bildschirm, auf dem nur die Frage steht - und sonst nichts.
+        /// <para>
+        /// <b>Nutzerentscheidung vom 2026-09-06:</b> „dann sollte aber immer danach ein schritt
+        /// folgen der ... die frage einblendet und unten noch nichts steht ... erst dann der
+        /// nächste". Der Anlass war die Schätzfrage: sie hat zwischen Start und Auflösung keinen
+        /// Schritt, also standen Frage und Antwort auf demselben Bildschirm.
+        /// </para>
+        /// <para>
+        /// <b>Der Schritt wird immer ergänzt</b> und liegt wie der Startschritt nur in
+        /// <see cref="QuestionBase.OrderedSteps"/>, nie in <c>Steps</c>. Deshalb
+        /// <c>[NotMapped]</c>: es gibt ihn nur zur Anzeige.
+        /// </para>
+        /// <para>
+        /// <b>Er zählt nirgends als normaler Schritt.</b> Er bekommt keine Antworttaste - sonst
+        /// verschöben sich die Tasten auf den Telefonen um eine - und er geht nicht in die Zahl
+        /// der Hinweise ein, aus der die Eigenschaftsfrage ihren Punkteabzug rechnet.
+        /// </para>
+        /// </summary>
+        [NotMapped]
+        public bool IsQuestionOnly { get; set; }
+
         /// <summary>Gibt eine lesbare Darstellung des Schritts zurück: "[SequenceNumber]-[Designation]".</summary>
         public override string ToString()
         {

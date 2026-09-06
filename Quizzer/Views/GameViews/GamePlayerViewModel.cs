@@ -194,14 +194,12 @@ namespace Quizzer.Views.GameViews
                 {
                     var frage = QuestionStepViewContext?.Question;
 
-                    OrderedSteps = frage?.OrderedSteps ?? [];
                     QuestionTypeName = frage?.TypDisplayName ?? string.Empty;
                     QuestionText = frage?.QuestionText ?? "";
                     ShowQuestionView = Visibility.Visible;
                 }
                 else
                 {
-                    OrderedSteps = [];
                     QuestionTypeName = string.Empty;
                     QuestionText = "";
                     ShowQuestionView = Visibility.Hidden;

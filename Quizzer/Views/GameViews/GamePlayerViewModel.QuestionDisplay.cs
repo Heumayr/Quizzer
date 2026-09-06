@@ -1,4 +1,3 @@
-using Quizzer.DataModels.Models.Base;
 using System.Windows;
 
 namespace Quizzer.Views.GameViews
@@ -43,24 +42,7 @@ namespace Quizzer.Views.GameViews
     /// </summary>
     public partial class GamePlayerViewModel
     {
-        private QuestionStepResource[] orderedSteps = [];
         private string questionTypeName = string.Empty;
-
-        /// <summary>
-        /// Die geordneten Schritte der laufenden Frage. Grundlage dafür, welcher Bildschirm
-        /// gerade läuft - ohne sie ließe sich der erste Inhaltsschritt nicht erkennen.
-        /// </summary>
-        public QuestionStepResource[] OrderedSteps
-        {
-            get => orderedSteps;
-            set
-            {
-                orderedSteps = value ?? [];
-                OnPropertyChanged();
-
-                RaiseQuestionPlacementChanged();
-            }
-        }
 
         /// <summary>
         /// Der Anzeigename der Fragenart, etwa „Schätzfrage". Kommt aus
@@ -83,19 +65,15 @@ namespace Quizzer.Views.GameViews
         public bool IsStartStep => QuestionStepResource?.IsStart == true;
 
         /// <summary>
-        /// Ob gerade der erste Schritt mit Inhalt läuft - der Bildschirm, auf dem der
-        /// Spielleiter die Frage freigibt.
+        /// Ob gerade der Fragebildschirm läuft - der, auf dem nur die Frage steht.
         /// <para>
-        /// Verglichen wird per Verweis gegen den ersten Schritt, der weder Start noch Abschluss
-        /// ist. Über die Zahl der vorangegangenen Schritte ginge es nicht: bei einer Frage ohne
-        /// Inhaltsschritt träfe es den Abschluss.
+        /// Es ist ein eigener, immer ergänzter Schritt (<c>IsQuestionOnly</c>), kein
+        /// hergeleiteter Zustand. Bis 2026-09-06 wurde stattdessen „der erste Schritt mit
+        /// Inhalt" ausgerechnet - und bei einer Schätzfrage, die zwischen Start und Auflösung
+        /// nichts hat, war das die <b>Auflösung</b>: Frage und Antwort standen zugleich da.
         /// </para>
         /// </summary>
-        public bool IsFirstContentStep =>
-            QuestionStepResource != null
-            && ReferenceEquals(
-                QuestionStepResource,
-                OrderedSteps.FirstOrDefault(s => !s.IsStart && !s.IsFinish));
+        public bool IsQuestionScreen => QuestionStepResource?.IsQuestionOnly == true;
 
         /// <summary>Die Fragenart groß in der Mitte - nur auf dem Startbildschirm.</summary>
         public Visibility ShowQuestionTypeCentered =>
@@ -105,7 +83,7 @@ namespace Quizzer.Views.GameViews
 
         /// <summary>Die Frage groß in der Mitte - nur auf dem ersten Inhaltsbildschirm.</summary>
         public Visibility ShowQuestionCentered =>
-            !string.IsNullOrEmpty(QuestionText) && IsFirstContentStep
+            !string.IsNullOrEmpty(QuestionText) && IsQuestionScreen
                 ? Visibility.Visible
                 : Visibility.Collapsed;
 
@@ -114,7 +92,7 @@ namespace Quizzer.Views.GameViews
         /// der Mitte steht und der Startbildschirm sie nicht verbietet.
         /// </summary>
         public Visibility ShowQuestionTop =>
-            string.IsNullOrEmpty(QuestionText) || IsStartStep || IsFirstContentStep
+            string.IsNullOrEmpty(QuestionText) || IsStartStep || IsQuestionScreen
                 ? Visibility.Collapsed
                 : Visibility.Visible;
 
@@ -130,7 +108,7 @@ namespace Quizzer.Views.GameViews
         private void RaiseQuestionPlacementChanged()
         {
             OnPropertyChanged(nameof(IsStartStep));
-            OnPropertyChanged(nameof(IsFirstContentStep));
+            OnPropertyChanged(nameof(IsQuestionScreen));
             OnPropertyChanged(nameof(ShowQuestionTypeCentered));
             OnPropertyChanged(nameof(ShowQuestionCentered));
             OnPropertyChanged(nameof(ShowQuestionTop));

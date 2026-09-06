@@ -190,7 +190,13 @@
                     <Border Visibility="{Binding ShowQuestionTypeCentered}"
                             Background="Black"
                             Padding="40">
-                        <Viewbox Stretch="Uniform" MaxHeight="620">
+                        <!--
+                            Deutlich kleiner als der Fragetext darunter: der Name einer Fragenart
+                            ist EIN Wort, und eine Viewbox zieht ein Wort auf die volle Hoehe auf.
+                            Bis 2026-09-06 stand er in demselben Rahmen wie ein ganzer Fragesatz
+                            und fuellte den Beamer - gemeldet als "etwas zu gross".
+                        -->
+                        <Viewbox Stretch="Uniform" MaxHeight="200" MaxWidth="900">
                             <TextBlock Text="{Binding QuestionTypeName}"
                                        Foreground="WhiteSmoke"
                                        FontWeight="Bold"

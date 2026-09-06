@@ -38,8 +38,19 @@ namespace Quizzer.UnitTests.PlayThrough
             return question;
         }
 
+        /// <summary>
+        /// Die Zahl der Hinweise, aus der sich der Punkteabzug ergibt.
+        /// <para>
+        /// <b>Dies ist eine Nachbildung von <c>PlayerResultContext.RegularStepCount</c>, und das
+        /// ist eine bekannte Schwaeche</b> - sie prueft die Formel gegen sich selbst. Beide
+        /// muessen dieselben Schritte zaehlen; weicht eine ab, faellt es hier nicht auf.
+        /// </para>
+        /// <para>
+        /// Der ergaenzte Fragebildschirm zaehlt in beiden nicht mit: er traegt keinen Hinweis.
+        /// </para>
+        /// </summary>
         private static int RegularStepCount(QuestionBase question)
-            => question.OrderedSteps.Count(s => !s.IsStart && !s.IsFinish);
+            => question.OrderedSteps.Count(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly);
 
         [TestMethod]
         public void ThreeHints_CountAsThreeRegularSteps()

@@ -62,9 +62,10 @@ namespace Quizzer.UnitTests.PlayThrough
             var vm = new TestableCurrentQuestionViewModel { Coordinate = world.Coordinate };
             await vm.LoadForTestAsync();
 
-            // ZWEI Schritte weiter, nicht einer: der erste landet seit 2026-09-06 auf dem
-            // ergaenzten leeren Startschritt. Mit nur einem Druck stuende der Beamer schwarz,
-            // die Zusicherung unten haette trotzdem gehalten - sie vergleicht ja nur Ids.
+            // DREI Schritte weiter: die ersten beiden landen auf den ergaenzten Bildschirmen
+            // (Startschritt und Fragebildschirm). Mit weniger stuende der Beamer schwarz, die
+            // Zusicherung unten haette trotzdem gehalten - sie vergleicht ja nur Ids.
+            await TestEnvironment.RunCommandAsync(vm.NextStepCommnad);
             await TestEnvironment.RunCommandAsync(vm.NextStepCommnad);
             await TestEnvironment.RunCommandAsync(vm.NextStepCommnad);
 
@@ -72,8 +73,8 @@ namespace Quizzer.UnitTests.PlayThrough
 
             Assert.IsNotNull(gezeigt, "Nach dem Weiterschalten muss ein Schritt laufen.");
 
-            Assert.IsFalse(gezeigt!.IsStart,
-                "Es laeuft noch der leere Startschritt. Dann misst dieser Test, ob ein leerer "
+            Assert.IsFalse(gezeigt!.IsStart || gezeigt.IsQuestionOnly,
+                "Es laeuft noch ein ergaenzter Bildschirm. Dann misst dieser Test, ob ein leerer "
                 + "Bildschirm stehenbleibt - und das tut er immer.");
 
             Assert.IsFalse(string.IsNullOrWhiteSpace(gezeigt.StepText),

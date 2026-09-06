@@ -224,7 +224,21 @@ namespace Quizzer.DataModels.Models
                 });
             }
 
-            var ordered = startSteps.Concat(normalSteps).Concat(finishSteps).ToList();
+            // Der Bildschirm, auf dem nur die Frage steht (Nutzerentscheidung 2026-09-06). Er
+            // kommt IMMER, direkt nach dem Startschritt - der Anlass war die Schaetzfrage: sie
+            // hat zwischen Start und Aufloesung keinen Schritt, also standen Frage und Antwort
+            // zugleich da.
+            var frageSchritt = new QuestionStepResource
+            {
+                Id = Guid.NewGuid(),
+                IsQuestionOnly = true,
+            };
+
+            var ordered = startSteps
+                .Append(frageSchritt)
+                .Concat(normalSteps)
+                .Concat(finishSteps)
+                .ToList();
 
             var nextSequenceNumber = 0;
             var currentKey = Helpers.Helper.GetNextViewKey(string.Empty, QuestionViewKeyType);
@@ -233,7 +247,9 @@ namespace Quizzer.DataModels.Models
             {
                 step.SequenceNumber = nextSequenceNumber;
 
-                if (!step.IsStart && !step.IsFinish)
+                // Der Fragebildschirm bekommt keine Antworttaste - sonst verschoeben sich die
+                // Tasten auf den Telefonen um eine.
+                if (!step.IsStart && !step.IsFinish && !step.IsQuestionOnly)
                 {
                     step.QuestionViewKey = currentKey;
                     currentKey = Helpers.Helper.GetNextViewKey(currentKey, QuestionViewKeyType);

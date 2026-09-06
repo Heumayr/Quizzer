@@ -50,7 +50,9 @@ namespace Quizzer.LogicUnitTests.DataModels.Models
 
             question.CalculateOrderdSteps();
 
-            var normal = question.OrderedSteps.Where(s => !s.IsStart && !s.IsFinish).ToList();
+            var normal = question.OrderedSteps
+                .Where(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly)
+                .ToList();
             CollectionAssert.AreEqual(
                 new[] { "erster", "zweiter", "dritter" },
                 normal.Select(s => s.Designation).ToArray());
@@ -76,9 +78,9 @@ namespace Quizzer.LogicUnitTests.DataModels.Models
 
             var nummern = question.OrderedSteps.Select(s => s.SequenceNumber).ToArray();
 
-            // Zwei eigene Schritte plus je ein ergaenzter Start- und Abschlussschritt.
-            Assert.AreEqual(question.Steps.Count + 2, nummern.Length,
-                "Es wurde nicht genau ein Start- und ein Abschlussschritt ergaenzt.");
+            // Zwei eigene Schritte plus drei ergaenzte: Startschritt, Fragebildschirm, Abschluss.
+            Assert.AreEqual(question.Steps.Count + 3, nummern.Length,
+                "Es wurden nicht genau drei Bildschirme ergaenzt - Start, Frage, Abschluss.");
 
             Assert.AreEqual(0, nummern[0], "Die Zaehlung beginnt nicht bei 0.");
 
@@ -189,8 +191,15 @@ namespace Quizzer.LogicUnitTests.DataModels.Models
             question.CalculateOrderdSteps();
 
             Assert.AreEqual(string.Empty, question.OrderedSteps.First().QuestionViewKey);
+
+            // Der ergaenzte Fragebildschirm bekommt ebenfalls keine - sonst verschoeben sich
+            // die Antworttasten auf den Telefonen um eine.
+            Assert.AreEqual(string.Empty,
+                question.OrderedSteps.Single(s => s.IsQuestionOnly).QuestionViewKey,
+                "Der Fragebildschirm traegt eine Antworttaste.");
+
             var keys = question.OrderedSteps
-                .Where(s => !s.IsStart && !s.IsFinish)
+                .Where(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly)
                 .Select(s => s.QuestionViewKey).ToArray();
             CollectionAssert.AreEqual(new[] { "A", "B" }, keys);
         }
@@ -204,12 +213,13 @@ namespace Quizzer.LogicUnitTests.DataModels.Models
 
             var keys = question.OrderedSteps.Select(s => s.QuestionViewKey).ToArray();
 
-            // Vorn der ergaenzte Startschritt, hinten der ergaenzte Abschluss - beide ohne Taste.
-            CollectionAssert.AreEqual(new[] { string.Empty, "A", "B", "C", string.Empty }, keys,
-                "Start- und Abschlussschritt bleiben ohne Antworttaste, die drei normalen nicht.");
+            // Vorn Startschritt und Fragebildschirm, hinten der Abschluss - alle drei ohne Taste.
+            CollectionAssert.AreEqual(
+                new[] { string.Empty, string.Empty, "A", "B", "C", string.Empty }, keys,
+                "Nur die drei normalen Schritte tragen eine Antworttaste.");
 
             Assert.AreEqual(
-                question.OrderedSteps.Count(s => !s.IsStart && !s.IsFinish),
+                question.OrderedSteps.Count(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly),
                 keys.Count(k => !string.IsNullOrEmpty(k)),
                 "Es tragen nicht genau die normalen Schritte eine Taste.");
         }
@@ -223,7 +233,7 @@ namespace Quizzer.LogicUnitTests.DataModels.Models
             question.CalculateOrderdSteps();
 
             var keys = question.OrderedSteps
-                .Where(s => !s.IsStart && !s.IsFinish)
+                .Where(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly)
                 .Select(s => s.QuestionViewKey).ToArray();
             CollectionAssert.AreEqual(new[] { "1", "2" }, keys);
         }
@@ -238,7 +248,7 @@ namespace Quizzer.LogicUnitTests.DataModels.Models
             question.CalculateOrderdSteps();
 
             var names = question.OrderedSteps
-                .Where(s => !s.IsStart && !s.IsFinish)
+                .Where(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly)
                 .Select(s => s.Designation)
                 .OrderBy(n => n).ToArray();
             CollectionAssert.AreEqual(new[] { "a", "b", "c", "d" }, names);

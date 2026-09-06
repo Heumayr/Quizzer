@@ -87,7 +87,6 @@ namespace Quizzer.UnitTests.Views.GameViews
             // QuestionStepViewContext - und der ist hier null, also raeumt er sie aus. Wer
             // vorher setzt, misst leere Werte.
             vm.QuestionStepResource = frage.OrderedSteps[bildschirm];
-            vm.OrderedSteps = frage.OrderedSteps;
             vm.QuestionText = frage.QuestionText;
             vm.QuestionTypeName = frage.TypDisplayName;
         }
@@ -128,7 +127,7 @@ namespace Quizzer.UnitTests.Views.GameViews
 
             Zeige(vm, frage, bildschirm: 1);
 
-            Assert.IsTrue(vm.IsFirstContentStep,
+            Assert.IsTrue(vm.IsQuestionScreen,
                 "Der erste Inhaltsschritt wurde nicht als solcher erkannt.");
 
             Assert.AreEqual(Visibility.Visible, vm.ShowQuestionCentered,
@@ -150,7 +149,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             Zeige(vm, frage, bildschirm: 2);
 
             Assert.IsFalse(vm.IsStartStep);
-            Assert.IsFalse(vm.IsFirstContentStep);
+            Assert.IsFalse(vm.IsQuestionScreen);
 
             Assert.AreEqual(Visibility.Visible, vm.ShowQuestionTop,
                 "Ab dem dritten Bildschirm gehoert die Frage nach oben.");
@@ -173,9 +172,9 @@ namespace Quizzer.UnitTests.Views.GameViews
         {
             var (vm, frage) = Baue();
 
-            Assert.AreEqual(4, frage.OrderedSteps.Length,
-                "Die Vorrichtung hat nicht vier Bildschirme. Dann misst dieser Durchlauf etwas "
-                + "anderes als den vollen Weg.");
+            Assert.AreEqual(5, frage.OrderedSteps.Length,
+                "Die Vorrichtung hat nicht fuenf Bildschirme (Start, Frage, zwei Hinweise, "
+                + "Aufloesung). Dann misst dieser Durchlauf etwas anderes als den vollen Weg.");
 
             var verlauf = new List<string>();
 
@@ -191,23 +190,26 @@ namespace Quizzer.UnitTests.Views.GameViews
             }
 
             CollectionAssert.AreEqual(
-                new[] { "Art", "Mitte", "oben", "oben" }, verlauf.ToArray(),
+                new[] { "Art", "Mitte", "oben", "oben", "oben" }, verlauf.ToArray(),
                 "Der Verlauf ueber die vier Bildschirme stimmt nicht: "
                 + string.Join(" -> ", verlauf));
         }
 
         /// <summary>
-        /// Eine Frage ohne Inhaltsschritt: der Fragetext steht auf dem zweiten Bildschirm
-        /// <b>oben</b>, nicht mittig.
+        /// Eine Schätzfrage: Frage und Antwort stehen <b>nie</b> auf demselben Bildschirm.
         /// <para>
-        /// <b>Drei der zwölf Demofragen sind so gebaut</b> - Schätzfragen mit Startschritt und
-        /// Auflösung, nichts dazwischen. Bestimmte man den ersten Inhaltsschritt über die Zahl
-        /// der vorangegangenen Schritte, träfe es hier den <b>Abschluss</b>: der Fragetext läge
-        /// groß und deckend über der Antwort, und die Mitspieler sähen sie nie.
+        /// <b>Gemeldet am 2026-09-06 aus dem laufenden Spiel:</b> „Schätzfrage - Frage und
+        /// Antwort zugleich". Drei der zwölf Demofragen sind so gebaut - Startschritt und
+        /// Auflösung, nichts dazwischen. Der Fragetext landete damit auf demselben Bildschirm
+        /// wie die Lösung, und die Gäste hatten keinen Augenblick zum Schätzen.
+        /// </para>
+        /// <para>
+        /// Seither wird der Fragebildschirm <b>immer</b> ergänzt. Diese Zusicherung ist die
+        /// eigentliche Probe darauf: sie misst genau die Frageform, bei der er fehlte.
         /// </para>
         /// </summary>
         [TestMethod]
-        public void WithoutAContentStepTheAnswerIsNotCoveredByTheQuestion()
+        public void OnAnEstimateQuestionTheAnswerNeverSharesTheScreenWithTheQuestion()
         {
             var frage = Frage();
 
@@ -216,14 +218,25 @@ namespace Quizzer.UnitTests.Views.GameViews
 
             var vm = new GamePlayerViewModel();
 
-            Assert.AreEqual(2, frage.OrderedSteps.Length,
-                "Ergaenzter Startschritt und Abschluss - mehr hat diese Frage nicht.");
+            Assert.AreEqual(3, frage.OrderedSteps.Length,
+                "Startschritt, Fragebildschirm, Aufloesung - genau drei. Fehlt der mittlere, "
+                + "stehen Frage und Antwort wieder zugleich da.");
 
+            // Bildschirm 2: nur die Frage.
             Zeige(vm, frage, bildschirm: 1);
 
+            Assert.IsTrue(vm.IsQuestionScreen, "Der zweite Bildschirm ist nicht der Fragebildschirm.");
+            Assert.IsFalse(vm.QuestionStepResource!.IsFinish,
+                "Der zweite Bildschirm ist die Aufloesung - genau der gemeldete Fehler.");
+
+            Assert.AreEqual(Visibility.Visible, vm.ShowQuestionCentered,
+                "Die Frage steht nicht gross in der Mitte.");
+
+            // Bildschirm 3: die Antwort, die Frage oben.
+            Zeige(vm, frage, bildschirm: 2);
+
             Assert.IsTrue(vm.QuestionStepResource!.IsFinish,
-                "Der zweite Bildschirm ist nicht der Abschluss - die Vorrichtung misst den "
-                + "gefaehrlichen Fall gar nicht.");
+                "Der dritte Bildschirm ist nicht die Aufloesung.");
 
             Assert.AreEqual(Visibility.Collapsed, vm.ShowQuestionCentered,
                 "Der Fragetext liegt gross und deckend ueber der Antwort.");

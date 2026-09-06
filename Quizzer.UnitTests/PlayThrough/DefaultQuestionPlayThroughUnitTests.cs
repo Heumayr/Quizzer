@@ -39,12 +39,20 @@ namespace Quizzer.UnitTests.PlayThrough
 
             Assert.IsNotNull(vm.Coordinate?.QuestionBase);
 
-            // Ergaenzter Startschritt, zwei Hinweise, Aufloesung. Der Startschritt ist die
-            // Spielregel: der Spielleiter liest vor, bevor irgendetwas auf dem Beamer steht.
-            Assert.AreEqual(4, vm.Coordinate.QuestionBase.OrderedSteps.Length,
-                "Ein ergaenzter Startschritt, zwei Hinweise und die Aufloesung.");
-            Assert.IsTrue(vm.Coordinate.QuestionBase.OrderedSteps[0].IsStart,
-                "Der erste Bildschirm ist kein Startschritt.");
+            // Zwei ergaenzte Bildschirme (Start und Frage), zwei Hinweise, Aufloesung.
+            var schritte = vm.Coordinate.QuestionBase.OrderedSteps;
+
+            Assert.AreEqual(vm.Coordinate.QuestionBase.Steps.Count + 2, schritte.Length,
+                "Es wurden nicht genau zwei Bildschirme ergaenzt - der Startschritt und der "
+                + "Fragebildschirm.");
+
+            Assert.IsTrue(schritte[0].IsStart,
+                "Der erste Bildschirm ist kein Startschritt. Der Spielleiter liest vor, bevor "
+                + "etwas auf dem Beamer steht.");
+
+            Assert.IsTrue(schritte[1].IsQuestionOnly,
+                "Der zweite Bildschirm zeigt nicht nur die Frage. Bei einer Schaetzfrage stuenden "
+                + "damit Frage und Antwort zugleich da.");
             Assert.IsNotNull(vm.PlayersResultViewModel);
             Assert.AreEqual(2, vm.PlayersResultViewModel.Results.Count,
                 "Fuer jeden Mitspieler ein Ergebnis.");
@@ -59,21 +67,30 @@ namespace Quizzer.UnitTests.PlayThrough
 
             await vm.StartStepCommnad!.ExecuteAsync(null);
             var visited = new List<string?> { vm.CurrentStep?.Designation };
+            var marken = new List<Quizzer.DataModels.Models.Base.QuestionStepResource> { vm.CurrentStep! };
 
             while (vm.NextStep != null)
             {
                 await vm.NextStepCommnad!.ExecuteAsync(null);
                 visited.Add(vm.CurrentStep?.Designation);
+                marken.Add(vm.CurrentStep!);
             }
 
             TestEnvironment.ThrowIfAnythingWasSwallowed();
 
             CollectionAssert.AreEqual(
-                new[] { string.Empty, "Hinweis 1", "Hinweis 2", "Aufloesung" },
+                new[] { string.Empty, string.Empty, "Hinweis 1", "Hinweis 2", "Aufloesung" },
                 visited.ToArray(),
-                "Die Frage beginnt mit einem leeren Bild - das ist die Spielregel, nicht ihr "
-                + "Preis: der Spielleiter liest vor, und wer zu frueh buzzert, darf nicht "
-                + "mitlesen (Nutzerwort vom 2026-09-06).");
+                "Gesehen wurde: " + string.Join(" -> ", visited.Select(v => v ?? "null")) + ". " +
+                "Die Abfolge stimmt nicht. Erwartet: leerer Startschritt (der Spielleiter liest "
+                + "vor), dann der Fragebildschirm, dann die Hinweise, zuletzt die Aufloesung.");
+
+            // Die beiden leeren sind NICHT derselbe Bildschirm - genau das war der Fehler,
+            // der am 2026-09-06 gemeldet wurde.
+            Assert.IsTrue(marken[0].IsStart && !marken[0].IsQuestionOnly,
+                "Der erste Bildschirm ist nicht der Startschritt.");
+            Assert.IsTrue(marken[1].IsQuestionOnly && !marken[1].IsStart,
+                "Der zweite Bildschirm ist nicht der Fragebildschirm.");
             Assert.IsTrue(vm.CurrentStep?.IsFinish);
         }
 
@@ -103,9 +120,15 @@ namespace Quizzer.UnitTests.PlayThrough
             await vm.LoadForTestAsync();
             vm.Coordinate!.QuestionBase!.WarnOnResultStep = true;
 
+            // Start -> Fragebildschirm -> Hinweis. Erst der naechste Druck deckt auf.
             await vm.StartStepCommnad!.ExecuteAsync(null);
             await vm.NextStepCommnad!.ExecuteAsync(null);
+            await vm.NextStepCommnad.ExecuteAsync(null);
             var before = vm.CurrentStep;
+
+            Assert.IsFalse(before!.IsStart || before.IsQuestionOnly,
+                "Es laeuft noch ein ergaenzter Bildschirm - dann steht die Aufloesung gar nicht "
+                + "als naechstes an, und der Test misst die Rueckfrage nicht.");
 
             await vm.NextStepCommnad!.ExecuteAsync(null);
 
@@ -120,9 +143,10 @@ namespace Quizzer.UnitTests.PlayThrough
             var vm = OpenOn(world);
             await vm.LoadForTestAsync();
 
-            // Start -> leerer Startschritt, dann zwei Mal weiter bis "Hinweis 2".
+            // Start -> Startschritt, Fragebildschirm, Hinweis 1, Hinweis 2.
             await vm.StartStepCommnad!.ExecuteAsync(null);
             await vm.NextStepCommnad!.ExecuteAsync(null);
+            await vm.NextStepCommnad.ExecuteAsync(null);
             await vm.NextStepCommnad.ExecuteAsync(null);
             Assert.AreEqual("Hinweis 2", vm.CurrentStep?.Designation);
 
@@ -132,6 +156,7 @@ namespace Quizzer.UnitTests.PlayThrough
 
             // Und zurueck bis auf den leeren Startschritt - der Rueckwaerts-Riegel vergleicht
             // gegen OrderedSteps.First(), und das ist seit 2026-09-06 ein ergaenztes Objekt.
+            await vm.BackStepCommnad.ExecuteAsync(null);
             await vm.BackStepCommnad.ExecuteAsync(null);
 
             Assert.IsTrue(vm.CurrentStep?.IsStart,
@@ -163,10 +188,15 @@ namespace Quizzer.UnitTests.PlayThrough
 
             var schritte = vm.Coordinate.QuestionBase.OrderedSteps;
 
-            Assert.AreEqual(2, schritte.Length,
-                "Ergaenzter Startschritt und Aufloesung - mehr hat die Frage nicht.");
+            Assert.AreEqual(3, schritte.Length,
+                "Startschritt, Fragebildschirm, Aufloesung - genau drei.");
             Assert.IsTrue(schritte[0].IsStart, "Der erste Bildschirm ist kein Startschritt.");
-            Assert.IsTrue(schritte[1].IsFinish, "Der zweite Bildschirm ist nicht die Aufloesung.");
+
+            Assert.IsTrue(schritte[1].IsQuestionOnly,
+                "Zwischen Start und Aufloesung fehlt der Fragebildschirm. Genau das war der "
+                + "gemeldete Fehler: \"Schaetzfrage - Frage und Antwort zugleich\".");
+
+            Assert.IsTrue(schritte[2].IsFinish, "Der dritte Bildschirm ist nicht die Aufloesung.");
         }
 
         [TestMethod]
@@ -179,14 +209,27 @@ namespace Quizzer.UnitTests.PlayThrough
             await vm.LoadForTestAsync();
             TestEnvironment.ThrowIfAnythingWasSwallowed();
 
+            // Der ergaenzte Fragebildschirm ist keine Antwortmoeglichkeit - er faellt hier
+            // heraus, so wie er auch auf den Telefonen keine Taste bekommt.
             var options = vm.Coordinate!.QuestionBase!.OrderedSteps
-                .Where(s => !s.IsStart && !s.IsFinish)
+                .Where(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly)
                 .Select(s => s.Designation)
                 .OrderBy(d => d)
                 .ToArray();
 
             CollectionAssert.AreEqual(
                 new[] { "Hinweis 1", "Hinweis 2", "Hinweis 3", "Hinweis 4" }, options);
+
+            // Und die Tasten: genau vier, ohne Luecke am Anfang. Bekaeme der Fragebildschirm
+            // eine, verschoeben sich alle Antworttasten auf den Telefonen um eine.
+            var tasten = vm.Coordinate.QuestionBase.OrderedSteps
+                .Where(s => !string.IsNullOrEmpty(s.QuestionViewKey))
+                .Select(s => s.QuestionViewKey)
+                .OrderBy(k => k)
+                .ToArray();
+
+            CollectionAssert.AreEqual(new[] { "A", "B", "C", "D" }, tasten,
+                "Die Antworttasten stimmen nicht: " + string.Join(", ", tasten));
             Assert.AreEqual(BuzzerControlsLayout.KeySelect,
                 vm.Coordinate.QuestionBase.BuzzerControlsLayout);
         }

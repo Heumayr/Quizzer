@@ -207,9 +207,18 @@ namespace Quizzer.Views.GameViews.QuestionViews
         public QuestionStepResource[] AllSteps =>
             Owner?.QuestionOrderedSteps ?? [];
 
+        /// <summary>
+        /// Die Schritte, aus denen sich das Layout und die Punkteteilung ergeben - also die
+        /// echten Inhaltsschritte.
+        /// <para>
+        /// <b>Der Fragebildschirm gehoert ausdruecklich nicht dazu.</b> Er ist ergaenzt und
+        /// traegt keinen Inhalt; zaehlte er mit, verschoebe sich der Punkteabzug je Hinweis bei
+        /// der Eigenschaftsfrage.
+        /// </para>
+        /// </summary>
         public QuestionStepResource[] LayoutReferenceSteps =>
             AllSteps
-                .Where(s => !s.IsStart && !s.IsFinish)
+                .Where(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly)
                 .OrderBy(s => s.SequenceNumber)
                 .ToArray();
 
@@ -222,7 +231,8 @@ namespace Quizzer.Views.GameViews.QuestionViews
             Step == null
                 ? []
                 : Owner.QuestionOrderedSteps
-                    .Where(s => s.SequenceNumber < Step.SequenceNumber && !s.IsStart && !s.IsFinish)
+                    .Where(s => s.SequenceNumber < Step.SequenceNumber
+                                && !s.IsStart && !s.IsFinish && !s.IsQuestionOnly)
                     .OrderBy(s => s.SequenceNumber)
                     .ToArray();
 
@@ -232,7 +242,8 @@ namespace Quizzer.Views.GameViews.QuestionViews
             Step == null
                 ? []
                 : Owner.QuestionOrderedSteps
-                    .Where(s => s.SequenceNumber > Step.SequenceNumber && !s.IsStart && !s.IsFinish)
+                    .Where(s => s.SequenceNumber > Step.SequenceNumber
+                                && !s.IsStart && !s.IsFinish && !s.IsQuestionOnly)
                     .OrderBy(s => s.SequenceNumber)
                     .ToArray();
 
