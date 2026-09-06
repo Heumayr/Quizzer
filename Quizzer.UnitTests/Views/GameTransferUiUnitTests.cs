@@ -174,6 +174,9 @@ namespace Quizzer.UnitTests.Views
 
             public string? AskForExistingFile(string titel, string filter)
                 => openTarget();
+
+            // Der Export braucht keinen Ordner - hier wird nur die Schnittstelle erfuellt.
+            public string? AskForFolder(string titel, string start) => null;
         }
     }
 }

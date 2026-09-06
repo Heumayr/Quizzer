@@ -56,6 +56,71 @@ namespace Quizzer.Logic.Context
         }
 
         /// <summary>
+        /// Probiert eine Verbindungszeichenfolge aus, ohne etwas anzulegen, und sagt in einem Satz,
+        /// was dabei herauskam.
+        /// <para>
+        /// <b>Erst der Server, dann die Datenbank</b> - das sind zwei verschiedene Befunde. „Der
+        /// Server antwortet nicht" heisst falscher Name oder falsche Anmeldung; „die Datenbank gibt
+        /// es noch nicht" ist beim ersten Start der Normalfall und kein Fehler. Ein einziger
+        /// Verbindungsversuch koennte die beiden nicht auseinanderhalten.
+        /// </para>
+        /// <para>
+        /// <b>Der Grund fuer diese Auskunft</b> ist die Einstellungsmaske: sie ist der einzige Weg
+        /// zurueck, wenn die Verbindung nicht stimmt. Ohne Probe bliebe nur speichern, neu starten,
+        /// scheitern, wieder hinein.
+        /// </para>
+        /// </summary>
+        public static async Task<string> TesteVerbindungAsync(string? verbindung)
+        {
+            if (string.IsNullOrWhiteSpace(verbindung))
+                return "Es ist keine Verbindung eingetragen.";
+
+            SqlConnectionStringBuilder bauer;
+
+            try
+            {
+                bauer = new SqlConnectionStringBuilder(verbindung) { ConnectTimeout = 5 };
+            }
+            catch (ArgumentException ex)
+            {
+                return "Die Verbindungszeichenfolge ist nicht lesbar: " + ex.Message;
+            }
+
+            var amServer = new SqlConnectionStringBuilder(bauer.ConnectionString)
+            {
+                InitialCatalog = "master",
+            };
+
+            try
+            {
+                await using var zumServer = new SqlConnection(amServer.ConnectionString);
+
+                await zumServer.OpenAsync();
+            }
+            catch (Exception ex)
+            {
+                return "Der Server antwortet nicht: " + ex.Message;
+            }
+
+            if (string.IsNullOrWhiteSpace(bauer.InitialCatalog))
+                return "Der Server antwortet. Es ist aber keine Datenbank eingetragen.";
+
+            try
+            {
+                await using var zurDatenbank = new SqlConnection(bauer.ConnectionString);
+
+                await zurDatenbank.OpenAsync();
+
+                return $"Der Server antwortet, und die Datenbank „{bauer.InitialCatalog}“ ist da.";
+            }
+            catch (SqlException)
+            {
+                return $"Der Server antwortet. Die Datenbank „{bauer.InitialCatalog}“ gibt es noch "
+                    + "nicht - das Programm bietet beim nächsten Start an, sie anzulegen.";
+            }
+        }
+
+        /// <summary>
         /// Bringt die Datenbank auf den Stand der Migrationen, ohne etwas zu loeschen.
         /// Legt sie an, wenn es sie noch nicht gibt. Gefahrlos und deshalb oeffentlich.
         /// </summary>

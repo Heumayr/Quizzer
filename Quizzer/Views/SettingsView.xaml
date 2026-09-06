@@ -3,43 +3,123 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:Quizzer.Views"
         xmlns:base="clr-namespace:Quizzer.Base"
-        Title="Einstellungen" Height="420" Width="760">
+        Title="Einstellungen" Height="700" Width="820">
     <base:WindowBase.DataContext>
         <local:SettingsViewModel />
     </base:WindowBase.DataContext>
 
     <Grid Margin="16">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Style="{StaticResource SectionHeader}" Text="Datenordner" />
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
 
-        <StackPanel Grid.Row="1" Margin="0,0,0,16">
-            <TextBox Text="{Binding Datenordner, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock Text="{Binding DatenordnerHinweis}" FontSize="12" Opacity="0.8" Margin="2,4,0,0" />
-            <TextBlock FontSize="12" Opacity="0.8" Margin="2,2,0,0" TextWrapping="Wrap"
-                       Text="Hier liegen Bilder, Medien und Designs. Fehlt eine Datei, weicht die Anzeige auf den Auslieferungsstand aus." />
-        </StackPanel>
+                <TextBlock Style="{StaticResource SectionHeader}" Text="Datenordner" />
 
-        <TextBlock Grid.Row="2" Style="{StaticResource SectionHeader}" Text="Datenbank" />
+                <Grid Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="3" VerticalAlignment="Top">
-            <TextBox Text="{Binding Verbindung, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock FontSize="12" Opacity="0.8" Margin="2,4,0,0" TextWrapping="Wrap"
-                       Text="Verbindungszeichenfolge zur Spieldatenbank. Fehlt die Datenbank, fragt das Programm beim nächsten Start, ob es sie anlegen soll." />
+                    <TextBox Grid.Column="0" VerticalContentAlignment="Center"
+                             Text="{Binding Datenordner, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button Grid.Column="1" Content="Durchsuchen …" Margin="8,0,0,0" Padding="12,4"
+                            Command="{Binding ChooseFolderCommand}"
+                            ToolTip="Ordner auswählen, statt den Pfad abzutippen." />
+                </Grid>
 
-            <TextBlock Style="{StaticResource SectionHeader}" Margin="0,20,0,4" Text="Abgelegt unter" />
-            <TextBlock Text="{Binding Ablageort}" FontSize="12" Opacity="0.8" TextWrapping="Wrap" />
-            <TextBlock FontSize="12" Opacity="0.8" Margin="0,4,0,0" TextWrapping="Wrap"
-                       Text="Diese Werte überschreiben die ausgelieferten Vorgaben. Sie liegen im Benutzerordner, nicht im Programmordner." />
-        </StackPanel>
+                <TextBlock Text="{Binding DatenordnerHinweis}" FontSize="12" Opacity="0.8" Margin="2,0,0,0" />
+                <TextBlock FontSize="12" Opacity="0.8" Margin="2,2,0,16" TextWrapping="Wrap"
+                           Text="Hier liegen Bilder, Medien und Designs. Fehlt eine Datei, weicht die Anzeige auf den Auslieferungsstand aus." />
 
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                <TextBlock Style="{StaticResource SectionHeader}" Text="Datenbank" />
+
+                <TextBlock Visibility="{Binding UnlesbarVisibility}" Foreground="#FF8A80"
+                           FontSize="12" TextWrapping="Wrap" Margin="2,0,0,6"
+                           Text="Die vorgefundene Verbindung war nicht lesbar. In den Feldern stehen die Vorgaben - beim Speichern wird die alte Verbindung ersetzt." />
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Server" FontSize="12" Opacity="0.8" />
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Datenbank" FontSize="12" Opacity="0.8" />
+
+                    <TextBox Grid.Row="1" Grid.Column="0"
+                             Text="{Binding Server, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Row="1" Grid.Column="2"
+                             Text="{Binding Datenbank, UpdateSourceTrigger=PropertyChanged}" />
+                </Grid>
+
+                <CheckBox Margin="0,12,0,0" IsChecked="{Binding Windowsanmeldung}"
+                          Content="Mit dem Windows-Konto anmelden"
+                          ToolTip="Der Regelfall bei einer örtlichen LocalDB." />
+
+                <Grid Visibility="{Binding AnmeldedatenVisibility}" Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Benutzer" FontSize="12" Opacity="0.8" />
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Kennwort" FontSize="12" Opacity="0.8" />
+
+                    <TextBox Grid.Row="1" Grid.Column="0"
+                             Text="{Binding Benutzer, UpdateSourceTrigger=PropertyChanged}" />
+                    <PasswordBox x:Name="Kennwortfeld" Grid.Row="1" Grid.Column="2"
+                                 PasswordChanged="Kennwortfeld_PasswordChanged" />
+
+                    <TextBlock Grid.Row="2" Grid.ColumnSpan="3" FontSize="12" Opacity="0.8"
+                               Margin="0,4,0,0" TextWrapping="Wrap"
+                               Text="Das Kennwort wird im Klartext in der Einstellungsdatei abgelegt. Für eine örtliche Datenbank ist die Windows-Anmeldung die bessere Wahl." />
+                </Grid>
+
+                <CheckBox Margin="0,10,0,0" IsChecked="{Binding ZertifikatVertrauen}"
+                          Content="Dem Serverzertifikat vertrauen"
+                          ToolTip="Nötig bei einem Server im Haus, der kein eigenes Zertifikat hat." />
+
+                <TextBlock Text="Das ergibt diese Verbindung" Style="{StaticResource SectionHeader}"
+                           Margin="0,16,0,4" />
+                <TextBox Text="{Binding Verbindungsvorschau, Mode=OneWay}" IsReadOnly="True"
+                         TextWrapping="Wrap" Opacity="0.9" />
+
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <Button Content="Verbindung prüfen" Command="{Binding TestConnectionCommand}"
+                            Padding="12,4"
+                            ToolTip="Fragt den Server, ohne etwas anzulegen oder zu speichern." />
+                </StackPanel>
+
+                <TextBlock Text="{Binding Verbindungsbefund}" Visibility="{Binding BefundVisibility}"
+                           FontSize="12" TextWrapping="Wrap" Margin="2,6,0,0" />
+
+                <TextBlock FontSize="12" Opacity="0.8" Margin="2,8,0,0" TextWrapping="Wrap"
+                           Text="Fehlt die Datenbank, fragt das Programm beim nächsten Start, ob es sie anlegen soll." />
+
+                <TextBlock Style="{StaticResource SectionHeader}" Margin="0,20,0,4" Text="Abgelegt unter" />
+                <TextBlock Text="{Binding Ablageort}" FontSize="12" Opacity="0.8" TextWrapping="Wrap" />
+                <TextBlock FontSize="12" Opacity="0.8" Margin="0,4,0,0" TextWrapping="Wrap"
+                           Text="Diese Werte überschreiben die ausgelieferten Vorgaben. Sie liegen im Benutzerordner, nicht im Programmordner." />
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
             <Button Content="Auf Vorgaben zurücksetzen" Command="{Binding ResetCommand}"
                     Margin="0,0,8,0" Padding="10,4"
                     ToolTip="Löscht die eigenen Werte. Danach gelten wieder die ausgelieferten." />
