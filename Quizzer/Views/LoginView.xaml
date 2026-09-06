@@ -50,8 +50,8 @@
                              Height="34" />
             </StackPanel>
 
-            <TextBlock Text="{Binding Fehler}"
-                       Visibility="{Binding FehlerVisibility}"
+            <TextBlock Text="{Binding ErrorText}"
+                       Visibility="{Binding ErrorVisibility}"
                        Foreground="#FF8A80"
                        Margin="0,10,0,0"
                        TextWrapping="Wrap" />

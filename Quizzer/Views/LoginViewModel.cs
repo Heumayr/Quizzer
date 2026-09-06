@@ -92,7 +92,7 @@ namespace Quizzer.Views
             set
             {
                 gewaehlt = value;
-                Fehler = string.Empty;
+                ErrorText = string.Empty;
 
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(PasswordVisibility));
@@ -111,24 +111,24 @@ namespace Quizzer.Views
             set
             {
                 kennwort = value;
-                Fehler = string.Empty;
+                ErrorText = string.Empty;
                 OnPropertyChanged();
             }
         }
 
-        public string Fehler
+        public string ErrorText
         {
             get => fehler;
             private set
             {
                 fehler = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(FehlerVisibility));
+                OnPropertyChanged(nameof(ErrorVisibility));
             }
         }
 
-        public Visibility FehlerVisibility =>
-            string.IsNullOrEmpty(Fehler) ? Visibility.Collapsed : Visibility.Visible;
+        public Visibility ErrorVisibility =>
+            string.IsNullOrEmpty(ErrorText) ? Visibility.Collapsed : Visibility.Visible;
 
         protected override async Task OnloadAsync()
         {
@@ -152,16 +152,16 @@ namespace Quizzer.Views
         private RelayCommand? signInCommand;
 
         public ICommand SignInCommand =>
-            signInCommand ??= new RelayCommand(Anmelden, _ => SelectedModerator != null);
+            signInCommand ??= new RelayCommand(SignIn, _ => SelectedModerator != null);
 
-        private void Anmelden(object? _)
+        private void SignIn(object? _)
         {
             if (SelectedModerator == null)
                 return;
 
             if (!Session.SignIn(SelectedModerator, Password))
             {
-                Fehler = "Das Kennwort stimmt nicht.";
+                ErrorText = "Das Kennwort stimmt nicht.";
                 return;
             }
 
