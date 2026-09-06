@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Helpers;
 using Quizzer.DataModels.Models;
@@ -176,6 +177,69 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
 
             Assert.AreEqual(2, vm.Question.Steps.Count,
                 "Erst das Uebernehmen schreibt - und dann genau die gefuellten Zeilen.");
+        }
+
+        /// <summary>
+        /// <b>Aufdeckschritte fallen nicht wortlos weg.</b>
+        /// <para>
+        /// <b>Nutzerentscheidung vom 2026-09-06 nachts:</b> vorher fragen. Solange jede Fläche ein
+        /// Schritt war, trat der Fall praktisch nie ein - seit Flächen sich gruppieren lassen,
+        /// sinkt die Schrittzahl regelmäßig, und mit ihr verschwand der Text der überzähligen
+        /// Schritte.
+        /// </para>
+        /// <para>
+        /// <b>Beide Richtungen:</b> abgelehnt heißt, dass wirklich nichts geschieht - und wo
+        /// nichts wegfällt, wird auch nicht gefragt. Ohne die zweite Hälfte wäre „immer fragen"
+        /// grün, und die Rückfrage erschiene bei jedem Übernehmen.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void RemovingRevealStepsAsksFirst()
+        {
+            var vm = Mit(QuestionType.Reveal, f =>
+            {
+                for (var i = 0; i < 3; i++)
+                {
+                    f.Steps.Add(new QuestionStepResource
+                    {
+                        Id = Guid.NewGuid(),
+                        SequenceNumber = (i + 1) * 10,
+                        Designation = $"Aufdecken {i + 1}",
+                        StepText = i == 2 ? "Der Zipfel unten rechts" : string.Empty,
+                    });
+                }
+            });
+
+            var abgelehnt = new RecordingUserPrompt(answer: false);
+
+            UserPrompt.Current = abgelehnt;
+
+            try
+            {
+                Assert.IsFalse(vm.SchritteAngleichen(1),
+                    "Trotz Ablehnung wurde angeglichen.");
+
+                Assert.AreEqual(3, vm.Question!.Steps.Count,
+                    "Es wurden Schritte entfernt, obwohl die Rueckfrage abgelehnt wurde.");
+
+                StringAssert.Contains(abgelehnt.Confirms[^1].Message, "eigenem Text",
+                    "Die Rueckfrage sagt nicht, dass ein Schritt mit Text darunter ist: "
+                    + abgelehnt.Confirms[^1].Message);
+
+                // Wo nichts wegfaellt, wird nicht gefragt.
+                var vorher = abgelehnt.Confirms.Count;
+
+                Assert.IsTrue(vm.SchritteAngleichen(5),
+                    "Beim Anlegen zusaetzlicher Schritte wurde gefragt und abgelehnt.");
+
+                Assert.AreEqual(vorher, abgelehnt.Confirms.Count,
+                    "Es wurde gefragt, obwohl nichts wegfaellt - eine solche Rueckfrage wird "
+                    + "weggeklickt, ohne gelesen zu werden.");
+            }
+            finally
+            {
+                UserPrompt.Reset();
+            }
         }
 
         /// <summary>Jeder Fragetyp bekommt eine Maske - keiner fällt durch.</summary>

@@ -72,7 +72,9 @@ namespace Quizzer.Views.QuestionTypes
             if (!fenster.Uebernommen)
                 return;
 
-            vm.SchritteAngleichen(fenster.GewuenschteSchritte);
+            if (!vm.SchritteAngleichen(fenster.GewuenschteSchritte))
+                return;
+
             vm.MeldeRevealGeaendert();
         }
 
@@ -85,10 +87,10 @@ namespace Quizzer.Views.QuestionTypes
         /// und Verpixelung bestimmt der Schieberegler im Editor die Zahl.
         /// </para>
         /// </summary>
-        internal void SchritteAngleichen(int gebraucht)
+        internal bool SchritteAngleichen(int gebraucht)
         {
             if (Question is not RevealQuestion frage)
-                return;
+                return false;
 
             gebraucht = Math.Max(gebraucht, 0);
 
@@ -96,6 +98,9 @@ namespace Quizzer.Views.QuestionTypes
                 .Where(s => !s.IsStart && !s.IsFinish)
                 .OrderBy(s => s.SequenceNumber)
                 .ToList();
+
+            if (!DarfSchritteEntfernen(vorhanden, gebraucht))
+                return false;
 
             for (var i = vorhanden.Count; i < gebraucht; i++)
             {
@@ -113,6 +118,43 @@ namespace Quizzer.Views.QuestionTypes
                 frage.Steps.Remove(vorhanden[i]);
 
             Revalidate();
+
+            return true;
+        }
+
+        /// <summary>
+        /// Fragt, bevor Aufdeckschritte wegfallen.
+        /// <para>
+        /// <b>Nutzerentscheidung vom 2026-09-06 nachts:</b> vorher fragen. Solange jede Fläche ein
+        /// Schritt war, trat der Fall praktisch nie ein - seit Flächen sich zu einem Schritt
+        /// gruppieren lassen, sinkt die Schrittzahl beim Gruppieren regelmäßig, und mit ihr
+        /// verschwand bis hierher <b>wortlos</b> der Text der überzähligen Schritte.
+        /// </para>
+        /// <para>
+        /// <b>Gefragt wird nur, wenn wirklich etwas wegfällt</b> - eine Rückfrage, die auch bei
+        /// „nichts passiert" erscheint, wird weggeklickt, ohne gelesen zu werden.
+        /// </para>
+        /// </summary>
+        private static bool DarfSchritteEntfernen(
+            IReadOnlyList<QuestionStepResource> vorhanden, int gebraucht)
+        {
+            var fallenWeg = vorhanden.Count - gebraucht;
+
+            if (fallenWeg <= 0)
+                return true;
+
+            var mitText = vorhanden
+                .Skip(gebraucht)
+                .Count(s => !string.IsNullOrWhiteSpace(s.StepText));
+
+            var satz = $"{fallenWeg} Aufdeckschritt(e) fallen weg";
+
+            if (mitText > 0)
+                satz += $", davon {mitText} mit eigenem Text";
+
+            return UserPrompt.Confirm(
+                satz + "." + Environment.NewLine + Environment.NewLine + "Fortfahren?",
+                "Aufdeckfrage");
         }
 
         private void MeldeRevealGeaendert()
