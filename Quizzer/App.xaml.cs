@@ -21,6 +21,12 @@ namespace Quizzer
 
             Settings.LoadSettings();
 
+            if (!DatenbankAufStandBringen())
+            {
+                Shutdown();
+                return;
+            }
+
             if (!Anmelden())
             {
                 Shutdown();
@@ -30,6 +36,44 @@ namespace Quizzer
             var mainVm = new MainViewModel();
             var window = new MainWindow { DataContext = mainVm };
             window.Show();
+        }
+
+        /// <summary>
+        /// Zieht die Datenbank auf den Stand der Migrationen, bevor irgendetwas sie liest.
+        /// <para>
+        /// <b>Nutzerentscheidung vom 2026-09-06 (Frage F03).</b> <c>EnsureMigrated</c> gab es
+        /// vorher schon, aber niemand rief es - und das traf den Rueckweg: eine zurueckgespielte
+        /// Sicherung liegt naturgemaess vor der juengsten Migration, und ohne diesen Aufruf
+        /// haette der Spielleiter danach <c>dotnet ef database update</c> von der Kommandozeile
+        /// gebraucht. Das ist der Rueckweg eines Entwicklers, nicht seiner.
+        /// </para>
+        /// <para>
+        /// Der Aufruf steht <b>vor</b> der Anmeldung, denn die liest bereits Mitspieler.
+        /// Scheitert er, wird gemeldet und beendet: mit halbem Schema weiterzulaufen ergibt nur
+        /// unverstaendliche Fehler an spaeterer Stelle.
+        /// </para>
+        /// </summary>
+        internal static bool DatenbankAufStandBringen()
+        {
+            try
+            {
+                Logic.Context.DatabaseInitializer.EnsureMigrated();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Ueber UserPrompt, nicht ueber MessageBox: ein modales Fenster bliebe im Test
+                // stehen (Projektregel, siehe ViewModelIndependenceUnitTests).
+                Base.UserPrompt.Inform(
+                    "Die Datenbank konnte nicht auf den aktuellen Stand gebracht werden."
+                    + Environment.NewLine + Environment.NewLine
+                    + ex.Message
+                    + Environment.NewLine + Environment.NewLine
+                    + "Prüfen Sie die Verbindungszeichenfolge in der appsettings.json.",
+                    "Quizzer");
+
+                return false;
+            }
         }
 
         /// <summary>
