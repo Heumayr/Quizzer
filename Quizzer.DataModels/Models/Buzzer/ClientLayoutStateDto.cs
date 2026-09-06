@@ -19,6 +19,13 @@ namespace Quizzer.DataModels.Models.Buzzer
         /// <summary>Aktuelle Runde des Spiels (wird im Browser angezeigt).</summary>
         public int Round { get; set; }
 
+        /// <summary>
+        /// Wie oft die Runde zurückgesetzt wurde. Die Telefonseite nimmt die Zahl in ihre
+        /// Layout-Kennung auf und baut dadurch beim Zurücksetzen wirklich neu auf, statt nur zu
+        /// entsperren. <c>Round</c> taugt dafür nicht - die ändert sich dabei nicht.
+        /// </summary>
+        public int ResetCount { get; set; }
+
         /// <summary>Das derzeit aktive Eingabe-Layout im Browser.</summary>
         public BuzzerControlsLayout Layout { get; set; }
 

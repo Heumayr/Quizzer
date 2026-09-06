@@ -57,11 +57,17 @@
         const maxSelections = info.maxAllowedSelections ?? 1;
         const questionId = info.questionId ?? "";
 
+        // Der Ruecksetzstand gehoert dazu: ohne ihn bleibt die Kennung beim Zuruecksetzen
+        // gleich, das Layout wird nicht neu gebaut, und wer schon abgegeben hatte, blieb fuer
+        // immer gesperrt - der Bestaetigen-Knopf trug weiter "Abgegeben".
+        const resetCount = context?.resetCount ?? 0;
+
         return JSON.stringify({
             dic,
             showDesignations,
             maxSelections,
-            questionId
+            questionId,
+            resetCount
         });
     }
 

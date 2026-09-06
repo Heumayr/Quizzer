@@ -11,6 +11,7 @@ const state = {
     playerId: null,
     playerName: "—",
     round: 0,
+    resetCount: 0,
     currentLayout: Layouts.None,
     layoutInfo: null,
     currentLayoutLocked: true,
@@ -28,6 +29,7 @@ function buildContext() {
         playerId: state.playerId,
         playerName: state.playerName,
         round: state.round,
+        resetCount: state.resetCount,
         currentLayout: state.currentLayout,
         layoutInfo: state.layoutInfo,
         currentLayoutLocked: state.currentLayoutLocked,
@@ -60,6 +62,7 @@ function applyServerState(serverState) {
 
     state.playerName = serverState.playerName ?? state.playerName;
     state.round = serverState.round ?? state.round;
+    state.resetCount = serverState.resetCount ?? state.resetCount;
     state.currentLayout = serverState.layout ?? Layouts.None;
     state.layoutInfo = serverState.layoutInfo ?? null;
     state.currentLayoutLocked = serverState.currentLayoutLocked ?? true;

@@ -58,10 +58,13 @@ export class InputLayout {
 
     createSignature(context) {
         const info = context?.layoutInfo ?? {};
+        // Der Ruecksetzstand gehoert dazu - sonst stand nach dem Zuruecksetzen weiter
+        // "Abgegeben: 42" im Feld, obwohl die Abgabe serverseitig geloescht war.
         return JSON.stringify({
             inputType: info.inputType ?? "text",
             placeholder: info.placeholder ?? "Eingabe",
-            questionId: info.questionId ?? ""
+            questionId: info.questionId ?? "",
+            resetCount: context?.resetCount ?? 0
         });
     }
 
