@@ -9,7 +9,12 @@ namespace Quizzer.Logic.Demo
         /// <param name="Fragen">Anzahl geloeschter Fragen.</param>
         /// <param name="Mitspieler">Anzahl geloeschter Mitspieler.</param>
         /// <param name="Kategorien">Anzahl geloeschter Kategorien.</param>
-        public sealed record Ergebnis(int Spiele, int Fragen, int Mitspieler, int Kategorien);
+        /// <param name="BehalteneKategorien">
+        /// Anzahl der Demo-Kategorien, die stehen bleiben mussten, weil noch eine fremde Frage
+        /// darin liegt.
+        /// </param>
+        public sealed record Ergebnis(
+            int Spiele, int Fragen, int Mitspieler, int Kategorien, int BehalteneKategorien = 0);
 
         /// <summary>
         /// Entfernt alles, was <see cref="DemoDataSeeder.Marke"/> in der Bezeichnung traegt.
@@ -29,9 +34,9 @@ namespace Quizzer.Logic.Demo
             var spiele = await LoescheSpieleAsync();
             var fragen = await LoescheFragenAsync();
             var spieler = await LoescheMitspielerAsync();
-            var kategorien = await LoescheKategorienAsync();
+            var (kategorien, behalten) = await LoescheKategorienAsync();
 
-            return new Ergebnis(spiele, fragen, spieler, kategorien);
+            return new Ergebnis(spiele, fragen, spieler, kategorien, behalten);
         }
 
         private static bool IstDemo(string? bezeichnung)
@@ -82,19 +87,43 @@ namespace Quizzer.Logic.Demo
             return treffer.Count;
         }
 
-        private static async Task<int> LoescheKategorienAsync()
+        /// <summary>
+        /// Loescht die Demo-Kategorien - aber nur die leeren.
+        /// <para>
+        /// <b>Gemessen am 2026-09-06 (Befund B46):</b> der Fremdschluessel
+        /// <c>FK_QuestionBase_Category_CategoryId</c> steht auf <c>CASCADE</c>. Eine
+        /// <b>echte</b> Frage, die der Spielleiter in eine Demo-Kategorie gelegt hat, waere hier
+        /// stillschweigend mitgeloescht worden - ohne Rueckfrage, ohne Meldung, mit ihren
+        /// Schritten und Ergebniszeilen.
+        /// </para>
+        /// <para>
+        /// Die eigenen Fragen sind zu diesem Zeitpunkt schon weg. Was noch in einer
+        /// Demo-Kategorie liegt, gehoert also jemand anderem - und dann bleibt die Kategorie
+        /// stehen. Ein Rest, den der Nutzer sieht, ist besser als eine Frage, die er nicht mehr
+        /// findet.
+        /// </para>
+        /// </summary>
+        private static async Task<(int Geloescht, int Behalten)> LoescheKategorienAsync()
         {
             using var ctrl = new CategoriesController();
+            using var fragenCtrl = new QuestionBasesController(ctrl);
+
+            var belegt = (await fragenCtrl.GetAllAsync())
+                .Select(q => q.CategoryId)
+                .Where(id => id != null)
+                .Distinct()
+                .ToHashSet();
 
             var treffer = (await ctrl.GetAllAsync()).Where(c => IstDemo(c.Designation)).ToList();
+            var leer = treffer.Where(c => !belegt.Contains(c.Id)).ToList();
 
-            foreach (var kategorie in treffer)
+            foreach (var kategorie in leer)
                 await ctrl.DeleteAsync(kategorie.Id);
 
-            if (treffer.Count > 0)
+            if (leer.Count > 0)
                 await ctrl.SaveChangesAsync();
 
-            return treffer.Count;
+            return (leer.Count, treffer.Count - leer.Count);
         }
     }
 }

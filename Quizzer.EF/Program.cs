@@ -58,6 +58,12 @@ switch (args[0])
             Console.WriteLine($"  Fragen:      {e.Fragen}");
             Console.WriteLine($"  Mitspieler:  {e.Mitspieler}");
             Console.WriteLine($"  Kategorien:  {e.Kategorien}");
+
+            if (e.BehalteneKategorien > 0)
+                Console.WriteLine(
+                    $"  {e.BehalteneKategorien} Demo-Kategorie(n) blieben stehen: es liegt noch "
+                    + "eine fremde Frage darin. Das Löschen hätte sie mitgenommen.");
+
             return 0;
         }
 

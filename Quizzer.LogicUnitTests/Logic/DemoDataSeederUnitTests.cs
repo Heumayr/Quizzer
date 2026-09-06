@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.DataModels.Questions;
 using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.Logic.Demo;
@@ -180,6 +181,81 @@ namespace Quizzer.LogicUnitTests.Logic
 
                 await ctrl.DeleteAsync(fremdeKategorie.Id);
                 await ctrl.SaveChangesAsync();
+            }
+        }
+
+        /// <summary>
+        /// Eine <b>echte</b> Frage in einer Demo-Kategorie ueberlebt das Entfernen.
+        /// <para>
+        /// <b>Befund B46, gemessen am 2026-09-06.</b> Der Fremdschluessel
+        /// <c>FK_QuestionBase_Category_CategoryId</c> steht in der Datenbank auf <c>CASCADE</c>.
+        /// Wer beim Durchprobieren eine eigene Frage in eine Demo-Kategorie legt und danach
+        /// <c>demo-entfernen</c> aufruft, verlor sie <b>stillschweigend</b> - ohne Rueckfrage,
+        /// ohne Meldung, mit Schritten und Ergebniszeilen.
+        /// </para>
+        /// <para>
+        /// Diese Zusicherung war vor der Behebung rot: die Frage kam als <c>null</c> zurueck.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task ARealQuestionInADemoCategorySurvivesTheRemoval()
+        {
+            var e = await DemoDataSeeder.CreateAsync();
+
+            using var katCtrl = new CategoriesController();
+
+            var demokategorie = (await katCtrl.GetAllAsync())
+                .First(c => c.Designation.StartsWith(DemoDataSeeder.Marke, StringComparison.Ordinal));
+
+            var eigene = new DefaultQuestion
+            {
+                Id = Guid.NewGuid(),
+                Designation = "Meine eigene Frage",
+                DesignationShort = "EIG",
+                CategoryId = demokategorie.Id,
+                Points = 100,
+            };
+
+            using (var ctrl = new QuestionBasesController())
+            {
+                await ctrl.InsertAsync(eigene);
+                await ctrl.SaveChangesAsync();
+            }
+
+            try
+            {
+                var entfernt = await DemoDataRemover.RemoveAsync();
+
+                using var fragenCtrl = new QuestionBasesController();
+
+                Assert.IsNotNull(await fragenCtrl.GetAsync(eigene.Id),
+                    "Die eigene Frage wurde beim Entfernen der Demodaten mitgeloescht. Genau das "
+                    + "macht der CASCADE-Fremdschluessel auf die Kategorie - lautlos.");
+
+                Assert.AreEqual(1, entfernt.BehalteneKategorien,
+                    "Die belegte Demo-Kategorie wurde nicht als behalten gemeldet. Dann erfaehrt "
+                    + "der Spielleiter nicht, warum ein Rest stehen blieb.");
+
+                Assert.AreEqual(3, entfernt.Kategorien,
+                    "Die drei leeren Demo-Kategorien haetten weggeraeumt werden muessen.");
+            }
+            finally
+            {
+                using (var ctrl = new QuestionBasesController())
+                {
+                    await ctrl.DeleteAsync(eigene.Id);
+                    await ctrl.SaveChangesAsync();
+                }
+
+                using var aufraeumen = new CategoriesController();
+
+                foreach (var rest in (await aufraeumen.GetAllAsync())
+                         .Where(c => c.Designation.StartsWith(DemoDataSeeder.Marke, StringComparison.Ordinal)))
+                {
+                    await aufraeumen.DeleteAsync(rest.Id);
+                }
+
+                await aufraeumen.SaveChangesAsync();
             }
         }
 
