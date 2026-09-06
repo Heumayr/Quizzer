@@ -60,7 +60,12 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
 
                 ZeichneFlaechen(flaechen, gezeigt);
 
-                Melde($"{Math.Min(gezeigt, flaechen.Count)} von {flaechen.Count} Flächen aufgedeckt");
+                // Gezaehlt werden SCHRITTE, nicht Flaechen - seit Meldung 23 duerfen mehrere
+                // Flaechen zusammen fallen.
+                var aufdeckschritte = RevealAreas.Schrittzahl(flaechen);
+
+                Melde($"{Math.Min(gezeigt, aufdeckschritte)} von {aufdeckschritte} "
+                    + "Aufdeckschritten gezeigt");
 
                 return;
             }
@@ -168,20 +173,19 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
                 return;
 
             var (links, oben, breite, hoehe) = lage.Value;
+            var bild = new Bildlage(links, oben, breite, hoehe);
 
             foreach (var flaeche in RevealAreas.NochVerdeckt(alle, aufgedeckt))
             {
-                var rechteck = new System.Windows.Shapes.Rectangle
-                {
-                    Width = Math.Max(flaeche.W * breite, 0),
-                    Height = Math.Max(flaeche.H * hoehe, 0),
-                    Fill = Brushes.Black,
-                };
+                // Ein Vieleck, kein Rechteck mit Transformation: die Ecken stehen so, wie der
+                // Editor sie hingeschrieben hat. Fuer eine Altflaeche ohne Ecken ist es dasselbe
+                // schwarze Viereck an derselben Stelle.
+                var vieleck = new System.Windows.Shapes.Polygon { Fill = Brushes.Black };
 
-                Canvas.SetLeft(rechteck, links + flaeche.X * breite);
-                Canvas.SetTop(rechteck, oben + flaeche.Y * hoehe);
+                foreach (var (x, y) in RevealFormen.EckenAnzeige(flaeche, bild))
+                    vieleck.Points.Add(new Point(x, y));
 
-                Flaechen.Children.Add(rechteck);
+                Flaechen.Children.Add(vieleck);
             }
         }
     }
