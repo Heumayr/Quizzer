@@ -67,10 +67,12 @@
                 <Button Content="Abspielen"
                         Width="90"
                         Margin="4"
+                        ToolTip="Startet Ton oder Video. Nur der Spielleiter sieht diese beiden Knöpfe."
                         Click="Start_Click" />
                 <Button Content="Anhalten"
                         Width="90"
                         Margin="4"
+                        ToolTip="Hält die Wiedergabe an. Erneutes Abspielen beginnt wieder von vorn."
                         Click="Stop_Click" />
             </StackPanel>
         </Grid>

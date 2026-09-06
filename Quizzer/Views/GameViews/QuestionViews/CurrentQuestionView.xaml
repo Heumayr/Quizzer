@@ -28,7 +28,8 @@
                     ToolTip="Springt zurück an den Anfang der Frage." />
             <Button Content="Weiter (Enter)" Command="{Binding NextStepCommnad}"
                     ToolTip="Deckt den nächsten Schritt auf. Der Spielerbildschirm folgt." />
-            <Button Content="Zurück (Rücktaste)" Command="{Binding BackStepCommnad}" />
+            <Button Content="Zurück (Rücktaste)" Command="{Binding BackStepCommnad}"
+                    ToolTip="Nimmt den zuletzt aufgedeckten Schritt zurück. Der Spielerbildschirm folgt." />
         </StackPanel>
 
         <!-- Ohne Viewbox: die Schriftgroesse haengt sonst an der Zahl der Schritte, und eine

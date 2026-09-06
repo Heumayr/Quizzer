@@ -35,16 +35,19 @@
                 <Button Content="Alle starten"
                         Width="120"
                         Margin="6"
+                        ToolTip="Startet alle Vorschaufenster gleichzeitig."
                         Click="StartAll_Click" />
 
                 <Button Content="Alle anhalten"
                         Width="120"
                         Margin="6"
+                        ToolTip="Hält alle Vorschaufenster an."
                         Click="StopAll_Click" />
 
                 <Button Content="Alle schließen"
                         Width="120"
                         Margin="6"
+                        ToolTip="Schließt alle Vorschaufenster auf einmal."
                         Click="CloseAll_Click" />
             </StackPanel>
         </Border>

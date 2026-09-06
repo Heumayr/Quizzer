@@ -197,9 +197,9 @@
 
                     <Button Content="Abschließen" Command="{Binding SaveIsDoneFinishStateCommand}"
                             ToolTip="Speichert und markiert die Zelle als gespielt. Zeigt den Abschlussschritt. Erneut gedrückt holt es ihn zurück auf den Beamer." />
-                    <Button Margin="0,6,0,0" Content="Nächster wählt aus" Command="{Binding ExitSetNextChoosingPlayerCommand}"
+                    <Button Margin="4,6,4,0" Content="Nächster wählt aus" Command="{Binding ExitSetNextChoosingPlayerCommand}"
                             ToolTip="Schließt das Fenster und bestimmt den nächsten Auswählenden." />
-                    <Button Margin="0,6,0,0" Content="Gleicher wählt weiter" Command="{Binding ExitCommand}"
+                    <Button Margin="4,6,4,0" Content="Gleicher wählt weiter" Command="{Binding ExitCommand}"
                             ToolTip="Schließt das Fenster. Es wählt weiterhin derselbe aus." />
 
                     <Separator Margin="4,18,4,2" />

@@ -116,6 +116,81 @@ namespace Quizzer.LogicUnitTests.Standards
         }
 
         /// <summary>
+        /// <b>B55.</b> Jeder beschriftete Knopf des Fragefensters traegt eine Erklaerung.
+        /// <para>
+        /// Das Fragefenster ist die Maske, die der Spielleiter den ganzen Abend bedient, meist
+        /// zum ersten Mal seit Wochen. Gemessen 2026-09-06: drei Knoepfe standen ohne
+        /// Erklaerung da - "Zurueck (Ruecktaste)" zwischen zwei erklaerten, und die beiden
+        /// Medienknoepfe "Abspielen"/"Anhalten", die es <b>nur</b> in diesem Fenster gibt
+        /// (<c>ResourceViewerControl.SetMasterVisibility</c>).
+        /// </para>
+        /// <para>
+        /// <b>Warum nur dieses Fenster und nicht alle.</b> Nachgemessen: von 110 beschrifteten
+        /// Knoepfen im Projekt tragen 67 keine Erklaerung. Ein Gate ueber alle waere sofort rot
+        /// und damit abgeschaltet (<c>standards-allgemein.md</c> §5). Die uebrigen sind als
+        /// eigener Posten festgehalten, nicht vergessen.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void EveryLabelledButtonOfTheQuestionWindowExplainsItself()
+        {
+            var root = RepoRoot();
+            var funde = new List<string>();
+            var geprueft = 0;
+
+            foreach (var datei in FragefensterDateien(root))
+            {
+                var inhalt = File.ReadAllText(datei);
+
+                foreach (Match treffer in Regex.Matches(inhalt, "<Button\\b(.*?)(/>|>)", RegexOptions.Singleline))
+                {
+                    var block = treffer.Groups[1].Value;
+
+                    if (!block.Contains("Content=", StringComparison.Ordinal))
+                        continue;
+
+                    geprueft++;
+
+                    if (block.Contains("ToolTip", StringComparison.Ordinal))
+                        continue;
+
+                    var name = Regex.Match(block, "Content=\"([^\"]*)\"");
+
+                    funde.Add($"{Path.GetRelativePath(root, datei)}: \"{name.Groups[1].Value}\"");
+                }
+            }
+
+            Assert.IsTrue(geprueft >= 10,
+                $"Es wurden nur {geprueft} Knoepfe geprueft - die Suche greift nicht mehr, "
+                + "und die Zusicherung waere gruen, ohne irgendetwas zu messen.");
+
+            Assert.AreEqual(0, funde.Count,
+                "Diese Knoepfe des Fragefensters stehen ohne Erklaerung da: "
+                + string.Join(", ", funde));
+        }
+
+        /// <summary>
+        /// Die Masken, die waehrend einer laufenden Frage auf dem Bildschirm des Spielleiters
+        /// stehen - das Fragefenster selbst und alles, was es einbettet.
+        /// </summary>
+        private static List<string> FragefensterDateien(string root)
+        {
+            var dateien = new List<string>
+            {
+                Path.Combine(root, "Quizzer", "Views", "GameViews", "QuestionMasterView.xaml"),
+            };
+
+            var unterordner = Path.Combine(root, "Quizzer", "Views", "GameViews", "QuestionViews");
+
+            dateien.AddRange(Directory.EnumerateFiles(unterordner, "*.xaml", SearchOption.AllDirectories));
+
+            foreach (var datei in dateien)
+                Assert.IsTrue(File.Exists(datei), $"Nicht gefunden: {datei}");
+
+            return dateien;
+        }
+
+        /// <summary>
         /// Die Warnfarbe steht nur auf Knoepfen, die etwas zerstoeren.
         /// <para>
         /// <c>DangerButton</c> ist rot. Stand sie auch auf harmlosen Knoepfen, gewoehnt sich der
