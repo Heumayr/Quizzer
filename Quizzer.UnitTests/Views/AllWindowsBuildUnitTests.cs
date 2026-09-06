@@ -196,7 +196,15 @@ namespace Quizzer.UnitTests.Views
             {
                 foreach (var typ in Fenster)
                 {
-                    var fenster = (Window)Activator.CreateInstance(typ)!;
+                    // Der Aufraeumer, weil WPF jedes erzeugte Fenster in Application.Windows
+                    // eintraegt und der Oberflaechen-Thread bis zum Prozessende lebt. Ohne ihn
+                    // liess diese Zusicherung 21 Fenster fuer den restlichen Lauf stehen - genau
+                    // der Zustand, gegen den FensterAufraeumer angelegt wurde, und er nimmt
+                    // spaeteren Zusicherungen die Messbarkeit (StartupShutdownModeUnitTests
+                    // zaehlt offene Fenster).
+                    using var wegraeumen = new FensterAufraeumer(typ);
+
+                    var fenster = wegraeumen.Fenster;
 
                     // Ohne eigene Angabe im XAML die WPF-Standardgroesse.
                     var breite = double.IsNaN(fenster.Width) ? 800 : fenster.Width;

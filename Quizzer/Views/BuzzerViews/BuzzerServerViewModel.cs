@@ -293,7 +293,7 @@ namespace Quizzer.Views.BuzzerViews
 
                 await _server.StartAsync(new BuzzerServerOptions
                 {
-                    Port = 5000,
+                    Port = BuzzerPort,
                     WebRootPath = Path.Combine(AppContext.BaseDirectory, "wwwroot")
                 });
 

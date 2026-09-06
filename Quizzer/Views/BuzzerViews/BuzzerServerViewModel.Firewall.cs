@@ -19,8 +19,17 @@ namespace Quizzer.Views.BuzzerViews
     /// </summary>
     public partial class BuzzerServerViewModel
     {
-        /// <summary>Der Port, auf dem der Buzzer-Server lauscht; fest verdrahtet wie der Start.</summary>
-        private const int BuzzerPort = 5000;
+        /// <summary>
+        /// Der Port, auf dem der Buzzer-Server lauscht.
+        /// <para>
+        /// <b>Im Betrieb immer 5000</b> - die Firewallregel heißt „Quizzer Buzzer (TCP 5000)",
+        /// und die QR-Codes tragen ihn. Veränderbar ist er ausschließlich als <b>Testnaht</b>:
+        /// <c>BuzzerHandshakeUnitTests</c> band vorher auf denselben Port wie eine laufende
+        /// Anwendung und meldete deshalb die ganze Klasse mit <c>Assert.Inconclusive</c> ab,
+        /// sobald ein Quizzer-Fenster offen war - elf Testfälle, die aussahen wie keine.
+        /// </para>
+        /// </summary>
+        internal int BuzzerPort { get; set; } = 5000;
 
         private const string RuleName = "Quizzer Buzzer (TCP 5000)";
 

@@ -26,8 +26,18 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
     [TestClass]
     public class BuzzerHandshakeUnitTests
     {
-        /// <summary>Fest in <c>StartServerAsync</c> verdrahtet; hier nur zum Verbinden.</summary>
-        private const int Port = 5000;
+        /// <summary>
+        /// Ein eigener Port, wie ihn die uebrigen Buzzer-Proben auch nehmen (5399, 5401).
+        /// <para>
+        /// <b>Bis 2026-09-07 stand hier 5000</b> - derselbe Port, auf dem die laufende
+        /// Anwendung bindet. War ein Quizzer-Fenster offen, meldete <c>Assert.Inconclusive</c>
+        /// im <c>TestInitialize</c> die <b>ganze Klasse</b> ab: elf Testfaelle, die im Bericht
+        /// aussahen wie keine. Das Projekt hat dieses Muster selbst als Falle beschrieben
+        /// (<c>UiTestHost</c>): „Ein Test, der sich selbst abmeldet, ist schlimmer als ein
+        /// roter."
+        /// </para>
+        /// </summary>
+        private const int Port = 5403;
 
         private TestGameBuilder? world;
         private BuzzerServerViewModel? serverVm;
@@ -39,12 +49,11 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
             UserPrompt.Current = new RecordingUserPrompt(answer: true);
             TestEnvironment.ClearSwallowedExceptions();
 
-            if (!PortIsFree(Port))
-            {
-                Assert.Inconclusive(
-                    $"Port {Port} ist belegt - laeuft noch eine Quizzer-Instanz oder ein "
-                    + "abgebrochener Testlauf? Der Buzzer-Server bindet fest auf diesen Port.");
-            }
+            // Kein Assert.Inconclusive mehr: ein belegter Port ist kein Umstand, unter dem der
+            // Testlauf gruen sein darf. Der Port gehoert dieser Klasse allein.
+            Assert.IsTrue(PortIsFree(Port),
+                $"Port {Port} ist belegt - ein abgebrochener Testlauf haelt ihn noch. Dieser "
+                + "Port gehoert allein dieser Testklasse; die Anwendung nimmt 5000.");
         }
 
         [TestCleanup]
@@ -94,6 +103,10 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
 
             serverVm = StaticManager.BuzzerServerViewModel;
             serverVm.Game = world.Game;
+
+            // Eigener Port statt des 5000 der Anwendung - sonst meldet sich die Klasse ab,
+            // sobald ein Quizzer-Fenster offen ist.
+            serverVm.BuzzerPort = Port;
 
             await ((AsyncRelayCommand)serverVm.StartServerCommand).ExecuteAsync(null);
         }
