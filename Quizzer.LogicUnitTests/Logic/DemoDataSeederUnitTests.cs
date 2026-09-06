@@ -26,6 +26,12 @@ namespace Quizzer.LogicUnitTests.Logic
         [TestCleanup]
         public async Task TearDown()
         {
+            if (!string.IsNullOrEmpty(datenordnerVorher))
+            {
+                Quizzer.DataModels.Settings.FilePathQuizzer = datenordnerVorher;
+                datenordnerVorher = string.Empty;
+            }
+
             await DemoDataRemover.RemoveAsync();
             TestDatabase.ClearDiscardedChanges();
         }
@@ -193,6 +199,142 @@ namespace Quizzer.LogicUnitTests.Logic
             Assert.AreEqual(2,
                 (await ctrl.GetAllAsync())
                     .Count(g => g.Designation.StartsWith(DemoDataSeeder.Marke, StringComparison.Ordinal)));
+        }
+        /// <summary>
+        /// Bilderrunde und Musikrunde: zwei Demofragen tragen ein Medium, und zwar auf einem
+        /// normalen Schritt - nicht auf dem Startschritt.
+        /// <para>
+        /// <b>Nutzerentscheidung vom 2026-09-06 (Frage F06).</b> Gemessen an der Spieldatenbank
+        /// trugen die zwoelf Demofragen null Medien. Der Abend, der zum Durchprobieren gedacht
+        /// war, fuhr also weder Bild noch Ton an.
+        /// </para>
+        /// <para>
+        /// Der Test setzt <c>Settings.FilePathQuizzer</c> auf einen eigenen Ordner mit genau
+        /// zwei Dateien. Gegen den echten Datenordner zu messen waere von dessen Inhalt abhaengig
+        /// und damit keine Messung.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void TwoDemoQuestionsCarryAMedium()
+        {
+            var ordner = MitMedienordner(bild: true, ton: true);
+
+            try
+            {
+                var bildfrage = DemofrageMitSchritten("Der weiße Hai");
+                var tonfrage = DemofrageMitSchritten("Das Instrument");
+                var andere = DemofrageMitSchritten("Planet der Ringe");
+
+                DemoDataSeeder.HaengeMediumAn(bildfrage);
+                DemoDataSeeder.HaengeMediumAn(tonfrage);
+                DemoDataSeeder.HaengeMediumAn(andere);
+
+                var bildschritt = bildfrage.Steps.Single(s => s.HasResource);
+                var tonschritt = tonfrage.Steps.Single(s => s.HasResource);
+
+                Assert.AreEqual(ResourceType.Image, bildschritt.ResourceTyp,
+                    "Die Bilderrunde traegt kein Bild.");
+                Assert.AreEqual(ResourceType.Audio, tonschritt.ResourceTyp,
+                    "Die Musikrunde traegt keinen Ton.");
+
+                Assert.IsFalse(bildschritt.IsStart || bildschritt.IsFinish,
+                    "Das Bild haengt am Startschritt. Dort liest der Spielleiter erst vor - wer "
+                    + "zu frueh buzzert, saehe es sonst.");
+                Assert.IsFalse(tonschritt.IsStart || tonschritt.IsFinish,
+                    "Der Ton haengt am Startschritt statt an einem normalen Schritt.");
+
+                // Die Gegenrichtung: nur diese beiden bekommen etwas.
+                Assert.IsFalse(andere.Steps.Any(s => s.HasResource),
+                    "Eine dritte Frage hat ebenfalls ein Medium bekommen - dann haengt es an "
+                    + "jeder, und der Test misst die Auswahl gar nicht.");
+            }
+            finally
+            {
+                Directory.Delete(ordner, recursive: true);
+            }
+        }
+
+        /// <summary>
+        /// Die zweite Gegenrichtung: liegt im Ressourcenordner nichts Passendes, bleibt der Abend
+        /// textlich - und es fliegt nichts.
+        /// <para>
+        /// Ohne diese Probe waere ungeprueft, ob der Seeder einen erfundenen Dateinamen
+        /// einträgt. Der waere schlimmer als gar keiner: es gibt im ganzen Programm keinen
+        /// <c>MediaFailed</c>-Behandler, eine unlesbare Datei bliebe also schwarz und stumm.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void WithoutFilesNothingIsAttached()
+        {
+            var ordner = MitMedienordner(bild: false, ton: false);
+
+            try
+            {
+                var frage = DemofrageMitSchritten("Der weiße Hai");
+
+                DemoDataSeeder.HaengeMediumAn(frage);
+
+                Assert.IsFalse(frage.Steps.Any(s => s.HasResource),
+                    "Es wurde ein Medium eingetragen, obwohl keine Datei da ist.");
+            }
+            finally
+            {
+                Directory.Delete(ordner, recursive: true);
+            }
+        }
+
+        /// <summary>
+        /// Legt einen eigenen Datenordner an und stellt <c>Settings</c> darauf um. Gibt den Pfad
+        /// zurueck, damit der Aufrufer ihn wieder wegraeumt.
+        /// </summary>
+        private string MitMedienordner(bool bild, bool ton)
+        {
+            var wurzel = Path.Combine(Path.GetTempPath(), "quizzer-demo-medien-" + Guid.NewGuid());
+
+            Directory.CreateDirectory(Path.Combine(wurzel, "Resources"));
+
+            if (bild)
+                File.WriteAllText(Path.Combine(wurzel, "Resources", "probe.png"), "kein echtes Bild");
+
+            if (ton)
+                File.WriteAllText(Path.Combine(wurzel, "Resources", "probe.mp3"), "kein echter Ton");
+
+            datenordnerVorher = Quizzer.DataModels.Settings.FilePathQuizzer;
+            Quizzer.DataModels.Settings.FilePathQuizzer = wurzel;
+
+            return wurzel;
+        }
+
+        private string datenordnerVorher = string.Empty;
+
+        /// <summary>Eine Demofrage mit Start-, Hinweis- und Abschlussschritt.</summary>
+        private static QuestionBase DemofrageMitSchritten(string bezeichnung)
+        {
+            var frage = new QuestionBase
+            {
+                Id = Guid.NewGuid(),
+                Designation = $"{DemoDataSeeder.Marke} {bezeichnung}",
+            };
+
+            frage.Steps.Add(new QuestionStepResource
+            {
+                Id = Guid.NewGuid(), QuestionBaseId = frage.Id,
+                SequenceNumber = 1, StepText = "Start", IsStart = true,
+            });
+
+            frage.Steps.Add(new QuestionStepResource
+            {
+                Id = Guid.NewGuid(), QuestionBaseId = frage.Id,
+                SequenceNumber = 10, StepText = "Hinweis",
+            });
+
+            frage.Steps.Add(new QuestionStepResource
+            {
+                Id = Guid.NewGuid(), QuestionBaseId = frage.Id,
+                SequenceNumber = 900, StepText = "Loesung", IsFinish = true,
+            });
+
+            return frage;
         }
     }
 }

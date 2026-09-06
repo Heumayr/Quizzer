@@ -157,6 +157,11 @@ namespace Quizzer.Logic.Demo
 
                 nummer++;
 
+                // Bilderrunde und Musikrunde: haengt an, was im Ressourcenordner ohnehin liegt
+                // (Frage F06). Muss vor dem Schreiben stehen - SaveWithStepsAsync nimmt die
+                // Schritte nur einmal mit.
+                HaengeMediumAn(frage);
+
                 await SaveQuestionAsync(frage);
                 alle.Add(frage);
             }
