@@ -56,6 +56,17 @@ namespace Quizzer.LogicUnitTests.DataModels.Models
                 normal.Select(s => s.Designation).ToArray());
         }
 
+        /// <summary>
+        /// Die Nummern laufen in Zehnerschritten bei 0 los - unabhaengig davon, was vorher
+        /// dranstand.
+        /// <para>
+        /// <b>Bewusst keine abgeschriebene Zahlenreihe.</b> Hier stand bis 2026-09-06
+        /// <c>{ 0, 10, 20 }</c>; als die Startschritt-Automatik zurueckkam, verschob sich jede
+        /// Nummer um zehn, und die Zusicherung fiel. Eine nackte Reihe haette man dann einfach
+        /// nachgezogen und die Verschiebung mit zugedeckt. Gemessen wird deshalb der
+        /// <b>Schritt</b> und die <b>Laenge relativ zum Bestand</b>.
+        /// </para>
+        /// </summary>
         [TestMethod]
         public void CalculateOrderdSteps_RenumbersInStepsOfTen()
         {
@@ -63,9 +74,20 @@ namespace Quizzer.LogicUnitTests.DataModels.Models
 
             question.CalculateOrderdSteps();
 
-            CollectionAssert.AreEqual(
-                new[] { 0, 10, 20 },
-                question.OrderedSteps.Select(s => s.SequenceNumber).ToArray());
+            var nummern = question.OrderedSteps.Select(s => s.SequenceNumber).ToArray();
+
+            // Zwei eigene Schritte plus je ein ergaenzter Start- und Abschlussschritt.
+            Assert.AreEqual(question.Steps.Count + 2, nummern.Length,
+                "Es wurde nicht genau ein Start- und ein Abschlussschritt ergaenzt.");
+
+            Assert.AreEqual(0, nummern[0], "Die Zaehlung beginnt nicht bei 0.");
+
+            for (var i = 1; i < nummern.Length; i++)
+            {
+                Assert.AreEqual(10, nummern[i] - nummern[i - 1],
+                    $"Zwischen Schritt {i - 1} und {i} liegen nicht zehn: "
+                    + string.Join(", ", nummern));
+            }
         }
 
         [TestMethod]
@@ -90,22 +112,56 @@ namespace Quizzer.LogicUnitTests.DataModels.Models
         }
 
         /// <summary>
-        /// Bis zum 21.08.2026 erfand CalculateOrderdSteps hier immer einen leeren Startschritt,
-        /// weil IsStart nicht gespeichert wurde - der erste Druck auf Weiter zeigte deshalb
-        /// einen leeren Bildschirm. Jetzt beginnt die Frage mit dem ersten echten Schritt.
+        /// Ohne hinterlegten Startschritt wird einer ergaenzt - und er bleibt draussen.
+        /// <para>
+        /// <b>Die Geschichte in zwei Saetzen.</b> Bis zum 21.08.2026 wurde hier immer einer
+        /// erfunden; das wurde ausgebaut, weil der leere erste Bildschirm fuer einen Mangel
+        /// gehalten wurde. Am 2026-09-06 hat der Nutzer widersprochen: der leere Bildschirm ist
+        /// die <b>Spielregel</b> - der Spielleiter liest vor, und wer zu frueh buzzert, darf
+        /// nicht mitlesen. Diese Zusicherung stand deshalb bis dahin auf dem Kopf.
+        /// </para>
+        /// <para>
+        /// <b>Dass der Schritt nicht in <c>Steps</c> landet, ist kein Beiwerk.</b> Laege er
+        /// dort, schriebe ihn der naechste Speichervorgang in die Datenbank, und der
+        /// Fragepruefer meldete beim zweiten Laden <c>MultipleStartSteps</c> und sperrte das
+        /// Speichern.
+        /// </para>
         /// </summary>
         [TestMethod]
-        public void CalculateOrderdSteps_WithoutAnAuthoredStartStep_BeginsWithTheFirstRealStep()
+        public void CalculateOrderdSteps_WithoutAnAuthoredStartStep_InventsAnEmptyOne()
         {
             var question = QuestionWith(Step("hinweis", 10));
 
             question.CalculateOrderdSteps();
 
             var first = question.OrderedSteps.First();
-            Assert.IsFalse(first.IsStart);
-            Assert.AreEqual("hinweis", first.Designation);
-            Assert.IsTrue(question.Steps.Contains(first),
-                "Kein erfundener Schritt mehr - alles Angezeigte gehoert der Frage.");
+
+            Assert.IsTrue(first.IsStart,
+                "Der erste Bildschirm ist kein Startschritt. Dann steht der Fragetext sofort da, "
+                + "und wer zu frueh buzzert, liest mit.");
+
+            Assert.AreEqual(string.Empty, first.StepText,
+                "Der ergaenzte Startschritt traegt Text. Er soll leer sein - der Spielleiter "
+                + "liest vor.");
+
+            Assert.IsFalse(question.Steps.Contains(first),
+                "Der ergaenzte Schritt liegt in Steps. Dann wird er mitgespeichert, und beim "
+                + "zweiten Laden meldet der Fragepruefer MultipleStartSteps.");
+
+            Assert.AreEqual(Guid.Empty, first.QuestionBaseId,
+                "Der ergaenzte Schritt traegt eine Fragezuordnung - dann sieht er aus wie ein "
+                + "echter und wird irgendwann als einer behandelt.");
+
+            // Die Gegenrichtung: ein hinterlegter Startschritt wird nicht verdoppelt.
+            var mitEigenem = QuestionWith(Step("hinweis", 10));
+            var intro = Step("Intro", 5);
+            intro.IsStart = true;
+            mitEigenem.Steps.Add(intro);
+
+            mitEigenem.CalculateOrderdSteps();
+
+            Assert.AreEqual(1, mitEigenem.OrderedSteps.Count(s => s.IsStart),
+                "Neben dem hinterlegten Startschritt wurde noch einer ergaenzt.");
         }
 
         [TestMethod]
@@ -147,8 +203,15 @@ namespace Quizzer.LogicUnitTests.DataModels.Models
             question.CalculateOrderdSteps();
 
             var keys = question.OrderedSteps.Select(s => s.QuestionViewKey).ToArray();
-            CollectionAssert.AreEqual(new[] { "A", "B", "C", string.Empty }, keys,
-                "Nur der Abschlussschritt bleibt ohne Antworttaste.");
+
+            // Vorn der ergaenzte Startschritt, hinten der ergaenzte Abschluss - beide ohne Taste.
+            CollectionAssert.AreEqual(new[] { string.Empty, "A", "B", "C", string.Empty }, keys,
+                "Start- und Abschlussschritt bleiben ohne Antworttaste, die drei normalen nicht.");
+
+            Assert.AreEqual(
+                question.OrderedSteps.Count(s => !s.IsStart && !s.IsFinish),
+                keys.Count(k => !string.IsNullOrEmpty(k)),
+                "Es tragen nicht genau die normalen Schritte eine Taste.");
         }
 
         [TestMethod]

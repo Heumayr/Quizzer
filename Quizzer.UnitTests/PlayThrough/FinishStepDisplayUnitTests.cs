@@ -62,12 +62,23 @@ namespace Quizzer.UnitTests.PlayThrough
             var vm = new TestableCurrentQuestionViewModel { Coordinate = world.Coordinate };
             await vm.LoadForTestAsync();
 
-            // Einen Schritt aufdecken, damit etwas auf dem Beamer steht.
+            // ZWEI Schritte weiter, nicht einer: der erste landet seit 2026-09-06 auf dem
+            // ergaenzten leeren Startschritt. Mit nur einem Druck stuende der Beamer schwarz,
+            // die Zusicherung unten haette trotzdem gehalten - sie vergleicht ja nur Ids.
+            await TestEnvironment.RunCommandAsync(vm.NextStepCommnad);
             await TestEnvironment.RunCommandAsync(vm.NextStepCommnad);
 
             var gezeigt = vm.CurrentStep;
 
-            Assert.IsNotNull(gezeigt, "Nach dem ersten Weiterschalten muss ein Schritt laufen.");
+            Assert.IsNotNull(gezeigt, "Nach dem Weiterschalten muss ein Schritt laufen.");
+
+            Assert.IsFalse(gezeigt!.IsStart,
+                "Es laeuft noch der leere Startschritt. Dann misst dieser Test, ob ein leerer "
+                + "Bildschirm stehenbleibt - und das tut er immer.");
+
+            Assert.IsFalse(string.IsNullOrWhiteSpace(gezeigt.StepText),
+                "Auf dem Beamer steht kein Text. Die Zusicherung unten waere dann auch bei einem "
+                + "schwarzen Bild gruen.");
 
             await TestEnvironment.RunCommandAsync(vm.SaveIsDoneFinishStateCommand);
 

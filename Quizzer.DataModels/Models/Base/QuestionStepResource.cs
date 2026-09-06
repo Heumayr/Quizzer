@@ -61,8 +61,19 @@ namespace Quizzer.DataModels.Models.Base
         /// <para>
         /// Bis zum 21.08.2026 war dies <c>[NotMapped]</c> und wurde an genau einer Stelle
         /// gesetzt: auf einem Schritt, den <c>CalculateOrderdSteps</c> selbst erfunden hat.
-        /// Ein Startschritt liess sich also gar nicht anlegen, und jede Frage begann mit einem
-        /// leeren Bildschirm.
+        /// Ein Startschritt liess sich also gar nicht <i>anlegen</i>.
+        /// </para>
+        /// <para>
+        /// <b>Seit dem 2026-09-06 gilt beides zugleich.</b> Die Spalte ist echt und im
+        /// Schritt-Dialog setzbar; liegt aber keiner vor, ergaenzt <c>CalculateOrderdSteps</c>
+        /// wieder einen leeren. Der leere erste Bildschirm ist die <b>Spielregel</b>: der
+        /// Spielleiter liest die Frage vor, und wer buzzert, bevor sie zu Ende gelesen ist, darf
+        /// sie nicht lesen koennen.
+        /// </para>
+        /// <para>
+        /// Der Unterschied, auf den es ankommt, ist damit „vom Spielleiter angelegt" gegen „vom
+        /// Modell ergaenzt" - erkennbar daran, dass der ergaenzte Schritt <b>nicht</b> in
+        /// <c>Steps</c> liegt und <c>QuestionBaseId</c> leer traegt.
         /// </para>
         /// </summary>
         public bool IsStart { get; set; }

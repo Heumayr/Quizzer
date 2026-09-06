@@ -485,10 +485,16 @@ namespace Quizzer.Views.GameViews
         /// nichts mehr.
         /// </para>
         /// <para>
-        /// <c>FinishStep</c> ist dabei nie <c>null</c>: <c>CalculateOrderdSteps</c> erfindet
-        /// einen, wenn keiner hinterlegt ist. Eine Pruefung auf <c>null</c> haette also nichts
-        /// bewirkt - gemessen am 2026-09-06, nachdem ich zuerst genau die geschrieben hatte.
-        /// Es zaehlt, ob der Schritt etwas zu zeigen hat.
+        /// <c>FinishStep</c> ist fast immer gesetzt: <c>CalculateOrderdSteps</c> ergaenzt einen,
+        /// wenn keiner hinterlegt ist. Eine Pruefung allein auf <c>null</c> brauchte es also
+        /// nicht - es zaehlt, ob der Schritt etwas zu <i>zeigen</i> hat, und der ergaenzte hat
+        /// nichts.
+        /// </para>
+        /// <para>
+        /// <b>Hier stand bis 2026-09-06 „nie <c>null</c>", und das war falsch.</b> Bei einer
+        /// Frage ganz ohne Schritte steigt <c>CalculateOrderdSteps</c> vorher aus, und
+        /// <c>finishStep</c> bleibt <c>null</c> - in der Spieldatenbank gibt es genau so eine.
+        /// <c>HasSomethingToShow</c> faengt den Fall ab; die Begruendung tat es nicht.
         /// </para>
         /// </summary>
         private async Task SaveIsDoneFinishStateAsync(object? commandParameter)

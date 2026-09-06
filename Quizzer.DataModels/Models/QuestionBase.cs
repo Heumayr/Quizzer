@@ -155,18 +155,18 @@ namespace Quizzer.DataModels.Models
         }
 
         /// <summary>
-        /// Berechnet die geordnete Schritt-Sequenz und schreibt sie in <see cref="OrderedSteps"/>.
-        /// Reihenfolge: Start-Schritte → normale Schritte (sortiert oder zufällig) → Finish-Schritte.
-        /// Fehlende Start- oder Finish-Schritte werden automatisch ergänzt.
-        /// Jedem normalen Schritt wird ein <c>QuestionViewKey</c> zugewiesen.
-        /// </summary>
-        /// <summary>
         /// Zufallsquelle fuer das Mischen der normalen Schritte. Im laufenden Programm
         /// <see cref="Random.Shared"/>; Tests setzen eine Quelle mit festem Startwert ein, sonst
         /// laesst sich die gemischte Reihenfolge nicht pruefen.
         /// </summary>
         public static Random Randomizer { get; set; } = Random.Shared;
 
+        /// <summary>
+        /// Berechnet die geordnete Schritt-Sequenz und schreibt sie in <see cref="OrderedSteps"/>.
+        /// Reihenfolge: Start-Schritte → normale Schritte (sortiert oder zufällig) → Finish-Schritte.
+        /// Fehlende Start- oder Finish-Schritte werden automatisch ergänzt.
+        /// Jedem normalen Schritt wird ein <c>QuestionViewKey</c> zugewiesen.
+        /// </summary>
         public void CalculateOrderdSteps()
         {
             if (Steps == null || !Steps.Any())
@@ -203,9 +203,26 @@ namespace Quizzer.DataModels.Models
                 });
             }
 
-            // Frueher wurde hier ein leerer Startschritt erfunden, wenn keiner vorlag - und weil
-            // IsStart nicht gespeichert wurde, lag nie einer vor. Der erste Druck auf "Weiter"
-            // zeigte dadurch immer einen leeren Bildschirm. Wer ein Intro will, legt es jetzt an.
+            // Ein leerer Startschritt, wenn keiner hinterlegt ist - spiegelbildlich zum
+            // Abschlussschritt darueber.
+            //
+            // Der leere erste Bildschirm ist die SPIELREGEL, nicht ihr Preis (Nutzerwort vom
+            // 2026-09-06, Frage F02): der Spielleiter liest die Frage vor, und wer buzzert,
+            // bevor sie zu Ende gelesen ist, darf sie nicht lesen koennen. Am 2026-08-21 wurde
+            // die Erfindung genau deshalb ausgebaut, weil der leere Bildschirm fuer einen Mangel
+            // gehalten wurde.
+            //
+            // Der erfundene Schritt liegt bewusst NUR in dieser Liste, nicht in Steps: sonst
+            // schriebe ihn der naechste Speichervorgang in die Datenbank, und der Fragepruefer
+            // meldete beim zweiten Laden MultipleStartSteps.
+            if (startSteps.Count == 0)
+            {
+                startSteps.Add(new QuestionStepResource
+                {
+                    IsStart = true,
+                    Id = Guid.NewGuid()
+                });
+            }
 
             var ordered = startSteps.Concat(normalSteps).Concat(finishSteps).ToList();
 
