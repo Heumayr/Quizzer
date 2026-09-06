@@ -21,6 +21,16 @@ namespace Quizzer.DataModels.Questions.Schrittbau
 
         public virtual string AbschlussTitel => string.Empty;
 
+        /// <summary>
+        /// Jeder Typ hat ein Startfeld. Es gibt keinen, bei dem ein eigener Startbildschirm keinen
+        /// Sinn ergäbe - und bei der Schätzfrage war er bis hierher überhaupt nicht anlegbar,
+        /// weil sie keine Zeilenliste hat.
+        /// </summary>
+        public virtual string StartTitel => "Startbildschirm (nur für Sie sichtbar)";
+
+        /// <summary>Ob dieser Typ ein Startfeld zeigt.</summary>
+        protected virtual bool HatStart => !string.IsNullOrEmpty(StartTitel);
+
         /// <summary>Ob dieser Typ überhaupt ein Abschlussfeld zeigt.</summary>
         protected virtual bool HatAbschluss => !string.IsNullOrEmpty(AbschlussTitel);
 
@@ -42,16 +52,19 @@ namespace Quizzer.DataModels.Questions.Schrittbau
             var zeilen = new List<StepZeile>();
 
             QuestionStepResource? abschluss = null;
+            QuestionStepResource? start = null;
 
             foreach (var schritt in frage.Steps.OrderBy(s => s.SequenceNumber))
             {
-                // Nur der erste Abschluss ist der Abschluss. Weitere sind Bestand, den niemand
-                // angelegt haben sollte - und der trotzdem nicht verschwinden darf.
+                // Nur der erste Abschluss ist der Abschluss, nur der erste Start der Start.
+                // Weitere sind Bestand, den niemand angelegt haben sollte - und der trotzdem
+                // nicht verschwinden darf.
                 if (schritt.IsFinish && HatAbschluss && abschluss == null)
                     abschluss = schritt;
 
-                // Ein selbst angelegter Startschritt hat in keiner Typmaske ein Feld - er faehrt
-                // mit. Bei Multiple Choice loescht er sonst still eine Antwort vom Telefon.
+                else if (schritt.IsStart && HatStart && start == null)
+                    start = schritt;
+
                 else if (schritt.IsStart || schritt.IsFinish || !HatZeilen)
                     mitgefuehrt.Add(schritt);
 
@@ -68,6 +81,7 @@ namespace Quizzer.DataModels.Questions.Schrittbau
             {
                 Zeilen = zeilen,
                 Abschluss = HatAbschluss ? new StepZeile(abschluss ?? NeuerSchritt()) : null,
+                Start = HatStart ? new StepZeile(start ?? NeuerSchritt()) : null,
                 Mitgefuehrt = mitgefuehrt,
             };
         }

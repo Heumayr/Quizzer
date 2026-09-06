@@ -49,6 +49,28 @@ namespace Quizzer.Views.QuestionTypes.Typed
         /// <summary>Das Abschlussfeld - <c>null</c>, wenn der Typ keines hat.</summary>
         public StepZeile? Abschluss => Bild.Abschluss;
 
+        /// <summary>Das Startfeld - <c>null</c>, wenn der Typ keines hat.</summary>
+        public StepZeile? Start => Bild.Start;
+
+        /// <summary>Die Überschrift über dem Startfeld.</summary>
+        public string StartTitel => composer.StartTitel;
+
+        public Visibility StartVisibility
+            => Start == null ? Visibility.Collapsed : Visibility.Visible;
+
+        /// <summary>
+        /// Ob die Kurzform für das Telefon angeboten wird.
+        /// <para>
+        /// <b>Nur, wo das Telefon überhaupt Text zeigt.</b> Das sagt dasselbe Profilmerkmal, das
+        /// den Schalter „Text auf den Tasten" steuert - bei den übrigen Typen wäre es ein Feld
+        /// ohne Wirkung.
+        /// </para>
+        /// </summary>
+        public Visibility KurzformVisibility
+            => QuestionTypeProfiles.For(composer.Typ).ShowShowTextOnKeySelect
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
         /// <summary>Die Überschrift über der Zeilenliste.</summary>
         public string ZeilenTitel => composer.ZeilenTitel;
 
@@ -120,10 +142,10 @@ namespace Quizzer.Views.QuestionTypes.Typed
         /// Schritte, die seit dem Lesen von <b>außerhalb</b> der Maske dazugekommen sind, werden
         /// mitgenommen.
         /// <para>
-        /// <b>Der Schritt-Dialog („Erweitert …") legt weiterhin direkt in <c>Question.Steps</c>
-        /// an.</b> Ohne diese Übernahme schriebe die Maske ihr beim Öffnen gelesenes Bild darüber
-        /// und der neue Schritt wäre weg - vier bestehende Zusicherungen haben genau das gemeldet,
-        /// bevor es jemand am Quizabend gemerkt hätte.
+        /// <b>Von aussen wird weiterhin angelegt.</b> <c>SchritteAngleichen</c> der Aufdeckfrage
+        /// legt direkt in <c>Question.Steps</c> an. Ohne diese Übernahme schriebe die Maske ihr
+        /// beim Öffnen gelesenes Bild darüber und die Aufdeckschritte wären weg - vier bestehende
+        /// Zusicherungen haben genau das gemeldet.
         /// </para>
         /// <para>
         /// <b>Über die beim Lesen bekannten Ids, nicht über die aktuellen Zeilen.</b> Sonst käme
@@ -154,8 +176,7 @@ namespace Quizzer.Views.QuestionTypes.Typed
         /// Ein Medium an diese Zeile hängen - <b>ohne den Schritt-Dialog</b>.
         /// <para>
         /// <b>Nutzerwunsch vom 2026-09-06:</b> „bei multible coice ... gut wäre ein button für
-        /// media". Bisher führte der einzige Weg über „Erweitert …", also über ein zweites
-        /// Fenster.
+        /// media". Bisher führte der einzige Weg über ein zweites Fenster.
         /// </para>
         /// </summary>
         public ICommand MediaCommand => mediaCommand ??= new AsyncRelayCommand(parameter =>
@@ -273,46 +294,74 @@ namespace Quizzer.Views.QuestionTypes.Typed
             Geaendert();
         });
 
+        private RelayCommand<StepZeile>? toggleDetailsCommand;
+
+        /// <summary>
+        /// Klappt die Einzelheiten einer Zeile auf oder zu.
+        /// <para>
+        /// <b>Nur eine gleichzeitig.</b> Sechs offene Zeilen wären eine Maske, in der man scrollen
+        /// muss, um zwei Antworten zu vergleichen - und die Zeilenliste hat keinen eigenen
+        /// Rollbalken.
+        /// </para>
+        /// </summary>
+        public ICommand ToggleDetailsCommand => toggleDetailsCommand ??= new RelayCommand<StepZeile>(
+            zeile =>
+            {
+                if (zeile == null)
+                    return;
+
+                var offen = !zeile.IstOffen;
+
+                foreach (var andere in Zeilen)
+                    andere.IstOffen = false;
+
+                zeile.IstOffen = offen;
+            });
+
+        private RelayCommand<StepZeile>? removeMediaCommand;
+
+        /// <summary>
+        /// Nimmt das Medium von der Zeile.
+        /// <para>
+        /// <b>Beide Felder in einem Zug</b> - Dateiname <i>und</i> Typ. Nur den Typ zu leeren ist
+        /// genau das, was der alte Schritt-Dialog konnte, und es hinterließ
+        /// <c>ResourceWithoutType</c>: einen Fehler, der das Speichern sperrte. Ein Medium war
+        /// damit nirgends im Editor löschbar.
+        /// </para>
+        /// <para>
+        /// <b>Die Datei bleibt liegen</b>, und das ist eine Entscheidung: <c>CloneWithoutReferences</c>
+        /// kopiert den Dateinamen mit, zwei Fragen können also auf dieselbe Datei zeigen. Ein
+        /// <c>File.Delete</c> wäre der anderen gegenüber wortlos. Aufräumen braucht einen Lauf,
+        /// der alle Verweise kennt.
+        /// </para>
+        /// </summary>
+        public ICommand RemoveMediaCommand => removeMediaCommand ??= new RelayCommand<StepZeile>(
+            zeile =>
+            {
+                if (zeile == null || !zeile.HatMedium)
+                    return;
+
+                zeile.Schritt.ResourceFileName = string.Empty;
+                zeile.Schritt.ResourceTyp = DataModels.Enumerations.ResourceType.None;
+
+                zeile.MeldeAlles();
+
+                Geaendert();
+            });
+
         private RelayCommand<StepZeile>? removeRowCommand;
 
         /// <summary>Eine Zeile entfernen.</summary>
         public ICommand RemoveRowCommand => removeRowCommand ??= new RelayCommand<StepZeile>(
             zeile =>
             {
-                if (zeile != null && Zeilen.Remove(zeile))
-                    Geaendert();
-            });
-
-        /// <summary>
-        /// Wie eine Zeile im Schritt-Dialog geöffnet wird. Die Schale hängt das ein - das
-        /// ViewModel kennt kein Fenster.
-        /// </summary>
-        internal Func<StepZeile, Task>? Erweitert { get; set; }
-
-        private AsyncRelayCommand? advancedCommand;
-
-        /// <summary>
-        /// Den Schritt-Dialog für diese Zeile öffnen.
-        /// <para>
-        /// <b>Der Ausnahmeweg, nicht der Pflichtweg.</b> Was die Typmaske nicht zeigt, gibt es
-        /// trotzdem: ein Medium am Schritt, die Kennung „Startschritt", eine abweichende
-        /// Bezeichnung. Ohne diesen Weg wären Medien am Schritt mit dem Umbau verloren gegangen.
-        /// </para>
-        /// </summary>
-        public ICommand AdvancedCommand => advancedCommand ??= new AsyncRelayCommand(
-            async parameter =>
-            {
-                if (parameter is not StepZeile zeile || Erweitert == null)
+                if (zeile == null || !Zeilen.Remove(zeile))
                     return;
 
-                await Erweitert(zeile);
-
-                // Der Dialog hat denselben Schritt veraendert und meldet nichts an diese Zeile.
-                zeile.MeldeAlles();
+                zeile.IstOffen = false;
 
                 Geaendert();
             });
-
         private RelayCommand<StepZeile>? moveUpCommand;
 
         /// <summary>Eine Zeile nach oben schieben - ein Klick statt vier.</summary>

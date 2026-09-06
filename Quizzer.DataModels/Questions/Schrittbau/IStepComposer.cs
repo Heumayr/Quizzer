@@ -29,6 +29,9 @@ namespace Quizzer.DataModels.Questions.Schrittbau
         /// <summary>Die Überschrift über dem Abschlussfeld - leer, wenn der Typ keines hat.</summary>
         string AbschlussTitel { get; }
 
+        /// <summary>Die Überschrift über dem Startfeld - leer, wenn der Typ keines hat.</summary>
+        string StartTitel { get; }
+
         /// <summary>
         /// Liest die Schritte einer Frage in ein <see cref="Schrittbild"/>.
         /// <para>

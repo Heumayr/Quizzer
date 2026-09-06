@@ -25,6 +25,22 @@ namespace Quizzer.DataModels.Questions.Schrittbau
         public StepZeile? Abschluss { get; init; }
 
         /// <summary>
+        /// Der Startbildschirm - was vor der Frage steht.
+        /// <para>
+        /// <b>Ein eigenes Fach, keine Zeile.</b> Eine Zeile bekommt eine Antworttaste, ein
+        /// Startschritt nie; eine Zeile hat ein Häkchen „richtig", das auf einem Startschritt eine
+        /// Multiple-Choice-Frage unspielbar macht; Zeilen gibt es viele, Startschritte höchstens
+        /// einen. Als Fach ist dieser ganze Fehlerraum konstruktiv leer.
+        /// </para>
+        /// <para>
+        /// <b>Nur der erste.</b> Jeder weitere <c>IsStart</c>-Schritt bleibt in
+        /// <see cref="Mitgefuehrt"/> - er ist Bestand, den niemand angelegt haben sollte, und der
+        /// trotzdem nicht verschwinden darf.
+        /// </para>
+        /// </summary>
+        public StepZeile? Start { get; init; }
+
+        /// <summary>
         /// Schritte, die die Maske nicht anzeigt und trotzdem behält. Siehe Klassenkommentar.
         /// </summary>
         public List<QuestionStepResource> Mitgefuehrt { get; init; } = [];
@@ -33,8 +49,10 @@ namespace Quizzer.DataModels.Questions.Schrittbau
         /// Schreibt alles zurück in <see cref="QuestionBase.Steps"/> - mitgeführte Schritte
         /// zuerst, dann die Zeilen in ihrer Reihenfolge, zuletzt der Abschluss.
         /// <para>
-        /// <b>Leere Zeilen fallen weg.</b> Eine Maske, die vier Antwortzeilen anbietet, von denen
-        /// zwei gefüllt sind, darf keine zwei leeren Bildschirme ins Spiel schreiben.
+        /// <b>Leere Zeilen fallen weg</b>, und ein leeres Startfach ebenso. Eine Maske, die vier
+        /// Antwortzeilen anbietet, von denen zwei gefüllt sind, darf keine zwei leeren
+        /// Bildschirme ins Spiel schreiben - und ein immer geschriebener leerer Startschritt
+        /// machte aus einer unberührten Maske eine Frage mit einem Schritt.
         /// </para>
         /// <para>
         /// <b>Die Nummern werden hier gestempelt</b>, und zwar über die <i>ganze</i> Liste, nicht
@@ -49,7 +67,19 @@ namespace Quizzer.DataModels.Questions.Schrittbau
         {
             ArgumentNullException.ThrowIfNull(frage);
 
-            var gesammelt = new List<QuestionStepResource>(Mitgefuehrt);
+            var gesammelt = new List<QuestionStepResource>();
+
+            // Der Startschritt zuerst - vor allem anderen. Die Rundlauf-Zusicherung vergleicht
+            // nach SequenceNumber sortiert, und ein Startschritt traegt im Bestand die kleinste
+            // Nummer; hinten geschrieben kippt sie bei jedem Fragetyp.
+            if (Start is { IstLeer: false } start)
+            {
+                start.Schritt.IsStart = true;
+
+                gesammelt.Add(start.Schritt);
+            }
+
+            gesammelt.AddRange(Mitgefuehrt);
 
             gesammelt.AddRange(Zeilen.Where(z => !z.IstLeer).Select(z => z.Schritt));
 

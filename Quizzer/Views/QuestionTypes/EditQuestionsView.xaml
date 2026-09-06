@@ -8,7 +8,7 @@
         xmlns:val="clr-namespace:Quizzer.Validators"
         xmlns:typed="clr-namespace:Quizzer.Views.QuestionTypes.Typed"
         mc:Ignorable="d"
-        Title="Frage bearbeiten" Height="720" Width="900">
+        Title="Frage bearbeiten" Height="720" Width="900" MinWidth="820" MinHeight="520">
     <base:WindowBase.DataContext>
         <local:EditQuestionViewModel />
     </base:WindowBase.DataContext>
@@ -109,6 +109,13 @@
             </ItemsControl>
         </Border>
 
+        <!--
+            Bewusst NUR senkrecht. Ein waagrechter Rollbalken nimmt dem Inhalt die Breitengrenze -
+            und damit hoert TextWrapping auf zu wirken: gemessen am 2026-09-06 ragte der
+            Erklaertext des Startblocks danach 180 Punkte aus dem 900 breiten Fenster, gefangen von
+            NoWindowOverflowsItsOwnWidth. Gegen zu enge Felder hilft stattdessen die MinWidth am
+            Fenster.
+        -->
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="5">
 

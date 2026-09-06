@@ -66,7 +66,10 @@ namespace Quizzer.DataModels.Questions.Schrittbau
                     return;
 
                 Schritt.StepText = neu;
-                Schritt.Designation = neu;
+
+                // Die Kopplung bleibt, solange niemand eine eigene Kurzform getippt hat.
+                if (!kurzformBeruehrt)
+                    Schritt.Designation = neu;
 
                 Beruehrt = true;
 
@@ -124,6 +127,81 @@ namespace Quizzer.DataModels.Questions.Schrittbau
         }
 
         private string zusatz = string.Empty;
+
+        /// <summary>
+        /// Ob die Einzelheiten dieser Zeile aufgeklappt sind.
+        /// <para>
+        /// <b>Nutzerwunsch vom 2026-09-06:</b> „generell wäre schön wenn man alles in einer maske
+        /// steuert und nicht für details pro step in die andere maske muss". Bis hierher führte
+        /// für Medium, Startschritt und Kurzform der Weg über ein zweites Fenster.
+        /// </para>
+        /// </summary>
+        public bool IstOffen
+        {
+            get => istOffen;
+            set
+            {
+                if (istOffen == value)
+                    return;
+
+                istOffen = value;
+
+                Melde();
+            }
+        }
+
+        private bool istOffen;
+
+        /// <summary>
+        /// Was am Telefon auf der Taste steht, wenn es etwas anderes sein soll als der Text am
+        /// Beamer.
+        /// <para>
+        /// <b>Leer heißt: dasselbe wie der Text.</b> Das ist der Regelfall und bleibt es - der
+        /// Beamer nimmt <c>StepText</c> vor <c>Designation</c>, das Telefon umgekehrt, und wer
+        /// beide unterschiedlich füllt, bekommt zwei verschiedene Antworten, ohne dass etwas
+        /// warnt. Genau deshalb schreibt <see cref="Text"/> weiterhin beide - <b>bis jemand hier
+        /// wirklich etwas eintippt</b>.
+        /// </para>
+        /// <para>
+        /// <b>Der Merker ist nötig, nicht bequem.</b> Würde „Kurzform gesetzt" aus dem Bestand
+        /// abgeleitet (<c>Designation != StepText</c>), wäre die Kopplung auf jedem Bestandsschritt
+        /// mit abweichender Bezeichnung sofort aufgehoben - eine Datenänderung beim bloßen Öffnen.
+        /// Dieselbe Bauart wie <see cref="SchlageVor"/>, und aus demselben Anlass.
+        /// </para>
+        /// </summary>
+        public string Kurzform
+        {
+            get => kurzformBeruehrt ? Schritt.Designation : string.Empty;
+            set
+            {
+                var neu = value ?? string.Empty;
+
+                if (neu.Length == 0)
+                {
+                    // Geleert heisst: wieder koppeln.
+                    kurzformBeruehrt = false;
+                    Schritt.Designation = Schritt.StepText;
+                }
+                else
+                {
+                    kurzformBeruehrt = true;
+                    Schritt.Designation = neu;
+                }
+
+                Beruehrt = true;
+
+                Melde();
+                Melde(nameof(IstLeer));
+            }
+        }
+
+        private bool kurzformBeruehrt;
+
+        /// <summary>Was im Aufklappfeld über das Medium steht.</summary>
+        public string Medienzeile
+            => HatMedium
+                ? $"{Mediumtext}: {Schritt.ResourceFileName}"
+                : "Kein Medium an diesem Schritt.";
 
         /// <summary>Ob an dieser Zeile eine Mediendatei hängt.</summary>
         public bool HatMedium
@@ -194,6 +272,8 @@ namespace Quizzer.DataModels.Questions.Schrittbau
             Melde(nameof(IstLeer));
             Melde(nameof(HatMedium));
             Melde(nameof(Mediumtext));
+            Melde(nameof(Medienzeile));
+            Melde(nameof(Kurzform));
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

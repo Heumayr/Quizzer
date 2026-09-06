@@ -66,5 +66,18 @@ namespace Quizzer.Base
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => throw new NotSupportedException();
     }
+    /// <summary>
+    /// Wahr wird sichtbar, falsch verschwindet ganz (<c>Collapsed</c>, nicht <c>Hidden</c>):
+    /// ein zugeklapptes Feld darf keinen Platz kosten.
+    /// </summary>
+    public class BoolToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => value is true ? Visibility.Visible : Visibility.Collapsed;
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotSupportedException();
+    }
+
 
 }

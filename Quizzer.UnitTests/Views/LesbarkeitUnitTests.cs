@@ -50,7 +50,6 @@ namespace Quizzer.UnitTests.Views
             typeof(Quizzer.Views.PlayersView),
             typeof(Quizzer.Views.QuestionsView),
             typeof(Quizzer.Views.QuestionTypes.EditQuestionsView),
-            typeof(Quizzer.Views.QuestionTypes.EditStepView),
             typeof(Quizzer.Views.QuestionTypes.NewQuestionView),
             typeof(Quizzer.Views.BuzzerViews.BuzzerServerView),
             typeof(Quizzer.Views.GameThemesView),

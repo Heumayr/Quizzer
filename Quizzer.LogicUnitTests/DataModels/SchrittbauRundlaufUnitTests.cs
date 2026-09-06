@@ -173,6 +173,98 @@ namespace Quizzer.LogicUnitTests.DataModels
         }
 
         /// <summary>
+        /// <b>Der Startschritt ist jetzt ein eigenes Fach</b>, kein mitgeführter Schritt mehr.
+        /// <para>
+        /// <b>Nutzerwunsch vom 2026-09-06:</b> „generell wäre schön wenn man alles in einer maske
+        /// steuert". Bis hierher war der Startschritt in der Typmaske unsichtbar und nicht
+        /// anlegbar - bei der Schätzfrage überhaupt nicht erreichbar.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void TheStartStepLandsInItsOwnSlot()
+        {
+            foreach (var typ in Enum.GetValues<QuestionType>())
+            {
+                var frage = Vollbestueckt(typ);
+                var composer = StepComposers.For(typ);
+                var bild = composer.Lies(frage);
+
+                Assert.IsNotNull(bild.Start,
+                    $"Bei {typ} gibt es kein Startfach - dann ist der Startschritt weiter "
+                    + "unsichtbar.");
+
+                Assert.AreEqual("Gleich geht es los.", bild.Start!.Text,
+                    $"Bei {typ} steht der eigene Startschritt nicht im Startfach.");
+
+                Assert.IsFalse(bild.Mitgefuehrt.Any(m => m.IsStart),
+                    $"Bei {typ} faehrt der Startschritt zusaetzlich mit - dann wird er doppelt "
+                    + "geschrieben.");
+            }
+        }
+
+        /// <summary>
+        /// Ein <b>leeres</b> Startfach schreibt nichts. Sonst hätte eine unberührte Maske plötzlich
+        /// einen Schritt, und der Beamer zeigte einen leeren Bildschirm, den niemand angelegt hat.
+        /// </summary>
+        [TestMethod]
+        public void AnEmptyStartSlotWritesNothing()
+        {
+            var frage = Factory.CreateNewQuestion(QuestionType.MultipleChoice);
+
+            frage.Id = Guid.NewGuid();
+
+            var composer = StepComposers.For(QuestionType.MultipleChoice);
+            var bild = composer.Lies(frage);
+
+            Assert.IsNotNull(bild.Start, "Auch eine neue Frage bekommt ein Startfach.");
+
+            composer.Schreib(frage, bild);
+
+            Assert.AreEqual(0, frage.Steps.Count,
+                "Ein leeres Startfach wurde geschrieben.");
+
+            bild.Start!.Text = "Gleich geht es los.";
+
+            composer.Schreib(frage, bild);
+
+            Assert.AreEqual(1, frage.Steps.Count);
+            Assert.IsTrue(frage.Steps[0].IsStart,
+                "Der aus dem Startfach geschriebene Schritt traegt die Kennung nicht.");
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung:</b> ein <i>zweiter</i> Startschritt bleibt mitgeführt. Nähme das
+        /// Startfach nur den ersten und ließe den zweiten fallen, wäre das stiller Datenverlust -
+        /// und die Zusicherung „genau ein Startschritt" bliebe trotzdem grün.
+        /// </summary>
+        [TestMethod]
+        public void ASecondStartStepIsCarriedAlong()
+        {
+            var frage = Vollbestueckt(QuestionType.Default);
+
+            frage.Steps.Add(new QuestionStepResource
+            {
+                Id = Guid.NewGuid(),
+                QuestionBaseId = frage.Id,
+                SequenceNumber = 7,
+                IsStart = true,
+                Designation = "Zweiter Startschritt",
+                StepText = "Sollte es nicht geben - darf aber nicht verschwinden.",
+            });
+
+            var composer = StepComposers.For(QuestionType.Default);
+            var bild = composer.Lies(frage);
+
+            Assert.AreEqual(1, bild.Mitgefuehrt.Count(m => m.IsStart),
+                "Der zweite Startschritt faehrt nicht mit - beim naechsten Speichern waere er weg.");
+
+            composer.Schreib(frage, bild);
+
+            Assert.AreEqual(2, frage.Steps.Count(x => x.IsStart),
+                "Nach dem Rundlauf sind es nicht mehr zwei Startschritte.");
+        }
+
+        /// <summary>
         /// Ein Medium überlebt, obwohl keine Maske ein Feld dafür zeigt - es hängt am
         /// durchgereichten Schritt.
         /// </summary>

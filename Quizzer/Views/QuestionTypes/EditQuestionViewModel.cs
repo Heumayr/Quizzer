@@ -187,28 +187,6 @@ namespace Quizzer.Views.QuestionTypes
             Window?.Close();
         }
 
-        private AsyncRelayCommand? addStepCommnad;
-        public ICommand AddStepCommnad => addStepCommnad ??= new AsyncRelayCommand(AddStepCommnadAsync);
-
-        private Task AddStepCommnadAsync(object? commandParameter)
-        {
-            if (Question == null)
-            {
-                return Task.CompletedTask;
-            }
-
-            var step = new QuestionStepResource
-            {
-                Id = Guid.NewGuid(),
-                QuestionBaseId = Question.Id,
-                SequenceNumber = Question.Steps.Any() ? Question.Steps.Max(q => q.SequenceNumber) + 10 : 0,
-            };
-
-            Question.Steps.Add(step);
-
-            return EditStepAsync(step);
-        }
-
         private AsyncRelayCommand? removeStepCommnad;
         public ICommand RemoveStepCommnad => removeStepCommnad ??= new AsyncRelayCommand(RemoveStepCommnadAsync);
 
@@ -249,31 +227,6 @@ namespace Quizzer.Views.QuestionTypes
             Revalidate();
         }
 
-        internal async Task EditStepAsync(QuestionStepResource step)
-        {
-            if (Question == null) return;
-
-            var window = new EditStepView();
-
-            if (window.DataContext is EditStepViewModel vm)
-            {
-                step.QuestionBaseId = Question.Id;
-
-                // Der Schritt gehoert der Frage im Speicher; geschrieben wird beides zusammen
-                // beim Speichern. Deshalb kein Vorab-Speichern der halbfertigen Frage mehr.
-                vm.PersistDirectly = false;
-
-                await vm.SetModel(step);
-                window.ShowDialog();
-
-                RefreshSteps();
-            }
-            else
-            {
-                throw new InvalidOperationException("DataContext is not of type EditQuestionViewModel");
-            }
-        }
-
         //private void OnDatagridSourceChanged()
         //{
         //    if (Question == null)
@@ -291,22 +244,10 @@ namespace Quizzer.Views.QuestionTypes
         //    view.Refresh();
         //}
 
-        private AsyncRelayCommand? openStepCommand;
         private ObservableCollection<Category> categories = new();
 
         //private bool warnOnResultStep;
         private ObservableCollection<QuestionStepResource> steps = new();
 
-        public ICommand OpenStepCommand => openStepCommand ??= new AsyncRelayCommand(OpenStepAsync);
-
-        private Task OpenStepAsync(object? commandParameter)
-        {
-            if (commandParameter is QuestionStepResource step)
-            {
-                return EditStepAsync(step);
-            }
-
-            return Task.CompletedTask;
-        }
     }
 }

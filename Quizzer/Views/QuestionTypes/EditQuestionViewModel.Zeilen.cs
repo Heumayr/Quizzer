@@ -51,9 +51,6 @@ namespace Quizzer.Views.QuestionTypes
 
             var editor = Zeileneditoren.Fuer(composer, Question, Revalidate);
 
-            // Der Schritt-Dialog bleibt erreichbar - was die Typmaske nicht zeigt (ein Medium am
-            // Schritt, die Kennung "Startschritt"), gibt es trotzdem.
-            editor.Erweitert = zeile => EditStepAsync(zeile.Schritt);
             editor.MediumWaehlen = HaengeMediumAn;
 
             Zeileneditor = editor;
@@ -67,10 +64,10 @@ namespace Quizzer.Views.QuestionTypes
         /// ihren Namen.
         /// </para>
         /// <para>
-        /// <b>Der Dateityp wird vorher geprüft, nicht hinterher gefangen.</b>
-        /// <c>DetectResourceType</c> <i>wirft</i> bei einer unbekannten Endung; ein Filter im
-        /// Dialog hält niemanden davon ab, „Alle Dateien" zu wählen, und eine Ausnahme daraus
-        /// wäre ein Fehlerfenster für einen Bedienfehler.
+        /// <b>Der Dateityp wird hinterher gefangen, nicht vorher geprüft</b> - der Kommentar hier
+        /// behauptete bis zum 2026-09-06 das Gegenteil. <c>DetectResourceType</c> <i>wirft</i> bei
+        /// unbekannter Endung; der Filter bietet deshalb kein „Alle Dateien" an, und was trotzdem
+        /// durchkommt, wird gefangen und gesagt statt als Ausnahmefenster gezeigt.
         /// </para>
         /// </summary>
         private static bool HaengeMediumAn(StepZeile zeile)
@@ -79,7 +76,8 @@ namespace Quizzer.Views.QuestionTypes
                 "Medium wählen",
                 "Bilder|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp"
                 + "|Ton|*.mp3;*.wav;*.ogg;*.flac"
-                + "|Video|*.mp4;*.avi;*.mov;*.wmv;*.mkv");
+                + "|Video|*.mp4;*.avi;*.mov;*.wmv;*.mkv"
+                + "|Dokumente|*.pdf;*.doc;*.docx;*.txt");
 
             if (quelle == null)
                 return false;
