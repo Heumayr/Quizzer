@@ -65,6 +65,26 @@ namespace Quizzer.Logic.Controller.TypedControllers
         }
 
         /// <summary>
+        /// Zaehlt die Ergebniszeilen der genannten Spiele.
+        /// <para>
+        /// Der dritte Weg, auf dem eine Punktehistorie verschwindet - und der einzige, der bis
+        /// hierher unbeziffert blieb: <c>GamesController.BeforeActionAsync</c> raeumt vor dem
+        /// Loeschen eines Spiels dessen Ergebnisse, Zellen, Kopfzeilen und Zuordnungen selbst
+        /// weg. Das ist noetig (die Fremdschluessel stehen auf NO ACTION), heisst aber, dass ein
+        /// versehentlich geloeschtes Spiel den ganzen Abend mitnimmt.
+        /// </para>
+        /// </summary>
+        public async Task<int> CountResultsOfGamesAsync(IEnumerable<Guid> gameIds)
+        {
+            var ids = gameIds?.Distinct().ToList() ?? [];
+
+            if (ids.Count == 0)
+                return 0;
+
+            return await EntitySet.CountAsync(r => ids.Contains(r.GameId));
+        }
+
+        /// <summary>
         /// Zaehlt die Ergebniszeilen der genannten Fragen. Dasselbe wie
         /// <see cref="CountResultsOfPlayersAsync"/>, nur fuer den anderen CASCADE-Pfad:
         /// <c>QuestionResult.QuestionBaseId</c>.

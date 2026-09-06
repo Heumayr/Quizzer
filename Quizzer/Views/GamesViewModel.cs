@@ -149,9 +149,11 @@ namespace Quizzer.Views
                 return;
             }
 
-            if (!UserPrompt.Confirm("Die ausgewählten Spiele wirklich entfernen?", "Entfernen bestätigen")) return;
-
             var toRemove = new List<Game>(SelectedGames);
+
+            if (!await BestaetigeEntfernenAsync(toRemove))
+                return;
+
             using var ctrl = new GamesController();
             foreach (var game in toRemove)
             {
@@ -160,6 +162,46 @@ namespace Quizzer.Views
 
             await ctrl.SaveChangesAsync();
             await OnloadAsync();
+        }
+
+        /// <summary>
+        /// Fragt nach und beziffert dabei, was mit dem Spiel verschwindet.
+        /// <para>
+        /// <b>Bis 2026-09-06 stand hier nur „Die ausgewählten Spiele wirklich entfernen?"</b> -
+        /// nicht einmal, welche. Mit dem Spiel geht aber der <b>gesamte Punktestand des Abends</b>:
+        /// <c>GamesController.BeforeActionAsync</c> räumt Ergebnisse, Zellen, Kopfzeilen und
+        /// Zuordnungen selbst weg, weil die Fremdschlüssel auf NO ACTION stehen. Es gibt keinen
+        /// Weg zurück.
+        /// </para>
+        /// <para>
+        /// Dieselbe Bezifferung gibt es beim Entfernen eines Mitspielers und einer Frage; das
+        /// Spiel war der dritte und letzte unbezifferte Weg.
+        /// </para>
+        /// </summary>
+        private static async Task<bool> BestaetigeEntfernenAsync(List<Game> toRemove)
+        {
+            int ergebnisse;
+
+            using (var ctrl = new QuestionResultsController())
+            {
+                ergebnisse = await ctrl.CountResultsOfGamesAsync(toRemove.Select(g => g.Id));
+            }
+
+            var namen = string.Join(", ", toRemove.Select(g => g.Designation));
+
+            var frage = $"{namen} entfernen?";
+
+            if (ergebnisse > 0)
+            {
+                var zeilen = ergebnisse == 1 ? "1 Ergebniszeile" : $"{ergebnisse} Ergebniszeilen";
+
+                frage += Environment.NewLine + Environment.NewLine
+                       + $"Dabei geht der gesamte Punktestand dieses Abends verloren: {zeilen}, "
+                       + "dazu das Spielfeld und die Zuordnung der Mitspieler. Das lässt sich "
+                       + "nicht rückgängig machen.";
+            }
+
+            return UserPrompt.Confirm(frage, "Spiel entfernen");
         }
 
         private AsyncRelayCommand? startGameCommand;
