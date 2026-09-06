@@ -23,7 +23,11 @@ namespace Quizzer.Views.QuestionTypes
             set
             {
                 steps = value;
-                OnModelChanged();
+
+                // Kein OnModelChanged mehr: das baute die Typmaske ein zweites Mal auf, weil der
+                // Question-Setter erst OnModelChanged ruft und danach Steps setzt. Die zweite
+                // Maske ersetzte die erste - und mit ihr alles, was diese sich beim Lesen
+                // gemerkt hatte. Mit der Kategorie hat eine Schrittliste ohnehin nichts zu tun.
                 StepsView = CollectionViewSource.GetDefaultView(steps);
                 OnPropertyChanged(nameof(StepsView));
             }
@@ -224,6 +228,11 @@ namespace Quizzer.Views.QuestionTypes
             }
 
             RefreshSteps();
+
+            // Die Typmaske haelt ihr eigenes Bild der Schritte - nach einer Entfernung von
+            // aussen muss sie es neu lesen, sonst schreibt sie den Schritt beim Speichern
+            // wieder hin.
+            BaueZeileneditor();
 
             return Task.CompletedTask;
         }

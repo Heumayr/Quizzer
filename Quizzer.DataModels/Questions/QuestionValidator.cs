@@ -34,6 +34,9 @@ namespace Quizzer.DataModels.Questions
         public const string ExpectedDateMissing = "expected-date-missing";
         public const string ExpectedValueMissing = "expected-value-missing";
         public const string UnitDoesNotMatchKind = "unit-does-not-match-kind";
+        public const string RevealImageMissing = "reveal-image-missing";
+        public const string FinishTextMissing = "finish-text-missing";
+        public const string KeySelectWillBeAdjusted = "key-select-will-be-adjusted";
 
         /// <summary>Prueft die Frage und liefert alle Beanstandungen.</summary>
         public static IReadOnlyList<ValidationIssue> Validate(QuestionBase question)
@@ -48,6 +51,8 @@ namespace Quizzer.DataModels.Questions
             ValidateKeySelect(question, profile, issues);
             ValidateTypeOwnedValues(question, profile, issues);
             ValidateExpectedValue(question, issues);
+            ValidateRevealImage(question, issues);
+            ValidateFinishText(question, profile, issues);
 
             return issues;
         }
@@ -192,6 +197,52 @@ namespace Quizzer.DataModels.Questions
                 issues.Add(new(ExpectedValueMissing, ValidationSeverity.Warning,
                     "Der Sollwert steht auf 0. Ist das wirklich gemeint?",
                     nameof(appreciate.ExpectedValue)));
+        }
+
+        /// <summary>
+        /// Eine Aufdeckfrage ohne Bild ist nicht spielbar - es gibt nichts aufzudecken.
+        /// <para>
+        /// <b>Bis zum 2026-09-06 hat die Pruefung dazu geschwiegen</b>; die Frage liess sich
+        /// speichern und stand am Abend als leerer Bildschirm da.
+        /// </para>
+        /// </summary>
+        private static void ValidateRevealImage(QuestionBase question, List<ValidationIssue> issues)
+        {
+            if (question is not RevealQuestion aufdeck)
+                return;
+
+            if (string.IsNullOrWhiteSpace(aufdeck.ImageFileName))
+                issues.Add(new(RevealImageMissing, ValidationSeverity.Error,
+                    "Für die Aufdeckfrage ist kein Bild hinterlegt. Es gibt nichts aufzudecken.",
+                    nameof(aufdeck.ImageFileName)));
+        }
+
+        /// <summary>
+        /// Am Ende der Frage sollte etwas stehen.
+        /// <para>
+        /// <b>Ausdruecklich eine Warnung, kein Fehler.</b> Als Fehler wuerde sie das Speichern
+        /// sperren und den gesamten Bestand an Standardfragen beim naechsten Oeffnen
+        /// unspeicherbar machen - der Typ hatte bis zum Umbau gar kein Feld dafuer.
+        /// </para>
+        /// </summary>
+        private static void ValidateFinishText(
+            QuestionBase question, QuestionTypeProfile profile, List<ValidationIssue> issues)
+        {
+            // Wo der Typ ohnehin einen Loesungsschritt verlangt, meldet ResultStepMissing schon;
+            // eine zweite Zeile dazu waere nur Laerm.
+            if (profile.RequiresResultStep)
+                return;
+
+            var steps = question.Steps ?? new List<QuestionStepResource>();
+            var abschluss = steps.FirstOrDefault(s => s.IsFinish);
+
+            if (abschluss == null
+                || (string.IsNullOrWhiteSpace(abschluss.StepText)
+                    && string.IsNullOrWhiteSpace(abschluss.Designation)
+                    && abschluss.ResourceTyp == ResourceType.None))
+                issues.Add(new(FinishTextMissing, ValidationSeverity.Warning,
+                    "Am Ende der Frage steht nichts. Die Mitspieler sehen dann einen leeren "
+                    + "Bildschirm statt der Auflösung."));
         }
 
         private static void ValidateTypeOwnedValues(

@@ -151,6 +151,52 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
         }
 
         /// <summary>
+        /// <b>Die abgeleitete Tastenzahl macht das Speichern erst möglich.</b>
+        /// <para>
+        /// <c>KeySelectCountMismatch</c> ist ein <i>Fehler</i>. Eine Bestandsfrage mit einem
+        /// Häkchen und gespeicherter 3 trüge ihn, bis der Wert stimmt - der aber erst beim
+        /// Speichern gesetzt würde, das die Prüfung gerade verhindert. Deshalb leitet die Maske
+        /// sofort ab und sagt, dass sie es getan hat.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void TheDerivedKeyCountUnblocksSavingAndSaysSo()
+        {
+            var vm = Mit(QuestionType.MultipleChoice, f =>
+            {
+                f.Steps.Add(new QuestionStepResource
+                {
+                    Id = Guid.NewGuid(), SequenceNumber = 10,
+                    Designation = "Canberra", StepText = "Canberra", IsResult = true,
+                });
+
+                f.Steps.Add(new QuestionStepResource
+                {
+                    Id = Guid.NewGuid(), SequenceNumber = 20,
+                    Designation = "Sydney", StepText = "Sydney",
+                });
+
+                f.BuzzerMaxAllowedKeySelect = 3;
+            });
+
+            Assert.AreEqual(1, vm.Question!.BuzzerMaxAllowedKeySelect,
+                "Die Zahl der waehlbaren Antworten wurde beim Oeffnen nicht abgeleitet - die "
+                + "Frage bliebe wegen KeySelectCountMismatch unspeicherbar.");
+
+            Assert.IsFalse(
+                QuestionValidator.Validate(vm.Question)
+                    .Any(i => i.Code == QuestionValidator.KeySelectCountMismatch),
+                "Die Pruefung meldet weiterhin den Widerspruch.");
+
+            var antwortliste = (Quizzer.Views.QuestionTypes.Typed.AntwortlisteViewModel)
+                vm.Zeileneditor!;
+
+            StringAssert.Contains(antwortliste.Korrekturhinweis, "3",
+                "Die Maske sagt nicht, dass sie einen gespeicherten Wert ueberschreibt. Sachlich "
+                + "behebt sie einen Defekt - angewiesen hat es trotzdem niemand.");
+        }
+
+        /// <summary>
         /// <b>Ein Schritt, der von außerhalb der Maske dazukommt, überlebt.</b>
         /// <para>
         /// Der Schritt-Dialog („Erweitert …") legt weiterhin direkt in <c>Question.Steps</c> an.
