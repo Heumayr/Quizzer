@@ -33,10 +33,20 @@ namespace Quizzer.DataModels.Models.Base
         public string UserPictureFileName { get; set; } = string.Empty;
 
         /// <summary>
-        /// Ob diese Person das Quiz leiten darf. Nur solche stehen bei der Anmeldung zur Wahl -
-        /// sonst waere die Liste an einem Abend mit zwanzig Gaesten unbrauchbar.
+        /// Ob diese Person das Quiz leiten darf. Nur solche stehen bei der Anmeldung zur Wahl.
+        /// <para>
+        /// <b>Voreingestellt ist <c>true</c> - Nutzerentscheidung vom 2026-09-06:</b> „jeder
+        /// spieler kann sich als spielleiter anmelden ... per default ... explizites wegnehmen
+        /// ist sinnvoller fuer meinen zweck". Die Richtung ist damit umgedreht: das Recht ist da,
+        /// und es wegzunehmen ist der bewusste Handgriff.
+        /// </para>
+        /// <para>
+        /// Vorher war es <c>false</c>, und die Folge war unangenehm: von zehn angelegten Personen
+        /// standen genau zwei zur Wahl - beide aus den Demodaten. Wer seine eigenen Leute in der
+        /// Liste suchte, fand sie nicht und kam gar nicht ins Programm.
+        /// </para>
         /// </summary>
-        public bool IsModerator { get; set; }
+        public bool IsModerator { get; set; } = true;
 
         /// <summary>
         /// Kennwort dieses Spielleiters, als PBKDF2-Ableitung. Leer heisst: kein Kennwort, die

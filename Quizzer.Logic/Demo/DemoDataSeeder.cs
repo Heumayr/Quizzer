@@ -75,29 +75,23 @@ namespace Quizzer.Logic.Demo
 
         private static async Task<List<Player>> CreatePlayersAsync()
         {
-            // Zwei duerfen leiten: nur so laesst sich der Wechsel und der getrennte
-            // Fragenbestand ueberhaupt vorfuehren.
-            var namen = new[]
-            {
-                ("Anna", "Anna", true),
-                ("Bert", "Bert", false),
-                ("Clara", "Clara", false),
-                ("Dennis", "Dennis", false),
-                ("Moderator", "Der Spielleiter", true),
-            };
+            // Alle duerfen leiten - so ist es seit dem 2026-09-06 voreingestellt, und der
+            // Wechsel des Spielleiters laesst sich damit an jeder Person vorfuehren.
+            var namen = new[] { "Anna", "Bert", "Clara", "Dennis", "Moderator" };
 
             var ergebnis = new List<Player>();
 
             using var ctrl = new PlayersController();
 
-            foreach (var (kurz, anzeige, leitet) in namen)
+            foreach (var kurz in namen)
             {
+                // IsModerator bleibt auf der Voreinstellung - es zu setzen waere eine zweite
+                // Quelle fuer dieselbe Regel.
                 var spieler = new Player
                 {
                     Id = Guid.NewGuid(),
                     Designation = $"{Marke} {kurz}",
-                    DisplayName = anzeige,
-                    IsModerator = leitet,
+                    DisplayName = kurz == "Moderator" ? "Der Spielleiter" : kurz,
                 };
 
                 await ctrl.InsertAsync(spieler);
