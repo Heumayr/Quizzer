@@ -14,21 +14,17 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Kopfzeile: welche Frage laeuft, und der Knopf zum Neustart der Runde -->
+        <!--
+            Kopfzeile: welche Frage laeuft. Der Knopf "Runde zuruecksetzen" stand bis 2026-09-06
+            hier und ist in die Handlungsspalte des Fragefensters gewandert - er hatte hier
+            dasselbe Gewicht wie die Rundenzeile, obwohl er als Einziges die Telefone anfasst
+            (Nutzerentscheidung F10).
+        -->
         <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-
-            <TextBlock Grid.Column="0" Text="{Binding RoundHeadline}"
+            <TextBlock Text="{Binding RoundHeadline}"
                        Foreground="WhiteSmoke" FontWeight="Bold"
                        VerticalAlignment="Center" Margin="4,2"
                        TextTrimming="CharacterEllipsis" />
-
-            <Button Grid.Column="1" Content="Runde zurücksetzen" Margin="4,2"
-                    Command="{Binding ResetRoundCommand}"
-                    CommandParameter="{Binding DataContext.CurrentBuzzerLayout, RelativeSource={RelativeSource AncestorType={x:Type base:WindowBase}}}" />
         </Grid>
 
         <!-- Was richtig waere. Nur hier - die Spieleransicht bindet dieses ViewModel nicht ein. -->

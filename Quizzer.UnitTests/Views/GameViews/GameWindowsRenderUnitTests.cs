@@ -253,15 +253,35 @@ namespace Quizzer.UnitTests.Views.GameViews
 
                 var texte = VisibleTexts(inhalt);
 
+                // Auf den KNOEPFEN, nicht irgendwo im Fenster. Bis 2026-09-06 suchte dieser Test
+                // nur nach sichtbarem Text - und "Zelle abschliessen" stand damals sowohl auf
+                // der Ueberschrift als auch auf einem Knopf. Waere der Knopf verschwunden, waere
+                // der Test gruen geblieben.
+                var aufKnoepfen = Descendants<Button>(inhalt)
+                    .Select(b => b.Content?.ToString() ?? string.Empty)
+                    .ToList();
+
                 foreach (var erwartet in new[]
                          {
-                             "Bewerten …", "Zelle abschließen", "Schließen, nächster wählt",
-                             "Schließen ohne Wechsel", "Noch nicht abgeschlossen",
+                             "Bewerten …", "Abschließen", "Nächster wählt aus",
+                             "Gleicher wählt weiter", "Runde zurücksetzen",
                          })
                 {
-                    Assert.IsTrue(texte.Any(t => t.Contains(erwartet)),
-                        $"\"{erwartet}\" fehlt. Sichtbar ist: " + string.Join(" | ", texte));
+                    Assert.IsTrue(aufKnoepfen.Any(t => t.Contains(erwartet)),
+                        $"\"{erwartet}\" steht auf keinem Knopf. Gefunden wurde: "
+                        + string.Join(" | ", aufKnoepfen));
                 }
+
+                // Die Ueberschrift heisst nicht mehr wie einer der Knoepfe (F10, Vorschlag 4).
+                Assert.IsTrue(texte.Any(t => t.Contains("Diese Zelle")),
+                    "Die Ueberschrift der Handlungsspalte fehlt.");
+
+                Assert.IsFalse(aufKnoepfen.Any(t => t.Contains("Diese Zelle")),
+                    "Ein Knopf traegt denselben Text wie die Ueberschrift - genau die "
+                    + "Verwechslung, die abgeschafft werden sollte.");
+
+                Assert.IsTrue(texte.Any(t => t.Contains("Noch nicht abgeschlossen")),
+                    "Der Zustand der Zelle steht nicht da.");
 
                 Assert.IsFalse(texte.Any(t => t is "Results" or "Save/IsDone/Finish" or "Exit/Next Ch. P." or "Exit"),
                     "Eine englische Knopfbeschriftung steht noch da.");

@@ -164,19 +164,51 @@
                     bei zehn Mitspielern 49 Punkte aus dem Fenster - die beiden untersten Knoepfe
                     waren nicht mehr da.
                 -->
+                <!--
+                    Die Handlungsspalte. Alle sechs Aenderungen vom 2026-09-06 stecken hier
+                    (Nutzerentscheidung F10):
+                      1  zwei Gruppen statt einer Liste, mit Trennung dazwischen
+                      2  eine einzige hervorgehobene Taste - "Bewerten" kommt bei jeder Zelle
+                      3  Beschriftungen nach dem Ergebnis statt nach der Mechanik
+                      4  die Ueberschrift heisst nicht mehr wie einer der Knoepfe
+                      5  der Zustand steht oben, vor der Entscheidung, nicht darunter
+                      6  "Runde zuruecksetzen" hat eine eigene Gruppe - es ist das Einzige hier,
+                         das die Telefone anfasst
+                -->
                 <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" VerticalAlignment="Top"
+                            MinWidth="210"
                             Background="{Binding IsDoneBrush}">
-                    <TextBlock Style="{StaticResource SectionHeader}" Text="Zelle abschließen" Margin="4,4,4,6" />
-                    <Button Content="Bewerten …" Command="{Binding OpenResultsCommand}"
-                            ToolTip="Öffnet das Fenster, in dem die Punkte vergeben werden." />
-                    <Button Margin="0,14,0,0" Content="Zelle abschließen" Command="{Binding SaveIsDoneFinishStateCommand}" Background="DarkGreen"
-                            ToolTip="Speichert und markiert die Zelle als gespielt. Zeigt den Abschlussschritt." />
-                    <Button Margin="0,14,0,0" Content="Schließen, nächster wählt" Command="{Binding ExitSetNextChoosingPlayerCommand}" Background="DarkBlue"
-                            ToolTip="Schließt das Fenster und bestimmt den nächsten Auswählenden." />
-                    <Button Content="Schließen ohne Wechsel" Command="{Binding ExitCommand}"
-                            ToolTip="Schließt das Fenster. Es wählt weiterhin derselbe aus." />
+
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Diese Zelle" Margin="4,4,4,2" />
+
                     <TextBlock Text="{Binding DoneStateText}" FontSize="12" Opacity="0.8"
-                               TextWrapping="Wrap" Margin="4,10,4,4" />
+                               TextWrapping="Wrap" Margin="4,0,4,10" />
+
+                    <Button Content="Bewerten …" Command="{Binding OpenResultsCommand}"
+                            FontWeight="Bold" Height="38" Background="DarkGreen"
+                            ToolTip="Öffnet das Fenster, in dem die Punkte vergeben werden." />
+
+                    <Separator Margin="4,14,4,2" />
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Beenden" Margin="4,0,4,4" />
+
+                    <Button Content="Abschließen" Command="{Binding SaveIsDoneFinishStateCommand}"
+                            ToolTip="Speichert und markiert die Zelle als gespielt. Zeigt den Abschlussschritt. Erneut gedrückt holt es ihn zurück auf den Beamer." />
+                    <Button Margin="0,6,0,0" Content="Nächster wählt aus" Command="{Binding ExitSetNextChoosingPlayerCommand}"
+                            ToolTip="Schließt das Fenster und bestimmt den nächsten Auswählenden." />
+                    <Button Margin="0,6,0,0" Content="Gleicher wählt weiter" Command="{Binding ExitCommand}"
+                            ToolTip="Schließt das Fenster. Es wählt weiterhin derselbe aus." />
+
+                    <Separator Margin="4,18,4,2" />
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Runde" Margin="4,0,4,4" />
+
+                    <!--
+                        Stand bis 2026-09-06 in der Kopfzeile des Buzzers, mit demselben Gewicht
+                        wie die Rundenzeile - obwohl es als Einziges hier die Telefone anfasst.
+                    -->
+                    <Button Content="Runde zurücksetzen"
+                            Command="{Binding BuzzerControlsViewModel.ResetRoundCommand}"
+                            CommandParameter="{Binding CurrentBuzzerLayout}"
+                            ToolTip="Schickt die laufende Runde neu auf die Telefone." />
                 </StackPanel>
             </Grid>
         </Border>

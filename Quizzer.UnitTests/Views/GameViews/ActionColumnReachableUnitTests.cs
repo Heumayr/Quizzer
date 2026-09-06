@@ -38,10 +38,15 @@ namespace Quizzer.UnitTests.Views.GameViews
         /// <summary>Ein kleines, aber gebraeuchliches Fenster - der Boden, nicht der Regelfall.</summary>
         private const double Hoehe = 800;
 
-        /// <summary>Die Knoepfe, ohne die eine Zelle nicht zu Ende gespielt werden kann.</summary>
+        /// <summary>
+        /// Die Knoepfe, ohne die eine Zelle nicht zu Ende gespielt werden kann - samt
+        /// "Runde zuruecksetzen", das seit dem 2026-09-06 ebenfalls in dieser Spalte steht
+        /// (Nutzerentscheidung F10).
+        /// </summary>
         private static readonly string[] Pflichtknoepfe =
         [
-            "Bewerten", "abschließen", "nächster wählt", "ohne Wechsel",
+            "Bewerten", "Abschließen", "Nächster wählt aus", "Gleicher wählt weiter",
+            "Runde zurücksetzen",
         ];
 
         private TestGameBuilder? world;
