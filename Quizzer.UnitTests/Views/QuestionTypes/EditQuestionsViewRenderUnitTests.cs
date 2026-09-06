@@ -2,7 +2,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Helpers;
 using Quizzer.Views.QuestionTypes;
+using Quizzer.DataModels.Models.QuestionTypes;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace Quizzer.UnitTests.Views.QuestionTypes
@@ -63,6 +66,77 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
 
                 Assert.AreEqual(typ, vm.Question!.Typ);
             });
+        }
+
+        /// <summary>
+        /// Was der Editor ueber die Aufdeckfrage sagt, muss auch auf dem Bildschirm stehen.
+        /// <para>
+        /// <b>Der Anlass:</b> <c>RevealSummary</c> war geschrieben und in keiner XAML gebunden -
+        /// null Treffer. Eine Eigenschaft ohne Bindung faellt nirgends auf; sie ist einfach
+        /// unsichtbar. Diese Zusicherung liest den aufgebauten Baum, nicht das ViewModel.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void TheRevealSummaryReachesTheScreen()
+        {
+            OnUiThread(() =>
+            {
+                var view = new EditQuestionsView();
+
+                var vm = (EditQuestionViewModel)view.DataContext;
+                var frage = (RevealQuestion)Factory.CreateNewQuestion(QuestionType.Reveal);
+
+                frage.Designation = "Wer ist das?";
+                frage.CategoryId = Guid.NewGuid();
+                frage.ImageFileName = "portraet.png";
+                frage.Mode = RevealMode.Pixelate;
+                frage.BlurStart = 40;
+
+                vm.Question = frage;
+
+                // Der Inhalt, nicht das Fenster: ein nie gezeigtes Fenster hat keine Vorlage
+                // angewandt, und der Baum darunter ist leer.
+                var inhalt = (FrameworkElement)view.Content;
+
+                inhalt.Measure(new Size(1100, 720));
+                inhalt.Arrange(new Rect(0, 0, 1100, 720));
+                inhalt.UpdateLayout();
+
+                var texte = Nachfahren<TextBlock>(inhalt).Select(t => t.Text).ToList();
+
+                Assert.IsTrue(texte.Contains(vm.RevealSummary, StringComparer.Ordinal),
+                    "Die Zusammenfassung der Aufdeckfrage steht nirgends im Fenster. Erwartet "
+                    + $"war \"{vm.RevealSummary}\", gefunden wurde: "
+                    + string.Join(" | ", texte.Where(t => !string.IsNullOrWhiteSpace(t))));
+
+                var knopf = Nachfahren<Button>(inhalt)
+                    .FirstOrDefault(b => b.Command == vm.RevealCommand);
+
+                Assert.IsNotNull(knopf, "Der Knopf zum Einrichten fehlt im Fenster.");
+
+                Assert.AreEqual(Visibility.Visible, knopf!.Visibility,
+                    "Der Knopf zum Einrichten der Aufdeckfrage bleibt verborgen - dann ist der "
+                    + "Editor fuer diesen Typ gar nicht erreichbar.");
+
+                view.Close();
+            });
+        }
+
+        private static IEnumerable<T> Nachfahren<T>(DependencyObject wurzel)
+            where T : DependencyObject
+        {
+            var anzahl = VisualTreeHelper.GetChildrenCount(wurzel);
+
+            for (var i = 0; i < anzahl; i++)
+            {
+                var kind = VisualTreeHelper.GetChild(wurzel, i);
+
+                if (kind is T treffer)
+                    yield return treffer;
+
+                foreach (var tiefer in Nachfahren<T>(kind))
+                    yield return tiefer;
+            }
         }
     }
 }

@@ -105,6 +105,11 @@ namespace Quizzer.Views.QuestionTypes
         {
             OnPropertyChanged(nameof(SelectedCategory));
             OnPropertyChanged(nameof(Question));
+
+            // Ohne das bleibt der Knopf "Aufdecken einrichten" verborgen: die Sichtbarkeit wird
+            // aufgeloest, solange Question noch null ist, und danach meldet niemand mehr.
+            MeldeRevealGeaendert();
+
             //OnDatagridSourceChanged();
         }
 

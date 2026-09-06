@@ -43,7 +43,14 @@
         <!-- Schaltflaechen -->
         <Border DockPanel.Dock="Bottom" Background="{StaticResource PanelBgBrush}"
                 BorderThickness="0,1,0,0" Padding="10,8">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <DockPanel LastChildFill="False">
+
+            <TextBlock DockPanel.Dock="Left" Text="{Binding RevealSummary}"
+                       Visibility="{Binding RevealVisibility}"
+                       VerticalAlignment="Center" FontSize="12" Opacity="0.8"
+                       TextTrimming="CharacterEllipsis" MaxWidth="320" />
+
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="In anderen Typ umwandeln" Command="{Binding ConvertTypeCommand}"
                         MinWidth="190" Margin="0,0,8,0"
                         ToolTip="Behält Schritte, Medien und bisherige Ergebnisse. Nur für bereits gespeicherte Fragen." />
@@ -61,6 +68,8 @@
                 <Button Content="Speichern und schließen" Command="{Binding SaveAndCloseCommand}"
                         MinWidth="180" />
             </StackPanel>
+
+            </DockPanel>
         </Border>
 
         <!-- Beanstandungen -->
