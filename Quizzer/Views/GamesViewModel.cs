@@ -15,7 +15,7 @@ using System.Windows.Input;
 
 namespace Quizzer.Views
 {
-    public class GamesViewModel : ViewModelBase
+    public partial class GamesViewModel : ViewModelBase
     {
         public ICollectionView? GamesView { get; set; }
 

@@ -150,7 +150,11 @@ namespace Quizzer.LogicUnitTests.Standards
                     if (wert.TrimStart().StartsWith('{'))
                         continue;
 
-                    yield return (i + 1, wert);
+                    // Und in einer interpolierten Zeichenfolge steht in den Klammern ebenfalls
+                    // ein Bezeichner, kein Anzeigetext. Gemessen 2026-09-06 an
+                    // $"Groesse: {ergebnis.Groesse ...} MB" - sichtbar ist "Groesse:", und das
+                    // traegt seinen Umlaut; gemeldet wurde die Eigenschaft dahinter.
+                    yield return (i + 1, OhneKlammerinhalt(wert));
                 }
 
                 if (istMarkup)
@@ -165,6 +169,13 @@ namespace Quizzer.LogicUnitTests.Standards
         /// Klammern auf minus Klammern zu - Zeichenketten vorher entfernt, damit eine Klammer im
         /// Text die Zaehlung nicht verschiebt.
         /// </summary>
+        /// <summary>
+        /// Entfernt den Inhalt geschweifter Klammern - in einer interpolierten Zeichenfolge steht
+        /// dort ein Code-Bezeichner, und der trägt die Umschrift zu Recht.
+        /// </summary>
+        private static string OhneKlammerinhalt(string wert)
+            => Regex.Replace(wert, @"\{[^{}]*\}", " ");
+
         private static int KlammerSaldo(string zeile)
         {
             var ohneTexte = Regex.Replace(zeile, "\"[^\"\\\\]*\"", "\"\"");

@@ -20,6 +20,13 @@
             <Button Content="Spiel starten" Command="{Binding StartGameCommand}" />
             <Button Content="Neues Spiel" Command="{Binding AddGameCommand}" />
             <Button Content="Spiel entfernen" Command="{Binding RemoveGameCommand}" Style="{StaticResource DangerButton}" />
+
+            <TextBlock Text="Weitergeben" Style="{StaticResource SectionHeader}" Margin="0,20,0,4" />
+
+            <Button Content="Exportieren …" Command="{Binding ExportGameCommand}"
+                    ToolTip="Schreibt das gewählte Spiel samt Fragen, Medien und Design in eine Datei." />
+            <Button Content="Importieren …" Command="{Binding ImportGameCommand}" Margin="0,4,0,0"
+                    ToolTip="Liest ein Spiel aus einer Datei. Der Spielleiter bist du; die Mitspieler wählst du dabei." />
         </StackPanel>
 
         <DataGrid Grid.Column="1" ItemsSource="{Binding GamesView}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True"
