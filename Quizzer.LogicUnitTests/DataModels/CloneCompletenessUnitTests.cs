@@ -63,30 +63,59 @@ namespace Quizzer.LogicUnitTests.DataModels
         /// <summary>
         /// Ein Wert, der sich vom Standard unterscheidet. Nur dann sagt der Vergleich etwas aus:
         /// bliebe der Wert der Standardwert, waere eine vergessene Property nicht zu erkennen.
+        /// <para>
+        /// <b>Deshalb wird der Ist-Zustand hereingereicht.</b> Bis 2026-09-07 waehlte diese
+        /// Stelle absolut - <c>true</c> fuer jedes <c>bool</c> und den zweitkleinsten Zahlenwert
+        /// fuer jedes Enum. Vier Properties tragen aber genau diesen Wert schon als
+        /// Feldinitialisierer (<c>Difficulty = Level1</c>, das <b>ist</b> der zweite Enumwert;
+        /// <c>WarnOnFinishStep = true</c>, <c>ShowTextOnKeySelect = true</c>,
+        /// <c>IsModerator = true</c>). Der Test setzte dort also das, was schon dastand, und der
+        /// Klon hat denselben Initialisierer - der Vergleich konnte gar nicht scheitern.
+        /// </para>
         /// </summary>
-        private static object? DistinctValue(Type type, int seed)
+        private static object? DistinctValue(Type type, int seed, object? aktuell = null)
         {
             var kern = Nullable.GetUnderlyingType(type) ?? type;
 
             if (kern.IsEnum)
             {
-                var werte = Enum.GetValues(kern);
-                return werte.Length > 1 ? werte.GetValue(1) : werte.GetValue(0);
+                var werte = Enum.GetValues(kern).Cast<object>().ToList();
+
+                // Der erste Wert, der NICHT schon dasteht.
+                var anders = werte.FirstOrDefault(w => !Equals(w, aktuell));
+
+                return anders ?? werte.FirstOrDefault();
             }
 
             if (kern == typeof(string)) return $"Probe-{seed}";
             if (kern == typeof(Guid)) return Guid.NewGuid();
-            if (kern == typeof(bool)) return true;
+            if (kern == typeof(bool)) return aktuell is bool b ? !b : true;
             if (kern == typeof(DateTime)) return new DateTime(2026, 9, 6).AddDays(seed);
             if (kern == typeof(byte[])) return new byte[] { (byte)(seed + 1), 2, 3 };
 
-            if (kern == typeof(int)) return 40 + seed;
-            if (kern == typeof(long)) return 40L + seed;
-            if (kern == typeof(short)) return (short)(40 + seed);
-            if (kern == typeof(byte)) return (byte)(40 + seed);
-            if (kern == typeof(double)) return 40.5 + seed;
-            if (kern == typeof(float)) return 40.5f + seed;
-            if (kern == typeof(decimal)) return 40.5m + seed;
+            // Zahlen: der Reihe nach ausweichen, bis der Wert nicht mehr dem Ist-Zustand
+            // gleicht. Gemessen noetig - RevealQuestion.MinusPoints steht auf 50, und
+            // "40 + seed" traf das bei seed = 10 genau.
+            for (var versatz = 0; versatz < 4; versatz++)
+            {
+                var stufe = seed + versatz * 17;
+
+                object? kandidat =
+                      kern == typeof(int) ? 40 + stufe
+                    : kern == typeof(long) ? 40L + stufe
+                    : kern == typeof(short) ? (short)(40 + stufe)
+                    : kern == typeof(byte) ? (byte)(40 + stufe)
+                    : kern == typeof(double) ? 40.5 + stufe
+                    : kern == typeof(float) ? 40.5f + stufe
+                    : kern == typeof(decimal) ? 40.5m + stufe
+                    : null;
+
+                if (kandidat == null)
+                    return null;
+
+                if (!Equals(kandidat, aktuell))
+                    return kandidat;
+            }
 
             return null;
         }
@@ -119,7 +148,7 @@ namespace Quizzer.LogicUnitTests.DataModels
 
                 foreach (var property in properties)
                 {
-                    var wert = DistinctValue(property.PropertyType, seed++);
+                    var wert = DistinctValue(property.PropertyType, seed++, property.GetValue(original));
 
                     if (wert == null)
                         continue;
@@ -141,6 +170,14 @@ namespace Quizzer.LogicUnitTests.DataModels
                     geprueft++;
 
                     var erwartet = property.GetValue(original);
+
+                    // Der gesetzte Wert muss sich vom Standard unterscheiden, sonst prueft der
+                    // Vergleich darunter nichts. Vier Properties fielen genau hier durch.
+                    var frisch = property.GetValue(Activator.CreateInstance(typ)!);
+
+                    Assert.IsFalse(ValuesMatch(erwartet, frisch),
+                        $"{typ.Name}.{property.Name}: der Probewert gleicht dem Standardwert "
+                        + $"({frisch}) - eine vergessene Property waere hier nicht zu erkennen.");
                     var tatsaechlich = property.GetValue(klon);
 
                     if (!ValuesMatch(erwartet, tatsaechlich))
