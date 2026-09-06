@@ -209,6 +209,10 @@
                         Stand bis 2026-09-06 in der Kopfzeile des Buzzers, mit demselben Gewicht
                         wie die Rundenzeile - obwohl es als Einziges hier die Telefone anfasst.
                     -->
+                    <Button Content="Runde jetzt schließen"
+                            Command="{Binding BuzzerControlsViewModel.CloseRoundCommand}"
+                            ToolTip="Wertet mit den bisher eingegangenen Antworten aus, ohne auf fehlende zu warten. Für den Fall, dass ein Telefon ausfällt oder jemand ohne mitspielt." />
+
                     <Button Content="Runde zurücksetzen"
                             Command="{Binding BuzzerControlsViewModel.ResetRoundCommand}"
                             CommandParameter="{Binding CurrentBuzzerLayout}"

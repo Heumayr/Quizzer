@@ -242,6 +242,62 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         }
 
         /// <summary>
+        /// <b>Der Notausgang: eine Runde schliessen, obwohl ein Telefon fehlt.</b>
+        /// <para>
+        /// <b>Gemessen 2026-09-07.</b> Eine Runde schliesst sonst nur, wenn <b>restlos jeder</b>
+        /// Mitspieler abgegeben hat. Ein leerer Akku, ein iPhone mit gesperrtem Bildschirm oder
+        /// jemand ganz ohne Telefon genuegt, und die Schaetzfrage bekommt nie ihre Auswertung -
+        /// kein "am naechsten dran"-Vorschlag, keine Bewertung, und die uebrigen koennen ihren
+        /// Tipp weiter aendern, nachdem er vorgelesen wurde.
+        /// </para>
+        /// <para>
+        /// <c>LockAllAsync</c> gab es dafuer schon - es hatte im ganzen Programm <b>keinen
+        /// einzigen Aufrufer</b> und loeste ausserdem die Sammelereignisse nicht aus, an denen
+        /// die Auswertung haengt.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task TheRoundCanBeClosedWhileAPhoneIsMissing()
+        {
+            var (connA, _) = await ConnectAsync(anna);
+
+            try
+            {
+                ConcurrentDictionary<Guid, BuzzerInputState.InputResult>? received = null;
+                server.BuzzerController!.EventBus.AllPlayersSubmittedInput += dic => received = dic;
+
+                await server.BuzzerController.ResetRoundAsync(1, BuzzerControlsLayout.Input);
+
+                // Bert hat kein Telefon in der Hand - nur Anna gibt ab.
+                await connA.InvokeAsync("SubmitInput", new { playerId = anna.Id, value = "3798" });
+
+                Assert.IsTrue(await WaitForAsync(() =>
+                    server.BuzzerController.StateManager.BuzzerInputState.InputsForPlayer.Count == 1),
+                    "Annas Abgabe ist gar nicht angekommen.");
+
+                Assert.IsNull(received,
+                    "Die Runde hat von allein geschlossen, obwohl eine Abgabe fehlt - dann misst "
+                    + "dieser Test den Notausgang nicht.");
+
+                await server.BuzzerController.LockAllAsync();
+
+                Assert.IsTrue(await WaitForAsync(() => received != null),
+                    "Die Runde liess sich nicht von Hand schliessen - der Abend haengt, sobald "
+                    + "ein Telefon ausfaellt.");
+
+                Assert.AreEqual(1, received!.Count,
+                    "Die Auswertung bekam nicht die vorhandene Abgabe.");
+
+                Assert.AreEqual("3798", received.Values.First().Value,
+                    "Die Auswertung bekam einen anderen Wert als abgegeben.");
+            }
+            finally
+            {
+                await connA.DisposeAsync();
+            }
+        }
+
+        /// <summary>
         /// Der Kern des gemeldeten Fehlers, hier als Regel festgehalten: Angaben zu setzen
         /// reicht nicht. Solange niemand die Runde ausspielt, bleibt CurrentLayout auf None,
         /// CurrentState null und jeder Spieler gesperrt - am Telefon sieht das aus, als

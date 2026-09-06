@@ -64,6 +64,39 @@ namespace Quizzer.Views.BuzzerViews
             RefreshConnections();
         }
 
+        private AsyncRelayCommand? closeRoundCommand;
+
+        public ICommand CloseRoundCommand => closeRoundCommand ??= new AsyncRelayCommand(
+            CloseRoundAsync, _ => BuzzerServerViewModel?.IsBuzzerServerRunning ?? false);
+
+        /// <summary>
+        /// Schließt die Runde, ohne auf die fehlenden Abgaben zu warten.
+        /// <para>
+        /// <b>Der Notausgang für den Abend.</b> Eine Schätzfragen- oder Multiple-Choice-Runde
+        /// schließt sonst nur, wenn <b>restlos jeder</b> Mitspieler abgegeben hat. Ein leerer
+        /// Akku, ein iPhone mit gesperrtem Bildschirm oder jemand ganz ohne Telefon genügt, und
+        /// die Frage bekommt nie ihre Auswertung.
+        /// </para>
+        /// <para>
+        /// <b>Nicht dasselbe wie „Runde zurücksetzen".</b> Das wirft die Tipps weg; das hier
+        /// wertet mit dem aus, was da ist.
+        /// </para>
+        /// </summary>
+        public async Task CloseRoundAsync(object? commandParameter)
+        {
+            try
+            {
+                if (BuzzerController is null)
+                    return;
+
+                await BuzzerController.LockAllAsync();
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
+        }
+
         private AsyncRelayCommand? resetRoundCommand;
 
         public ICommand ResetRoundCommand => resetRoundCommand ??= new AsyncRelayCommand(ResetRoundAsync, _ => BuzzerServerViewModel?.IsBuzzerServerRunning ?? false);
