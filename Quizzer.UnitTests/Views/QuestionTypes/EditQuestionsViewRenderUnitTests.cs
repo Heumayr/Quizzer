@@ -31,12 +31,20 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
         /// </summary>
         private static void OnUiThread(Action action) => UiTestHost.Run(action);
 
+        /// <summary>
+        /// <b>Ueber das Enum gelaufen, nicht ueber eine Liste von <c>DataRow</c>.</b> Hier standen
+        /// vier Zeilen fuer fuenf Fragetypen - die Aufdeckfrage fehlte, und zwar lautlos: eine
+        /// nicht aufgezaehlte Zeile meldet keinen Fehler, sie laeuft einfach nicht. Eine von Hand
+        /// gepflegte Liste faellt bei jedem neuen Typ wieder zurueck.
+        /// </summary>
         [TestMethod]
-        [DataRow(QuestionType.Default)]
-        [DataRow(QuestionType.MultipleChoice)]
-        [DataRow(QuestionType.Properties)]
-        [DataRow(QuestionType.Appreciate)]
-        public void TheEditorWindow_BuildsForEveryQuestionType(QuestionType typ)
+        public void TheEditorWindow_BuildsForEveryQuestionType()
+        {
+            foreach (var typ in Enum.GetValues<QuestionType>())
+                BaueEditorFuer(typ);
+        }
+
+        private static void BaueEditorFuer(QuestionType typ)
         {
             OnUiThread(() =>
             {
