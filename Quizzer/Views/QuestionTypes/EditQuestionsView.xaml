@@ -13,16 +13,26 @@
         <local:EditQuestionViewModel />
     </base:WindowBase.DataContext>
 
+    <!--
+        BasedOn ist hier kein Schoenheitsfehler, sondern der Unterschied zwischen sichtbar und
+        unsichtbar: ein ausdruecklich gesetzter Stil ersetzt den impliziten VOLLSTAENDIG. Ohne
+        BasedOn faellt die Schriftfarbe auf den WPF-Standard Schwarz zurueck - auf einem Grund
+        von #111111 gemessene 1,1:1. Genau so standen "Grunddaten", "Bewertung", "Einstellungen
+        fuer ..." und "Warnungen beim Spielen" unsichtbar da.
+    -->
     <base:WindowBase.Resources>
-        <Style x:Key="FieldLabel" TargetType="Label">
+        <Style x:Key="FieldLabel" TargetType="Label"
+               BasedOn="{StaticResource {x:Type Label}}">
             <Setter Property="MinWidth" Value="150" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-        <Style x:Key="FieldRow" TargetType="StackPanel">
+        <Style x:Key="FieldRow" TargetType="StackPanel"
+               BasedOn="{StaticResource {x:Type StackPanel}}">
             <Setter Property="Orientation" Value="Horizontal" />
             <Setter Property="Margin" Value="5,3,5,3" />
         </Style>
-        <Style x:Key="SectionHeader" TargetType="TextBlock">
+        <Style x:Key="SectionHeader" TargetType="TextBlock"
+               BasedOn="{StaticResource {x:Type TextBlock}}">
             <Setter Property="FontWeight" Value="DemiBold" />
             <Setter Property="FontSize" Value="14" />
             <Setter Property="Margin" Value="5,12,5,4" />
