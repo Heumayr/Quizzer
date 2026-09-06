@@ -94,6 +94,11 @@ namespace Quizzer.Views.QuestionTypes
 
             gebraucht = Math.Max(gebraucht, 0);
 
+            // Erst das Getippte in die Frage holen. Sonst zaehlt die Rueckfrage unten Text nicht
+            // mit, den der Spielleiter gerade erst eingegeben hat - und der Neuaufbau am Ende
+            // wuerfe ihn weg.
+            UebernimmZeilen();
+
             var vorhanden = frage.Steps
                 .Where(s => !s.IsStart && !s.IsFinish)
                 .OrderBy(s => s.SequenceNumber)
@@ -116,6 +121,12 @@ namespace Quizzer.Views.QuestionTypes
 
             for (var i = vorhanden.Count - 1; i >= gebraucht; i--)
                 frage.Steps.Remove(vorhanden[i]);
+
+            // Die Typmaske haelt ihr eigenes Bild der Schritte, gelesen beim Oeffnen. Ohne
+            // Neuaufbau schreibt SchreibZurueck die gerade entfernten Zeilen beim Speichern
+            // wieder hin - und diese Rueckfrage waere wirkungslos. Derselbe Griff wie in
+            // RemoveStepCommnadAsync, und aus demselben Grund.
+            BaueZeileneditor();
 
             Revalidate();
 
