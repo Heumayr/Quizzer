@@ -10,6 +10,11 @@ namespace Quizzer.UnitTests.PlayThrough
     {
         public int ShowResultWindowCalls { get; private set; }
 
+        /// <summary>Wie oft das Ergebnisfenster geschlossen wurde.</summary>
+        public int CloseResultWindowCalls { get; private set; }
+
         protected override void ShowResultWindow() => ShowResultWindowCalls++;
+
+        protected override void CloseResultWindow() => CloseResultWindowCalls++;
     }
 }

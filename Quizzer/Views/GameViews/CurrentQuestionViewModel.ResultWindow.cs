@@ -45,5 +45,28 @@ namespace Quizzer.Views.GameViews
 
             _resultWindow.Activate();
         }
+
+        /// <summary>
+        /// Schließt das Ergebnisfenster mit dem Fragefenster.
+        /// <para>
+        /// <b>Gemessen 2026-09-07.</b> Es ging ohne Besitzer und ohne Dialog auf und wurde
+        /// nirgends geschlossen. Wer im Fragefenster „Abschließen" und „Nächster wählt aus"
+        /// drückte, ohne im Ergebnisfenster zu speichern, ließ es mit den <b>ungespeicherten
+        /// Bewertungen</b> stehen. Beim nächsten Zellenklick ging ein zweites auf - und ein
+        /// „Speichern" im alten schrieb die Punkte auf die <b>vorige</b> Zelle.
+        /// </para>
+        /// <para>
+        /// <b>Überschreibbar wie <see cref="ShowResultWindow"/></b>, aus demselben Grund: ein
+        /// Test durchläuft den Spielablauf, ohne dass ein Fenster aufgeht.
+        /// </para>
+        /// </summary>
+        protected virtual void CloseResultWindow()
+        {
+            var fenster = _resultWindow;
+
+            _resultWindow = null;
+
+            fenster?.Close();
+        }
     }
 }

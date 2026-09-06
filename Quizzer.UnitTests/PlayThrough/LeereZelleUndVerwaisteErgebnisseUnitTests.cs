@@ -99,6 +99,33 @@ namespace Quizzer.UnitTests.PlayThrough
         }
 
         /// <summary>
+        /// <b>Das Ergebnisfenster geht mit dem Fragefenster zu.</b>
+        /// <para>
+        /// <b>Gemessen 2026-09-07.</b> Es ging ohne Besitzer und ohne Dialog auf und wurde
+        /// nirgends geschlossen. Wer im Fragefenster „Abschließen" und „Nächster wählt aus"
+        /// drückte, ohne im Ergebnisfenster zu speichern, ließ es mit den <b>ungespeicherten
+        /// Bewertungen</b> stehen. Beim nächsten Zellenklick ging ein zweites auf - und ein
+        /// „Speichern" im alten schrieb die Punkte auf die <b>vorige</b> Zelle.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task TheResultWindowClosesWithTheQuestionWindow()
+        {
+            var vm = new TestableCurrentQuestionViewModel { Coordinate = world.Coordinate };
+
+            await vm.LoadForTestAsync();
+
+            Assert.AreEqual(0, vm.CloseResultWindowCalls,
+                "Es wurde geschlossen, bevor das Fragefenster zuging.");
+
+            await vm.ClosedForTestAsync();
+
+            Assert.AreEqual(1, vm.CloseResultWindowCalls,
+                "Das Ergebnisfenster bleibt offen, wenn das Fragefenster zugeht - eine spaeter "
+                + "gespeicherte Bewertung landet dann auf der vorigen Zelle.");
+        }
+
+        /// <summary>
         /// <b>Eine Ergebniszeile eines entfernten Mitspielers reisst „Nächster wählt aus" nicht
         /// mehr um.</b>
         /// <para>
