@@ -85,7 +85,31 @@ public class EditStepViewModel : ViewModelBase
     /// Frage-Editor sie vor jedem Schritt still vorab gespeichert.
     /// </para>
     /// </summary>
-    public bool PersistDirectly { get; set; } = true;
+    public bool PersistDirectly
+    {
+        get => persistDirectly;
+        set
+        {
+            persistDirectly = value;
+
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(SaveVisibility));
+        }
+    }
+
+    private bool persistDirectly = true;
+
+    /// <summary>
+    /// „Speichern" erscheint nur, wenn es auch etwas schreibt.
+    /// <para>
+    /// <b>Gemessen am 2026-09-06:</b> bei <see cref="PersistDirectly"/> <c>false</c> - und genau
+    /// so oeffnet der Frage-Editor diesen Dialog - kehrt <see cref="VMSaveAsync"/> wirkungslos
+    /// zurueck. Der Knopf war damit eine Attrappe: er sah aus wie eine Sicherung und war keine.
+    /// Geschrieben wird die Frage samt Schritten in einem Zug ueber <c>SaveWithStepsAsync</c>.
+    /// </para>
+    /// </summary>
+    public System.Windows.Visibility SaveVisibility
+        => PersistDirectly ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
 
     public override async Task VMSaveAsync()
     {

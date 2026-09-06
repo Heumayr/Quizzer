@@ -18,7 +18,9 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Speichern" Command="{Binding SaveCommand}" />
+            <Button Content="Speichern" Command="{Binding SaveCommand}"
+                    Visibility="{Binding SaveVisibility}"
+                    ToolTip="Schreibt den Schritt sofort. Aus dem Frageneditor heraus gibt es das nicht - dort wird die Frage samt Schritten in einem Zug gespeichert." />
             <Button Content="Speichern und schließen" Command="{Binding SaveAndCloseCommand}" />
         </StackPanel>
 
