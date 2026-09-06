@@ -26,6 +26,24 @@
                base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedGames}"
                base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenGameCommand}">
             <DataGrid.Columns>
+                <!--
+                    Der Knopf steht links neben der Bezeichnung: der Doppelklick startet das
+                    Spiel, in den Aufbau geht es ausdruecklich ueber diesen Knopf
+                    (Nutzerentscheidung 2026-09-06). Die Bindung laeuft ueber den DataGrid, weil
+                    in einer Zelle die Zeile der DataContext ist.
+                -->
+                <DataGridTemplateColumn Header="" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Bearbeiten" Margin="2" Padding="8,2"
+                                    ToolTip="Öffnet den Spielaufbau. Ein Doppelklick auf die Zeile startet das Spiel."
+                                    Command="{Binding DataContext.EditGameCommand,
+                                                      RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                    CommandParameter="{Binding}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
                 <DataGridTextColumn Header="Bezeichnung" Binding="{Binding Designation}" Width="2*" />
             </DataGrid.Columns>
         </DataGrid>

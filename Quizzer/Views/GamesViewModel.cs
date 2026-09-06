@@ -53,15 +53,42 @@ namespace Quizzer.Views
         public ObservableCollection<Game> SelectedGames { get; set; } = new();
 
         private AsyncRelayCommand? openGameCommand;
-        public ICommand OpenGameCommand => openGameCommand ??= new AsyncRelayCommand(OpenGameAsync);
+        /// <summary>
+        /// Der Doppelklick auf eine Zeile - er <b>startet</b> das Spiel.
+        /// <para>
+        /// <b>Nutzerentscheidung vom 2026-09-06:</b> „doppelklick auf spiel startet ... links
+        /// daneben ein button für edit ... also nicht mit doppelklick in den edit". Vorher fuehrte
+        /// er in den Spielaufbau - der haeufigere Griff am Quizabend ist aber das Starten.
+        /// </para>
+        /// </summary>
+        public ICommand OpenGameCommand => openGameCommand ??= new AsyncRelayCommand(StartGameAsync);
 
-        private async Task OpenGameAsync(object? model)
+        private AsyncRelayCommand? editGameCommand;
+
+        /// <summary>Der Knopf in der Zeile - er fuehrt in den Spielaufbau.</summary>
+        public ICommand EditGameCommand => editGameCommand ??= new AsyncRelayCommand(EditGameFromRowAsync);
+
+        private async Task EditGameFromRowAsync(object? model)
         {
-            if (model is Game game)
-            {
-                await EditGameAsync(game);
-            }
+            var game = WelchesSpiel(model);
+
+            if (game == null)
+                return;
+
+            await EditGameAsync(game);
         }
+
+        /// <summary>
+        /// Auf welches Spiel sich ein Befehl bezieht: die hereingereichte Zeile, sonst die
+        /// Auswahl.
+        /// <para>
+        /// Beide Wege kommen vor - der Doppelklick und der Knopf in der Zeile reichen die Zeile
+        /// herein, die Knoepfe links tun es nicht. Wer den Parameter ignoriert, trifft beim
+        /// Doppelklick auf eine nicht ausgewaehlte Zeile das falsche Spiel.
+        /// </para>
+        /// </summary>
+        internal Game? WelchesSpiel(object? commandParameter)
+            => commandParameter as Game ?? SelectedGames.FirstOrDefault();
 
         private AsyncRelayCommand? addGameCommand;
         public ICommand AddGameCommand => addGameCommand ??= new AsyncRelayCommand((p) => EditGameAsync(new Game()));
@@ -138,9 +165,13 @@ namespace Quizzer.Views
         private AsyncRelayCommand? startGameCommand;
         public ICommand StartGameCommand => startGameCommand ??= new AsyncRelayCommand(StartGameAsync);
 
+        /// <summary>
+        /// Startet ein Spiel. Der Doppelklick reicht die Zeile herein, der Knopf links nicht -
+        /// dann gilt die Auswahl.
+        /// </summary>
         private async Task StartGameAsync(object? commandParameter)
         {
-            var game = SelectedGames.FirstOrDefault();
+            var game = WelchesSpiel(commandParameter);
 
             if (game == null || game.Id == Guid.Empty) return;
 
