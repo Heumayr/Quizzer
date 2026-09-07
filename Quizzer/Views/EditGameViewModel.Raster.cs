@@ -30,6 +30,37 @@ namespace Quizzer.Views
             set => testPhase = value < 1 ? 1 : value;
         }
 
+        /// <summary>
+        /// Wie viele Phasen der Abend haben soll.
+        /// <para>
+        /// <b>Bis 2026-09-07 gab es dafür kein Feld.</b> Jedes neue Spiel bekam drei Phasen und
+        /// behielt sie; wer zwei oder gar keine Steigerung wollte, kam nur über die Datenbank
+        /// heran. Dabei entscheidet die Zahl, <b>wie oft</b> das Spiel mitten im Abend nach dem
+        /// Phasenwechsel fragt und damit die Punkte hochsetzt: <c>CalculatetThreshold</c> teilt
+        /// die belegten Zellen in so viele gleich große Blöcke.
+        /// </para>
+        /// <para>
+        /// <b>Unter 1 wird auf 1 gehoben</b> - dieselbe Vorsorge wie bei
+        /// <see cref="TestPhase"/>. Eine 0 hieße „keine Schwellen", was harmlos aussieht, aber
+        /// über <c>SuggestedPhases &lt;= 0</c> auch die Anzeige „Phase 1 von 0" ergäbe.
+        /// </para>
+        /// </summary>
+        public int SuggestedPhases
+        {
+            get => Game?.SuggestedPhases ?? 0;
+            set
+            {
+                if (Game == null) return;
+
+                var gewollt = value < 1 ? 1 : value;
+
+                if (Game.SuggestedPhases == gewollt) return;
+
+                Game.SuggestedPhases = gewollt;
+                OnPropertyChanged();
+            }
+        }
+
         private AsyncRelayCommand? refreshGridCommand;
         public ICommand RefreshGridCommand => refreshGridCommand ??= new AsyncRelayCommand(RefreshGridAsync);
 

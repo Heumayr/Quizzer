@@ -94,6 +94,19 @@
                     </TextBox>
                     <Button Content="Raster neu aufbauen" Command="{Binding RefreshGridCommand}" />
                 </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="5">
+                    <Label MinWidth="210" Content="Phasen im Abend:" VerticalAlignment="Center"
+                           ToolTip="In wie viele gleich große Blöcke der Abend geteilt wird. Nach jedem Block fragt das Spiel, ob die nächste Phase beginnen soll - und die Punkte steigen. 1 heißt: keine Steigerung." />
+                    <TextBox VerticalContentAlignment="Center" MinWidth="50" Margin="5,8,5,8">
+                        <TextBox.Text>
+                            <Binding Path="SuggestedPhases" UpdateSourceTrigger="LostFocus" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" NotifyOnValidationError="True">
+                                <Binding.ValidationRules>
+                                    <val:PositiveIntValidationRule />
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </TextBox.Text>
+                    </TextBox>
+                </StackPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="210" Content="Schwierigkeit Faktor / Zuschlag:" ToolTip="Punkte = Fragepunkte × (Faktor × Schwierigkeit + 1) + Zuschlag × Schwierigkeit." VerticalAlignment="Center" />
