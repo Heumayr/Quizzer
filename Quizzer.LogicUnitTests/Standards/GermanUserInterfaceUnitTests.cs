@@ -70,6 +70,9 @@ namespace Quizzer.LogicUnitTests.Standards
                 var name = Path.GetFileNameWithoutExtension(datei);
                 var inhalt = File.ReadAllText(datei);
 
+                // \s statt \b: eine Wortgrenze steht auch zwischen "DataGrid" und dem Punkt
+                // in <DataGrid.Columns>, und der Block danach traegt weder IsReadOnly noch
+                // CanUserDeleteRows - gemessen, das ergab zehn falsche Treffer.
                 foreach (Match treffer in Regex.Matches(inhalt, "\\sTitle=\"([^\"{]+)\""))
                 {
                     if (treffer.Groups[1].Value.Trim() == name)
@@ -197,6 +200,58 @@ namespace Quizzer.LogicUnitTests.Standards
                 Assert.IsTrue(File.Exists(datei), $"Nicht gefunden: {datei}");
 
             return dateien;
+        }
+
+        /// <summary>
+        /// <b>Keine Liste laesst Zeilen loeschen, die das Speichern nicht loescht.</b>
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> die Kategorienliste stand auf
+        /// <c>CanUserDeleteRows</c> (Vorgabe ist <c>True</c>). Die Entf-Taste raeumte die Zeile
+        /// aus der Liste, <c>SaveCategoriesAsync</c> schrieb nur die verbliebenen zurueck - die
+        /// Kategorie blieb in der Datenbank. Es sah aus wie ein Loeschen und war keins.
+        /// </para>
+        /// <para>
+        /// <b>Und ein echtes Loeschen waere hier besonders teuer:</b>
+        /// <c>FK_QuestionBase_Category_CategoryId</c> steht auf CASCADE - mit der Kategorie
+        /// gingen alle ihre Fragen samt Schritten und Ergebnissen.
+        /// </para>
+        /// <para>
+        /// Die Zusicherung greift ueber alle Listen: wer eine neue mit Loeschtaste baut, muss
+        /// entweder einen Loeschweg mitliefern oder sie ausdruecklich abschalten.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void NoGridOffersARowDeletionThatDoesNotReachTheDatabase()
+        {
+            var root = RepoRoot();
+            var funde = new List<string>();
+            var geprueft = 0;
+
+            foreach (var datei in XamlDateien(root))
+            {
+                var inhalt = File.ReadAllText(datei);
+
+                foreach (Match treffer in Regex.Matches(inhalt, "<DataGrid\\s(.*?)>", RegexOptions.Singleline))
+                {
+                    var block = treffer.Groups[1].Value;
+
+                    // Nur die aenderbaren Listen: eine schreibgeschuetzte kann ohnehin nichts.
+                    if (block.Contains("IsReadOnly=\"True\"", StringComparison.Ordinal))
+                        continue;
+
+                    geprueft++;
+
+                    if (!block.Contains("CanUserDeleteRows", StringComparison.Ordinal))
+                        funde.Add(Path.GetRelativePath(root, datei));
+                }
+            }
+
+            Assert.IsTrue(geprueft >= 1,
+                $"Es wurden {geprueft} aenderbare Listen geprueft - die Suche greift nicht mehr.");
+
+            Assert.AreEqual(0, funde.Count,
+                "Diese aenderbaren Listen erlauben das Loeschen einer Zeile mit der Entf-Taste, "
+                + "ohne dass die Datenbank davon erfaehrt: " + string.Join(", ", funde));
         }
 
         /// <summary>
