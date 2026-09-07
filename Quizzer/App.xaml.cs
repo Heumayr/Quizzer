@@ -35,6 +35,8 @@ namespace Quizzer
                 return;
             }
 
+            DatenordnerPruefen();
+
             if (!Anmelden())
             {
                 Shutdown();
@@ -174,6 +176,50 @@ namespace Quizzer
                 "Quizzer einrichten");
 
             return true;
+        }
+
+        /// <summary>
+        /// Sagt es, wenn der Datenordner fehlt - und führt in die Einstellungen.
+        /// <para>
+        /// <b>Gemessen 2026-09-07.</b> Für die Datenbank gab es diesen Weg längst, für den
+        /// Datenordner nicht. Fehlt er, wirft nichts: <c>StaticResources</c> fällt für jedes
+        /// nicht gefundene Bild auf <b>Schwarz</b> zurück. Wer das Programm gerade bekommen hat,
+        /// startet es also, sieht eine schwarze Oberfläche und bekommt <b>kein einziges Wort</b>
+        /// dazu - obwohl nur ein Pfad falsch steht.
+        /// </para>
+        /// <para>
+        /// <b>Es wird nicht beendet.</b> Anders als bei der Datenbank ist ein fehlender
+        /// Datenordner nicht tödlich - das Programm läuft, es sieht nur falsch aus. Wer die
+        /// Rückfrage verneint, spielt weiter.
+        /// </para>
+        /// <para>
+        /// <b>Und der Ordner wird nicht heimlich angelegt.</b> Ein leerer Ordner behebt nichts:
+        /// die Bilder sind dann immer noch weg, und der Hinweis käme beim nächsten Start nicht
+        /// mehr. Angelegt wird er beim Speichern in den Einstellungen, wo es der Nutzer sieht.
+        /// </para>
+        /// </summary>
+        internal static void DatenordnerPruefen()
+        {
+            var ordner = Settings.FilePathQuizzer;
+
+            if (!string.IsNullOrWhiteSpace(ordner) && System.IO.Directory.Exists(ordner))
+                return;
+
+            var oeffnen = Base.UserPrompt.Confirm(
+                "Der Datenordner wurde nicht gefunden."
+                + Environment.NewLine + Environment.NewLine
+                + "Ordner: " + (string.IsNullOrWhiteSpace(ordner) ? "(nicht eingetragen)" : ordner)
+                + Environment.NewLine + Environment.NewLine
+                + "Ohne ihn bleiben Hintergründe, Zellbilder und Spielerbilder schwarz, und "
+                + "Medien lassen sich nicht ablegen. Gespielt werden kann trotzdem."
+                + Environment.NewLine + Environment.NewLine
+                + "Sollen die Einstellungen jetzt geöffnet werden?",
+                "Quizzer einrichten");
+
+            if (!oeffnen)
+                return;
+
+            new Views.SettingsView().ShowDialog();
         }
 
         /// <summary>
