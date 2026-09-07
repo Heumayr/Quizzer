@@ -68,11 +68,16 @@
             <DataGrid ItemsSource="{Binding Player.CurrentQuestionResults}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Spiel" Binding="{Binding Game.Designation}" Width="*" />
-                    <DataGridTextColumn Header="Frage" Binding="{Binding Question.Designation}" Width="2*" />
+                    <!--
+                        Bis 2026-09-07 hiessen drei dieser Spalten Question, Points und
+                        MinusPoints - Eigenschaften, die es an QuestionResult nicht gibt. Sie
+                        blieben leer, ohne dass etwas warf.
+                    -->
+                    <DataGridTextColumn Header="Frage" Binding="{Binding QuestionBase.Designation}" Width="2*" />
                     <DataGridTextColumn Header="Endpunkte" Binding="{Binding FinalScore}" Width="*" />
                     <DataGridCheckBoxColumn Header="Richtig beantwortet" Binding="{Binding CorrectAnswered}" Width="auto" />
-                    <DataGridTextColumn Header="Punkte" Binding="{Binding Points}" Width="auto" />
-                    <DataGridTextColumn Header="Minuspunkte" Binding="{Binding MinusPoints}" Width="auto" />
+                    <DataGridTextColumn Header="Punkte" Binding="{Binding Score}" Width="auto" />
+                    <DataGridTextColumn Header="Minuspunkte" Binding="{Binding MinusScore}" Width="auto" />
                 </DataGrid.Columns>
                 <!--base:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedSteps}"-->
                 <!--base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding OpenStepCommand}">-->

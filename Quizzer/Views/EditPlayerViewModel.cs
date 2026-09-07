@@ -106,8 +106,11 @@ namespace Quizzer.Views
             var view = CollectionViewSource.GetDefaultView(Player.CurrentQuestionResults);
             view.SortDescriptions.Clear();
             view.SortDescriptions.Add(
+                // "Game.Designation" als Pfad, nicht nameof: nameof(QuestionResult.Game.Designation)
+                // ergibt nur "Designation" - sortiert wuerde dann nach einer Eigenschaft, die es
+                // an QuestionResult gar nicht gibt.
                 new System.ComponentModel.SortDescription(
-                    nameof(QuestionResult.Game.Designation),
+                    "Game.Designation",
                     System.ComponentModel.ListSortDirection.Ascending));
 
             view.Refresh();
