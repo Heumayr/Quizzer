@@ -89,6 +89,21 @@
                 <Setter Property="CaretBrush" Value="{StaticResource ForegroundBrush}" />
                 <Setter Property="SelectionBrush" Value="{StaticResource SelectionBrush}" />
                 <Setter Property="Padding" Value="4" />
+                <Style.Triggers>
+                    <!--
+                        Ein ungueltiges Feld sagt, WAS falsch ist.
+
+                        Gemessen 2026-09-07: die Pruefregeln lieferten ihre Begruendung
+                        ("Numbers only", "Must be >= 0") an niemanden - keine einzige Maske band
+                        auf Validation.Errors. Sichtbar war nur der rote Rahmen, den WPF selbst
+                        zeichnet. Der Wert kam still nicht am Modell an, und der Spielleiter
+                        stand vor einem roten Kasten ohne Grund.
+                    -->
+                    <Trigger Property="Validation.HasError" Value="True">
+                        <Setter Property="ToolTip"
+                                Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}" />
+                    </Trigger>
+                </Style.Triggers>
             </Style>
 
             <Style TargetType="PasswordBox">

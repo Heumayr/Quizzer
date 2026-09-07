@@ -15,7 +15,7 @@ namespace Quizzer.Validators
             var text = (value ?? "").ToString()?.Trim() ?? "";
 
             if (string.IsNullOrEmpty(text))
-                return AllowEmpty ? ValidationResult.ValidResult : new ValidationResult(false, "Required");
+                return AllowEmpty ? ValidationResult.ValidResult : new ValidationResult(false, "Das Feld darf nicht leer sein.");
 
             // Zwischenzustände erlauben, damit man tippen kann:
             // "0," "0." "," "."
@@ -28,10 +28,10 @@ namespace Quizzer.Validators
                 double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out n);
 
             if (!ok)
-                return new ValidationResult(false, "Numbers only");
+                return new ValidationResult(false, "Hier gehört eine Zahl hinein – Nachkommastellen sind erlaubt.");
 
             if (n < 0.0)
-                return new ValidationResult(false, "Must be >= 0");
+                return new ValidationResult(false, "Die Zahl darf nicht negativ sein.");
 
             return ValidationResult.ValidResult;
         }
