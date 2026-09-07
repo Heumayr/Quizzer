@@ -159,7 +159,9 @@ namespace Quizzer.UnitTests.Views
             {
                 var vm = Geladen();
 
-                vm.Datenordner = ordner;
+                // Der Datenordner bleibt bewusst stehen: seit er ebenfalls einen Neustart
+                // verlangt, wuerde eine Aenderung an ihm die Meldung schon allein ausloesen -
+                // und diese Zusicherung wuerde gruen bleiben, wenn der Verbindungsteil ausfiele.
                 vm.Datenbank = "Quizzer_GanzAndere";
 
                 vm.SaveCommand.Execute(null);
@@ -172,6 +174,9 @@ namespace Quizzer.UnitTests.Views
 
                 StringAssert.Contains(prompt.Informs[0].Message, "neu starten",
                     "Die Meldung nennt den Weg nicht: " + prompt.Informs[0].Message);
+
+                StringAssert.Contains(prompt.Informs[0].Message, "Datenbank",
+                    "Die Meldung sagt nicht, WAS sich geaendert hat: " + prompt.Informs[0].Message);
             }
             finally
             {
@@ -204,8 +209,9 @@ namespace Quizzer.UnitTests.Views
             {
                 var vm = Geladen();
 
-                vm.Datenordner = ordner;
-
+                // Nichts anfassen - auch den Ordner nicht. Er verlangt seit 2026-09-07
+                // ebenfalls einen Neustart, und diese Zusicherung soll den Fall "gar nichts
+                // geaendert" halten.
                 vm.SaveCommand.Execute(null);
 
                 Assert.IsTrue(vm.Saved, "Die Einstellungen liessen sich nicht speichern.");
@@ -213,6 +219,54 @@ namespace Quizzer.UnitTests.Views
                 Assert.AreEqual(0, prompt.Informs.Count,
                     "Es wurde ein Wechsel gemeldet, obwohl die Verbindung dieselbe ist: "
                     + string.Join(" | ", prompt.Informs.Select(i => i.Message)));
+            }
+            finally
+            {
+                UserPrompt.Reset();
+            }
+        }
+
+        /// <summary>
+        /// <b>Ein gewechselter Datenordner verlangt ebenfalls einen Neustart - und sagt es.</b>
+        /// <para>
+        /// Er wirkt halb sofort: Medien einer Frage werden ab dem nächsten Zugriff aus dem neuen
+        /// Ordner geholt, weil <c>Settings.ResourceRootFolder</c> ein berechneter Pfad ist.
+        /// Hintergründe, Zellbilder und Platzhalter dagegen lädt <c>StaticResources</c>
+        /// <b>einmal beim Start</b> als Pinsel - sie leuchten bis zum Neustart aus dem alten
+        /// Ordner weiter. Ohne Hinweis sieht das aus, als hätte das Speichern nicht gewirkt.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void AChangedDataFolderAlsoAsksForARestart()
+        {
+            var prompt = new RecordingUserPrompt(answer: true);
+
+            UserPrompt.Current = prompt;
+
+            try
+            {
+                var vm = Geladen();
+
+                // Nur der Ordner - die Verbindung bleibt, wie sie war.
+                vm.Datenordner = ordner;
+
+                vm.SaveCommand.Execute(null);
+
+                Assert.IsTrue(vm.Saved, "Die Einstellungen liessen sich nicht speichern.");
+
+                Assert.AreEqual(1, prompt.Informs.Count,
+                    "Der Ordnerwechsel wurde nicht gemeldet - das Aussehen bleibt bis zum "
+                    + "Neustart das alte, und das sieht aus wie ein wirkungsloses Speichern.");
+
+                StringAssert.Contains(prompt.Informs[0].Message, "neu starten",
+                    "Die Meldung nennt den Weg nicht: " + prompt.Informs[0].Message);
+
+                StringAssert.Contains(prompt.Informs[0].Message, "Bilder",
+                    "Die Meldung sagt nicht, WAS sich aendert: " + prompt.Informs[0].Message);
+
+                Assert.IsFalse(prompt.Informs[0].Message.Contains("Datenbank", StringComparison.Ordinal),
+                    "Die Meldung spricht von der Datenbank, obwohl nur der Ordner gewechselt "
+                    + "hat: " + prompt.Informs[0].Message);
             }
             finally
             {

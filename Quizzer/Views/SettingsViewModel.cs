@@ -50,6 +50,16 @@ namespace Quizzer.Views
         /// </summary>
         private string verbindungBeimLaden = string.Empty;
 
+        /// <summary>
+        /// Der Datenordner, wie er beim Öffnen der Maske dastand.
+        /// <para>
+        /// Auch er wirkt erst nach einem Neustart vollständig: <c>StaticResources</c> lädt
+        /// Hintergründe, Zellbilder und Platzhalter <b>einmal beim Start</b> als Pinsel. Der neue
+        /// Ordner gilt sofort für Medien, das Aussehen bleibt bis zum Neustart das alte.
+        /// </para>
+        /// </summary>
+        private string datenordnerBeimLaden = string.Empty;
+
         /// <summary>Ob gespeichert wurde. Der Aufrufer liest das nach dem Schließen.</summary>
         public bool Saved { get; private set; }
 
@@ -183,6 +193,7 @@ namespace Quizzer.Views
             Uebernimm(Datenbankangaben.Zerlege(Settings.ConnectionString));
 
             verbindungBeimLaden = angaben.Verbindung;
+            datenordnerBeimLaden = Datenordner.Trim();
 
             return Task.CompletedTask;
         }
@@ -280,28 +291,57 @@ namespace Quizzer.Views
                 return;
             }
 
-            var gewechselt = !string.Equals(
-                verbindungBeimLaden, angaben.Verbindung, StringComparison.Ordinal);
+            var hinweis = Neustarthinweis();
 
             UserSettings.Save(Datenordner, angaben.Verbindung);
 
-            // Ab hier wirkt die neue Verbindung sofort - jeder DataContext liest sie neu. Sie
-            // wurde aber weder geprueft noch migriert: das laeuft nur beim Programmstart. Ohne
-            // diesen Hinweis bekaeme der Spielleiter beim naechsten Klick auf "Spiele" eine
-            // rohe SqlException oder "Invalid column name".
-            if (gewechselt)
-            {
-                UserPrompt.Inform(
-                    "Die Datenbankverbindung wurde geändert."
-                    + Environment.NewLine + Environment.NewLine
-                    + "Bitte das Programm neu starten - erst dann wird die Datenbank geprüft "
-                    + "und, wenn nötig, angelegt oder auf den neuesten Stand gebracht.",
-                    "Einstellungen");
-            }
+            if (hinweis != null)
+                UserPrompt.Inform(hinweis, "Einstellungen");
 
             Saved = true;
             Window?.Close();
         });
+
+        /// <summary>
+        /// Was der Spielleiter nach dem Speichern wissen muss - oder <c>null</c>, wenn sich
+        /// nichts geändert hat, das einen Neustart braucht.
+        /// <para>
+        /// <b>Beides wirkt halb sofort und halb gar nicht.</b> Die neue Verbindung benutzt jeder
+        /// <c>DataContext</c> ab dem nächsten Zugriff, geprüft und migriert wird sie aber nur
+        /// beim Programmstart - ohne Hinweis käme beim nächsten Klick auf „Spiele" eine rohe
+        /// <c>SqlException</c> oder „Invalid column name". Der neue Datenordner gilt sofort für
+        /// Medien, während Hintergründe und Zellbilder aus dem alten weiterleuchten:
+        /// <c>StaticResources</c> lädt sie einmal beim Start.
+        /// </para>
+        /// <para>
+        /// <b>Es wird nur gemeldet, was sich wirklich geändert hat.</b> Ein Hinweis bei jedem
+        /// Speichern wird weggeklickt und damit auch dann nicht gelesen, wenn er zählt.
+        /// </para>
+        /// </summary>
+        private string? Neustarthinweis()
+        {
+            var teile = new List<string>();
+
+            if (!string.Equals(datenordnerBeimLaden, Datenordner.Trim(),
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                teile.Add("Bilder und Design werden beim Start geladen - bis zum Neustart "
+                        + "zeigt das Programm die aus dem bisherigen Ordner.");
+            }
+
+            if (!string.Equals(verbindungBeimLaden, angaben.Verbindung, StringComparison.Ordinal))
+            {
+                teile.Add("Die Datenbank wird erst beim Start geprüft und, wenn nötig, angelegt "
+                        + "oder auf den neuesten Stand gebracht.");
+            }
+
+            if (teile.Count == 0)
+                return null;
+
+            return "Bitte das Programm neu starten."
+                + Environment.NewLine + Environment.NewLine
+                + string.Join(Environment.NewLine + Environment.NewLine, teile);
+        }
 
         private RelayCommand? cancelCommand;
 
