@@ -163,14 +163,40 @@ namespace Quizzer.Views.QuestionTypes
             return ((Buehne.ActualWidth - breite) / 2, (Buehne.ActualHeight - hoehe) / 2, breite, hoehe);
         }
 
+        /// <summary>
+        /// Wählt das Bild der Aufdeckfrage.
+        /// <para>
+        /// <b>Kein „Alle Dateien" mehr, und geprüft wird vor dem Kopieren.</b> Gemessen
+        /// 2026-09-07: über „Alle Dateien" liess sich ein <c>.mp4</c> wählen. Es wurde in den
+        /// Datenordner kopiert und als Bild der Frage eingetragen - danach war die Frage nicht
+        /// mehr einzurichten, weil schon das Öffnen des Editors am Laden scheiterte.
+        /// </para>
+        /// <para>
+        /// <b>Der Typ wird an der Quelle geprüft, nicht am Ergebnis.</b> Danach wäre die Datei
+        /// bereits im Ressourcenordner und bliebe als Leiche liegen.
+        /// <c>DetectResourceType</c> wirft bei einer unbekannten Endung - deshalb der
+        /// <c>try</c>.
+        /// </para>
+        /// </summary>
         private void BildWaehlen_Click(object sender, RoutedEventArgs e)
         {
             var quelle = FilePicker.AskForExistingFile(
                 "Bild wählen",
-                "Bilder|*.png;*.jpg;*.jpeg;*.bmp;*.gif|Alle Dateien|*.*");
+                "Bilder|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp");
 
             if (quelle == null)
                 return;
+
+            if (!IstBild(quelle))
+            {
+                UserPrompt.Inform(
+                    "Das ist keine Bilddatei: " + Path.GetFileName(quelle)
+                    + Environment.NewLine + Environment.NewLine
+                    + "Eine Aufdeckfrage braucht ein Bild (PNG, JPG, BMP, GIF oder WEBP).",
+                    "Bild wählen");
+
+                return;
+            }
 
             // Ueber denselben Weg wie ein Schritt-Medium: die Datei landet im Ressourcenordner
             // und bekommt dort ihren Namen.
@@ -181,6 +207,20 @@ namespace Quizzer.Views.QuestionTypes
 
             LadeBild();
             Zeichne();
+        }
+
+        /// <summary>Ob die Datei nach ihrer Endung ein Bild ist. Wirft nicht.</summary>
+        internal static bool IstBild(string pfad)
+        {
+            try
+            {
+                return FileHelper.DetectResourceType(pfad) == ResourceType.Image;
+            }
+            catch (NotSupportedException)
+            {
+                // Unbekannte Endung - erst recht kein Bild.
+                return false;
+            }
         }
 
         private void Art_Changed(object sender, RoutedEventArgs e)
