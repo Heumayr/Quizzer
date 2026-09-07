@@ -6,6 +6,7 @@ using Quizzer.DataModels.Models.Base;
 using Quizzer.Logic.Controller.TypedControllers;
 using SkiaSharp;
 using System.Collections.Generic;
+using System.IO;
 using System.Collections.ObjectModel;
 using System.Text;
 using System.Windows;
@@ -56,9 +57,28 @@ namespace Quizzer.Views
             await VMSaveAsync();
         }
 
+        /// <summary>
+        /// Speichert den Mitspieler.
+        /// <para>
+        /// <b>Ohne Namen wird nicht gespeichert.</b> Bis 2026-09-07 liess sich ein Mitspieler
+        /// ganz ohne Bezeichnung und Anzeigenamen anlegen; er stand danach als leere Zeile in
+        /// der Liste und - weil leer alphabetisch zuerst kommt - <b>vorgewählt in der
+        /// Anmeldung</b>.
+        /// </para>
+        /// </summary>
         public override async Task VMSaveAsync()
         {
             if (Player == null) return;
+
+            if (string.IsNullOrWhiteSpace(Player.CalculatedDisplayName))
+            {
+                UserPrompt.Inform(
+                    "Der Mitspieler braucht einen Namen." + Environment.NewLine + Environment.NewLine
+                    + "Ohne ihn steht er als leere Zeile in der Liste und in der Anmeldung.",
+                    "Mitspieler speichern");
+
+                return;
+            }
 
             using var ctrl = new PlayersController();
             var result = await ctrl.UpsertAsync(Player);
@@ -118,9 +138,11 @@ namespace Quizzer.Views
                 CheckFileExists = true,
                 CheckPathExists = true,
                 Multiselect = false,
-                Filter =
-                    "Bilder|*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp|" +
-                    "Alle Dateien|*.*"
+                // Kein "Alle Dateien" mehr: eine Nicht-Bilddatei wurde erst in den Datenordner
+                // KOPIERT und danach abgewiesen - sie blieb als Leiche liegen. Und eine
+                // unbekannte Endung liess DetectResourceType werfen, also ein Fehlerfenster mit
+                // Stapelspur statt der vorgesehenen Meldung. Gemessen 2026-09-07.
+                Filter = "Bilder|*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp"
             };
 
             var result = dialog.ShowDialog();
@@ -128,17 +150,40 @@ namespace Quizzer.Views
             if (result != true || string.IsNullOrWhiteSpace(dialog.FileName))
                 return;
 
-            var file = FileHelper.HandleSelectedResourceFile(dialog.FileName, rootFolder, Player.Id.ToString(), true, true);
-
-            if (file.Type != ResourceType.Image)
+            // Geprueft wird an der QUELLE, vor dem Kopieren.
+            if (!IstBild(dialog.FileName))
             {
-                UserPrompt.Inform("Die gewählte Datei ist kein Bild.", "Falscher Dateityp");
+                UserPrompt.Inform(
+                    "Das ist keine Bilddatei: " + Path.GetFileName(dialog.FileName)
+                    + Environment.NewLine + Environment.NewLine
+                    + "Ein Mitspielerbild braucht PNG, JPG, BMP, GIF oder WEBP.",
+                    "Bild wählen");
+
                 return;
             }
+
+            var file = FileHelper.HandleSelectedResourceFile(dialog.FileName, rootFolder, Player.Id.ToString(), true, true);
 
             Player.UserPictureFileName = file.Filename;
 
             OnModelChanged();
+        }
+
+        /// <summary>
+        /// Ob die Datei nach ihrer Endung ein Bild ist. Wirft nicht - <c>DetectResourceType</c>
+        /// wirft bei einer unbekannten Endung, und das waere hier ein Fehlerfenster mit
+        /// Stapelspur.
+        /// </summary>
+        internal static bool IstBild(string pfad)
+        {
+            try
+            {
+                return FileHelper.DetectResourceType(pfad) == ResourceType.Image;
+            }
+            catch (NotSupportedException)
+            {
+                return false;
+            }
         }
     }
 }
