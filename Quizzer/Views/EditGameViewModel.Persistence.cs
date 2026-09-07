@@ -97,6 +97,9 @@ namespace Quizzer.Views
         {
             if (Game == null) return;
 
+            if (!PunkteformelTraegt())
+                return;
+
             await RunGuardedAsync(async () =>
             {
                 Game.CalculateAndSetCurrentPoints();
@@ -111,6 +114,40 @@ namespace Quizzer.Views
 
                 await ctrlGames.SaveChangesAsync();
             });
+        }
+
+        /// <summary>
+        /// Ob die Punkteformel überhaupt Punkte ergeben kann.
+        /// <para>
+        /// <b>Stehen „Phase Faktor“ und „Phase Zuschlag“ beide auf 0, ist jede Zelle 0 Punkte
+        /// wert</b> - die Formel multipliziert den ganzen Schwierigkeitsteil mit
+        /// <c>(Faktor · Phase)</c> und addiert <c>(Zuschlag · Phase)</c>. Das gilt in jeder Phase
+        /// und für Plus wie Minus. Gespeichert wurde das bis 2026-09-07 wortlos, und danach stand
+        /// im Spielfeld auf jeder Kachel „0 / −0“.
+        /// </para>
+        /// <para>
+        /// <b>Es gibt keinen Fall, in dem das gewollt ist</b> - deshalb wird abgewiesen und nicht
+        /// nur gewarnt. Wer keine Steigerung möchte, lässt den Faktor auf 1 und stellt
+        /// „Phasen im Abend“ auf 1.
+        /// </para>
+        /// </summary>
+        private bool PunkteformelTraegt()
+        {
+            if (Game == null)
+                return false;
+
+            if (Game.PhaseMultiplier != 0 || Game.PhaseAddition != 0)
+                return true;
+
+            UserPrompt.Inform(
+                "„Phase Faktor“ und „Phase Zuschlag“ stehen beide auf 0."
+                + Environment.NewLine + Environment.NewLine
+                + "Damit wäre jede Zelle 0 Punkte wert - in jeder Phase, für Plus wie Minus."
+                + Environment.NewLine + Environment.NewLine
+                + "Ohne Steigerung: Faktor 1, Zuschlag 0 und „Phasen im Abend“ auf 1.",
+                "Spielaufbau speichern");
+
+            return false;
         }
 
         private AsyncRelayCommand? resetGameBuildCommand;
