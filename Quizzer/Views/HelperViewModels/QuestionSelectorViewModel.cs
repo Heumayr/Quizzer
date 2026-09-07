@@ -52,7 +52,17 @@ namespace Quizzer.Views.HelperViewModels
             CalculateAvailableQuestions();
         }
 
-        public string CurrentSelectedQuestionDisplay => Coordinate?.QuestionBase != null ? $"{Coordinate.QuestionBase.Category?.Designation} {Coordinate.QuestionBase.Designation} {Coordinate.QuestionBase.Difficulty} {Coordinate.QuestionBase.Points}" : "No question selected";
+        /// <summary>
+        /// Was in der Maske neben „Ausgewählt" steht.
+        /// <para>
+        /// <b>Deutsch seit 2026-09-07</b> - hier stand „No question selected", und zwar sichtbar
+        /// in einer sonst durchgehend deutschen Maske (<c>QuestionSelectorView.xaml</c>, Label
+        /// neben der Auswahl).
+        /// </para>
+        /// </summary>
+        public string CurrentSelectedQuestionDisplay => Coordinate?.QuestionBase != null
+            ? $"{Coordinate.QuestionBase.Category?.Designation} {Coordinate.QuestionBase.Designation} {Coordinate.QuestionBase.Difficulty} {Coordinate.QuestionBase.Points}"
+            : "Keine Frage ausgewählt";
 
         public void SetDependencys(Game game, GameGridCoordinate coordinate)
         {
