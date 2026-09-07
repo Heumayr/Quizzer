@@ -1,4 +1,5 @@
 using Quizzer.Base;
+using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Questions;
 using Quizzer.Logic.Controller.TypedControllers;
@@ -126,6 +127,65 @@ namespace Quizzer.Views.GameViews
                 + Environment.NewLine + Environment.NewLine
                 + "Trotzdem starten? Die übrigen Zellen sind davon nicht betroffen.",
                 "Spiel starten");
+        }
+
+        /// <summary>
+        /// Setzt das Spiel zurück, wenn der Haken „Beim Start zurücksetzen" gesetzt ist, und
+        /// schreibt in jedem Fall den Spielzustand fest.
+        /// <para>
+        /// <b>Die Phase gehört mit zurück.</b> <c>ResetGameResultsAsync</c> setzt nur die
+        /// <i>Zellen</i> zurück; <c>Game.Phase</c> ist eine eigene Spalte und überlebte jedes
+        /// Zurücksetzen. Ein Spiel, das einmal in Phase 3 gelaufen war, startete damit wieder in
+        /// Phase 3 - und weil <c>SetPhaseAndSetCoordinatesPhase</c> gleich danach die Phase in
+        /// jede offene Zelle schreibt und die Punkte neu rechnet, war <b>jede Frage des zweiten
+        /// Abends das Dreifache wert</b>.
+        /// </para>
+        /// <para>
+        /// <b>Gemessen 2026-09-07 an der Spieldatenbank:</b> beide echten Spiele standen auf
+        /// Phase 3, eine Zelle auf 1800 statt 600 Punkten.
+        /// </para>
+        /// <para>
+        /// <b>Ein fortgesetztes Spiel bleibt in seiner Phase</b> - das ist kein Defekt, sondern
+        /// der Sinn der Sache. Zurückgesetzt wird nur, was auch zurückgesetzt wurde.
+        /// </para>
+        /// </summary>
+        private static async Task<Game> ZuruecksetzenWennGewuenschtAsync(Guid gameId, Game dbGame)
+        {
+            // Der Haken wird nur geloescht, wenn wirklich zurueckgesetzt wurde. Verneint der
+            // Spielleiter die Rueckfrage, bleibt er stehen - sonst kaeme sie beim naechsten
+            // Start gar nicht mehr, und er muesste den Haken im Aufbau neu setzen, ohne zu
+            // wissen warum.
+            if (dbGame.Restart && await EditGameViewModel.ResetGameResultsAsync(dbGame))
+            {
+                using var ctrlGamesAfterReset = new GamesController();
+                dbGame = (await ctrlGamesAfterReset.GetAsync(gameId)) ?? throw new Exception("Game could not be loaded");
+
+                dbGame.Restart = false;
+
+                // Die Phase gehoert mit zurueck: ResetGameResultsAsync setzt nur die ZELLEN,
+                // und Game.Phase ueberlebte jedes Zuruecksetzen - jede Frage des zweiten
+                // Abends war dann das Dreifache wert (gemessen 2026-09-07). HIER, weil das
+                // Spiel eine Zeile darueber frisch gelesen wird.
+                dbGame.Phase = 1;
+
+                if (dbGame.State != GameState.Finished)
+                    dbGame.State = GameState.InProgress;
+
+                await ctrlGamesAfterReset.UpdateAsync(dbGame);
+                await ctrlGamesAfterReset.SaveChangesAsync();
+            }
+            else
+            {
+                if (dbGame.State != GameState.Finished)
+                    dbGame.State = GameState.InProgress;
+
+                using var ctrlGames = new GamesController();
+
+                await ctrlGames.UpdateAsync(dbGame);
+                await ctrlGames.SaveChangesAsync();
+            }
+
+            return dbGame;
         }
     }
 }

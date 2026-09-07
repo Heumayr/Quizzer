@@ -206,30 +206,7 @@ namespace Quizzer.Views.GameViews
             if (!await StartbarAsync(dbGame))
                 return null;
 
-            // Der Haken wird nur geloescht, wenn wirklich zurueckgesetzt wurde. Verneint der
-            // Spielleiter die Rueckfrage, bleibt er stehen - sonst kaeme sie beim naechsten
-            // Start gar nicht mehr, und er muesste den Haken im Aufbau neu setzen, ohne zu
-            // wissen warum.
-            if (dbGame.Restart && await EditGameViewModel.ResetGameResultsAsync(dbGame))
-            {
-                using var ctrlGamesAfterReset = new GamesController();
-                dbGame = (await ctrlGamesAfterReset.GetAsync(gameId)) ?? throw new Exception("Game could not be loaded");
-
-                dbGame.Restart = false;
-                if (dbGame.State != GameState.Finished)
-                    dbGame.State = GameState.InProgress;
-
-                await ctrlGamesAfterReset.UpdateAsync(dbGame);
-                await ctrlGamesAfterReset.SaveChangesAsync();
-            }
-            else
-            {
-                if (dbGame.State != GameState.Finished)
-                    dbGame.State = GameState.InProgress;
-
-                await ctrlGames.UpdateAsync(dbGame);
-                await ctrlGames.SaveChangesAsync();
-            }
+            dbGame = await ZuruecksetzenWennGewuenschtAsync(gameId, dbGame);
 
             Game = dbGame;
             StaticManager.BuzzerServerViewModel.Game = Game;

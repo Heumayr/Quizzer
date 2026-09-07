@@ -276,6 +276,88 @@ namespace Quizzer.UnitTests.PlayThrough
         }
 
         /// <summary>
+        /// <b>„Beim Start zurücksetzen" setzt auch die Phase zurück.</b>
+        /// <para>
+        /// <b>Gemessen 2026-09-07 an der Spieldatenbank:</b> beide echten Spiele standen auf
+        /// Phase 3, eine Zelle auf 1800 statt 600 Punkten.
+        /// <c>ResetGameResultsAsync</c> setzt nur die <i>Zellen</i> zurück; <c>Game.Phase</c> ist
+        /// eine eigene Spalte und überlebte jedes Zurücksetzen. Weil
+        /// <c>SetPhaseAndSetCoordinatesPhase</c> gleich danach die Phase in jede offene Zelle
+        /// schreibt und die Punkte neu rechnet, war <b>jede Frage des zweiten Abends das
+        /// Dreifache wert</b>.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task ARestartAlsoResetsThePhase()
+        {
+            await BuildFourCellGridAsync(gespielt: 1);
+
+            using (var ctrl = new GamesController())
+            {
+                var spiel = await ctrl.GetAsync(world.Game.Id);
+
+                spiel!.Phase = 3;
+                spiel.SuggestedPhases = 3;
+                spiel.Restart = true;
+
+                await ctrl.UpdateAsync(spiel);
+                await ctrl.SaveChangesAsync();
+            }
+
+            var vm = new GameMasterViewModel();
+
+            var geladen = await vm.LoadModel(world.Game.Id);
+
+            Assert.IsNotNull(geladen, "Das Spiel liess sich nicht oeffnen. Gemeldet wurde: "
+                + string.Join(" | ", prompt.Informs.Select(i => i.Message)));
+
+            Assert.AreEqual(1, geladen!.Phase,
+                "Nach dem Zuruecksetzen laeuft das Spiel weiter in der alten Phase - jede Frage "
+                + "ist damit ein Vielfaches wert.");
+
+            using var ctrlNach = new GamesController();
+
+            Assert.AreEqual(1, (await ctrlNach.GetAsync(world.Game.Id))!.Phase,
+                "Die Phase steht nur im Speicher auf 1, in der Datenbank noch auf 3.");
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung, und sie ist hier wesentlich.</b> Ein <i>fortgesetztes</i> Spiel
+        /// bleibt in seiner Phase - das ist kein Defekt, sondern der Sinn der Sache. Würde die
+        /// Rücksetzung immer laufen, verlöre ein Abend nach einer Pause seine Phase.
+        /// </summary>
+        [TestMethod]
+        public async Task AContinuedGameKeepsItsPhase()
+        {
+            // Bewusst OHNE gespielte Zelle: bei einer waere CurrentRound 2 und traefe die
+            // Phasenschwelle, die Ruecksetzfrage wuerde bestaetigt und die Phase STIEGE auf 3.
+            // Erst gemessen, dann geschrieben - der erste Anlauf lief genau hinein.
+            await BuildFourCellGridAsync(gespielt: 0);
+
+            using (var ctrl = new GamesController())
+            {
+                var spiel = await ctrl.GetAsync(world.Game.Id);
+
+                spiel!.Phase = 2;
+                spiel.SuggestedPhases = 3;
+                spiel.Restart = false;
+
+                await ctrl.UpdateAsync(spiel);
+                await ctrl.SaveChangesAsync();
+            }
+
+            var vm = new GameMasterViewModel();
+
+            var geladen = await vm.LoadModel(world.Game.Id);
+
+            Assert.IsNotNull(geladen, "Das Spiel liess sich nicht oeffnen.");
+
+            Assert.AreEqual(2, geladen!.Phase,
+                "Ein fortgesetztes Spiel hat seine Phase verloren - der Abend faengt nach der "
+                + "Pause wieder von vorn an.");
+        }
+
+        /// <summary>
         /// Ein unbekanntes Spiel wird gemeldet, nicht stillschweigend als leer geladen.
         /// </summary>
         [TestMethod]
