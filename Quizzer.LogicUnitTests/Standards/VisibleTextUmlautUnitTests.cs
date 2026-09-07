@@ -145,9 +145,13 @@ namespace Quizzer.LogicUnitTests.Standards
                 // Bezeichner tragen die Umschrift zu Recht (standards-allgemein.md §1).
                 // Gemessen 2026-09-06: der Waechter meldete x:Name="Flaechen" und
                 // Click="BildWaehlen_Click" im Editor der Aufdeckfrage.
+                // Ausserhalb von Markup zaehlen ALLE DREI Zeichenkettenarten von JavaScript.
+                // Bis 2026-09-07 stand hier nur die doppelt gequotete - die Telefonseite
+                // schreibt ihre sichtbaren Texte aber als Vorlagenzeichenketten mit
+                // Rueckstrich. Elf deutsche Saetze lagen damit ausserhalb des Netzes.
                 var muster = istMarkup
                     ? @"(?<attr>[A-Za-z:.]+)\s*=\s*""(?<wert>[^""]{3,})"""
-                    : @"""(?<wert>[^""\\]{3,})""";
+                    : @"""(?<wert>[^""\\]{3,})""|'(?<wert>[^'\\]{3,})'|`(?<wert>[^`\\]{3,})`";
 
                 foreach (Match treffer in Regex.Matches(zeile, muster))
                 {
@@ -259,6 +263,37 @@ namespace Quizzer.LogicUnitTests.Standards
 
             Assert.IsTrue(Umschriften.Any(s => probe.Contains(s, StringComparison.OrdinalIgnoreCase)),
                 "Der Vergleich findet nicht einmal eine bekannte Umschrift.");
+
+            // Die Telefonseite einzeln nachgezaehlt. Bis 2026-09-07 sah der Waechter dort NUR
+            // die doppelt gequotete Form - die sichtbaren Texte stehen aber in
+            // Vorlagenzeichenketten mit Rueckstrich, und elf deutsche Saetze lagen damit
+            // ausserhalb des Netzes, ohne dass irgendetwas rot wurde.
+            var telefon = dateien.Where(d => d.EndsWith(".js")).ToList();
+
+            Assert.IsTrue(telefon.Count >= 5,
+                $"Nur {telefon.Count} JavaScript-Dateien gefunden - die Telefonseite faellt aus "
+                + "dem Durchlauf heraus.");
+
+            var telefontexte = telefon
+                .SelectMany(d => Anzeigetexte(File.ReadAllLines(d), istMarkup: false))
+                .Select(x => x.Text)
+                .ToList();
+
+            Assert.IsTrue(telefontexte.Count >= 100,
+                $"Nur {telefontexte.Count} Zeichenketten auf der Telefonseite gefunden - dann "
+                + "liest der Durchlauf sie gar nicht mehr.");
+
+            // EINE ZAHL REICHT HIER NICHT, und das ist gemessen: mit dem alten Muster findet
+            // der Durchlauf 169 Zeichenketten, mit dem neuen 184 - der Unterschied sind genau
+            // die 17 Vorlagenzeichenketten, und keine Schwelle dazwischen taugt als Riegel.
+            // Deshalb ein Anker auf einen Text, den es NUR in Rueckstrichen gibt. Wird er
+            // umformuliert, ist hier ein anderer einzusetzen - dann sagt die Meldung es.
+            Assert.IsTrue(
+                telefontexte.Any(t => t.Contains("Warten auf die", StringComparison.Ordinal)),
+                "Der Durchlauf findet den Satz aus layoutManager.js nicht, der in einer "
+                + "Vorlagenzeichenkette steht. Damit sind die sichtbaren Texte der "
+                + "Gaestetelefone wieder ausserhalb des Netzes. Gefundene Texte: "
+                + telefontexte.Count);
         }
     }
 }
