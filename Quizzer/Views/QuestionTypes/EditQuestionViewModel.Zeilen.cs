@@ -70,14 +70,28 @@ namespace Quizzer.Views.QuestionTypes
         /// durchkommt, wird gefangen und gesagt statt als Ausnahmefenster gezeigt.
         /// </para>
         /// </summary>
+        /// <summary>
+        /// Was der Dateidialog anbietet.
+        /// <para>
+        /// <b>Eigene Konstante, damit eine Zusicherung sie gegen <c>DetectResourceType</c>
+        /// halten kann.</b> Die beiden müssen übereinstimmen: eine Endung, die der Filter
+        /// anbietet und die Annahmeliste nicht kennt, wirft beim Übernehmen — und eine, die
+        /// angenommen würde, aber nicht im Filter steht, ist für den Nutzer unerreichbar.
+        /// </para>
+        /// <para>
+        /// <b>Kein „Alle Dateien".</b> <c>DetectResourceType</c> wirft bei unbekannter Endung;
+        /// eine beliebige Datei ergäbe ein Ausnahmefenster statt einer Meldung.
+        /// </para>
+        /// </summary>
+        internal const string Medienfilter =
+            "Bilder|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp"
+            + "|Ton|*.mp3;*.wav;*.ogg;*.flac;*.m4a;*.aac"
+            + "|Video|*.mp4;*.avi;*.mov;*.wmv;*.mkv;*.webm;*.m4v"
+            + "|Dokumente|*.pdf;*.doc;*.docx;*.txt";
+
         private static bool HaengeMediumAn(StepZeile zeile)
         {
-            var quelle = FilePicker.AskForExistingFile(
-                "Medium wählen",
-                "Bilder|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp"
-                + "|Ton|*.mp3;*.wav;*.ogg;*.flac"
-                + "|Video|*.mp4;*.avi;*.mov;*.wmv;*.mkv"
-                + "|Dokumente|*.pdf;*.doc;*.docx;*.txt");
+            var quelle = FilePicker.AskForExistingFile("Medium wählen", Medienfilter);
 
             if (quelle == null)
                 return false;

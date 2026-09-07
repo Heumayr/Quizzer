@@ -161,10 +161,17 @@ namespace Quizzer.Base
                 ".jpg" or ".jpeg" or ".png" or ".bmp" or ".gif" or ".webp"
                     => ResourceType.Image,
 
-                ".mp4" or ".avi" or ".mov" or ".wmv" or ".mkv"
+                // .webm und .m4v seit 2026-09-07 (Befund B-Medien). Sie standen vorher
+                // draussen, weil .webm ohne die Windows-Erweiterung nicht dekodierbar ist UND es
+                // keinen MediaFailed-Behandler gab: eine unlesbare Datei ergab eine schwarze,
+                // stumme Flaeche ohne ein Wort. Der zweite Teil ist behoben - ein Medium, das
+                // sich nicht abspielen laesst, sagt es jetzt.
+                ".mp4" or ".avi" or ".mov" or ".wmv" or ".mkv" or ".webm" or ".m4v"
                     => ResourceType.Video,
 
-                ".mp3" or ".wav" or ".ogg" or ".flac"
+                // .m4a und .aac aus demselben Anlass. .m4a ist das, was ein Telefon bei einer
+                // Sprachaufnahme herausgibt.
+                ".mp3" or ".wav" or ".ogg" or ".flac" or ".m4a" or ".aac"
                     => ResourceType.Audio,
 
                 ".pdf" or ".doc" or ".docx" or ".txt"
