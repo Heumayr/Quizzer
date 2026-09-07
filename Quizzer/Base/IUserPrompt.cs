@@ -32,7 +32,8 @@ namespace Quizzer.Base
     /// </summary>
     public static class UserPrompt
     {
-        private static IUserPrompt current = new MessageBoxUserPrompt();
+        private static IUserPrompt standard = new MessageBoxUserPrompt();
+        private static IUserPrompt current = standard;
 
         public static IUserPrompt Current
         {
@@ -40,8 +41,30 @@ namespace Quizzer.Base
             set => current = value ?? throw new ArgumentNullException(nameof(value));
         }
 
+        /// <summary>
+        /// Legt fest, worauf <see cref="Reset"/> zurueckfaellt. <b>Nur fuer Testlaeufe.</b>
+        /// <para>
+        /// <b>Gemessen am 2026-09-07, und es hat eine Stunde gekostet.</b> Der Rueckfallwert war
+        /// fest das echte Meldungsfenster. Ein Test, der eine Meldung ausloest, ohne vorher
+        /// <see cref="Current"/> zu tauschen, oeffnete damit ein <b>modales Fenster im
+        /// Testprozess</b> - der Lauf blieb bei Test 72 von rund 320 stehen, ohne rot zu werden,
+        /// ohne einen Namen zu nennen und ohne dass etwas im Bericht stand. Sichtbar war es erst,
+        /// als die Fenster des Prozesses aufgezaehlt wurden: eines mit dem Titel
+        /// „Einstellungen".
+        /// </para>
+        /// <para>
+        /// <b>Ein Aufhaenger ist schlimmer als ein roter Test</b>, weil er keinen Befund
+        /// hinterlaesst. Deshalb setzt der Testlauf hier eine Fassung ein, die wirft.
+        /// </para>
+        /// </summary>
+        internal static void UseAsDefaultForTests(IUserPrompt? ersatz)
+        {
+            standard = ersatz ?? new MessageBoxUserPrompt();
+            current = standard;
+        }
+
         /// <summary>Setzt auf die echten Meldungsfenster zurueck.</summary>
-        public static void Reset() => current = new MessageBoxUserPrompt();
+        public static void Reset() => current = standard;
 
         public static bool Confirm(string message, string caption) => Current.Confirm(message, caption);
 

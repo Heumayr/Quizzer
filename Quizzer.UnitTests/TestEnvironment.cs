@@ -41,6 +41,11 @@ namespace Quizzer.UnitTests
 
             ViewCommonBase.UiInvokerOverride = () => new InlineUiInvoker();
 
+            // Der Rueckfallwert fuer Rueckfragen wirft, statt ein Fenster zu oeffnen. Warum das
+            // sein muss, steht in ThrowingUserPrompt - kurz: ein modales Fenster im Testprozess
+            // haelt den Lauf an, ohne rot zu werden und ohne einen Namen zu nennen.
+            UserPrompt.UseAsDefaultForTests(new ThrowingUserPrompt());
+
             ExceptionManager.Handler = ex =>
             {
                 lock (SwallowedExceptions)
@@ -66,6 +71,10 @@ namespace Quizzer.UnitTests
             ViewCommonBase.UiInvokerOverride = null;
             ExceptionManager.ResetHandler();
             Quizzer.Logic.Controller.UnsavedChangesWatch.ResetHandler();
+
+            // Erst den Rueckfallwert zuruecknehmen, dann zuruecksetzen - sonst bliebe die
+            // werfende Fassung stehen.
+            UserPrompt.UseAsDefaultForTests(null);
             UserPrompt.Reset();
         }
 
