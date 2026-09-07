@@ -1,4 +1,3 @@
-using Microsoft.Win32;
 using Quizzer.Base;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Themes;
@@ -244,21 +243,39 @@ namespace Quizzer.Views
         {
             if (SelectedTheme == null) return;
 
-            var dialog = new OpenFileDialog
-            {
-                Title = $"Bild für \"{item.Beschriftung}\" wählen",
-                CheckFileExists = true,
-                Filter = "Bilder|*.png;*.jpg;*.jpeg;*.bmp|Alle Dateien|*.*",
-            };
+            // Ueber FilePicker, nicht ueber einen eigenen Dialog: sonst laesst sich dieser Weg
+            // nicht pruefen, und eine Zusicherung darauf oeffnete im Testlauf ein echtes
+            // Dateifenster (gemessen 2026-09-07 an der Schwesterstelle im Mitspieler-Editor).
+            //
+            // Und kein "Alle Dateien" mehr: die Datei wird unter dem festen Texturnamen
+            // abgelegt, ein Nicht-Bild waere danach eine "CellBackground.png", die sich nicht
+            // laden laesst - das Design faellt still auf den Auslieferungsstand zurueck, und
+            // niemand erfaehrt, warum sich nichts geaendert hat.
+            var quelle = FilePicker.AskForExistingFile(
+                $"Bild für \"{item.Beschriftung}\" wählen",
+                "Bilder|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp");
 
-            if (dialog.ShowDialog() != true) return;
+            if (string.IsNullOrWhiteSpace(quelle)) return;
+
+            // Vor dem Kopieren wirklich oeffnen. Die Endung sagt nur, was draufsteht.
+            if (Bildlader.Lade(quelle) == null)
+            {
+                UserPrompt.Inform(
+                    "Das Bild lässt sich nicht lesen: " + Path.GetFileName(quelle)
+                    + Environment.NewLine + Environment.NewLine
+                    + "Es wurde nichts übernommen - eine Textur, die sich nicht laden lässt, "
+                    + "fällt still auf den Auslieferungsstand zurück.",
+                    "Textur austauschen");
+
+                return;
+            }
 
             try
             {
                 var ordner = ThemeAssets.FolderOf(SelectedTheme.FolderName);
 
                 Directory.CreateDirectory(ordner);
-                File.Copy(dialog.FileName, Path.Combine(ordner, item.Dateiname), overwrite: true);
+                File.Copy(quelle, Path.Combine(ordner, item.Dateiname), overwrite: true);
 
                 Erneuern(item);
             }
