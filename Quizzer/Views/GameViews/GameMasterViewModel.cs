@@ -509,47 +509,6 @@ namespace Quizzer.Views.GameViews
             }
         }
 
-        /// <summary>
-        /// Zieht Rundenzähler und Anzeige nach und fragt an einer Punkteschwelle nach dem
-        /// Phasenwechsel.
-        /// <para>
-        /// <b>Wartet den Phasenwechsel ab.</b> Bis 2026-09-06 wurde er nur losgeschickt, während
-        /// der Aufrufer weiterlief - in <c>LoadModel</c> lief unmittelbar danach ein zweites
-        /// <c>VMSaveAsync</c> auf dasselbe Spiel. Zwei gleichzeitige Schreibvorgänge auf einer
-        /// Zeile: einer gewinnt, der andere bekommt eine
-        /// <c>DbUpdateConcurrencyException</c> - und das Spiel ließ sich genau dann nicht
-        /// öffnen, wenn eine Schwelle anstand. Aufgedeckt hat es ein Test, der nur im
-        /// Gesamtlauf umfiel.
-        /// </para>
-        /// </summary>
-        private async Task UpdateGameStateAsync()
-        {
-            if (Game == null) return;
-
-            var tempCurrentRound = Game.CurrentRound;
-            CurrentRound = GameGridCoordinatesDoneCount + 1;
-
-            if (tempCurrentRound != CurrentRound && CurrentRound > tempCurrentRound)
-            {
-                if (Game.PhaseTrashholds.Contains(CurrentRound))
-                {
-                    var advance = UserPrompt.Confirm("Punkteschwelle erreicht. Zur nächsten Phase wechseln?", "Phasenschwelle");
-
-                    if (advance)
-                    {
-                        Game.RaisePhase();
-                        await SaveAndRefreshAfterPhaseChangeAsync();
-                    }
-                }
-            }
-
-            OnPropertyChanged(nameof(GameGridCoordinatesCount));
-            OnPropertyChanged(nameof(GameGridCoordinatesDoneCount));
-            OnPropertyChanged(nameof(ProgressHeadline));
-            OnPropertyChanged(nameof(OpenCellsText));
-            OnPropertyChanged(nameof(PhaseHeadline));
-            OnPropertyChanged(nameof(WindowTitle));
-        }
 
         public int Height
         {

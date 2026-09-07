@@ -329,9 +329,14 @@ namespace Quizzer.UnitTests.PlayThrough
         [TestMethod]
         public async Task AContinuedGameKeepsItsPhase()
         {
-            // Bewusst OHNE gespielte Zelle: bei einer waere CurrentRound 2 und traefe die
-            // Phasenschwelle, die Ruecksetzfrage wuerde bestaetigt und die Phase STIEGE auf 3.
-            // Erst gemessen, dann geschrieben - der erste Anlauf lief genau hinein.
+            // Bewusst OHNE gespielte Zelle. Bis 2026-09-07 war das zwingend: eine gespielte
+            // Zelle ergab CurrentRound 2 und traf damit die Phasenschwelle, die Ruecksetzfrage
+            // wurde bestaetigt und die Phase STIEG auf 3. Erst gemessen, dann geschrieben - der
+            // erste Anlauf lief genau hinein.
+            //
+            // Seit der Korrektur des Fehlers um eins zaehlt die Schwelle gespielte Zellen: eine
+            // gespielte traefe sie nicht mehr. Der Aufbau bleibt trotzdem bei null - er soll ein
+            // fortgesetztes Spiel zeigen, nicht eine Schwelle.
             await BuildFourCellGridAsync(gespielt: 0);
 
             using (var ctrl = new GamesController())
@@ -496,9 +501,13 @@ namespace Quizzer.UnitTests.PlayThrough
         [TestMethod]
         public async Task ReachingTheThresholdAsksForThePhaseChange()
         {
-            // Eine von vier Zellen gespielt: die nächste Runde ist die zweite, und dort liegt
-            // bei zwei Phasen die Schwelle. Der Moderator wird gleich mitgesetzt.
-            await BuildFourCellGridAsync(gespielt: 1);
+            // Zwei von vier Zellen gespielt: bei zwei Phasen sind das genau die Fragen der
+            // ersten Phase, und dort liegt die Schwelle. Der Moderator wird gleich mitgesetzt.
+            //
+            // Bis 2026-09-07 stand hier "gespielt: 1" - der Test schrieb den Fehler fest, den
+            // er messen sollte. Verglichen wurde die Nummer der NAECHSTEN Runde mit einer
+            // Schwelle, die eine ANZAHL ist; das Spiel wechselte deshalb eine Frage zu frueh.
+            await BuildFourCellGridAsync(gespielt: 2);
 
             var vm = new GameMasterViewModel();
 
@@ -522,6 +531,39 @@ namespace Quizzer.UnitTests.PlayThrough
         /// Die Gegenrichtung: liegt die Schwelle noch nicht an, wird auch nicht gefragt.
         /// Ohne sie wäre die Probe oben auch dann grün, wenn beim Öffnen immer gefragt würde.
         /// </summary>
+        /// <summary>
+        /// <b>Eine Frage vor der Schwelle wird nicht gefragt.</b>
+        /// <para>
+        /// Die Zusicherung, die den Befund vom 2026-09-07 hält. Bei vier Zellen und zwei Phasen
+        /// liegt die Schwelle nach der zweiten Frage; nach der <i>ersten</i> darf nichts
+        /// kommen. Genau dieser Fall war vorher der grüne Normalfall.
+        /// </para>
+        /// <para>
+        /// <c>BelowTheThresholdNothingIsAsked</c> allein reicht dafür nicht: mit null gespielten
+        /// Zellen ist der Abstand zur Schwelle zwei, und ein Fehler um eins fällt dort nicht auf.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task OneQuestionBeforeTheThresholdNothingIsAsked()
+        {
+            await BuildFourCellGridAsync(gespielt: 1);
+
+            var vm = new GameMasterViewModel();
+
+            var geladen = await vm.LoadModel(world.Game.Id);
+
+            Assert.IsNotNull(geladen, "Das Spiel liess sich nicht oeffnen.");
+
+            Assert.AreEqual(0, prompt.Confirms.Count,
+                "Nach der ERSTEN von vier Fragen wurde schon nach dem Phasenwechsel gefragt - "
+                + "die Schwelle liegt bei zwei Phasen aber nach der zweiten. Gemeldet wurde: "
+                + string.Join(" | ", prompt.Confirms.Select(c => c.Message)));
+
+            Assert.AreEqual(1, geladen!.Phase,
+                "Die Phase stieg eine Frage zu frueh - Phase 1 bekaeme damit weniger Fragen als "
+                + "Phase 2.");
+        }
+
         [TestMethod]
         public async Task BelowTheThresholdNothingIsAsked()
         {
