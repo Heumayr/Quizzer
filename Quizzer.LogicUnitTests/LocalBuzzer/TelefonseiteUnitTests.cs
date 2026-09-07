@@ -97,5 +97,18 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// </summary>
         [TestMethod]
         public void TheBuzzerLayoutLocksAfterOnePress() => LaufeMit("buzzerLayout.test.mjs");
+
+        /// <summary>
+        /// Der Layoutwechsel: er läuft, sobald der Spielleiter eine Frage eines anderen Typs
+        /// öffnet. Klemmt er, bleibt das Telefon beim Layout der vorigen Frage stehen, und der
+        /// Gast drückt ins Leere.
+        /// <para>
+        /// Geprüft wird auch die Gegenrichtung von <c>unlockAll</c>: ein Layout, das der Server
+        /// gesperrt hält, darf dabei <b>nicht</b> freigegeben werden - sonst könnte ein Spieler
+        /// in einer fremden Runde buzzern.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void TheLayoutManagerSwitchesCleanly() => LaufeMit("layoutManager.test.mjs");
     }
 }
