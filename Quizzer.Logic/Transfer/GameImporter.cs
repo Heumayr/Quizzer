@@ -56,8 +56,18 @@ namespace Quizzer.Logic.Transfer
             // Erst die Medien ablegen - der Tresor vergibt die Namen, nicht das Buendel.
             var medienNamen = new Dictionary<string, string>(StringComparer.Ordinal);
 
+            // Die Texturen des Designs gehoeren NICHT hierher: sie muessen unter ihrem
+            // vorgeschriebenen Namen in den Design-Ordner, nicht unter einem Pruefwert zu den
+            // Fragenmedien. Bis 2026-09-07 landeten sie dort - das importierte Spiel sah aus wie
+            // der Auslieferungsstand, und bis zu zwoelf verwaiste Dateien blieben liegen.
+            var texturSchluessel = dokument.Design?.Texturen.Values.ToHashSet(StringComparer.Ordinal)
+                                   ?? new HashSet<string>(StringComparer.Ordinal);
+
             foreach (var medium in dokument.Medien)
             {
+                if (texturSchluessel.Contains(medium.Schluessel))
+                    continue;
+
                 if (!dateien.TryGetValue(medium.Schluessel, out var bytes))
                     continue;
 
@@ -68,7 +78,38 @@ namespace Quizzer.Logic.Transfer
             var bausatz = GameExportMapper.ToEntities(
                 dokument, s => medienNamen.TryGetValue(s, out var n) ? n : null);
 
-            return await SchreibeAsync(bausatz, dokument, moderatorId, mitspielerIds, medienNamen.Count);
+            var geschrieben = await SchreibeAsync(
+                bausatz, dokument, moderatorId, mitspielerIds, medienNamen.Count);
+
+            LegeTexturenAb(tresor, dokument, bausatz, dateien);
+
+            return geschrieben;
+        }
+
+        /// <summary>
+        /// Schreibt die Texturen des Designs in dessen Ordner.
+        /// <para>
+        /// <b>Erst nach dem Anlegen</b>, denn der Ordnername entsteht dort. Und nur, wenn das
+        /// Design wirklich neu ist: ein gleichnamiges auf dem Zielrechner behaelt seine eigenen
+        /// Bilder - sie zu ueberschreiben waere die groessere Ueberraschung.
+        /// </para>
+        /// </summary>
+        private static void LegeTexturenAb(
+            IMediaVault tresor,
+            GameExportDocument dokument,
+            GameExportMapper.ImportBausatz bausatz,
+            Dictionary<string, byte[]> dateien)
+        {
+            var ordner = bausatz.Design?.FolderName;
+
+            if (dokument.Design == null || string.IsNullOrWhiteSpace(ordner))
+                return;
+
+            foreach (var (dateiname, schluessel) in dokument.Design.Texturen)
+            {
+                if (dateien.TryGetValue(schluessel, out var bytes))
+                    tresor.WriteTextur(ordner, dateiname, bytes);
+            }
         }
 
         private static (GameExportDocument Dokument, Dictionary<string, byte[]> Dateien) Lies(string quelldatei)

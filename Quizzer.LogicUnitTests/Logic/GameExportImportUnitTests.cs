@@ -111,6 +111,125 @@ namespace Quizzer.LogicUnitTests.Logic
         }
 
         /// <summary>
+        /// <b>Die eigenen Texturen eines Designs kommen beim Import wirklich an.</b>
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> der Export legte sie ordentlich ins Bündel, der Import
+        /// schrieb sie als verwaiste <c>&lt;Prüfwert&gt;.png</c> zu den <b>Fragenmedien</b> - im
+        /// Design-Ordner landete nichts. Das importierte Spiel sah damit aus wie der
+        /// Auslieferungsstand, und bis zu zwölf Dateien blieben als Leichen liegen. Auf
+        /// demselben Rechner fällt das nicht auf, weil dort das gleichnamige Design gefunden und
+        /// wiederverwendet wird - der naheliegende Selbsttest deckt es also gerade nicht auf.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task TheOwnTexturesOfADesignSurviveTheRoundTrip()
+        {
+            var design = await DemoDataSeeder.CreateThemeAsync();
+
+            Assert.IsNotNull(design, "Das Demo-Design wurde nicht angelegt.");
+
+            // Eine eigene Textur in den Design-Ordner legen - so, wie es der Design-Editor tut.
+            var inhalt = new byte[] { 9, 8, 7, 6, 5 };
+            var texturname = Quizzer.DataModels.Themes.ThemeAssets.Texturen[0].Dateiname;
+
+            Assert.IsTrue(tresor.WriteTextur(design!.FolderName, texturname, inhalt),
+                "Die Probetextur liess sich nicht ablegen - dann misst dieser Test nichts.");
+
+            var (_, datei) = await ExportiereDemoMitDesignAsync(design.Id);
+
+            // Auf dem "anderen Rechner": Spiel, Design und Ordner weg. Erst das Spiel - der
+            // Fremdschluessel Game.GameThemeId steht auf NO ACTION, ein Design unter einem
+            // laufenden Spiel laesst sich nicht loeschen. demo-entfernen nimmt beides mit.
+            await DemoDataRemover.RemoveAsync();
+
+            var designOrdner = Path.Combine(arbeitsordner, "Themes", design.FolderName);
+
+            if (Directory.Exists(designOrdner))
+                Directory.Delete(designOrdner, recursive: true);
+
+            var moderator = await LegeModeratorAnAsync();
+
+            await GameImporter.ImportAsync(datei, tresor, moderator, [moderator]);
+
+            using var ctrlDesigns = new GameThemesController();
+
+            var neu = (await ctrlDesigns.GetAllAsync())
+                .FirstOrDefault(d => d.Designation == design.Designation);
+
+            Assert.IsNotNull(neu, "Das Design wurde beim Import nicht angelegt.");
+
+            var abgelegt = tresor.Read(MediaRoot.Theme, neu!.FolderName, texturname);
+
+            Assert.IsNotNull(abgelegt,
+                "Die eigene Textur liegt nicht im Design-Ordner - das importierte Spiel sieht "
+                + "aus wie der Auslieferungsstand.");
+
+            CollectionAssert.AreEqual(inhalt, abgelegt,
+                "Im Design-Ordner liegt etwas anderes als die exportierte Textur.");
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung.</b> Das Bündel bestimmt den Dateinamen <b>nicht</b> - zugelassen
+        /// sind ausschließlich die bekannten Texturnamen. Sonst könnte eine fremde Datei
+        /// jeden Namen im Design-Ordner belegen.
+        /// </summary>
+        [TestMethod]
+        public void OnlyKnownTextureNamesAreWritten()
+        {
+            Assert.IsFalse(tresor.WriteTextur("Probe", "boeswillig.png", [1, 2, 3]),
+                "Ein beliebiger Dateiname wird angenommen - ein Buendel koennte damit jeden "
+                + "Namen im Design-Ordner belegen.");
+
+            Assert.IsFalse(tresor.WriteTextur("Probe", "..\entwischt.png", [1, 2, 3]),
+                "Ein Pfad nach oben wird angenommen.");
+
+            Assert.IsTrue(
+                tresor.WriteTextur("Probe", Quizzer.DataModels.Themes.ThemeAssets.Texturen[0].Dateiname, [1, 2, 3]),
+                "Eine bekannte Textur wird abgewiesen - dann kommt gar keine mehr an.");
+        }
+
+        /// <summary>Legt einen Spielleiter fuer den Import an.</summary>
+        private static async Task<Guid> LegeModeratorAnAsync()
+        {
+            var id = Guid.NewGuid();
+
+            using var ctrl = new PlayersController();
+
+            await ctrl.InsertAsync(new Player
+            {
+                Id = id,
+                Designation = "[Demo] Importeur",
+                DisplayName = "Importeur",
+            });
+
+            await ctrl.SaveChangesAsync();
+
+            return id;
+        }
+
+        /// <summary>Exportiert das Demospiel, nachdem ihm das Design zugewiesen wurde.</summary>
+        private async Task<(Guid SpielId, string Datei)> ExportiereDemoMitDesignAsync(Guid designId)
+        {
+            var demo = await DemoDataSeeder.CreateAsync();
+
+            using (var ctrl = new GamesController())
+            {
+                var spiel = await ctrl.GetAsync(demo.Spiel.Id);
+
+                spiel!.GameThemeId = designId;
+
+                await ctrl.UpdateAsync(spiel);
+                await ctrl.SaveChangesAsync();
+            }
+
+            var datei = Path.Combine(arbeitsordner, "mitdesign" + GameExporter.Extension);
+
+            await GameExporter.ExportAsync(demo.Spiel.Id, datei, tresor);
+
+            return (demo.Spiel.Id, datei);
+        }
+
+        /// <summary>
         /// Der Durchstich: exportieren, importieren, und das Ergebnis steht wirklich in der
         /// Datenbank - mit Punkten, Schritten und dem angemeldeten Spielleiter.
         /// </summary>

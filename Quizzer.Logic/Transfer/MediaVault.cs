@@ -39,6 +39,22 @@ namespace Quizzer.Logic.Transfer
         /// inhaltsgleich schon, wird nichts geschrieben und der vorhandene Name gemeldet.
         /// </summary>
         string Write(MediaRoot wurzel, string? ordner, string endung, byte[] inhalt);
+
+        /// <summary>
+        /// Legt eine Design-Textur unter ihrem <b>vorgeschriebenen</b> Namen ab.
+        /// <para>
+        /// <b>Warum es das braucht:</b> <see cref="Write"/> vergibt den Namen bewusst aus dem
+        /// Pruefwert des Inhalts, damit eine fremde Datei den Zielnamen nicht bestimmen kann.
+        /// Eine Textur muss aber exakt heissen wie in <c>ThemeAssets.Texturen</c> - sonst findet
+        /// das Design sie nie.
+        /// </para>
+        /// <para>
+        /// <b>Der Name kommt trotzdem nicht aus dem Buendel:</b> zugelassen sind ausschliesslich
+        /// die bekannten Texturnamen. Alles andere wird abgewiesen.
+        /// </para>
+        /// </summary>
+        /// <returns><c>true</c>, wenn geschrieben wurde.</returns>
+        bool WriteTextur(string ordner, string dateiname, byte[] inhalt);
     }
 
     /// <summary>Die Umsetzung auf dem Dateisystem.</summary>
@@ -134,6 +150,28 @@ namespace Quizzer.Logic.Transfer
             var pfad = PfadInWurzel(RootFolder(wurzel, ordner), dateiname);
 
             return File.Exists(pfad) ? File.ReadAllBytes(pfad) : null;
+        }
+
+        public bool WriteTextur(string ordner, string dateiname, byte[] inhalt)
+        {
+            if (string.IsNullOrWhiteSpace(ordner) || inhalt == null || inhalt.Length == 0)
+                return false;
+
+            // Der Name kommt NICHT aus dem Buendel, sondern aus der bekannten Liste - ein
+            // Buendel kann damit keinen Zielnamen bestimmen.
+            var bekannt = DataModels.Themes.ThemeAssets.Texturen
+                .Any(t => string.Equals(t.Dateiname, dateiname, StringComparison.OrdinalIgnoreCase));
+
+            if (!bekannt)
+                return false;
+
+            var ordnerPfad = RootFolder(MediaRoot.Theme, ordner);
+
+            Directory.CreateDirectory(ordnerPfad);
+
+            File.WriteAllBytes(PfadInWurzel(ordnerPfad, dateiname), inhalt);
+
+            return true;
         }
 
         public string Write(MediaRoot wurzel, string? ordner, string endung, byte[] inhalt)
