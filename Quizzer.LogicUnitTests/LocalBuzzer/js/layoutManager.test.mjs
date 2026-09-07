@@ -102,6 +102,43 @@ pruefe(spur.includes("buzzer:locked=true"),
     "unlockAll hat ein Layout freigegeben, das der Server gesperrt haelt - der Spieler koennte "
     + "in einer fremden Runde buzzern. Spur: " + spur.join(", "));
 
+// --- Was der Gast sieht, wenn die Verbindung weg ist ---
+spur.length = 0;
+let gedrueckt = 0;
+
+manager.switchTo("buzzer", kontext());
+spur.length = 0;
+
+manager.showNotice(wurzel, {
+    text: "Verbindung verloren",
+    buttonLabel: "Neu verbinden",
+    onButton: () => { gedrueckt++; },
+});
+
+pruefe(spur[0] === "buzzer:dispose",
+    "Die Meldung ersetzt das Layout, ohne es abzuraeumen - seine Ereignisse haengen weiter. "
+    + "Spur: " + spur.join(", "));
+
+pruefe(wurzel.querySelector(".layout-buzzer") === null,
+    "Der Buzzer steht noch da, waehrend die Verbindung weg ist - der Gast drueckt ins Leere.");
+
+const meldung = wurzel.querySelector(".notice-text");
+const meldeknopf = wurzel.querySelector(".notice-btn");
+
+pruefe(meldung !== null && meldung.textContent === "Verbindung verloren",
+    "Der Grund steht nicht da: " + (meldung ? meldung.textContent : "keine Meldung"));
+
+pruefe(meldeknopf !== null && meldeknopf.textContent === "Neu verbinden",
+    "Es gibt keinen Weg zurueck: " + (meldeknopf ? meldeknopf.textContent : "kein Knopf"));
+
+meldeknopf.click();
+
+pruefe(gedrueckt === 1,
+    "Der Knopf tut nichts - der Gast sitzt fest, bis er die Seite von Hand neu laedt.");
+
+pruefe(manager.activeLayout === null,
+    "Nach der Meldung haelt der Manager noch ein Layout - ein spaeteres update ginge dorthin.");
+
 if (fehler > 0) {
     console.error(`${fehler} Zusicherung(en) rot.`);
     process.exit(1);
