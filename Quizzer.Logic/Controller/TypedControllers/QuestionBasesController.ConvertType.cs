@@ -81,6 +81,28 @@ namespace Quizzer.Logic.Controller.TypedControllers
                 new SqlParameter("@proportional", targetProfile.UseProportionalScoreReductionOnStep),
                 new SqlParameter("@id", questionId)).ConfigureAwait(false);
 
+            // Ein Zieltyp, der nur EINE Loesung vertraegt, bekommt auch nur eine. Ohne diesen
+            // Schritt war eine Multiple-Choice-Frage mit zwei richtigen Antworten nach dem
+            // Umwandeln in eine Schaetzfrage UNSPEICHERBAR: der Pruefer beanstandet die zweite
+            // Markierung, und die Schaetzfragen-Maske zeigt weder Zeilenliste noch Haekchen -
+            // es gab keinen Weg heran ausser zurueckzuwandeln, und darauf wies nichts hin.
+            // Gemessen 2026-09-07.
+            if (!targetProfile.AllowsMultipleResultSteps)
+            {
+                await context.Database.ExecuteSqlRawAsync(
+                    """
+                    UPDATE [question].[QuestionStepResource]
+                       SET [IsResult] = 0
+                     WHERE [QuestionBaseId] = @id
+                       AND [IsResult] = 1
+                       AND [Id] <> (SELECT TOP 1 [Id]
+                                      FROM [question].[QuestionStepResource]
+                                     WHERE [QuestionBaseId] = @id AND [IsResult] = 1
+                                     ORDER BY [SequenceNumber], [Id])
+                    """,
+                    new SqlParameter("@id", questionId)).ConfigureAwait(false);
+            }
+
             await transaction.CommitAsync().ConfigureAwait(false);
 
             // Der Kontext haelt die Frage noch als alten Typ - erst nach dem Vergessen liest
@@ -189,6 +211,10 @@ namespace Quizzer.Logic.Controller.TypedControllers
 
             if (to == QuestionType.Reveal)
                 effects.Add("Bild und Aufdeckflächen müssen danach neu eingerichtet werden.");
+
+            if (!target.AllowsMultipleResultSteps)
+                effects.Add($"{target.DisplayName} verträgt nur eine Lösungsmarkierung - "
+                          + "weitere werden entfernt.");
 
             effects.Add($"Anzeige und Bedienung wechseln auf die Vorgaben für {target.DisplayName}.");
 

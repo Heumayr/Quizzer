@@ -113,6 +113,87 @@ namespace Quizzer.LogicUnitTests.Logic.Controller.TypedControllers
         /// </para>
         /// </summary>
         /// <summary>
+        /// <b>Eine Frage bleibt nach dem Umwandeln speicherbar.</b>
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> eine Multiple-Choice-Frage mit <b>zwei</b> richtigen
+        /// Antworten - das ist ausdrücklich vorgesehen - war nach dem Umwandeln in eine
+        /// Schätzfrage unspeicherbar. Der Prüfer beanstandete die zweite Markierung, und die
+        /// Schätzfragen-Maske zeigt weder Zeilenliste noch Häkchen „richtig": es gab keinen Weg
+        /// an die Markierungen heran. Der einzige Ausweg war zurückzuwandeln, und darauf wies
+        /// nichts hin.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task ConvertingToASingleResultTypeKeepsTheQuestionSavable()
+        {
+            var frage = await CreateAsync(QuestionType.MultipleChoice, stepCount: 4);
+
+            using (var ctrl = new QuestionBasesController())
+            {
+                var geladen = await ctrl.GetAsync(frage.Id);
+
+                foreach (var schritt in geladen!.Steps.OrderBy(x => x.SequenceNumber).Take(2))
+                    schritt.IsResult = true;
+
+                await ctrl.SaveWithStepsAsync(geladen);
+                await ctrl.SaveChangesAsync();
+            }
+
+            using (var ctrl = new QuestionBasesController())
+            {
+                var vorher = await ctrl.GetAsync(frage.Id);
+
+                Assert.AreEqual(2, vorher!.Steps.Count(x => x.IsResult),
+                    "Die Ausgangslage steht nicht - dann misst diese Probe nichts.");
+            }
+
+            using (var ctrl = new QuestionBasesController())
+            {
+                var umgewandelt = await ctrl.ConvertTypeAsync(frage.Id, QuestionType.Appreciate);
+
+                Assert.AreEqual(1, umgewandelt.Steps.Count(x => x.IsResult),
+                    "Nach dem Umwandeln stehen noch mehrere Loesungsmarkierungen - die Frage "
+                    + "laesst sich damit nicht speichern, und die Schaetzfragen-Maske hat kein "
+                    + "Haekchen, ueber das man sie entfernen koennte.");
+
+                Assert.IsTrue(QuestionValidator.IsSavable(umgewandelt),
+                    "Die umgewandelte Frage laesst sich nicht speichern: "
+                    + string.Join(" | ", QuestionValidator.Validate(umgewandelt)
+                        .Where(i => i.IsError).Select(i => i.Message)));
+            }
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung.</b> Ein Zieltyp, der mehrere Lösungen verträgt, behält sie -
+        /// sonst verlöre eine Multiple-Choice-Frage bei jedem Umwandeln ihre zweite Antwort.
+        /// </summary>
+        [TestMethod]
+        public async Task ConvertingToAMultiResultTypeKeepsAllMarks()
+        {
+            var frage = await CreateAsync(QuestionType.Default, stepCount: 4);
+
+            using (var ctrl = new QuestionBasesController())
+            {
+                var geladen = await ctrl.GetAsync(frage.Id);
+
+                foreach (var schritt in geladen!.Steps.OrderBy(x => x.SequenceNumber).Take(2))
+                    schritt.IsResult = true;
+
+                await ctrl.SaveWithStepsAsync(geladen);
+                await ctrl.SaveChangesAsync();
+            }
+
+            using (var ctrl = new QuestionBasesController())
+            {
+                var umgewandelt = await ctrl.ConvertTypeAsync(frage.Id, QuestionType.MultipleChoice);
+
+                Assert.AreEqual(2, umgewandelt.Steps.Count(x => x.IsResult),
+                    "Multiple Choice hat eine Loesungsmarkierung verloren, obwohl der Typ "
+                    + "mehrere ausdruecklich vertraegt.");
+            }
+        }
+
+        /// <summary>
         /// <b>Was verloren geht, steht vorher da - auch bei der Aufdeckfrage.</b>
         /// <para>
         /// Die Rückfrage sagte bis 2026-09-07 zu, dass „Schritte, Medien, Spielfeldzellen und
