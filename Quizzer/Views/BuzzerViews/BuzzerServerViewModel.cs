@@ -311,9 +311,12 @@ namespace Quizzer.Views.BuzzerViews
 
                 // Nicht weiterwerfen: sonst zeigt der ExceptionManager dieselbe Sache ein zweites
                 // Mal, mit Stapelabbild, mitten im Spielaufbau.
+                // Die Portnummer kommt aus BuzzerPort, nicht als Zahl im Satz: der Wert ist
+                // seit dem Testaufbau setzbar, und eine abgeschriebene 5000 haette gelogen,
+                // sobald jemand ihn aendert.
                 UserPrompt.Inform(
-                    "Der Buzzer-Server konnte nicht starten. Meist ist Port 5000 noch belegt – "
-                    + "läuft noch eine zweite Quizzer-Instanz oder ein Testlauf?"
+                    $"Der Buzzer-Server konnte nicht starten. Meist ist Port {BuzzerPort} noch "
+                    + "belegt – läuft noch eine zweite Quizzer-Instanz oder ein Testlauf?"
                     + Environment.NewLine + Environment.NewLine + ex.Message,
                     ServerCaption);
             }
