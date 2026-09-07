@@ -24,8 +24,10 @@ gehört ins `.harness`-Submodul (dort committen und pushen), nirgendwo sonst —
   Testprojekte mit je eigener LocalDB**; `DoNotParallelize` wirkt nur innerhalb einer Assembly
   (Einzelheiten: `was-gilt.md` und `quizzer-testaufbau.md`)
 - **Keine CI** — der Bau und die Tests auf diesem Rechner sind die einzige maschinelle Prüfung
-- Die Anwendung startet nur, wenn der Ordner aus `AppSettings.FilePathQuizzer`
-  (`Quizzer/appsettings.json`, standardmäßig `E:\QuizzerData`) mit den Bildern existiert
+- Fehlt der Ordner aus `AppSettings.FilePathQuizzer` (`Quizzer.DataModels/appsettings.json`,
+  standardmäßig `E:\QuizzerData`), **startet die Anwendung trotzdem** — sie sagt es seit
+  2026-09-07 beim Start und bleibt sonst schwarz (`StaticResources` fällt je Bild auf Schwarz
+  zurück, es wirft nichts). Zum Arbeiten braucht es ihn trotzdem
 - Beim Bauen darf keine laufende Instanz die DLLs sperren (MSB3021/MSB3027)
 
 ## Nach einem Neuklon
