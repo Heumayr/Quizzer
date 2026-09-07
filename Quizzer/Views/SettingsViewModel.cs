@@ -35,6 +35,21 @@ namespace Quizzer.Views
 
         private Datenbankangaben angaben = Datenbankangaben.Vorgabe();
 
+        /// <summary>
+        /// Die Verbindung, wie sie beim Oeffnen der Maske dastand - <b>schon durch den
+        /// SqlConnectionStringBuilder gelaufen</b>.
+        /// <para>
+        /// Gegen <c>Settings.ConnectionString</c> verglichen meldete die Maske jeden Speichervorgang
+        /// als Wechsel: der Bauer schreibt <c>Database=</c> zu <c>Initial Catalog=</c> um, und genau
+        /// so steht es in der ausgelieferten <c>appsettings.json</c>. Gemessen 2026-09-07.
+        /// </para>
+        /// <para>
+        /// <b>Beim Laden gesetzt, nicht in <c>Uebernimm</c></b> - „Zuruecksetzen" ruft dieselbe
+        /// Stelle, und dort ist der Wechsel auf die Vorgaben ja gerade der Anlass fuer den Hinweis.
+        /// </para>
+        /// </summary>
+        private string verbindungBeimLaden = string.Empty;
+
         /// <summary>Ob gespeichert wurde. Der Aufrufer liest das nach dem Schließen.</summary>
         public bool Saved { get; private set; }
 
@@ -167,6 +182,8 @@ namespace Quizzer.Views
 
             Uebernimm(Datenbankangaben.Zerlege(Settings.ConnectionString));
 
+            verbindungBeimLaden = angaben.Verbindung;
+
             return Task.CompletedTask;
         }
 
@@ -247,7 +264,40 @@ namespace Quizzer.Views
                 }
             }
 
+            // Ohne Server oder Datenbanknamen wird nicht gespeichert. Bei leerem Namen
+            // entsteht "Initial Catalog=" - und das Programm legt sein ganzes Schema in der
+            // Systemdatenbank master an, ohne beim Start irgendetwas zu fragen. Der Pruefknopf
+            // sagt es schon laenger; das Speichern tat es nicht.
+            if (string.IsNullOrWhiteSpace(angaben.Server) || string.IsNullOrWhiteSpace(angaben.Datenbank))
+            {
+                UserPrompt.Inform(
+                    "Server und Datenbank müssen ausgefüllt sein."
+                    + Environment.NewLine + Environment.NewLine
+                    + "Ohne Datenbanknamen legt das Programm seine Tabellen in der "
+                    + "Systemdatenbank an.",
+                    "Einstellungen");
+
+                return;
+            }
+
+            var gewechselt = !string.Equals(
+                verbindungBeimLaden, angaben.Verbindung, StringComparison.Ordinal);
+
             UserSettings.Save(Datenordner, angaben.Verbindung);
+
+            // Ab hier wirkt die neue Verbindung sofort - jeder DataContext liest sie neu. Sie
+            // wurde aber weder geprueft noch migriert: das laeuft nur beim Programmstart. Ohne
+            // diesen Hinweis bekaeme der Spielleiter beim naechsten Klick auf "Spiele" eine
+            // rohe SqlException oder "Invalid column name".
+            if (gewechselt)
+            {
+                UserPrompt.Inform(
+                    "Die Datenbankverbindung wurde geändert."
+                    + Environment.NewLine + Environment.NewLine
+                    + "Bitte das Programm neu starten - erst dann wird die Datenbank geprüft "
+                    + "und, wenn nötig, angelegt oder auf den neuesten Stand gebracht.",
+                    "Einstellungen");
+            }
 
             Saved = true;
             Window?.Close();

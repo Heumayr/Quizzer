@@ -36,11 +36,18 @@ namespace Quizzer.UnitTests.Views
 
             datenordnerVorher = Settings.FilePathQuizzer;
             verbindungVorher = Settings.ConnectionString;
+
+            // Jede Zusicherung dieser Klasse speichert, und Speichern kann seit 2026-09-07 einen
+            // Hinweis auslösen. Ohne Attrappe wäre das ein echtes modales Fenster im
+            // Testprozess: der Lauf bleibt stehen, statt rot zu werden - gemessen, und es hat
+            // eine Stunde gekostet. Wer eine Meldung PRÜFEN will, setzt sich seine eigene.
+            UserPrompt.Current = new RecordingUserPrompt(answer: true);
         }
 
         [TestCleanup]
         public void TearDown()
         {
+            UserPrompt.Reset();
             UserSettings.UseFolderForTests(null);
             FilePicker.Reset();
 
@@ -58,6 +65,159 @@ namespace Quizzer.UnitTests.Views
             vm.LoadForTestAsync().GetAwaiter().GetResult();
 
             return vm;
+        }
+
+        /// <summary>
+        /// <b>Ein leerer Datenbankname wird nicht gespeichert.</b>
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> das Feld liess sich leeren, und gespeichert wurde
+        /// <c>Initial Catalog=</c>. Beim naechsten Start kam <b>keine</b> Rueckfrage - das
+        /// Programm legte sein ganzes Schema in der Systemdatenbank <c>master</c> an. Der
+        /// Pruefknopf sagte es schon laenger („Es ist aber keine Datenbank eingetragen"); das
+        /// Speichern tat es nicht.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void AnEmptyDatabaseNameIsRefused()
+        {
+            var prompt = new RecordingUserPrompt(answer: true);
+
+            UserPrompt.Current = prompt;
+
+            try
+            {
+                var vm = Geladen();
+
+                vm.Datenordner = ordner;
+                vm.Datenbank = string.Empty;
+
+                vm.SaveCommand.Execute(null);
+
+                Assert.IsFalse(vm.Saved,
+                    "Der leere Datenbankname wurde gespeichert - das Programm legt seine "
+                    + "Tabellen dann in der Systemdatenbank an.");
+
+                Assert.AreEqual(1, prompt.Informs.Count, "Es kam keine Meldung.");
+
+                StringAssert.Contains(prompt.Informs[0].Message, "Datenbank",
+                    "Die Meldung sagt nicht, was fehlt: " + prompt.Informs[0].Message);
+            }
+            finally
+            {
+                UserPrompt.Reset();
+            }
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung.</b> Vollständige Angaben werden gespeichert - sonst liesse sich
+        /// die Maske gar nicht mehr benutzen.
+        /// </summary>
+        [TestMethod]
+        public void CompleteSettingsAreSaved()
+        {
+            var prompt = new RecordingUserPrompt(answer: true);
+
+            UserPrompt.Current = prompt;
+
+            try
+            {
+                var vm = Geladen();
+
+                vm.Datenordner = ordner;
+                vm.Server = @"(localdb)\MSSQLLocalDB";
+                vm.Datenbank = "Quizzer_Maskenprobe";
+
+                vm.SaveCommand.Execute(null);
+
+                Assert.IsTrue(vm.Saved,
+                    "Vollstaendige Angaben liessen sich nicht speichern: "
+                    + string.Join(" | ", prompt.Informs.Select(i => i.Message)));
+            }
+            finally
+            {
+                UserPrompt.Reset();
+            }
+        }
+
+        /// <summary>
+        /// <b>Eine gewechselte Verbindung sagt es und nennt den Neustart.</b>
+        /// <para>
+        /// Sie wirkt sofort - jeder <c>DataContext</c> liest sie neu -, wurde aber weder geprüft
+        /// noch migriert: das läuft nur beim Programmstart. Ohne Hinweis bekäme der Spielleiter
+        /// beim nächsten Klick auf „Spiele" eine rohe <c>SqlException</c> oder
+        /// „Invalid column name".
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void AChangedConnectionAsksForARestart()
+        {
+            var prompt = new RecordingUserPrompt(answer: true);
+
+            UserPrompt.Current = prompt;
+
+            try
+            {
+                var vm = Geladen();
+
+                vm.Datenordner = ordner;
+                vm.Datenbank = "Quizzer_GanzAndere";
+
+                vm.SaveCommand.Execute(null);
+
+                Assert.IsTrue(vm.Saved, "Die Einstellungen liessen sich nicht speichern.");
+
+                Assert.AreEqual(1, prompt.Informs.Count,
+                    "Der Wechsel wurde nicht gemeldet - der naechste Klick auf 'Spiele' liefe "
+                    + "in einen rohen Datenbankfehler.");
+
+                StringAssert.Contains(prompt.Informs[0].Message, "neu starten",
+                    "Die Meldung nennt den Weg nicht: " + prompt.Informs[0].Message);
+            }
+            finally
+            {
+                UserPrompt.Reset();
+            }
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung.</b> Bleibt die Verbindung gleich, kommt keine Meldung - sonst
+        /// erschiene sie bei jedem Speichern und würde weggeklickt.
+        /// <para>
+        /// <b>Diese Zusicherung war beim ersten Lauf rot, und der Befund lag im Programm.</b>
+        /// Verglichen wurde die gespeicherte Zeichenfolge mit <c>Settings.ConnectionString</c> -
+        /// dazwischen liegt aber der <c>SqlConnectionStringBuilder</c>, und der schreibt
+        /// <c>Database=</c> zu <c>Initial Catalog=</c> um. Gemessen 2026-09-07 an genau der
+        /// Zeichenfolge, die in der ausgelieferten <c>appsettings.json</c> steht: <b>der
+        /// Neustart-Hinweis wäre bei jedem Speichern gekommen, auch beim allerersten und ohne
+        /// jede Änderung</b>. Verglichen wird jetzt der Stand beim Laden, beide Seiten durch
+        /// denselben Bauer.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void AnUnchangedConnectionSaysNothing()
+        {
+            var prompt = new RecordingUserPrompt(answer: true);
+
+            UserPrompt.Current = prompt;
+
+            try
+            {
+                var vm = Geladen();
+
+                vm.Datenordner = ordner;
+
+                vm.SaveCommand.Execute(null);
+
+                Assert.IsTrue(vm.Saved, "Die Einstellungen liessen sich nicht speichern.");
+
+                Assert.AreEqual(0, prompt.Informs.Count,
+                    "Es wurde ein Wechsel gemeldet, obwohl die Verbindung dieselbe ist: "
+                    + string.Join(" | ", prompt.Informs.Select(i => i.Message)));
+            }
+            finally
+            {
+                UserPrompt.Reset();
+            }
         }
 
         /// <summary>Der Ordner kommt aus dem Dialog, nicht aus der Tastatur.</summary>
