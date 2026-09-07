@@ -160,6 +160,122 @@ namespace Quizzer.UnitTests.PlayThrough
         }
 
         /// <summary>
+        /// <b>Eine Frage im Spielfeld, die sich nicht spielen lässt, wird vor dem Start
+        /// genannt.</b>
+        /// <para>
+        /// <b>Der Fragenprüfer hält nur das Speichern an.</b> Eine Frage kann nach dem Zuweisen
+        /// ungültig werden - durch eine Typumwandlung, durch das Entfernen ihres letzten
+        /// Lösungsschritts, oder weil sie aus einer Zeit vor dem Prüfer stammt. Bis zum
+        /// 2026-09-07 fiel das erst auf, wenn der Spielleiter die Zelle vor Gästen öffnete.
+        /// </para>
+        /// <para>
+        /// <b>Gemessen an der Spieldatenbank am 2026-09-07:</b> von 23 zugewiesenen Fragen
+        /// wurden zwei beanstandet - „Test MC" ohne markierte Lösung und „Appre Frage", die von
+        /// ihrem Profil abweicht.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task AnUnplayableQuestionIsNamedBeforeTheStart()
+        {
+            await BuildFourCellGridAsync(gespielt: 0);
+
+            // Die Frage des Testspiels unspielbar machen - ueber den echten Weg: erst in
+            // Multiple Choice umwandeln (der Typ verlangt eine markierte Loesung), dann die
+            // Markierungen entfernen. Genau so entsteht der Fall im Betrieb.
+            using (var ctrl = new QuestionBasesController())
+            {
+                await ctrl.ConvertTypeAsync(world.Question.Id, QuestionType.MultipleChoice);
+            }
+
+            using (var ctrl = new QuestionBasesController())
+            {
+                var frage = await ctrl.GetAsync(world.Question.Id);
+
+                foreach (var schritt in frage!.Steps)
+                    schritt.IsResult = false;
+
+                await ctrl.SaveWithStepsAsync(frage);
+                await ctrl.SaveChangesAsync();
+            }
+
+            var vm = new GameMasterViewModel();
+
+            await vm.LoadModel(world.Game.Id);
+
+            Assert.AreEqual(1, prompt.Confirms.Count,
+                "Es wurde nicht gefragt - dann faellt die unspielbare Frage erst vor den "
+                + "Gaesten auf.");
+
+            StringAssert.Contains(prompt.Confirms[0].Message, world.Question.Designation,
+                "Die Rueckfrage nennt die Frage nicht beim Namen: " + prompt.Confirms[0].Message);
+
+            StringAssert.Contains(prompt.Confirms[0].Message, "Lösung",
+                "Die Rueckfrage sagt nicht, was fehlt: " + prompt.Confirms[0].Message);
+        }
+
+        /// <summary>
+        /// <b>Ein Spielfeld aus lauter leeren Zellen startet nicht.</b>
+        /// <para>
+        /// Die Prüfung dagegen gab es - sie zählte aber <c>GameGridCoordinates.Count</c>, und
+        /// der Rasteraufbau legt für <i>jede</i> Position eine Zeile an. Sie feuerte damit
+        /// <b>nie</b>. Dritte Fundstelle derselben Familie nach <c>IsGameFinished</c> und
+        /// <c>CalculatetThreshold</c>.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task AGridOfEmptyCellsRefusesToStart()
+        {
+            await BuildFourCellGridAsync(gespielt: 0);
+
+            // Allen Zellen die Frage nehmen - so, wie ein frisch aufgebautes Raster aussieht.
+            using (var ctrl = new GameGridCoordinatesController())
+            {
+                foreach (var zelle in (await ctrl.GetAllAsync()).Where(z => z.GameId == world.Game.Id))
+                {
+                    zelle.QuestionBaseId = null;
+
+                    await ctrl.UpdateAsync(zelle);
+                }
+
+                await ctrl.SaveChangesAsync();
+            }
+
+            var vm = new GameMasterViewModel();
+
+            var geladen = await vm.LoadModel(world.Game.Id);
+
+            Assert.IsNull(geladen,
+                "Ein Spielfeld ohne jede Frage liess sich starten - der Spielleiter steht dann "
+                + "vor einem Raster, in dem sich keine Zelle oeffnen laesst.");
+
+            Assert.AreEqual(1, prompt.Informs.Count, "Es kam keine Meldung.");
+
+            StringAssert.Contains(prompt.Informs[0].Message, "keine Frage zugewiesen",
+                "Die Meldung sagt nicht, was fehlt: " + prompt.Informs[0].Message);
+        }
+
+        /// <summary>
+        /// <b>Die Gegenrichtung.</b> Ein Spielfeld mit lauter spielbaren Fragen startet ohne
+        /// Rückfrage - sonst wird sie weggeklickt, ohne gelesen zu werden.
+        /// </summary>
+        [TestMethod]
+        public async Task AHealthyGridStartsWithoutAQuestion()
+        {
+            await BuildFourCellGridAsync(gespielt: 0);
+
+            var vm = new GameMasterViewModel();
+
+            var geladen = await vm.LoadModel(world.Game.Id);
+
+            Assert.IsNotNull(geladen, "Das Spiel liess sich nicht oeffnen. Gemeldet wurde: "
+                + string.Join(" | ", prompt.Informs.Select(i => i.Message)));
+
+            Assert.AreEqual(0, prompt.Confirms.Count,
+                "Es wurde gefragt, obwohl jede Frage spielbar ist: "
+                + string.Join(" | ", prompt.Confirms.Select(c => c.Message)));
+        }
+
+        /// <summary>
         /// Ein unbekanntes Spiel wird gemeldet, nicht stillschweigend als leer geladen.
         /// </summary>
         [TestMethod]

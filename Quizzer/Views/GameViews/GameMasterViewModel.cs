@@ -203,35 +203,8 @@ namespace Quizzer.Views.GameViews
                 return null;
             }
 
-            // Ueber UserPrompt statt MessageBox.Show: der Weg ist in Tests austauschbar, und
-            // ein ViewModel soll kein Fenster kennen. Umgestellt 2026-09-06, dabei ins Deutsche.
-            var errors = new List<string>();
-
-            if (dbGame.ModeratorPlayerId == null || dbGame.ModeratorPlayerId == Guid.Empty || dbGame.Moderator == null)
-            {
-                errors.Add("Dem Spiel fehlt der Moderator. Er wird im Spielaufbau ausgewählt.");
-            }
-
-            if (!dbGame.Players.Any())
-            {
-                errors.Add("Dem Spiel ist kein Mitspieler zugeordnet. Mindestens einer muss im "
-                         + "Spielaufbau hinzugefügt werden.");
-            }
-
-            if (dbGame.GameGridCoordinates.Count == 0)
-            {
-                errors.Add("Dem Spielfeld ist keine Frage zugewiesen. Mindestens eine muss im "
-                         + "Spielaufbau auf eine Zelle gelegt werden.");
-            }
-
-            if (errors.Any())
-            {
-                UserPrompt.Inform(
-                    string.Join(Environment.NewLine + Environment.NewLine, errors),
-                    "Spiel lässt sich nicht starten");
-
+            if (!await StartbarAsync(dbGame))
                 return null;
-            }
 
             // Der Haken wird nur geloescht, wenn wirklich zurueckgesetzt wurde. Verneint der
             // Spielleiter die Rueckfrage, bleibt er stehen - sonst kaeme sie beim naechsten
