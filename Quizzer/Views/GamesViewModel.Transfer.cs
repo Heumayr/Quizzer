@@ -43,7 +43,23 @@ namespace Quizzer.Views
             if (ziel == null)
                 return;
 
-            var ergebnis = await GameExporter.ExportAsync(spiel.Id, ziel, Tresor);
+            GameExporter.Ergebnis ergebnis;
+
+            try
+            {
+                ergebnis = await GameExporter.ExportAsync(spiel.Id, ziel, Tresor);
+            }
+            catch (Exception ex) when (IstDateiproblem(ex))
+            {
+                UserPrompt.Inform(
+                    "Das Bündel ließ sich nicht schreiben:" + Environment.NewLine + Environment.NewLine
+                    + ex.Message + Environment.NewLine + Environment.NewLine
+                    + "Häufig liegt es daran, dass der Ordner nicht existiert, die Datei gerade "
+                    + "offen ist oder dort nicht geschrieben werden darf.",
+                    "Exportieren");
+
+                return;
+            }
 
             var text = $"„{spiel.Designation}" + "“ wurde exportiert."
                 + Environment.NewLine + Environment.NewLine
@@ -96,7 +112,7 @@ namespace Quizzer.Views
                     + $"Mitspieler: {mitspieler.Count}",
                     "Importieren");
             }
-            catch (InvalidDataException ex)
+            catch (Exception ex) when (IstDateiproblem(ex))
             {
                 UserPrompt.Inform(
                     "Die Datei ließ sich nicht lesen:" + Environment.NewLine + Environment.NewLine
@@ -104,6 +120,27 @@ namespace Quizzer.Views
                     "Importieren");
             }
         }
+
+        /// <summary>
+        /// Ob die Ausnahme daran liegt, dass mit der <b>Datei</b> etwas nicht stimmt.
+        /// <para>
+        /// <b>Bewusst eine Aufzählung und kein <c>catch (Exception)</c>.</b> Diese vier bedeuten
+        /// „die Datei ist kaputt, gesperrt, weg oder gehört jemand anderem" - dazu gibt es einen
+        /// Satz, den der Spielleiter versteht. Alles andere ist ein Fehler im Programm und
+        /// gehört in das Fehlerfenster, nicht hinter eine beruhigende Meldung.
+        /// </para>
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> der Import fing nur <c>InvalidDataException</c>. Der
+        /// Dateifilter bietet aber „Alle Dateien" an, und schon eine Datei, die zwischen Auswahl
+        /// und Import verschwindet, ergab eine <c>FileNotFoundException</c> - also ein
+        /// Fehlerfenster mit Stapelspur. Der Export fing <b>gar nichts</b>.
+        /// </para>
+        /// </summary>
+        private static bool IstDateiproblem(Exception ex)
+            => ex is InvalidDataException
+                or IOException
+                or UnauthorizedAccessException
+                or NotSupportedException;
 
         /// <summary>Ein Dateiname aus einer Bezeichnung - ohne alles, was Windows nicht mag.</summary>
         internal static string SaubererDateiname(string bezeichnung)

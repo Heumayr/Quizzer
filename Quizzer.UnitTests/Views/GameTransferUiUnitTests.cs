@@ -3,6 +3,7 @@ using Quizzer.Base;
 using Quizzer.DataModels;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Logic.Transfer;
+using Quizzer.UnitTests.PlayThrough;
 using Quizzer.Views;
 using System.IO;
 using System.Windows;
@@ -142,6 +143,84 @@ namespace Quizzer.UnitTests.Views
             Assert.AreEqual(0, prompt.Informs.Count,
                 "Nach einem Abbruch wurde etwas gemeldet - dann ist der Import gelaufen. "
                 + "Gelesen wurde: " + string.Join(" | ", prompt.Informs.Select(i => i.Message)));
+        }
+
+        /// <summary>
+        /// <b>Eine Datei, die es nicht (mehr) gibt, wird gemeldet - nicht geworfen.</b>
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> der Import fing nur <c>InvalidDataException</c>. Der
+        /// Dateifilter bietet aber „Alle Dateien" an, und schon eine Datei, die zwischen Auswahl
+        /// und Import verschwindet, ergab eine <c>FileNotFoundException</c> - also ein
+        /// Fehlerfenster mit Stapelspur statt eines Satzes.
+        /// </para>
+        /// <para>
+        /// Die Zusicherung misst <b>zweierlei</b>: dass eine Meldung kommt, und dass nichts im
+        /// <c>ExceptionManager</c> gelandet ist. Ohne den zweiten Teil wäre sie auch grün, wenn
+        /// die Meldung aus dem Fehlerfenster stammte.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task AVanishedBundleIsReportedInsteadOfThrown()
+        {
+            var datei = Path.Combine(
+                Path.GetTempPath(), "gibtesnicht-" + Guid.NewGuid() + GameExporter.Extension);
+
+            Assert.IsFalse(File.Exists(datei), "Die Probe braucht eine Datei, die es NICHT gibt.");
+
+            FilePicker.Current = new RecordingFilePicker(
+                saveTarget: () => null,
+                openTarget: () => datei);
+
+            // Nicht null - null hiesse abgebrochen, und dann kaeme der Import gar nicht erst los.
+            ImportPlayerSelection.Handler = () => Array.Empty<Guid>();
+
+            var vm = new GamesViewModel();
+
+            await TestEnvironment.RunCommandAsync(vm.ImportGameCommand);
+
+            Assert.AreEqual(1, prompt.Informs.Count,
+                "Der Nutzer erfaehrt nicht, dass die Datei nicht lesbar war. Gelesen wurde: "
+                + string.Join(" | ", prompt.Informs.Select(i => i.Message)));
+
+            TestEnvironment.ThrowIfAnythingWasSwallowed();
+        }
+
+        /// <summary>
+        /// <b>Ein Ziel, in das sich nicht schreiben lässt, wird gemeldet - nicht geworfen.</b>
+        /// <para>
+        /// Der Export fing bis 2026-09-07 <b>gar nichts</b>. Ein Ordner, den es nicht gibt, eine
+        /// Datei, die gerade offen ist, ein Laufwerk ohne Schreibrecht - jedes davon ergab ein
+        /// Fehlerfenster mit Stapelspur.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task AnExportToAnImpossiblePathIsReported()
+        {
+            await using var world = await TestGameBuilder.CreateAsync();
+
+            // Ein Laufwerksbuchstabe, den es nicht gibt. Directory.CreateDirectory wirft darauf,
+            // und zwar bevor irgendetwas geschrieben wurde.
+            var ziel = @"Q:\gibtesnicht" + Guid.NewGuid() + GameExporter.Extension;
+
+            FilePicker.Current = new RecordingFilePicker(
+                saveTarget: () => ziel,
+                openTarget: () => null);
+
+            var vm = new GamesViewModel();
+
+            await ((AsyncRelayCommand)vm.ExportGameCommand).ExecuteAsync(world.Game);
+
+            Assert.AreEqual(1, prompt.Informs.Count,
+                "Der Nutzer erfaehrt nicht, dass nichts geschrieben wurde. Gelesen wurde: "
+                + string.Join(" | ", prompt.Informs.Select(i => i.Message)));
+
+            StringAssert.Contains(prompt.Informs[0].Message, "nicht geschrieben",
+                "Die Meldung sagt nicht, was schiefging: " + prompt.Informs[0].Message);
+
+            Assert.IsFalse(prompt.Informs[0].Message.Contains("wurde exportiert", StringComparison.Ordinal),
+                "Der Export meldet Erfolg, obwohl er scheiterte: " + prompt.Informs[0].Message);
+
+            TestEnvironment.ThrowIfAnythingWasSwallowed();
         }
 
         /// <summary>

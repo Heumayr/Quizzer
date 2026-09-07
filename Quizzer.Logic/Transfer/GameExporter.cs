@@ -137,7 +137,12 @@ namespace Quizzer.Logic.Transfer
 
             dokument.Medien.AddRange(medien.Values);
 
-            Schreibe(zieldatei, dokument, inhalte);
+            // Auf einen Hintergrundfaden: das Packen ist der lange Teil des Exports - jede
+            // Mediendatei geht durch die Zip-Kompression, und ein Buendel mit Bildern wird
+            // schnell zweistellig in Megabyte. Alles darueber laeuft ueber await und gibt die
+            // Oberflaeche frei; dieser Aufruf lief bis 2026-09-07 im Fortsetzungszusammenhang
+            // des Aufrufers, also auf dem Oberflaechenfaden - das Fenster stand solange.
+            await Task.Run(() => Schreibe(zieldatei, dokument, inhalte));
 
             return new Ergebnis(fragen.Count, inhalte.Count, fehlend, new FileInfo(zieldatei).Length);
         }

@@ -51,7 +51,12 @@ namespace Quizzer.Logic.Transfer
             Guid? moderatorId,
             IReadOnlyList<Guid> mitspielerIds)
         {
-            var (dokument, dateien) = Lies(quelldatei);
+            // Auf einen Hintergrundfaden, und zwar aus demselben Grund wie beim Export: das
+            // Entpacken ist der lange Teil. Schlimmer noch - dieser Aufruf stand als ERSTE
+            // Anweisung vor jedem await und lief damit vollstaendig synchron auf dem Faden des
+            // Aufrufers. Beim Import eines Buendels mit Bildern stand das Fenster still, bevor
+            // ueberhaupt etwas geschah (2026-09-07).
+            var (dokument, dateien) = await Task.Run(() => Lies(quelldatei));
 
             // Erst die Medien ablegen - der Tresor vergibt die Namen, nicht das Buendel.
             var medienNamen = new Dictionary<string, string>(StringComparer.Ordinal);
