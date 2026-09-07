@@ -6,6 +6,8 @@ using Quizzer.Views.GameViews.QuestionViews.Typed;
 using Quizzer.Views.GameViews.QuestionViews.Typed.Media;
 using System.IO;
 using System.Windows;
+using System.Windows.Media;
+using Quizzer.Views.StaticRessources;
 
 namespace Quizzer.UnitTests.Views
 {
@@ -173,5 +175,51 @@ namespace Quizzer.UnitTests.Views
 
             Assert.IsNotNull(hinweis, "Das Vorschaufenster bleibt schwarz und sagt nichts.");
         }
+        /// <summary>
+        /// <b>Was die Einstellungsmaske über fehlende Bilder sagt, muss stimmen.</b>
+        /// <para>
+        /// Bis 2026-09-07 stand dort: „Fehlt eine Datei, weicht die Anzeige auf den
+        /// Auslieferungsstand aus." <b>Das ist falsch</b> - der Auslieferungsstand <i>sind</i>
+        /// genau diese Dateien; es gibt im Programm kein zweites Bild, auf das ausgewichen
+        /// werden könnte. Fehlt eines, bleibt die Fläche <b>schwarz</b>. Nur umgekehrt stimmt es:
+        /// einem Design, dem eine Textur fehlt, hilft der Auslieferungsstand aus.
+        /// </para>
+        /// <para>
+        /// Diese Zusicherung hält die <i>Behauptung</i> an der <i>Messung</i> fest. Ändert jemand
+        /// den Rückfall, wird sie rot - und der Satz in der Maske kommt wieder auf den Tisch.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void AMissingBackgroundStaysBlack()
+        {
+            var fehlend = Path.Combine(
+                Path.GetTempPath(), "gibtesnicht-" + Guid.NewGuid() + ".png");
+
+            Assert.IsFalse(File.Exists(fehlend), "Die Probe braucht eine Datei, die es NICHT gibt.");
+
+            Brush ohneDatei = Brushes.Transparent;
+            Brush mitRueckfall = Brushes.Transparent;
+
+            UiTestHost.Run(() =>
+            {
+                ohneDatei = StaticResources.CreateImageBrushOrFallback(
+                    fehlend, Stretch.Fill, Brushes.Black);
+
+                // Die Gegenrichtung, und sie traegt den zweiten Halbsatz der Maske: mit einem
+                // anderen Rueckfall kommt AUCH dieser heraus - der Rueckfall ist wirklich der
+                // Parameter und nicht fest verdrahtetes Schwarz.
+                mitRueckfall = StaticResources.CreateImageBrushOrFallback(
+                    fehlend, Stretch.Fill, Brushes.Red);
+            });
+
+            Assert.AreSame(Brushes.Black, ohneDatei,
+                "Eine fehlende Datei ergibt nicht mehr Schwarz. Dann stimmt der Satz in der "
+                + "Einstellungsmaske nicht mehr - er gehoert nachgezogen.");
+
+            Assert.AreSame(Brushes.Red, mitRueckfall,
+                "Der Rueckfall wird nicht benutzt - dann koennte ein Design seine fehlende "
+                + "Textur nicht vom Auslieferungsstand borgen.");
+        }
+
     }
 }

@@ -34,7 +34,7 @@
 
                 <TextBlock Text="{Binding DatenordnerHinweis}" FontSize="12" Opacity="0.8" Margin="2,0,0,0" />
                 <TextBlock FontSize="12" Opacity="0.8" Margin="2,2,0,16" TextWrapping="Wrap"
-                           Text="Hier liegen Bilder, Medien und Designs. Fehlt eine Datei, weicht die Anzeige auf den Auslieferungsstand aus." />
+                           Text="Hier liegen Bilder, Medien und Designs. Fehlt eines der Hintergrundbilder, bleibt die Fläche schwarz - nur einem Design, dem eine Textur fehlt, hilft der Auslieferungsstand aus." />
 
                 <TextBlock Style="{StaticResource SectionHeader}" Text="Datenbank" />
 
