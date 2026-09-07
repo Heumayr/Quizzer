@@ -33,6 +33,7 @@
             <MediaElement x:Name="VideoViewer"
                           LoadedBehavior="Manual"
                           UnloadedBehavior="Manual"
+                          MediaFailed="VideoViewer_MediaFailed"
                           Stretch="Uniform"
                           Visibility="Collapsed" />
         </Grid>

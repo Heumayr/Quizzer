@@ -84,6 +84,30 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed.Media
             }
         }
 
+        /// <summary>
+        /// Ein Video, das sich nicht abspielen lässt, sagt es - statt als schwarzes, stummes
+        /// Fenster dazustehen.
+        /// <para>
+        /// <b>Es gab im ganzen Projekt keinen einzigen <c>MediaFailed</c>-Behandler</b>
+        /// (2026-09-07 nachgemessen). <c>MediaElement</c> wirft dabei nicht: das Ereignis läuft
+        /// die Baumhierarchie hoch, und wenn es niemand nimmt, geschieht <b>nichts</b>. Genau so
+        /// verhält sich ein <c>.webm</c> ohne die Windows-Erweiterung.
+        /// </para>
+        /// <para>
+        /// Derselbe Weg wie beim unlesbaren Bild eine Zeile darüber - dieselbe Textzeile,
+        /// dieselbe Stelle.
+        /// </para>
+        /// </summary>
+        private void VideoViewer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+            VideoViewer.Visibility = Visibility.Collapsed;
+
+            Hinweis.Text = "Dieses Medium lässt sich nicht abspielen: "
+                + System.IO.Path.GetFileName(FilePath);
+
+            Hinweis.Visibility = Visibility.Visible;
+        }
+
         public void StartPlayback()
         {
             if (ResourceType == ResourceType.Video)

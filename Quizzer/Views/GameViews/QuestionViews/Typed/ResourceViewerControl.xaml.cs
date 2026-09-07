@@ -243,6 +243,34 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
             MediaContainer.Visibility = Visibility.Visible;
         }
 
+        /// <summary>
+        /// Ein Medium, das sich nicht abspielen lässt, sagt es - statt als schwarze, stumme
+        /// Fläche dazustehen.
+        /// <para>
+        /// <b>Es gab im ganzen Projekt keinen einzigen <c>MediaFailed</c>-Behandler</b>
+        /// (2026-09-07 nachgemessen). <c>MediaElement</c> wirft dabei nicht: das Ereignis läuft
+        /// die Baumhierarchie hoch, und wenn es niemand nimmt, geschieht <b>nichts</b>. Der
+        /// Spielleiter drückt „Abspielen", es passiert nichts, und niemand erfährt warum. Genau
+        /// so verhält sich ein <c>.webm</c> ohne die Windows-Erweiterung.
+        /// </para>
+        /// <para>
+        /// Derselbe Weg wie beim unlesbaren Bild: die Fläche verschwindet, der Satz erscheint.
+        /// Ein Fehlerfenster mit Stapelspur wäre mitten im Abend das Gegenteil von Hilfe.
+        /// </para>
+        /// </summary>
+        private void MediaPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+            var name = MediaPlayer.Source == null
+                ? "Die Datei"
+                : Path.GetFileName(MediaPlayer.Source.LocalPath);
+
+            MediaPlayerBorder.Visibility = Visibility.Collapsed;
+            MediaControls.Visibility = Visibility.Collapsed;
+            MediaContainer.Visibility = Visibility.Visible;
+
+            ZeigeHinweis($"Dieses Medium lässt sich nicht abspielen: {name}");
+        }
+
         private void ShowDocument()
         {
             DocumentContainer.Visibility = Visibility.Visible;

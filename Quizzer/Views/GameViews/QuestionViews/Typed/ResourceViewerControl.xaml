@@ -66,6 +66,7 @@
                     <MediaElement x:Name="MediaPlayer"
                                   LoadedBehavior="Manual"
                                   UnloadedBehavior="Manual"
+                                  MediaFailed="MediaPlayer_MediaFailed"
                                   Stretch="Uniform" />
                 </Grid>
             </Border>
