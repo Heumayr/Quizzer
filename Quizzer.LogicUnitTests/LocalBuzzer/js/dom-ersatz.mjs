@@ -51,8 +51,11 @@ class Element {
     get innerHTML() { return ""; }
 
     appendChild(kind) { this.children.push(kind); return kind; }
+    append(...kinder) { kinder.forEach(k => this.children.push(k)); }
+    focus() { }
     setAttribute(name, wert) { this.attribute.set(name, String(wert)); }
     getAttribute(name) { return this.attribute.get(name) ?? null; }
+    removeAttribute(name) { this.attribute.delete(name); }
     addEventListener(name, fn) { (this.hoerer[name] ??= []).push(fn); }
     removeEventListener(name, fn) {
         this.hoerer[name] = (this.hoerer[name] ?? []).filter(f => f !== fn);
@@ -73,7 +76,18 @@ class Element {
 }
 
 export function baueDom() {
-    const dokument = { createElement: tag => new Element(tag) };
+    // helpers.js liest beim Laden fuenf Elemente ueber getElementById - ohne sie wirft schon
+    // der Import. Sie werden nur gehalten, nicht geprueft.
+    const nachName = new Map();
+
+    const dokument = {
+        createElement: tag => new Element(tag),
+        getElementById(id) {
+            if (!nachName.has(id)) nachName.set(id, new Element("div"));
+            return nachName.get(id);
+        },
+        cookie: ""
+    };
 
     globalThis.document = dokument;
     globalThis.window = { show_toast() {} };

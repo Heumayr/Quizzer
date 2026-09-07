@@ -77,5 +77,25 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// </summary>
         [TestMethod]
         public void TheKeySelectLayoutSurvivesARoundReset() => LaufeMit("keySelectLayout.test.mjs");
+
+        /// <summary>
+        /// Die Schätzfrage: abgeben, den Tipp sehen, und nach „Runde zurücksetzen" von vorn.
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> nach dem Zurücksetzen stand weiter „Abgegeben: 42" im
+        /// Feld, obwohl die Abgabe serverseitig gelöscht war.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void TheInputLayoutSurvivesARoundReset() => LaufeMit("inputLayout.test.mjs");
+
+        /// <summary>
+        /// Der Buzzer: ein zweiter Druck sendet nichts mehr, und die neue Runde geht wieder.
+        /// <para>
+        /// Die lokale Sperre <b>vor</b> dem Senden ist der Kern - ohne sie zählt eine Runde
+        /// zwei Buzzer desselben Spielers.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void TheBuzzerLayoutLocksAfterOnePress() => LaufeMit("buzzerLayout.test.mjs");
     }
 }
