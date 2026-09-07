@@ -69,8 +69,10 @@ namespace Quizzer.Base
 
             using var bitmap = LoadBitmap(sourceFilePath);
 
+            // LoadBitmap wirft selbst, wenn es nicht geht - diese Pruefung ist der Guertel
+            // neben den Hosentraegern und kostet nichts.
             if (bitmap == null)
-                throw new InvalidOperationException("Image could not be loaded.");
+                throw UnlesbaresBild(sourceFilePath);
 
             using var finalBitmap = cutSquare ? CropToMaxSquare(bitmap) : CopyBitmap(bitmap);
             SaveBitmapAsPng(finalBitmap, targetFilePath, allowOverride);
@@ -85,13 +87,38 @@ namespace Quizzer.Base
             SaveAsPng(sourceFilePath, targetFilePath, allowOverride, cutSquare);
         }
 
+        /// <summary>
+        /// Die Ausnahme für ein Bild, das sich nicht lesen lässt - <b>mit einem Satz, den der
+        /// Spielleiter versteht, und mit dem Dateinamen</b>.
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> hier standen drei verschiedene englische Brocken
+        /// („Image could not be read.", „Image could not be decoded: …", „Image could not be
+        /// loaded."). Sie landen über die Fänger der drei Bildwähler <b>vor dem Nutzer</b> -
+        /// und dort ist ein solcher Satz keine Hilfe, sondern nur ein Rätsel mehr.
+        /// </para>
+        /// <para>
+        /// Ausgelöst wird das von einer Datei, die zwar die Endung eines Bildes trägt, deren
+        /// Inhalt SkiaSharp aber nicht dekodieren kann - ein CMYK-JPEG etwa, oder eine
+        /// umbenannte Datei.
+        /// </para>
+        /// </summary>
+        private static InvalidOperationException UnlesbaresBild(
+            string sourceFilePath, string? grund = null)
+            => new(
+                "Das Bild lässt sich nicht lesen: "
+                + Path.GetFileName(sourceFilePath)
+                + Environment.NewLine + Environment.NewLine
+                + "Die Datei trägt die Endung eines Bildes, ihr Inhalt ist aber keines "
+                + "oder in einer Spielart, die das Programm nicht öffnen kann."
+                + (string.IsNullOrWhiteSpace(grund) ? string.Empty : $" ({grund})"));
+
         private static SKBitmap LoadBitmap(string sourceFilePath)
         {
             using var input = File.OpenRead(sourceFilePath);
             using var codec = SKCodec.Create(input);
 
             if (codec == null)
-                throw new InvalidOperationException("Image could not be read.");
+                throw UnlesbaresBild(sourceFilePath);
 
             var info = codec.Info
                 .WithColorType(SKColorType.Rgba8888)
@@ -103,7 +130,7 @@ namespace Quizzer.Base
             if (result != SKCodecResult.Success && result != SKCodecResult.IncompleteInput)
             {
                 bitmap.Dispose();
-                throw new InvalidOperationException($"Image could not be decoded: {result}");
+                throw UnlesbaresBild(sourceFilePath, result.ToString());
             }
 
             return bitmap;

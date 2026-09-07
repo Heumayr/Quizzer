@@ -74,7 +74,8 @@ namespace Quizzer.Base
     /// </summary>
     public static class FilePicker
     {
-        private static IFilePicker current = new WindowsFilePicker();
+        private static IFilePicker standard = new WindowsFilePicker();
+        private static IFilePicker current = standard;
 
         public static IFilePicker Current
         {
@@ -82,8 +83,25 @@ namespace Quizzer.Base
             set => current = value ?? throw new ArgumentNullException(nameof(value));
         }
 
+        /// <summary>
+        /// Legt fest, worauf <see cref="Reset"/> zurueckfaellt. <b>Nur fuer Testlaeufe.</b>
+        /// <para>
+        /// <b>Dieselbe Falle wie bei <c>UserPrompt</c>, und sie hat am 2026-09-07 zweimal
+        /// zugeschlagen.</b> Der Rueckfallwert war fest der echte Windows-Dialog. Eine
+        /// Zusicherung, die einen Dateiwaehler ausloest, ohne <see cref="Current"/> zu tauschen,
+        /// oeffnete damit ein echtes Dateifenster im Testprozess - der Lauf blieb stehen, ohne
+        /// rot zu werden. Beim Meldungsfenster war wenigstens ein sichtbares Fenster da; hier
+        /// ist nicht einmal das zu sehen.
+        /// </para>
+        /// </summary>
+        internal static void UseAsDefaultForTests(IFilePicker? ersatz)
+        {
+            standard = ersatz ?? new WindowsFilePicker();
+            current = standard;
+        }
+
         /// <summary>Setzt auf die echten Dialoge zurueck.</summary>
-        public static void Reset() => current = new WindowsFilePicker();
+        public static void Reset() => current = standard;
 
         public static string? AskForSaveTarget(string titel, string vorschlag, string filter)
             => Current.AskForSaveTarget(titel, vorschlag, filter);

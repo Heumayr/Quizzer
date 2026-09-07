@@ -46,6 +46,11 @@ namespace Quizzer.UnitTests
             // haelt den Lauf an, ohne rot zu werden und ohne einen Namen zu nennen.
             UserPrompt.UseAsDefaultForTests(new ThrowingUserPrompt());
 
+            // Dasselbe fuer Dateidialoge, und aus dem teureren Grund: ein echter
+            // Dateidialog im Testprozess haelt den Lauf an, OHNE ein sichtbares Fenster
+            // zu hinterlassen.
+            FilePicker.UseAsDefaultForTests(new ThrowingFilePicker());
+
             ExceptionManager.Handler = ex =>
             {
                 lock (SwallowedExceptions)
@@ -76,6 +81,9 @@ namespace Quizzer.UnitTests
             // werfende Fassung stehen.
             UserPrompt.UseAsDefaultForTests(null);
             UserPrompt.Reset();
+
+            FilePicker.UseAsDefaultForTests(null);
+            FilePicker.Reset();
         }
 
         /// <summary>

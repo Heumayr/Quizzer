@@ -200,8 +200,24 @@ namespace Quizzer.Views.QuestionTypes
 
             // Ueber denselben Weg wie ein Schritt-Medium: die Datei landet im Ressourcenordner
             // und bekommt dort ihren Namen.
-            var (dateiname, _) = FileHelper.HandleSelectedResourceFile(
-                quelle, Settings.ResourceRootFolder);
+            //
+            // Die Endung stimmt hier bereits (IstBild hat geprueft) - der INHALT kann trotzdem
+            // unlesbar sein. SkiaSharp wirft dann, und ohne diesen Faenger stuende ein
+            // Fehlerfenster mit Stapelspur da. Gemessen 2026-09-07.
+            string dateiname;
+
+            try
+            {
+                (dateiname, _) = FileHelper.HandleSelectedResourceFile(
+                    quelle, Settings.ResourceRootFolder);
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or IOException
+                                          or UnauthorizedAccessException or NotSupportedException)
+            {
+                UserPrompt.Inform(ex.Message, "Bild wählen");
+
+                return;
+            }
 
             bilddatei = dateiname;
 

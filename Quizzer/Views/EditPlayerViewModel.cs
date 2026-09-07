@@ -135,29 +135,28 @@ namespace Quizzer.Views
             if (string.IsNullOrWhiteSpace(rootFolder))
                 throw new InvalidOperationException("Root folder was not provided.");
 
-            var dialog = new OpenFileDialog
-            {
-                Title = "Ressource auswählen",
-                CheckFileExists = true,
-                CheckPathExists = true,
-                Multiselect = false,
-                // Kein "Alle Dateien" mehr: eine Nicht-Bilddatei wurde erst in den Datenordner
-                // KOPIERT und danach abgewiesen - sie blieb als Leiche liegen. Und eine
-                // unbekannte Endung liess DetectResourceType werfen, also ein Fehlerfenster mit
-                // Stapelspur statt der vorgesehenen Meldung. Gemessen 2026-09-07.
-                Filter = "Bilder|*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp"
-            };
+            // Ueber FilePicker, nicht ueber einen eigenen OpenFileDialog. Das war bis
+            // 2026-09-07 die EINZIGE Stelle im Programm, die den Dialog selbst aufmachte -
+            // und damit die einzige, die sich nicht pruefen liess: eine Zusicherung darauf
+            // oeffnete im Testlauf ein echtes Dateifenster und blieb stehen. Gefunden genau
+            // so, beim Versuch, diesen Weg abzusichern.
+            //
+            // Kein "Alle Dateien": eine Nicht-Bilddatei wurde erst in den Datenordner KOPIERT
+            // und danach abgewiesen - sie blieb als Leiche liegen. Und eine unbekannte Endung
+            // liess DetectResourceType werfen, also ein Fehlerfenster mit Stapelspur statt der
+            // vorgesehenen Meldung.
+            var quelle = FilePicker.AskForExistingFile(
+                "Ressource auswählen",
+                "Bilder|*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp");
 
-            var result = dialog.ShowDialog();
-
-            if (result != true || string.IsNullOrWhiteSpace(dialog.FileName))
+            if (string.IsNullOrWhiteSpace(quelle))
                 return;
 
             // Geprueft wird an der QUELLE, vor dem Kopieren.
-            if (!IstBild(dialog.FileName))
+            if (!IstBild(quelle))
             {
                 UserPrompt.Inform(
-                    "Das ist keine Bilddatei: " + Path.GetFileName(dialog.FileName)
+                    "Das ist keine Bilddatei: " + Path.GetFileName(quelle)
                     + Environment.NewLine + Environment.NewLine
                     + "Ein Mitspielerbild braucht PNG, JPG, BMP, GIF oder WEBP.",
                     "Bild wählen");
@@ -165,7 +164,23 @@ namespace Quizzer.Views
                 return;
             }
 
-            var file = FileHelper.HandleSelectedResourceFile(dialog.FileName, rootFolder, Player.Id.ToString(), true, true);
+            // Die Endung stimmt, der Inhalt kann trotzdem unlesbar sein - SkiaSharp wirft
+            // dann, und ohne diesen Faenger stuende ein Fehlerfenster mit Stapelspur da.
+            // Gemessen 2026-09-07: dieselbe Luecke wie beim Aufdeck-Bildwaehler.
+            (string Filename, ResourceType Type) file;
+
+            try
+            {
+                file = FileHelper.HandleSelectedResourceFile(
+                    quelle, rootFolder, Player.Id.ToString(), true, true);
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or IOException
+                                          or UnauthorizedAccessException or NotSupportedException)
+            {
+                UserPrompt.Inform(ex.Message, "Bild wählen");
+
+                return;
+            }
 
             Player.UserPictureFileName = file.Filename;
 
