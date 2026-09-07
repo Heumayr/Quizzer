@@ -552,23 +552,6 @@ namespace Quizzer.Views
 
         public bool IsBuilding => Game?.State == GameState.Building;
 
-        public int TestPhase { get; set; }
-
-        private AsyncRelayCommand? refreshGridCommand;
-        public ICommand RefreshGridCommand => refreshGridCommand ??= new AsyncRelayCommand(RefreshGridAsync);
-
-        private async Task RefreshGridAsync(object? commandParameter)
-        {
-            if (Game == null) return;
-
-            foreach (var cell in Game.GameGridCoordinates)
-            {
-                cell.Phase = TestPhase;
-            }
-
-            await RebuildCellsAsync();
-        }
-
         /// <summary>
         /// Loescht alle Ergebnisse eines Spiels und setzt die Zellen zurueck.
         /// </summary>
