@@ -4,7 +4,9 @@ using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Logic.Controller.TypedControllers;
+using Quizzer.Views.BuzzerViews;
 using Quizzer.Views.GameViews;
+using Quizzer.Views.StaticRessources;
 using System.Windows;
 
 namespace Quizzer.UnitTests.PlayThrough
@@ -131,6 +133,41 @@ namespace Quizzer.UnitTests.PlayThrough
 
             Assert.AreEqual(Visibility.Visible, vm.BuzzerFehltVisibility,
                 "Der Hinweis ist eingeklappt.");
+        }
+
+        /// <summary>
+        /// <b>Auch nach einem gestoppten Server steht der Hinweis da.</b>
+        /// <para>
+        /// <b>Gefunden im zweiten Prüfblick, 2026-09-07:</b> der erste Anlauf desselben Tages
+        /// prüfte <c>BuzzerControlsViewModel == null</c> - und das wird beim Stoppen nie null,
+        /// es wird nur entsorgt. Nach „Server beenden" (oder nach dem Schließen des
+        /// Spielfensters, das ihn mit beendet) blieb der Hinweis damit aus, obwohl genau dann
+        /// nichts mehr läuft. Gemessen wird jetzt der <b>Serverzustand</b>.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task AStoppedServerAlsoRaisesTheWarning()
+        {
+            // Genau der Zustand nach einem Stopp: das ViewModel steht noch da, entsorgt.
+            var serverVm = StaticManager.BuzzerServerViewModel;
+
+            serverVm.BuzzerControlsViewModel?.Dispose();
+            serverVm.BuzzerControlsViewModel = new BuzzerControlsViewModel();
+
+            try
+            {
+                var vm = new TestableCurrentQuestionViewModel { Coordinate = world.Coordinate };
+
+                await vm.LoadForTestAsync();
+
+                Assert.IsTrue(vm.BuzzerFehlt,
+                    "Nach einem gestoppten Server bleibt der Hinweis aus - das Fragefenster ist "
+                    + "modal, der Spielleiter kommt an das Buzzer-Fenster gar nicht mehr heran.");
+            }
+            finally
+            {
+                serverVm.BuzzerControlsViewModel = null;
+            }
         }
 
         /// <summary>

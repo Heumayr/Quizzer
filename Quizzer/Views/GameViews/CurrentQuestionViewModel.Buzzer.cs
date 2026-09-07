@@ -2,6 +2,7 @@ using LocalBuzzer.Service.Base.States;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.Extentions;
+using Quizzer.Views.StaticRessources;
 using System.Collections.Concurrent;
 using System.Windows;
 
@@ -22,9 +23,16 @@ namespace Quizzer.Views.GameViews
         /// modal - der Spielleiter kam an das Buzzer-Fenster gar nicht mehr heran und musste
         /// erst die Frage schliessen. Auf dem Bildschirm stand kein Grund.
         /// </para>
+        /// <para>
+        /// <b>Gemessen wird der SERVERZUSTAND, nicht das Vorhandensein des ViewModels.</b> Der
+        /// erste Anlauf am selben Tag prüfte <c>BuzzerControlsViewModel == null</c> - und das
+        /// wird beim Stoppen nie null, es wird nur entsorgt. Nach „Server beenden" (oder nach
+        /// dem Schließen des Spielfensters, das ihn mit beendet) blieb der Hinweis damit aus,
+        /// obwohl genau dann nichts mehr läuft.
+        /// </para>
         /// </summary>
         public bool BuzzerFehlt =>
-            BuzzerControlsViewModel == null
+            StaticManager.BuzzerServerViewModel?.IsBuzzerServerRunning != true
             && (Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None) != BuzzerControlsLayout.None;
 
         /// <summary>Der Satz dazu - leer, solange nichts fehlt.</summary>

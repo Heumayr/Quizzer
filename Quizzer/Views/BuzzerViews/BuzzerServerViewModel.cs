@@ -333,7 +333,12 @@ namespace Quizzer.Views.BuzzerViews
             {
                 ServerState = (ServerState | ServerState.Stopping) & ~ServerState.Starting;
 
+                // Auch leeren, nicht nur entsorgen: das Fragefenster bindet es als
+                // DataContext (QuestionMasterView.xaml), und ein entsorgter Stand haengt sonst
+                // weiter in der Oberflaeche. Gemessen 2026-09-07 - ein "= null" gab es in
+                // dieser Datei an keiner Stelle.
                 BuzzerControlsViewModel?.Dispose();
+                BuzzerControlsViewModel = null;
 
                 await _server.StopAsync();
 
