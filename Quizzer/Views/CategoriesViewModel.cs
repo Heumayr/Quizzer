@@ -16,12 +16,28 @@ namespace Quizzer.Views
 
         public ObservableCollection<Category> Categories { get; set; } = new();
 
+        /// <summary>
+        /// Schreibt die Liste. <b>Leere Zeilen werden übergangen.</b>
+        /// <para>
+        /// <b>Gemessen 2026-09-07:</b> das Raster legt eine neue Zeile schon beim Hineinklicken
+        /// an (<c>CanUserAddRows</c>), und eine ohne Bezeichnung wurde anstandslos gespeichert.
+        /// Sie stand danach als <b>leerer Eintrag in der Kategorieauswahl jeder Frage</b> —
+        /// dieselbe Familie wie der Mitspieler ohne Namen, der in der Anmeldung vorgewählt war.
+        /// </para>
+        /// <para>
+        /// <b>Übergangen, nicht abgewiesen:</b> die leere Zeile entsteht durch bloßes Klicken,
+        /// nicht durch eine Absicht. Eine Rückfrage darauf wäre Lärm.
+        /// </para>
+        /// </summary>
         public async Task SaveCategoriesAsync()
         {
             using var ctrl = new CategoriesController();
 
             foreach (var category in Categories)
             {
+                if (string.IsNullOrWhiteSpace(category.Designation))
+                    continue;
+
                 await ctrl.UpsertAsync(category);
             }
 
