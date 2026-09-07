@@ -81,11 +81,33 @@ namespace Quizzer.Logic.Controller.TypedControllers
             {
                 foreach (var result in entity.QuestionResults)
                 {
-                    // set up references after load
+                    // Rueckverweise nach dem Laden setzen.
                     result.Game = entity;
-                    result.Player = entity.Players.FirstOrDefault(p => p.Id == result.PlayerId)!; //must be existend!
-                    result.GameGridCoordinate = entity.GameGridCoordinates.FirstOrDefault(c => c.Id == result.GameGridCoordinateId)!; //must be existend!
-                    result.QuestionBase = result.GameGridCoordinate.QuestionBase!; //must be existend!
+
+                    // ACHTUNG: DAS KANN NULL SEIN, und der Kommentar hier behauptete bis
+                    // 2026-09-07 das Gegenteil ("must be existend!"). Wer aus dem Spiel
+                    // genommen wurde, steht nicht mehr in der Mannschaft - seine
+                    // Ergebniszeilen bleiben aber. In der Spieldatenbank lagen drei solche
+                    // Zeilen, und "Naechster waehlt aus" fiel darueber mit einer
+                    // NullReferenceException.
+                    // WER DIESE EIGENSCHAFT LIEST, FILTERT AUF null. So machen es
+                    // GameGridCoordinateViewModel.WinnerEntries und
+                    // CurrentQuestionViewModel.CoordinateCorrectedAnsweredPlayers.
+                    result.Player = entity.Players.FirstOrDefault(p => p.Id == result.PlayerId)!;
+
+                    // Diese beiden sind gedeckt, und zwar durch den Weg hierher:
+                    // Game.QuestionResults rechnet sich aus GameGridCoordinates.SelectMany,
+                    // jedes Ergebnis haengt also an einer geladenen Zelle und wird hier immer
+                    // gefunden. GEMESSEN 2026-09-07: ein Null-Schutz an dieser Stelle wurde
+                    // absichtlich ausgebaut und die Zusicherung blieb gruen - er waere eine
+                    // Vorsicht ohne belegten Anlass.
+                    // Die Frage der Zelle DARF null sein (leere Zelle), das traegt QuestionBase
+                    // als nullbarer Rueckverweis.
+                    var zelle = entity.GameGridCoordinates
+                        .First(c => c.Id == result.GameGridCoordinateId);
+
+                    result.GameGridCoordinate = zelle;
+                    result.QuestionBase = zelle.QuestionBase!;
                 }
             }
 
