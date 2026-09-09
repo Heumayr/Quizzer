@@ -18,7 +18,7 @@ namespace Quizzer.Views.GameViews
         /// <summary>
         /// Die harten Voraussetzungen. Fehlt eine, startet das Spiel nicht.
         /// </summary>
-        private static bool Startbar(Game dbGame)
+        internal static bool Startbar(Game dbGame)
         {
             // Ueber UserPrompt statt MessageBox.Show: der Weg ist in Tests austauschbar, und
             // ein ViewModel soll kein Fenster kennen. Umgestellt 2026-09-06, dabei ins Deutsche.
