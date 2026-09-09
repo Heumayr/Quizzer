@@ -1,4 +1,4 @@
-using Quizzer.Base;
+﻿using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Questions;
@@ -91,6 +91,7 @@ namespace Quizzer.Views.GameViews
         private static async Task<bool> UnspielbareFragenAbgeklaertAsync(Game dbGame)
         {
             var beanstandet = new List<string>();
+            var angemerkt = new List<string>();
 
             using (var ctrl = new QuestionBasesController())
             {
@@ -104,29 +105,72 @@ namespace Quizzer.Views.GameViews
                         continue;
                     }
 
-                    var fehler = QuestionValidator.Validate(frage)
-                        .Where(i => i.IsError)
-                        .Select(i => i.Message)
-                        .ToList();
+                    var geprueft = QuestionValidator.Validate(frage).ToList();
+
+                    var fehler = geprueft.Where(i => i.IsError).Select(i => i.Message).ToList();
 
                     if (fehler.Count > 0)
                         beanstandet.Add($"{frage.Designation}: {string.Join(" ", fehler)}");
+
+                    var warnungen = geprueft.Where(i => !i.IsError).Select(i => i.Message).ToList();
+
+                    if (warnungen.Count > 0)
+                        angemerkt.Add($"{frage.Designation}: {string.Join(" ", warnungen)}");
                 }
             }
 
-            if (beanstandet.Count == 0)
+            return StartFreigegeben(beanstandet, angemerkt);
+        }
+
+        /// <summary>
+        /// Legt dem Spielleiter vor, was an den Fragen auffiel - und lässt ihn entscheiden.
+        /// <para>
+        /// <b>Die Warnungen kamen am 2026-09-09 dazu.</b> Bis dahin filterte der Spielstart auf
+        /// <c>IsError</c>, und alles Schwächere blieb ungesagt - <i>sichtbar wurde es damit erst
+        /// vor Gästen.</i> Gemessen am selben Tag über alle drei Spiele: <b>drei</b> Warnungen
+        /// im ganzen Bestand, und der Demo-Abend trägt <b>keine</b>. Die Anzeige kostet also
+        /// nichts und deckt den Fall, für den es sie gibt.
+        /// </para>
+        /// <para>
+        /// <b>Zwei Sätze, nicht einer:</b> ein Fehler heißt „lässt sich nicht ordentlich
+        /// spielen", eine Warnung heißt „fällt vielleicht auf". Beides in einen Topf zu werfen
+        /// macht aus jeder Kleinigkeit einen Defekt - und aus jedem Defekt eine Kleinigkeit.
+        /// </para>
+        /// </summary>
+        internal static bool StartFreigegeben(List<string> beanstandet, List<string> angemerkt)
+        {
+            if (beanstandet.Count == 0 && angemerkt.Count == 0)
                 return true;
 
-            var satz = beanstandet.Count == 1
-                ? "Eine Frage im Spielfeld lässt sich nicht ordentlich spielen:"
-                : $"{beanstandet.Count} Fragen im Spielfeld lassen sich nicht ordentlich spielen:";
+            var text = new List<string>();
 
-            return UserPrompt.Confirm(
-                satz + Environment.NewLine + Environment.NewLine
-                + string.Join(Environment.NewLine, beanstandet)
-                + Environment.NewLine + Environment.NewLine
-                + "Trotzdem starten? Die übrigen Zellen sind davon nicht betroffen.",
-                "Spiel starten");
+            if (beanstandet.Count > 0)
+            {
+                text.Add(beanstandet.Count == 1
+                    ? "Eine Frage im Spielfeld lässt sich nicht ordentlich spielen:"
+                    : $"{beanstandet.Count} Fragen im Spielfeld lassen sich nicht ordentlich spielen:");
+
+                text.Add(string.Empty);
+                text.AddRange(beanstandet);
+            }
+
+            if (angemerkt.Count > 0)
+            {
+                if (text.Count > 0)
+                    text.Add(string.Empty);
+
+                text.Add(angemerkt.Count == 1
+                    ? "Und eines fällt am Abend vielleicht auf:"
+                    : $"Und {angemerkt.Count} Dinge fallen am Abend vielleicht auf:");
+
+                text.Add(string.Empty);
+                text.AddRange(angemerkt);
+            }
+
+            text.Add(string.Empty);
+            text.Add("Trotzdem starten? Die übrigen Zellen sind davon nicht betroffen.");
+
+            return UserPrompt.Confirm(string.Join(Environment.NewLine, text), "Spiel starten");
         }
 
         /// <summary>

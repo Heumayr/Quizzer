@@ -264,6 +264,12 @@ namespace Quizzer.DataModels.Questions
         /// sperren und den gesamten Bestand an Standardfragen beim naechsten Oeffnen
         /// unspeicherbar machen - der Typ hatte bis zum Umbau gar kein Feld dafuer.
         /// </para>
+        /// <para>
+        /// <b>Gemessen am 2026-09-09 an der Spieldatenbank, und die Warnung war zweimal
+        /// falsch:</b> sie traf die Schaetzfrage <c>Hi</c> und <c>Appre Frage</c> - beide zeigen
+        /// ihre Aufloesung sehr wohl, nur eben nicht ueber einen Schritt. Der Satz „die
+        /// Mitspieler sehen einen leeren Bildschirm" stimmte dort schlicht nicht.
+        /// </para>
         /// </summary>
         private static void ValidateFinishText(
             QuestionBase question, QuestionTypeProfile profile, List<ValidationIssue> issues)
@@ -271,6 +277,18 @@ namespace Quizzer.DataModels.Questions
             // Wo der Typ ohnehin einen Loesungsschritt verlangt, meldet ResultStepMissing schon;
             // eine zweite Zeile dazu waere nur Laerm.
             if (profile.RequiresResultStep)
+                return;
+
+            // Die Schaetzfrage bringt ihre Aufloesung selbst mit: der Abschlussbildschirm zeigt
+            // den Sollwert, ohne dass ein Schritt dafuer noetig waere
+            // (QuestionStepViewContext.AppreciateExpectedVisibility schaltet bei IsFinish frei).
+            if (profile.ShowExpectedValue)
+                return;
+
+            // Und wo die Punkte je Hinweis sinken, verlangt FinishStepMissing den gefuellten
+            // Aufloesungsschritt bereits als FEHLER (F16) - dieselbe Sache zweimal zu melden
+            // macht die schwaechere Meldung zur Gewohnheit.
+            if (question.UseProportionalScoreReductionOnStep)
                 return;
 
             var steps = question.Steps ?? new List<QuestionStepResource>();
