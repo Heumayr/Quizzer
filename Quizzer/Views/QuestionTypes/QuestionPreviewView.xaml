@@ -39,6 +39,13 @@
                 <StackPanel Grid.Column="0" VerticalAlignment="Center">
                     <TextBlock Text="{Binding Standanzeige}" FontWeight="Bold" />
                     <TextBlock Text="{Binding Bildschirmart}" FontSize="12" Opacity="0.75" />
+
+                    <!-- Der Punkteverlauf (Nutzermeldung M1 vom 2026-09-09): was auf DIESEM
+                         Bildschirm zu holen ist, fuer richtig und fuer falsch. -->
+                    <TextBlock Text="{Binding Punktestand}" FontWeight="Bold" Margin="0,6,0,0"
+                               ToolTip="Was eine Bewertung auf diesem Bildschirm bringt. Bei Hinweisfragen sinkt der Pluswert mit jedem Hinweis; der Minuswert bleibt gleich." />
+                    <TextBlock Text="{Binding PunktestandHinweis}" FontSize="11" Opacity="0.7"
+                               TextWrapping="Wrap" MaxWidth="260" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">

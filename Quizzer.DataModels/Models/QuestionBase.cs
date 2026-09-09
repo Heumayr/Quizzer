@@ -183,6 +183,45 @@ namespace Quizzer.DataModels.Models
         /// Fehlende Start- oder Finish-Schritte werden automatisch ergänzt.
         /// Jedem normalen Schritt wird ein <c>QuestionViewKey</c> zugewiesen.
         /// </summary>
+        /// <summary>
+        /// Wie viele Hinweise auf dem Bildschirm <paramref name="index"/> zu sehen sind - der
+        /// gerade gezeigte zählt mit.
+        /// <para>
+        /// <b>Der gezeigte Schritt zählt mit</b>, und das ist der ganze Punkt: am 2026-09-07 gab
+        /// das Spiel auf dem Bildschirm mit allen drei Hinweisen 68 von 200 Punkten, während der
+        /// Editor daneben „danach noch 2" schrieb - der Abzug hing genau einen Schritt hinterher,
+        /// weil nur die Schritte <i>davor</i> gezählt wurden. Der gerade gezeigte steht aber sehr
+        /// wohl auf dem Beamer.
+        /// </para>
+        /// <para>
+        /// Start-, Frage- und Abschlussbildschirm zählen nicht: sie tragen keinen Hinweis.
+        /// </para>
+        /// </summary>
+        public int GezeigteHinweiseBis(int index)
+        {
+            var geordnet = OrderedSteps;
+
+            if (geordnet.Length == 0)
+                return 0;
+
+            var bis = Math.Clamp(index, 0, geordnet.Length - 1);
+            var gezeigt = 0;
+
+            for (var i = 0; i <= bis; i++)
+            {
+                var schritt = geordnet[i];
+
+                if (!schritt.IsStart && !schritt.IsFinish && !schritt.IsQuestionOnly)
+                    gezeigt++;
+            }
+
+            return gezeigt;
+        }
+
+        /// <summary>Wie viele Hinweise die Frage insgesamt hat - die Bezugsgröße des Abzugs.</summary>
+        public int HinweiseGesamt
+            => OrderedSteps.Count(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly);
+
         public void CalculateOrderdSteps()
         {
             if (Steps == null || !Steps.Any())

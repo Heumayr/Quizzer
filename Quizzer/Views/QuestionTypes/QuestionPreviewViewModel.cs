@@ -1,5 +1,6 @@
-using Quizzer.Base;
+﻿using Quizzer.Base;
 using Quizzer.DataModels.Models;
+using Quizzer.DataModels.Questions;
 using Quizzer.DataModels.Models.Base;
 
 using Quizzer.Views.GameViews;
@@ -60,6 +61,75 @@ namespace Quizzer.Views.QuestionTypes
                 return "Inhaltsschritt";
             }
         }
+
+        /// <summary>
+        /// Was auf diesem Bildschirm zu holen ist - für „richtig" und für „falsch".
+        /// <para>
+        /// <b>Nutzermeldung vom 2026-09-09 (M1):</b> „ein punkt den du aufnehmen kannst ist dass
+        /// in der vorschau auch der punkte lauf ... richtig bzw. falsch angezeigt wird". Die
+        /// Vorschau zeigte die Bildschirme, ohne zu sagen, was auf ihnen zu holen ist - gerade
+        /// dort sieht man die Frage aber so, wie sie am Beamer steht.
+        /// </para>
+        /// <para>
+        /// <b>Gerechnet aus <see cref="Punkteabzug"/></b>, derselben Stelle, aus der das Spiel
+        /// liest - eine zweite Abschrift liefe der ersten davon.
+        /// </para>
+        /// <para>
+        /// <b>Die Minuspunkte sinken nicht mit</b>, und das ist kein Versehen der Anzeige:
+        /// <c>PlayerResultContext</c> nimmt bei „falsch" immer den vollen Wert. Wer früh rät,
+        /// verliert also gleich viel wie einer, der bis zum Schluss wartet.
+        /// </para>
+        /// </summary>
+        public string Punktestand
+        {
+            get
+            {
+                var frage = Question;
+
+                if (frage == null || frage.OrderedSteps.Length == 0)
+                    return string.Empty;
+
+                var schritt = frage.OrderedSteps.ElementAtOrDefault(index);
+
+                if (schritt == null)
+                    return string.Empty;
+
+                var minus = frage.MinusPoints > 0 ? $"falsch −{frage.MinusPoints}" : "falsch 0";
+
+                return $"richtig +{PlusAufDiesemBildschirm(frage, schritt)}, {minus}";
+            }
+        }
+
+        /// <summary>
+        /// Der Pluswert dieses Bildschirms. Ohne Punkteabzug je Hinweis ist es schlicht die
+        /// Punktzahl der Frage; mit Abzug die Kurve, und im Auflösungsschritt 0.
+        /// </summary>
+        private int PlusAufDiesemBildschirm(QuestionBase frage, QuestionStepResource schritt)
+        {
+            if (!frage.UseProportionalScoreReductionOnStep)
+                return frage.Points;
+
+            // Erst die Aufloesung nimmt alles - solange nur Hinweise stehen, kann noch geraten
+            // werden (Nutzerentscheidung F16).
+            if (schritt.IsFinish)
+                return 0;
+
+            return Punkteabzug.Verbleibend(
+                frage.Points,
+                frage.HinweiseGesamt,
+                frage.GezeigteHinweiseBis(index),
+                frage.ScoreReductionMode,
+                frage.ScoreReductionFactor);
+        }
+
+        /// <summary>
+        /// Der Hinweis, dass die Punkte hier <b>ohne</b> Schwierigkeit und Phase stehen - die
+        /// greifen erst, wenn die Frage in einem Raster liegt.
+        /// </summary>
+        public string PunktestandHinweis
+            => Question == null || Question.OrderedSteps.Length == 0
+                ? string.Empty
+                : "Grundwerte der Frage - Schwierigkeit und Phase kommen erst im Spielfeld dazu.";
 
         public bool CanNext => Question != null && index < Question.OrderedSteps.Length - 1;
 
@@ -128,6 +198,8 @@ namespace Quizzer.Views.QuestionTypes
         {
             OnPropertyChanged(nameof(Standanzeige));
             OnPropertyChanged(nameof(Bildschirmart));
+            OnPropertyChanged(nameof(Punktestand));
+            OnPropertyChanged(nameof(PunktestandHinweis));
             OnPropertyChanged(nameof(CanNext));
             OnPropertyChanged(nameof(CanBack));
 
