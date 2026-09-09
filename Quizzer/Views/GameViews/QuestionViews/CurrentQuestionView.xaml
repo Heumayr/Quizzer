@@ -26,7 +26,12 @@
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="5,0,0,4">
             <Button Content="Zum ersten Schritt" Command="{Binding StartStepCommnad}"
                     ToolTip="Springt zurück an den Anfang der Frage." />
+            <!-- Hervorgehoben, weil er der meistgedrueckte Knopf des ganzen Abends ist - er
+                 sah bis 2026-09-09 aus wie "Zurueck" daneben. Bewusst OHNE die dunkelgruene
+                 Fuellung: die traegt "Bewerten ..." in derselben Maske, und zwei farbige
+                 Knoepfe nebeneinander heben einander auf. -->
             <Button Content="Weiter (Enter)" Command="{Binding NextStepCommnad}"
+                    FontWeight="Bold" Height="38"
                     ToolTip="Deckt den nächsten Schritt auf. Der Spielerbildschirm folgt." />
             <Button Content="Zurück (Rücktaste)" Command="{Binding BackStepCommnad}"
                     ToolTip="Nimmt den zuletzt aufgedeckten Schritt zurück. Der Spielerbildschirm folgt." />
