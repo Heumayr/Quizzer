@@ -39,7 +39,11 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed.Media
                 rvc.MediaPlayer.Stop();
             }
 
-            //TODO Handle other registrations ... evt interface
+            // Nachgemessen 2026-09-09: ResourceViewerControl ist der EINZIGE Anmelder im ganzen
+            // Programm (RegisterStartedMedia hat genau eine Aufrufstelle). Hier stand ein TODO
+            // fuer "andere Registrierungen" - es beschreibt keinen offenen Fall. Kaeme je eine
+            // zweite Art hinzu, faellt sie hier durch und meldet sich nicht: dann gehoert an
+            // diese Stelle ein Interface. Gehalten von MedienStoppUnitTests.
 
             StartedMedia = null;
         }
