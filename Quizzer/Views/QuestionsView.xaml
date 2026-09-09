@@ -18,11 +18,13 @@
 
         <StackPanel Margin="5">
             <!-- Der Typ wird jetzt im Anlegen-Fenster gewaehlt, mit Namen und Erklaerung. -->
-            <Button Content="Neue Frage" Command="{Binding AddQuestionCommand}" MinWidth="150" />
+            <Button Content="Neue Frage"
+                    ToolTip="Legt eine neue Frage an - der Typ wird im nächsten Fenster gewählt." Command="{Binding AddQuestionCommand}" MinWidth="150" />
             <Button Content="Frage duplizieren" Command="{Binding DuplicateQuestionCommand}"
                     MinWidth="150" Margin="8,0,0,0"
                     ToolTip="Legt eine Kopie samt Schritten an und öffnet sie zum Bearbeiten." />
-            <Button Content="Frage entfernen" Command="{Binding RemoveQuestionCommand}"
+            <Button Content="Frage entfernen"
+                    ToolTip="Löscht die gewählte Frage. Zellen, auf denen sie liegt, werden leer." Command="{Binding RemoveQuestionCommand}"
                     Style="{StaticResource DangerButton}" MinWidth="150" Margin="0,4,0,0" />
         </StackPanel>
 

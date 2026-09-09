@@ -72,11 +72,14 @@
                 <Button Content="Vorschau …" Command="{Binding PreviewCommand}"
                         MinWidth="120" Margin="0,0,8,0"
                         ToolTip="Zeigt die Frage so, wie die Mitspieler sie am Beamer sehen - durchschaltbar." />
-                <Button Content="Abbrechen" Command="{Binding CancelCommand}"
+                <Button Content="Abbrechen"
+                        ToolTip="Schließt den Editor, ohne die Änderungen zu schreiben." Command="{Binding CancelCommand}"
                         MinWidth="110" Margin="0,0,8,0" />
-                <Button Content="Speichern" Command="{Binding SaveCommand}"
+                <Button Content="Speichern"
+                        ToolTip="Schreibt die Frage samt ihren Schritten, ohne das Fenster zu schließen." Command="{Binding SaveCommand}"
                         MinWidth="110" Margin="0,0,8,0" />
-                <Button Content="Speichern und schließen" Command="{Binding SaveAndCloseCommand}"
+                <Button Content="Speichern und schließen"
+                        ToolTip="Schreibt die Frage samt ihren Schritten und kehrt zur Liste zurück." Command="{Binding SaveAndCloseCommand}"
                         MinWidth="180" />
             </StackPanel>
 

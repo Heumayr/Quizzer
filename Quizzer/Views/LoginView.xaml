@@ -72,9 +72,11 @@
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right"
                     Margin="0,20,0,0">
-            <Button Content="{Binding AbbruchText}" Command="{Binding CancelCommand}"
+            <Button Content="{Binding AbbruchText}"
+                    ToolTip="Beendet die Anmeldung. Ohne angemeldeten Spielleiter schließt sich das Programm." Command="{Binding CancelCommand}"
                     MinWidth="120" Height="36" Margin="0,0,8,0" />
-            <Button Content="Anmelden" Command="{Binding SignInCommand}"
+            <Button Content="Anmelden"
+                    ToolTip="Meldet den gewählten Spielleiter an. Seine Fragen stehen danach zur Verfügung." Command="{Binding SignInCommand}"
                     MinWidth="160" Height="36" FontWeight="Bold"
                     IsDefault="True" />
         </StackPanel>

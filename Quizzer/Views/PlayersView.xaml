@@ -17,8 +17,10 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Mitspieler anlegen" Margin="0,0,0,10" Command="{Binding AddPlayerCommand}" />
-            <Button Content="Mitspieler entfernen" Margin="0,0,0,10" Command="{Binding RemovePlayerCommand}" Style="{StaticResource DangerButton}" />
+            <Button Content="Mitspieler anlegen"
+                    ToolTip="Legt einen neuen Mitspieler an und öffnet ihn zum Bearbeiten." Margin="0,0,0,10" Command="{Binding AddPlayerCommand}" />
+            <Button Content="Mitspieler entfernen"
+                    ToolTip="Löscht den gewählten Mitspieler samt seinen Ergebnissen in allen Abenden." Margin="0,0,0,10" Command="{Binding RemovePlayerCommand}" Style="{StaticResource DangerButton}" />
         </StackPanel>
 
         <DataGrid Grid.Column="1" ItemsSource="{Binding PlayersView}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True"

@@ -21,7 +21,8 @@
                 <Button Content="Speichern" Command="{Binding SaveCommand}"
                         MinWidth="150" Height="34" Margin="0,0,8,0"
                         ToolTip="Schreibt Namen und Notizen. Texturen sind sofort gespeichert." />
-                <Button Content="Schließen" Command="{Binding CloseCommand}"
+                <Button Content="Schließen"
+                        ToolTip="Schließt die Design-Verwaltung. Gewählte Bilder sind bereits übernommen." Command="{Binding CloseCommand}"
                         MinWidth="120" Height="34" />
             </StackPanel>
         </Border>
@@ -110,11 +111,13 @@
 
                                     <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                         <Button Content="Bild wählen"
+                                                ToolTip="Ersetzt diese Textur durch eine Bilddatei vom Rechner."
                                                 Command="{Binding DataContext.ChooseTextureCommand,
                                                           RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                 CommandParameter="{Binding}"
                                                 MinWidth="130" Height="30" Margin="0,0,0,4" />
                                         <Button Content="Zurücknehmen"
+                                                ToolTip="Stellt für diese Textur den Auslieferungsstand wieder her."
                                                 Command="{Binding DataContext.ResetTextureCommand,
                                                           RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                 CommandParameter="{Binding}"

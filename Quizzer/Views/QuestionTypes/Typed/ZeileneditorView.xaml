@@ -147,11 +147,13 @@
                                     <TextBlock Text="{Binding Medienzeile}" FontSize="12"
                                                Opacity="0.8" Margin="0,0,0,2" TextWrapping="Wrap" />
                                     <StackPanel Orientation="Horizontal">
-                                        <Button Content="Medium wählen …" Padding="10,4" Margin="0"
+                                        <Button Content="Medium wählen …"
+                                                ToolTip="Hängt Bild, Ton oder Video an diese Zeile." Padding="10,4" Margin="0"
                                                 Command="{Binding DataContext.MediaCommand,
                                                           RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}" />
-                                        <Button Content="Medium entfernen" Padding="10,4"
+                                        <Button Content="Medium entfernen"
+                                                ToolTip="Nimmt das Medium von dieser Zeile. Die Datei selbst bleibt liegen." Padding="10,4"
                                                 Style="{StaticResource DangerButton}"
                                                 IsEnabled="{Binding HatMedium}"
                                                 Command="{Binding DataContext.RemoveMediaCommand,

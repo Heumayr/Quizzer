@@ -1,4 +1,4 @@
-<base:WindowBase x:Class="Quizzer.Views.SettingsView"
+﻿<base:WindowBase x:Class="Quizzer.Views.SettingsView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:Quizzer.Views"
@@ -123,8 +123,10 @@
             <Button Content="Auf Vorgaben zurücksetzen" Command="{Binding ResetCommand}"
                     Margin="0,0,8,0" Padding="10,4"
                     ToolTip="Löscht die eigenen Werte. Danach gelten wieder die ausgelieferten." />
-            <Button Content="Abbrechen" Command="{Binding CancelCommand}" Margin="0,0,8,0" Padding="10,4" />
-            <Button Content="Speichern" Command="{Binding SaveCommand}" Padding="14,4" FontWeight="Bold" />
+            <Button Content="Abbrechen"
+                    ToolTip="Verwirft die Änderungen an den Einstellungen." Command="{Binding CancelCommand}" Margin="0,0,8,0" Padding="10,4" />
+            <Button Content="Speichern"
+                    ToolTip="Schreibt die Einstellungen. Pfad und Datenbank wirken erst beim nächsten Start vollständig." Command="{Binding SaveCommand}" Padding="14,4" FontWeight="Bold" />
         </StackPanel>
     </Grid>
 </base:WindowBase>

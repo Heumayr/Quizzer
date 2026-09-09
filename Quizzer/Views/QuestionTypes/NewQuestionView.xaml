@@ -26,9 +26,11 @@
         <Border DockPanel.Dock="Bottom" Background="{StaticResource PanelBgBrush}"
                 BorderThickness="0,1,0,0" Padding="12,10">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Abbrechen" Command="{Binding CancelCommand}"
+                <Button Content="Abbrechen"
+                        ToolTip="Legt keine Frage an." Command="{Binding CancelCommand}"
                         MinWidth="110" Margin="0,0,8,0" />
-                <Button Content="Anlegen" Command="{Binding CreateCommand}" MinWidth="130" />
+                <Button Content="Anlegen"
+                        ToolTip="Legt die Frage im gewählten Typ an und öffnet sie im Editor." Command="{Binding CreateCommand}" MinWidth="130" />
             </StackPanel>
         </Border>
 

@@ -17,16 +17,20 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Schließen" Command="{Binding CloseCommand}" />
+            <Button Content="Schließen"
+                    ToolTip="Schließt die Auswahl, ohne die Zuweisung zu ändern." Command="{Binding CloseCommand}" />
         </StackPanel>
 
         <StackPanel Grid.Column="1">
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Button Content="Neue Frage" Command="{Binding AddQuestionCommand}" />
-                <Button Content="Ausgewählte bearbeiten" Command="{Binding EditSelectedQuestionCommand}" />
+                <Button Content="Neue Frage"
+                        ToolTip="Legt eine neue Frage an und weist sie dieser Zelle gleich zu." Command="{Binding AddQuestionCommand}" />
+                <Button Content="Ausgewählte bearbeiten"
+                        ToolTip="Öffnet die gewählte Frage im Frageneditor." Command="{Binding EditSelectedQuestionCommand}" />
                 <Label MinWidth="120" Margin="10,0,0,0" Content="Ausgewählte Frage:" />
                 <Label Content="{Binding Path=CurrentSelectedQuestionDisplay}" MinWidth="200" Margin="5,0,0,0" />
-                <Button Content="Auswahl entfernen" Command="{Binding DeselectCommand}" Style="{StaticResource DangerButton}" />
+                <Button Content="Auswahl entfernen"
+                        ToolTip="Nimmt die Frage von dieser Zelle. Die Zelle bleibt leer, die Frage bleibt bestehen." Command="{Binding DeselectCommand}" Style="{StaticResource DangerButton}" />
             </StackPanel>
             <DataGrid ItemsSource="{Binding AvailableQuestions}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" SelectionMode="Single" IsReadOnly="True" SelectedItem="{Binding SelectedQuestion}"
                         base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding SelectAndCloseCommand}">

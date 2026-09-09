@@ -42,10 +42,14 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Content="Von vorn" Command="{Binding RestartCommand}" Margin="0,0,8,0" Padding="10,4" />
-                    <Button Content="Zurück" Command="{Binding BackCommand}" Margin="0,0,8,0" Padding="10,4" />
-                    <Button Content="Weiter" Command="{Binding NextCommand}" Margin="0,0,8,0" Padding="14,4" FontWeight="Bold" />
-                    <Button Content="Schließen" Command="{Binding CloseCommand}" Padding="10,4" />
+                    <Button Content="Von vorn"
+                            ToolTip="Springt zurück auf den ersten Bildschirm der Frage." Command="{Binding RestartCommand}" Margin="0,0,8,0" Padding="10,4" />
+                    <Button Content="Zurück"
+                            ToolTip="Einen Bildschirm zurück - so wie im Spiel die Rücktaste." Command="{Binding BackCommand}" Margin="0,0,8,0" Padding="10,4" />
+                    <Button Content="Weiter"
+                            ToolTip="Einen Bildschirm weiter - so wie im Spiel die Eingabetaste." Command="{Binding NextCommand}" Margin="0,0,8,0" Padding="14,4" FontWeight="Bold" />
+                    <Button Content="Schließen"
+                            ToolTip="Schließt die Vorschau. An der Frage ändert sie nichts." Command="{Binding CloseCommand}" Padding="10,4" />
                 </StackPanel>
             </Grid>
         </Border>

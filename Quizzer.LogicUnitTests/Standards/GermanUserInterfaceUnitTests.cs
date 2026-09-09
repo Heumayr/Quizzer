@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Text.RegularExpressions;
 
 namespace Quizzer.LogicUnitTests.Standards
@@ -119,7 +119,8 @@ namespace Quizzer.LogicUnitTests.Standards
         }
 
         /// <summary>
-        /// <b>B55.</b> Jeder beschriftete Knopf der Abendfenster traegt eine Erklaerung.
+        /// <b>B55, erweitert durch F16-Runde (2026-09-09).</b> Jeder beschriftete Knopf traegt
+        /// eine Erklaerung - inzwischen im <b>ganzen</b> Programm, nicht nur in den Abendfenstern.
         /// <para>
         /// Das Fragefenster ist die Maske, die der Spielleiter den ganzen Abend bedient, meist
         /// zum ersten Mal seit Wochen. Gemessen 2026-09-06: drei Knoepfe standen ohne
@@ -128,10 +129,15 @@ namespace Quizzer.LogicUnitTests.Standards
         /// (<c>ResourceViewerControl.SetMasterVisibility</c>).
         /// </para>
         /// <para>
-        /// <b>Der Umfang ist am 2026-09-06 nachts gewachsen</b> - vom Fragefenster auf alles,
-        /// was am Abend offen ist: Spielfeld, Ergebnisfenster samt Spielerkarten,
-        /// Buzzer-Verwaltung und die Spieleliste. Warum nicht weiter, steht bei
-        /// <see cref="AbendDateien"/>.
+        /// <b>Der Umfang ist zweimal gewachsen.</b> Am 2026-09-06 nachts vom Fragefenster auf
+        /// alles, was am Abend offen ist; am 2026-09-09 auf alle Masken (Nutzerentscheidung
+        /// F14). Nachgezaehlt wurden dabei <b>49</b> Knoepfe ohne Erklaerung in 14 Dateien -
+        /// die vorher genannten "rund 34" stammten aus einer groben Zeilenzaehlung.
+        /// </para>
+        /// <para>
+        /// <b>Warum das Gate jetzt tragen kann</b> (<c>standards-allgemein.md</c> §5): ein Gate
+        /// ueber alle Fenster waere im September sofort rot gewesen und damit abgeschaltet.
+        /// Erst weil der Bestand geschlossen ist, wird die Regel zur Regel.
         /// </para>
         /// </summary>
         [TestMethod]
@@ -141,7 +147,7 @@ namespace Quizzer.LogicUnitTests.Standards
             var funde = new List<string>();
             var geprueft = 0;
 
-            foreach (var datei in AbendDateien(root))
+            foreach (var datei in Maskendateien(root))
             {
                 var inhalt = File.ReadAllText(datei);
 
@@ -163,41 +169,40 @@ namespace Quizzer.LogicUnitTests.Standards
                 }
             }
 
-            Assert.IsTrue(geprueft >= 25,
+            Assert.IsTrue(geprueft >= 100,
                 $"Es wurden nur {geprueft} Knoepfe geprueft - die Suche greift nicht mehr, "
                 + "und die Zusicherung waere gruen, ohne irgendetwas zu messen.");
 
             Assert.AreEqual(0, funde.Count,
-                "Diese Knoepfe der Abendfenster stehen ohne Erklaerung da: "
+                "Diese Knoepfe stehen ohne Erklaerung da: "
                 + string.Join(", ", funde));
         }
 
         /// <summary>
-        /// Die Masken, die am Quizabend offen sind - Spielfeld, Fragefenster, Ergebnisfenster,
-        /// Buzzer-Verwaltung und die Spieleliste, von der aus der Abend startet.
+        /// Alle Masken des Programms.
         /// <para>
-        /// <b>Warum nicht alle Fenster.</b> Nachgemessen 2026-09-06: von 110 beschrifteten
-        /// Knoepfen im Projekt trugen 67 keine Erklaerung. Ein Gate ueber alle waere sofort rot
-        /// und damit abgeschaltet (<c>standards-allgemein.md</c> §5). Die Trennlinie ist nicht
-        /// Bequemlichkeit, sondern der Zeitdruck: die Verwaltungsfenster bedient der Spielleiter
-        /// in Ruhe, diese hier vor Gaesten.
+        /// <b>Bis zum 2026-09-09 waren es nur die Abendfenster</b>, und der Grund stand hier:
+        /// von 110 beschrifteten Knoepfen trugen 67 keine Erklaerung, ein Gate ueber alle waere
+        /// sofort rot gewesen. Der Nutzer hat am 2026-09-09 entschieden, den Rest nachzuziehen
+        /// (F14) - damit faellt der Grund weg, und die Trennlinie mit ihm.
         /// </para>
         /// </summary>
-        private static List<string> AbendDateien(string root)
+        private static List<string> Maskendateien(string root)
         {
-            var dateien = new List<string>
-            {
-                Path.Combine(root, "Quizzer", "Views", "GamesView.xaml"),
-            };
+            var wurzel = Path.Combine(root, "Quizzer", "Views");
 
-            foreach (var ordner in new[] { "GameViews", "BuzzerViews" })
-            {
-                dateien.AddRange(Directory.EnumerateFiles(
-                    Path.Combine(root, "Quizzer", "Views", ordner), "*.xaml", SearchOption.AllDirectories));
-            }
+            Assert.IsTrue(Directory.Exists(wurzel), $"Nicht gefunden: {wurzel}");
 
-            foreach (var datei in dateien)
-                Assert.IsTrue(File.Exists(datei), $"Nicht gefunden: {datei}");
+            var dateien = Directory
+                .EnumerateFiles(wurzel, "*.xaml", SearchOption.AllDirectories)
+                .OrderBy(d => d, StringComparer.Ordinal)
+                .ToList();
+
+            // Ein leerer Ordner meldete sonst nichts und die Zusicherung waere gruen, ohne
+            // etwas gesehen zu haben. Die Untergrenze der Knopfzahl oben faengt dasselbe noch
+            // einmal ab.
+            Assert.IsTrue(dateien.Count >= 20,
+                $"Nur {dateien.Count} Masken gefunden - die Suche greift nicht mehr.");
 
             return dateien;
         }

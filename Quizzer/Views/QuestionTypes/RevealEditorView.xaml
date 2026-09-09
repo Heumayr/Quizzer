@@ -67,7 +67,8 @@
                 </RadioButton>
 
                 <TextBlock Text="Schritt 2 — Bild wählen" Style="{StaticResource SectionHeader}" />
-                <Button x:Name="BildKnopf" Content="Bild vom Rechner wählen …" Click="BildWaehlen_Click"
+                <Button x:Name="BildKnopf" Content="Bild vom Rechner wählen …"
+                        ToolTip="Wählt das Bild, das nach und nach aufgedeckt wird." Click="BildWaehlen_Click"
                         Height="34" Margin="0,0,0,4" />
                 <TextBlock x:Name="Bildname" FontSize="12" Opacity="0.8" TextWrapping="Wrap" Margin="2,0,0,12" />
 
@@ -99,18 +100,24 @@
                     <TextBlock Text="Ausgewählte Fläche drehen" FontSize="12" Opacity="0.8"
                                Margin="2,0,0,2" />
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                        <Button Content="15° links" Tag="-15" Click="Drehen_Click" />
-                        <Button Content="15° rechts" Tag="15" Click="Drehen_Click" />
+                        <Button Content="15° links"
+                                ToolTip="Dreht die gewählte Fläche um 15 Grad gegen den Uhrzeigersinn." Tag="-15" Click="Drehen_Click" />
+                        <Button Content="15° rechts"
+                                ToolTip="Dreht die gewählte Fläche um 15 Grad im Uhrzeigersinn." Tag="15" Click="Drehen_Click" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                        <Button Content="Voriger Schritt" Click="VorigerSchritt_Click" />
-                        <Button Content="Nächster Schritt" Click="NaechsterSchritt_Click" />
+                        <Button Content="Voriger Schritt"
+                                ToolTip="Zeigt, wie das Bild einen Aufdeckschritt früher aussieht." Click="VorigerSchritt_Click" />
+                        <Button Content="Nächster Schritt"
+                                ToolTip="Zeigt, wie das Bild einen Aufdeckschritt später aussieht." Click="NaechsterSchritt_Click" />
                     </StackPanel>
 
-                    <Button Content="Ausgewählte Fläche entfernen" Click="AusgewaehlteEntfernen_Click"
+                    <Button Content="Ausgewählte Fläche entfernen"
+                            ToolTip="Nimmt die gewählte Fläche heraus. Die übrigen rücken nicht nach." Click="AusgewaehlteEntfernen_Click"
                             Margin="0,0,0,4" />
-                    <Button Content="Alle Flächen entfernen" Click="AlleEntfernen_Click"
+                    <Button Content="Alle Flächen entfernen"
+                            ToolTip="Nimmt alle Flächen heraus - das Bild liegt danach frei." Click="AlleEntfernen_Click"
                             Style="{StaticResource DangerButton}" Margin="0,0,0,8" />
                 </StackPanel>
 
@@ -130,8 +137,10 @@
 
         <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal"
                     HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="Abbrechen" Click="Abbrechen_Click" Margin="0,0,8,0" Padding="10,4" />
-            <Button Content="Übernehmen" Click="Uebernehmen_Click" Padding="14,4" FontWeight="Bold" />
+            <Button Content="Abbrechen"
+                    ToolTip="Schließt die Einrichtung, ohne sie zu übernehmen." Click="Abbrechen_Click" Margin="0,0,8,0" Padding="10,4" />
+            <Button Content="Übernehmen"
+                    ToolTip="Übernimmt Flächen und Schärfestufen in die Frage." Click="Uebernehmen_Click" Padding="14,4" FontWeight="Bold" />
         </StackPanel>
     </Grid>
 </base:WindowBase>

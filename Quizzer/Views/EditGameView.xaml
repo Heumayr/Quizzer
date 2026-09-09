@@ -32,10 +32,14 @@
         </Grid.RowDefinitions>
 
         <StackPanel Margin="5">
-            <Button Content="Speichern" Command="{Binding SaveCommand}" />
-            <Button Content="Speichern und schließen" Command="{Binding SaveAndCloseCommand}" />
-            <Button Content="Spielaufbau zurücksetzen" Command="{Binding ResetGameBuildCommand}" Style="{StaticResource DangerButton}" />
-            <Button Content="Bearbeiten freigeben" Command="{Binding SetToBuildingModeCommand}" />
+            <Button Content="Speichern"
+                    ToolTip="Schreibt den Spielaufbau, ohne das Fenster zu schließen." Command="{Binding SaveCommand}" />
+            <Button Content="Speichern und schließen"
+                    ToolTip="Schreibt den Spielaufbau und kehrt zur Spieleliste zurück." Command="{Binding SaveAndCloseCommand}" />
+            <Button Content="Spielaufbau zurücksetzen"
+                    ToolTip="Setzt Punkte, Phase und gespielte Zellen auf den Anfang zurück. Die Fragen bleiben liegen." Command="{Binding ResetGameBuildCommand}" Style="{StaticResource DangerButton}" />
+            <Button Content="Bearbeiten freigeben"
+                    ToolTip="Gibt einen laufenden Abend wieder zum Ändern frei. Vorsicht: der Punktestand hängt am Aufbau." Command="{Binding SetToBuildingModeCommand}" />
         </StackPanel>
 
         <StackPanel IsEnabled="{Binding IsBuilding}" Grid.Column="1">
@@ -72,8 +76,10 @@
             <StackPanel Orientation="Vertical">
                 <StackPanel Orientation="Horizontal" Margin="5">
                     <ComboBox ItemsSource="{Binding AvailablePlayersView}" DisplayMemberPath="CalculatedDisplayName" SelectedItem="{Binding CmbSelectedPlayer}" Width="200" Margin="0,8,10,8" />
-                    <Button Content="Hinzufügen" Command="{Binding AddPlayerCommand}" />
-                    <Button Content="Entfernen" Command="{Binding RemovePlayerCommand}" />
+                    <Button Content="Hinzufügen"
+                            ToolTip="Nimmt den gewählten Mitspieler in diesen Abend auf." Command="{Binding AddPlayerCommand}" />
+                    <Button Content="Entfernen"
+                            ToolTip="Nimmt den gewählten Mitspieler wieder aus diesem Abend heraus." Command="{Binding RemovePlayerCommand}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="5">
                     <Label MinWidth="210" Content="Mitspieler:" VerticalAlignment="Center" />
@@ -92,7 +98,8 @@
                             </Binding>
                         </TextBox.Text>
                     </TextBox>
-                    <Button Content="Raster neu aufbauen" Command="{Binding RefreshGridCommand}" />
+                    <Button Content="Raster neu aufbauen"
+                            ToolTip="Baut das Spielfeld aus Breite, Höhe und Tiefe neu. Zuweisungen auf weggefallenen Zellen gehen verloren." Command="{Binding RefreshGridCommand}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="5">
                     <Label MinWidth="210" Content="Phasen im Abend:" VerticalAlignment="Center"
