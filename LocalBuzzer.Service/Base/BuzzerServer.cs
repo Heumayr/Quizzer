@@ -176,38 +176,40 @@ namespace LocalBuzzer.Service
             return results.OrderBy(s => s).ToArray();
         }
 
+        /// <summary>
+        /// Liest die Adapter dieses Rechners und laesst
+        /// <see cref="NetworkAddressPicker"/> waehlen.
+        /// <para>
+        /// <b>Die Regel steht seit 2026-09-09 nicht mehr hier</b>, sondern im Picker - hier
+        /// war sie eine LINQ-Abfrage ueber den Zustand dieses Rechners und damit von keiner
+        /// Zusicherung erreichbar. Diese Methode macht jetzt nur noch das, was sich nicht
+        /// zusichern laesst: das Ablesen.
+        /// </para>
+        /// </summary>
         private static IEnumerable<string> GetLocalIPs(bool includeLoopback, bool includeIPv6)
         {
-            // IPv4 only (phones will use this anyway)
-            var candidates =
-                from ni in NetworkInterface.GetAllNetworkInterfaces()
-                where ni.OperationalStatus == OperationalStatus.Up
-                where ni.NetworkInterfaceType != NetworkInterfaceType.Loopback
-                where ni.NetworkInterfaceType != NetworkInterfaceType.Tunnel
-                where !ni.Description.Contains("Virtual", StringComparison.OrdinalIgnoreCase)
-                where !ni.Description.Contains("Hyper-V", StringComparison.OrdinalIgnoreCase)
-                where !ni.Description.Contains("VMware", StringComparison.OrdinalIgnoreCase)
-                where !ni.Description.Contains("TAP", StringComparison.OrdinalIgnoreCase)
-                let props = ni.GetIPProperties()
-                let hasGateway = props.GatewayAddresses.Any(g =>
-                    g.Address != null &&
-                    g.Address.AddressFamily == AddressFamily.InterNetwork &&
-                    !g.Address.Equals(IPAddress.Any) &&
-                    !g.Address.Equals(IPAddress.None))
-                where hasGateway // IMPORTANT: pick the "real" LAN interface
-                from ua in props.UnicastAddresses
-                let ip = ua.Address
-                where ip.AddressFamily == AddressFamily.InterNetwork
-                where includeLoopback || !IPAddress.IsLoopback(ip)
-                select ip.ToString();
+            var adapter = NetworkInterface.GetAllNetworkInterfaces().Select(ni =>
+            {
+                var props = ni.GetIPProperties();
 
-            // Prefer 192.168.* then 10.* then anything else
-            return candidates
-                .Distinct()
-                .OrderByDescending(ip => ip.StartsWith("192.168.", StringComparison.Ordinal))
-                .ThenByDescending(ip => ip.StartsWith("10.", StringComparison.Ordinal))
-                .ThenBy(ip => ip)
-                .ToArray();
+                return new NetworkAdapterInfo(
+                    ni.Description,
+                    ni.OperationalStatus == OperationalStatus.Up,
+                    ni.NetworkInterfaceType == NetworkInterfaceType.Loopback,
+                    ni.NetworkInterfaceType == NetworkInterfaceType.Tunnel,
+                    props.GatewayAddresses.Any(g =>
+                        g.Address != null &&
+                        g.Address.AddressFamily == AddressFamily.InterNetwork &&
+                        !g.Address.Equals(IPAddress.Any) &&
+                        !g.Address.Equals(IPAddress.None)),
+                    props.UnicastAddresses
+                        .Select(ua => ua.Address)
+                        .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+                        .Select(ip => ip.ToString())
+                        .ToArray());
+            });
+
+            return NetworkAddressPicker.Pick(adapter, includeLoopback);
         }
 
         public string? GetBestListeningIpPort()
