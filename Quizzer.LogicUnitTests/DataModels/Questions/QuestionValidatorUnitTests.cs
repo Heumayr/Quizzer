@@ -54,6 +54,11 @@ namespace Quizzer.LogicUnitTests.DataModels.Questions
                 question.BuzzerMaxAllowedKeySelect = 1;
             }
 
+            // Wo die Punkte je Hinweis sinken, gehoert der Aufloesungsschritt zur wohlgeformten
+            // Frage (F16) - ohne ihn gaebe es keinen Bildschirm, auf dem sie auf 0 gehen.
+            if (question.UseProportionalScoreReductionOnStep)
+                question.Steps.Add(Step("Die Loesung", isFinish: true));
+
             return question;
         }
 
@@ -281,6 +286,65 @@ namespace Quizzer.LogicUnitTests.DataModels.Questions
                 Assert.IsFalse(string.IsNullOrWhiteSpace(issue.Message), issue.Code);
                 Assert.IsFalse(string.IsNullOrWhiteSpace(issue.Code));
             }
+        }
+
+        /// <summary>
+        /// <b>F16.</b> Eine Hinweisfrage ohne gefuellten Aufloesungsschritt ist nicht spielbar.
+        /// <para>
+        /// Nutzerentscheidung vom 2026-09-09: „es muss danach den aufloesungsschritt geben wo
+        /// zB. der name der gesuchent figur angezeit wird ... ab dann 0 punkte". Ohne ihn
+        /// erfindet <c>CalculateOrderdSteps</c> einen leeren - der nennt die Loesung nicht.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void AHintQuestionNeedsAFilledResolutionStep()
+        {
+            var question = Valid(QuestionType.Properties);
+
+            Assert.IsTrue(question.UseProportionalScoreReductionOnStep,
+                "Die Eigenschaftsfrage muss die Punkte je Hinweis senken - sonst prueft dieser "
+                + "Test eine Frage, die die Regel gar nicht trifft.");
+
+            CollectionAssert.DoesNotContain(CodesOf(question), QuestionValidator.FinishStepMissing,
+                "Mit gefuelltem Abschlussschritt darf die Beanstandung nicht kommen.");
+
+            question.Steps.RemoveAll(s => s.IsFinish);
+
+            CollectionAssert.Contains(CodesOf(question), QuestionValidator.FinishStepMissing,
+                "Ohne Abschlussschritt fehlt die Beanstandung.");
+        }
+
+        /// <summary>
+        /// Ein <b>leerer</b> Abschlussschritt genuegt nicht - er ist genau der Fall, den die
+        /// Regel verhindern soll.
+        /// </summary>
+        [TestMethod]
+        public void AnEmptyResolutionStepDoesNotCount()
+        {
+            var question = Valid(QuestionType.Properties);
+
+            question.Steps.RemoveAll(s => s.IsFinish);
+            question.Steps.Add(new QuestionStepResource { Id = Guid.NewGuid(), IsFinish = true });
+
+            CollectionAssert.Contains(CodesOf(question), QuestionValidator.FinishStepMissing,
+                "Ein leerer Abschlussschritt nennt die Loesung nicht und darf nicht durchgehen.");
+        }
+
+        /// <summary>
+        /// Die Gegenrichtung: ein Typ <b>ohne</b> Punkteabzug je Hinweis wird nicht beanstandet.
+        /// <para>
+        /// Ohne diese Zusicherung waere die Regel „jede Frage braucht einen Abschlussschritt" -
+        /// und die traefe alle 24 bestehenden Fragen statt der einen, die gemessen wurde.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void QuestionsWithoutStepReductionAreNotAffected()
+        {
+            var question = Valid(QuestionType.MultipleChoice);
+
+            Assert.IsFalse(question.UseProportionalScoreReductionOnStep);
+
+            CollectionAssert.DoesNotContain(CodesOf(question), QuestionValidator.FinishStepMissing);
         }
 
         [TestMethod]

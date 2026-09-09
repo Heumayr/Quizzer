@@ -82,6 +82,11 @@ namespace Quizzer.Views.QuestionTypes
             OnPropertyChanged(nameof(TypeHelpText));
             RaiseLayoutChanged();
             RaiseAppreciateChanged();
+
+            // Der Verlauf haengt an Punktzahl UND Schrittzahl - beide aendern sich in der Maske,
+            // ohne dass die Frage es meldet.
+            OnPropertyChanged(nameof(ScoreReductionFactor));
+            OnPropertyChanged(nameof(ScoreReductionHintText));
             CommandManager.InvalidateRequerySuggested();
         }
 

@@ -129,6 +129,12 @@ namespace Quizzer.DataModels.Transfer
             public Difficulty Difficulty { get; set; } = Difficulty.Level1;
 
             public bool UseProportionalScoreReductionOnStep { get; set; }
+
+            /// <summary>Nach welcher Kurve die Punkte je Hinweis sinken (F16).</summary>
+            public ScoreReductionMode? ScoreReductionMode { get; set; }
+
+            /// <summary>Womit dabei multipliziert wird (F16).</summary>
+            public double? ScoreReductionFactor { get; set; }
             public bool WarnOnResultStep { get; set; } = true;
             public bool WarnOnFinishStep { get; set; } = true;
             public bool UseRandomSequenceOnNoneFinishSteps { get; set; }

@@ -240,12 +240,24 @@ namespace Quizzer.Views.GameViews.Sub
 
         private int GetCurrentPoints()
         {
-            if (Coordinate?.QuestionBase?.UseProportionalScoreReductionOnStep == true)
+            var frage = Coordinate?.QuestionBase;
+
+            if (frage?.UseProportionalScoreReductionOnStep == true)
             {
+                // Der Aufloesungsschritt gibt nichts mehr (F16). Er ist der einzige Bildschirm,
+                // auf dem nicht mehr geraten werden kann - solange nur Hinweise stehen, sehr
+                // wohl, "auch wenn alles erkennbar ist".
+                if (CurrentQuestionViewModel?.CurrentStep?.IsFinish == true)
+                    return 0;
+
                 // Die Rechnung steht in Punkteabzug, damit der Frageneditor beim Anlegen
                 // dieselbe anzeigen kann - eine zweite Abschrift liefe der ersten davon.
                 return DataModels.Questions.Punkteabzug.Verbleibend(
-                    Coordinate?.CurrentPoints ?? 0, RegularStepCount, GezeigteSchritte);
+                    Coordinate?.CurrentPoints ?? 0,
+                    RegularStepCount,
+                    GezeigteSchritte,
+                    frage.ScoreReductionMode,
+                    frage.ScoreReductionFactor);
             }
             else
             {

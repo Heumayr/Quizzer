@@ -50,7 +50,9 @@ namespace Quizzer.Views.QuestionTypes.Typed
             for (var i = 0; i < Zeilen.Count; i++)
             {
                 Zeilen[i].Zusatz = ZeigtPunkte && schritte > 0
-                    ? $"danach noch {Punkteabzug.Verbleibend(frage.Points, schritte, i + 1)}"
+                    ? "danach noch " + Punkteabzug.Verbleibend(
+                        frage.Points, schritte, i + 1,
+                        frage.ScoreReductionMode, frage.ScoreReductionFactor)
                     : string.Empty;
             }
         }

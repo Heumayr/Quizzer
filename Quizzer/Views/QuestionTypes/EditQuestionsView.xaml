@@ -241,10 +241,27 @@
                                Opacity="0.75" Margin="5,3,5,3" />
                 </StackPanel>
 
-                <!-- Nur Eigenschaftsfrage -->
-                <TextBlock Visibility="{Binding ProportionalScoreHintVisibility}"
-                           Text="Die erreichbaren Punkte sinken mit jedem aufgedeckten Schritt."
-                           Opacity="0.75" Margin="5,3" TextWrapping="Wrap" />
+                <!-- Nur Eigenschaftsfrage und Aufdeckfrage: die Punktekurve (F16) -->
+                <StackPanel Visibility="{Binding ProportionalScoreHintVisibility}">
+                    <StackPanel Style="{StaticResource FieldRow}">
+                        <Label Style="{StaticResource FieldLabel}" Content="Punktekurve"
+                               ToolTip="Wie die erreichbaren Punkte mit jedem Hinweis sinken." />
+                        <ComboBox ItemsSource="{Binding ScoreReductionModes}" MinWidth="200"
+                                  DisplayMemberPath="Bezeichnung"
+                                  SelectedValuePath="Modus"
+                                  SelectedValue="{Binding Question.ScoreReductionMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+
+                    <StackPanel Style="{StaticResource FieldRow}">
+                        <Label Style="{StaticResource FieldLabel}" Content="Faktor"
+                               ToolTip="Womit multipliziert wird - beim letzten Hinweis oder bei jedem. 0,5 heißt halbieren." />
+                        <TextBox VerticalContentAlignment="Center" MinWidth="200"
+                                 Text="{Binding ScoreReductionFactor, UpdateSourceTrigger=LostFocus}" />
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding ScoreReductionHintText}"
+                               Opacity="0.75" Margin="5,3" TextWrapping="Wrap" />
+                </StackPanel>
 
                 <!-- Nur Multiple Choice -->
                 <TextBlock Visibility="{Binding RandomSequenceHintVisibility}"

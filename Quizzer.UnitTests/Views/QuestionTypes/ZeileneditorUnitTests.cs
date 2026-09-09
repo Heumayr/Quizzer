@@ -156,6 +156,18 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
                 editor.Zeilen[0].IstRichtig = true;
                 editor.Zeilen[1].Text = "Sydney";
 
+                // Seit F16 (2026-09-09) gehoert zur ausgefuellten Hinweismaske auch die
+                // Aufloesung - erst dort gehen die Punkte auf 0, und erst dort steht, was
+                // gesucht war. Das Feld heisst in der Maske "Die richtige Antwort".
+                if (vm.Question!.UseProportionalScoreReductionOnStep)
+                {
+                    Assert.IsNotNull(editor.Abschluss,
+                        $"Bei {typ} bietet die Maske kein Aufloesungsfeld - dann laesst sich "
+                        + "die Frage ueberhaupt nicht speichern.");
+
+                    editor.Abschluss.Text = "Canberra ist die Hauptstadt";
+                }
+
                 Assert.IsTrue(vm.CanSave,
                     $"Bei {typ} laesst sich eine ausgefuellte Maske nicht speichern. Offen: "
                     + string.Join(" | ", vm.Issues.Where(i => i.IsError).Select(i => i.Code)));

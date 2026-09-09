@@ -51,7 +51,14 @@ namespace Quizzer.UnitTests.PlayThrough
         /// Größe: was der Spieler sieht.
         /// </para>
         /// </param>
-        private sealed record Messpunkt(int Sichtbar, int Regular, int Punkte, int Vorschlag);
+        /// <param name="IstAufloesung">
+        /// Ob dieser Bildschirm der Auflösungsschritt ist. <b>Dort gilt der Gleichlauf mit dem
+        /// Editor nicht mehr</b> (F16, 2026-09-09): der Editor schreibt seine Zahlen neben die
+        /// <i>Hinweise</i>, und die Auflösung gibt bewusst 0 - „auch wenn alles erkennbar ist
+        /// kann noch geraten werden".
+        /// </param>
+        private sealed record Messpunkt(
+            int Sichtbar, int Regular, int Punkte, int Vorschlag, bool IstAufloesung);
 
         /// <summary>
         /// Spielt die Frage Schritt für Schritt durch und schreibt mit, welchen Punktevorschlag
@@ -86,7 +93,8 @@ namespace Quizzer.UnitTests.PlayThrough
                     vm.CurrentStepContext?.DisplaySteps?.Count(d => d.IsVisibleSlot) ?? -1,
                     karte.RegularStepCount,
                     karte.Coordinate?.CurrentPoints ?? 0,
-                    karte.CurrentScoreManipulation));
+                    karte.CurrentScoreManipulation,
+                    vm.CurrentStep?.IsFinish == true));
 
                 if (vm.NextStep == null)
                     break;
@@ -135,7 +143,8 @@ namespace Quizzer.UnitTests.PlayThrough
         }
 
         private static string Zeig(List<Messpunkt> verlauf)
-            => string.Join(", ", verlauf.Select(m => $"{m.Sichtbar}/{m.Regular}:{m.Vorschlag}"));
+            => string.Join(", ", verlauf.Select(m =>
+                $"{m.Sichtbar}/{m.Regular}:{m.Vorschlag}{(m.IstAufloesung ? " (Aufloesung)" : string.Empty)}"));
 
         /// <summary>
         /// <b>Was der Editor neben einen Hinweis schreibt, gibt das Spiel auch.</b>
@@ -159,7 +168,7 @@ namespace Quizzer.UnitTests.PlayThrough
             // Hinweiszahl und Punkte werden GEMESSEN, nicht angenommen: die erste Fassung dieser
             // Probe hatte beides geraten und meldete daraufhin einen Fehler, den es nicht gab.
             var abweichungen = verlauf
-                .Where(m => m.Sichtbar > 0)
+                .Where(m => m.Sichtbar > 0 && !m.IstAufloesung)
                 .Select(m => new
                 {
                     m.Sichtbar,
@@ -169,9 +178,18 @@ namespace Quizzer.UnitTests.PlayThrough
                 .Where(x => x.Spiel != x.Editor)
                 .ToList();
 
-            Assert.IsTrue(verlauf.Any(m => m.Sichtbar == verlauf[0].Regular && m.Regular > 0),
-                "Die Probe ist nie bis hinter den letzten Hinweis gekommen - dann sagt sie "
+            Assert.IsTrue(
+                verlauf.Any(m => m.Sichtbar == verlauf[0].Regular && m.Regular > 0
+                              && !m.IstAufloesung),
+                "Die Probe ist nie bis zum letzten Hinweis gekommen - dann sagt sie "
                 + "nichts. Verlauf: " + Zeig(verlauf));
+
+            // Der Aufloesungsschritt ist ausgenommen, aber nicht ungeprueft: er muss 0 geben,
+            // und das haelt AufloesungsschrittPunkteUnitTests. Hier steht nur, dass er in
+            // diesem Verlauf ueberhaupt vorkam - sonst waere die Ausnahme oben eine
+            // Zusicherung, die nie greift.
+            Assert.IsTrue(verlauf.Any(m => m.IstAufloesung),
+                "Kein Aufloesungsbildschirm im Verlauf: " + Zeig(verlauf));
 
             Assert.AreEqual(0, abweichungen.Count,
                 "Das Spiel gibt andere Punkte als der Editor ansagt: "

@@ -29,6 +29,11 @@ namespace Quizzer.DataModels.Questions
         public const string ResourceTypeWithoutFile = "resource-type-without-file";
         public const string MultipleStartSteps = "multiple-start-steps";
         public const string MultipleFinishSteps = "multiple-finish-steps";
+
+        /// <summary>
+        /// Eine Hinweisfrage ohne gefüllten Auflösungsschritt (F16).
+        /// </summary>
+        public const string FinishStepMissing = "finish-step-missing";
         public const string StepTextMissing = "step-text-missing";
         public const string TypeOwnedValuesChanged = "type-owned-values-changed";
         public const string ExpectedDateMissing = "expected-date-missing";
@@ -116,6 +121,8 @@ namespace Quizzer.DataModels.Questions
                 issues.Add(new(MultipleFinishSteps, ValidationSeverity.Error,
                     "Es darf höchstens einen Abschlussschritt geben.", nameof(question.Steps)));
 
+            ValidateAufloesung(question, steps, issues);
+
             foreach (var step in steps)
             {
                 var hasFile = !string.IsNullOrWhiteSpace(step.ResourceFileName);
@@ -139,6 +146,39 @@ namespace Quizzer.DataModels.Questions
                         "Ein Schritt ohne Text und ohne Medium bleibt im Spiel leer.",
                         nameof(step.StepText)));
             }
+        }
+
+        /// <summary>
+        /// <b>F16.</b> Eine Frage, deren Punkte je Hinweis sinken, braucht einen gefüllten
+        /// Auflösungsschritt.
+        /// <para>
+        /// <b>Warum das eine Beanstandung ist und keine Warnung</b> (Nutzerentscheidung
+        /// 2026-09-09): der Auflösungsschritt ist die einzige Stelle, an der die Punkte auf 0
+        /// gehen - „auch wenn alles erkennbar ist kann noch geraten werden". Fehlt er, erfindet
+        /// <see cref="Models.QuestionBase.CalculateOrderdSteps"/> einen leeren; der nennt die
+        /// Lösung nicht, und der letzte Bildschirm der Frage bliebe stumm.
+        /// </para>
+        /// <para>
+        /// <b>Vor der Entscheidung gemessen:</b> von den fünf bestehenden Hinweisfragen trifft
+        /// es genau eine, <c>Aufdeckfrage</c> - die vier Eigenschaftsfragen haben ihren
+        /// gefüllten Abschlussschritt bereits.
+        /// </para>
+        /// </summary>
+        private static void ValidateAufloesung(
+            QuestionBase question, List<QuestionStepResource> steps, List<ValidationIssue> issues)
+        {
+            if (!question.UseProportionalScoreReductionOnStep)
+                return;
+
+            var gefuellt = steps.Any(s => s.IsFinish
+                && (!string.IsNullOrWhiteSpace(s.StepText)
+                    || !string.IsNullOrWhiteSpace(s.Designation)
+                    || !string.IsNullOrWhiteSpace(s.ResourceFileName)));
+
+            if (!gefuellt)
+                issues.Add(new(FinishStepMissing, ValidationSeverity.Error,
+                    "Es fehlt ein gefüllter Auflösungsschritt - erst dort stehen 0 Punkte, "
+                    + "und erst dort steht die Lösung.", nameof(question.Steps)));
         }
 
         private static void ValidateKeySelect(

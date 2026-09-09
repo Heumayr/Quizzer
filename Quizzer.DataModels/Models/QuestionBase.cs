@@ -43,6 +43,22 @@ namespace Quizzer.DataModels.Models
         public bool UseProportionalScoreReductionOnStep { get; set; } = false;
 
         /// <summary>
+        /// Nach welcher Kurve die Punkte je Hinweis sinken. Wirkt nur zusammen mit
+        /// <see cref="UseProportionalScoreReductionOnStep"/>.
+        /// </summary>
+        public ScoreReductionMode ScoreReductionMode { get; set; } = ScoreReductionMode.Linear;
+
+        /// <summary>
+        /// Womit multipliziert wird - beim letzten Hinweis (<see cref="ScoreReductionMode.Linear"/>)
+        /// oder bei jedem (<see cref="ScoreReductionMode.Halving"/>).
+        /// <para>
+        /// <b>Je Frage anpassbar, weil der Nutzer es so bestellt hat</b> (F16): „dieser wert kann
+        /// aber angepasst werden bei der frage ... aber vorgeschlagen ist die halbierung".
+        /// </para>
+        /// </summary>
+        public double ScoreReductionFactor { get; set; } = 0.5;
+
+        /// <summary>
         /// Wem diese Frage gehoert. <c>null</c> heisst: sie gehoert allen - so stehen die Fragen
         /// aus der Zeit vor den Anmeldungen weiterhin jedem zur Verfuegung.
         /// </summary>
@@ -295,6 +311,8 @@ namespace Quizzer.DataModels.Models
             target.Points = Points;
             target.MinusPoints = MinusPoints;
             target.UseProportionalScoreReductionOnStep = UseProportionalScoreReductionOnStep;
+            target.ScoreReductionMode = ScoreReductionMode;
+            target.ScoreReductionFactor = ScoreReductionFactor;
             target.Notes = Notes;
             target.Typ = Typ;
             target.Difficulty = Difficulty;

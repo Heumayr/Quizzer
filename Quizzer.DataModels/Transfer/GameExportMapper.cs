@@ -130,6 +130,8 @@ namespace Quizzer.DataModels.Transfer
                 MinusPoints = frage.MinusPoints,
                 Difficulty = frage.Difficulty,
                 UseProportionalScoreReductionOnStep = frage.UseProportionalScoreReductionOnStep,
+                ScoreReductionMode = frage.ScoreReductionMode,
+                ScoreReductionFactor = frage.ScoreReductionFactor,
                 WarnOnResultStep = frage.WarnOnResultStep,
                 WarnOnFinishStep = frage.WarnOnFinishStep,
                 UseRandomSequenceOnNoneFinishSteps = frage.UseRandomSequenceOnNoneFinishSteps,
@@ -294,6 +296,12 @@ namespace Quizzer.DataModels.Transfer
             frage.MinusPoints = daten.MinusPoints;
             frage.Difficulty = daten.Difficulty;
             frage.UseProportionalScoreReductionOnStep = daten.UseProportionalScoreReductionOnStep;
+
+            // Ein Buendel von vor dem 2026-09-09 kennt die beiden Felder nicht - dann bleibt es
+            // bei der Vorgabe der Frage, statt auf 0 zu fallen und jede Hinweisfrage flach zu
+            // machen.
+            frage.ScoreReductionMode = daten.ScoreReductionMode ?? frage.ScoreReductionMode;
+            frage.ScoreReductionFactor = daten.ScoreReductionFactor ?? frage.ScoreReductionFactor;
             frage.WarnOnResultStep = daten.WarnOnResultStep;
             frage.WarnOnFinishStep = daten.WarnOnFinishStep;
             frage.UseRandomSequenceOnNoneFinishSteps = daten.UseRandomSequenceOnNoneFinishSteps;
