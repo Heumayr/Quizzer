@@ -1,4 +1,4 @@
-using Quizzer.DataModels.Enumerations;
+﻿using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.QuestionTypes;
@@ -294,7 +294,8 @@ namespace Quizzer.DataModels.Questions
             issues.Add(new(TypeOwnedValuesChanged, ValidationSeverity.Error,
                 $"Die Frage weicht von den Vorgaben für {profile.DisplayName} ab. Im Spiel "
                 + "steht auf dem Spielerbildschirm statt der Frage ein Hinweis, dass sie für die "
-                + "gewählte Anzeigeart nicht eingerichtet ist.",
+                + "gewählte Anzeigeart nicht eingerichtet ist. Unten im Editor steht der Knopf "
+                + "„Vorgaben des Fragetyps wiederherstellen\", der genau das behebt.",
                 nameof(question.Typ)));
         }
 

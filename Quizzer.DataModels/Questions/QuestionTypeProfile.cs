@@ -1,4 +1,4 @@
-using Quizzer.DataModels.Enumerations;
+﻿using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 
 namespace Quizzer.DataModels.Questions
