@@ -225,5 +225,40 @@ namespace Quizzer.DataModels.Questions
         public static double Rasterung(double start, int schritte, int aufgedeckt)
             => Unschaerfe(start, schritte, aufgedeckt);
 
+        /// <summary>
+        /// Die Breite, auf die sich der eingestellte Stärkewert bezieht.
+        /// <para>
+        /// <b>Gemessen, nicht gewählt:</b> das Fenster „Aufdeckfrage einrichten" ist 1150 Punkte
+        /// breit, davon nimmt die Steuerspalte 320 - für das Bild bleiben rund 800. Damit sieht
+        /// im Editor alles so aus wie vor dem 2026-09-09; verändert hat sich nur, was der
+        /// <i>Beamer</i> daraus macht.
+        /// </para>
+        /// </summary>
+        public const double Bezugsbreite = 800;
+
+        /// <summary>
+        /// Rechnet die eingestellte Stärke auf die Fläche um, auf der das Bild gerade liegt.
+        /// <para>
+        /// <b>Nutzerentscheidung F13 vom 2026-09-09.</b> Vorher galt die Stärke in Punkten der
+        /// Anzeige - dasselbe Bild mit derselben Stärke gab damit im Editor, im Fragefenster und
+        /// am Beamer <i>verschieden viel</i> preis, und zwar in der ungünstigen Richtung: der
+        /// Beamer ist die größte Fläche, bekam die meisten Klötzchen und zeigte am meisten. Der
+        /// Spielleiter stellte eine Schwierigkeit ein, und die Gäste sahen ein leichteres Bild.
+        /// </para>
+        /// <para>
+        /// Jetzt ist die Stärke ein <b>Anteil der Bildbreite</b>: die Zahl der Klötzchen - und
+        /// damit die preisgegebene Bildinformation - hängt nicht mehr an der Fenstergröße.
+        /// </para>
+        /// </summary>
+        /// <param name="staerke">Der eingestellte Wert, bezogen auf <see cref="Bezugsbreite"/>.</param>
+        /// <param name="anzeigebreite">Wie breit das Bild tatsächlich ausgelegt wird.</param>
+        public static double Anzeigestaerke(double staerke, double anzeigebreite)
+        {
+            if (staerke <= 0 || anzeigebreite <= 0)
+                return 0;
+
+            return staerke * anzeigebreite / Bezugsbreite;
+        }
+
     }
 }

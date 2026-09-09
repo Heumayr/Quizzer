@@ -79,11 +79,17 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
         /// </summary>
         private void VerschleiereGanzesBild(RevealQuestion frage, int schritte, int gezeigt)
         {
+            // Die eingestellte Staerke gilt als Anteil der Bildbreite (F13) - erst hier wird
+            // sie auf die Flaeche umgerechnet, auf der das Bild gerade liegt. Ohne das gaebe
+            // der Beamer als groesste Flaeche am meisten preis.
+            var breite = Bildlage()?.Breite ?? 0;
+
             if (frage.Mode == RevealMode.Pixelate)
             {
                 var kante = RevealAreas.Rasterung(frage.BlurStart, schritte, gezeigt);
 
-                Bildraster.Zeige(Bild, Bild.Source as BitmapSource, kante, Bildlage()?.Breite ?? 0);
+                Bildraster.Zeige(
+                    Bild, Bild.Source as BitmapSource, RevealAreas.Anzeigestaerke(kante, breite), breite);
 
                 Melde(kante > 0 ? $"Raster {kante:0}" : "Bild scharf");
 
@@ -92,7 +98,9 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
 
             var radius = RevealAreas.Unschaerfe(frage.BlurStart, schritte, gezeigt);
 
-            Bild.Effect = radius > 0 ? new BlurEffect { Radius = radius } : null;
+            Bild.Effect = radius > 0
+                ? new BlurEffect { Radius = RevealAreas.Anzeigestaerke(radius, breite) }
+                : null;
 
             Melde(radius > 0 ? $"Unschärfe {radius:0}" : "Bild scharf");
         }

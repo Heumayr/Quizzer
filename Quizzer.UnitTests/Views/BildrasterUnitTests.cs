@@ -86,8 +86,14 @@ namespace Quizzer.UnitTests.Views
         /// <summary>
         /// Die Blockkante meint Punkte der <b>Anzeige</b>, nicht Bildpunkte der Datei.
         /// <para>
-        /// Deshalb rastert dasselbe Bild auf dem Beamer gröber als in der kleinen Vorschau - und
-        /// beide Male sieht der Betrachter gleich große Klötzchen.
+        /// <b>Abgelöst am 2026-09-09 (F13), soweit es die Wirkung betrifft.</b> Hier stand:
+        /// „deshalb rastert dasselbe Bild auf dem Beamer gröber als in der kleinen Vorschau" -
+        /// das stimmt für die Klotz<i>größe</i>, aber nicht für die preisgegebene
+        /// Bildinformation, und die trägt die Frage. Der Beamer bekam mehr Klötzchen und zeigte
+        /// mehr. <b>Diese Klasse misst weiter, was sie misst</b> - den Vertrag von
+        /// <see cref="Bildraster"/> selbst; umgerechnet wird eine Stufe darüber, in
+        /// <c>RevealAreas.Anzeigestaerke</c>, gehalten von
+        /// <c>RevealQuestionUnitTests.TheSameStrengthRevealsTheSameEverywhere</c>.
         /// </para>
         /// </summary>
         [TestMethod]

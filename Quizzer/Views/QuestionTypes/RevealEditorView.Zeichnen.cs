@@ -69,14 +69,19 @@ namespace Quizzer.Views.QuestionTypes
             if (original == null || staerke <= 0)
                 return;
 
+            // Anteil der Bildbreite statt Punkte der Anzeige (F13) - dieselbe Umrechnung wie im
+            // Fragefenster, damit die Vorschau zeigt, was der Beamer zeigt.
+            var breite = Bildlage()?.Breite ?? 0;
+
             if (art == RevealMode.Pixelate)
             {
-                Bildraster.Zeige(Bild, original, staerke, Bildlage()?.Breite ?? 0);
+                Bildraster.Zeige(
+                    Bild, original, RevealAreas.Anzeigestaerke(staerke, breite), breite);
                 return;
             }
 
             if (art == RevealMode.Blur)
-                Bild.Effect = new BlurEffect { Radius = staerke };
+                Bild.Effect = new BlurEffect { Radius = RevealAreas.Anzeigestaerke(staerke, breite) };
         }
 
         private string Buehnentext()

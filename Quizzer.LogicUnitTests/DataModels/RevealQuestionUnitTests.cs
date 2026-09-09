@@ -187,5 +187,66 @@ namespace Quizzer.LogicUnitTests.DataModels
                     $"Die Fabrik baut fuer {typ} einen anderen Typ.");
             }
         }
+
+        /// <summary>
+        /// <b>F13.</b> Dieselbe Stärke gibt auf jeder Fläche gleich viel preis.
+        /// <para>
+        /// Das ist der ganze Sinn der Umstellung vom 2026-09-09: die Zahl der Klötzchen - und
+        /// damit die preisgegebene Bildinformation - darf nicht mehr an der Fenstergröße hängen.
+        /// Gemessen wird deshalb das <b>Verhältnis</b> Fläche zu Klotzkante, nicht die Kante.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void TheSameStrengthRevealsTheSameEverywhere()
+        {
+            // Vorschau, Fragefenster, Beamer - drei sehr verschiedene Breiten.
+            double[] breiten = [400, 800, 1920];
+
+            var bloecke = breiten
+                .Select(b => b / RevealAreas.Anzeigestaerke(40, b))
+                .ToArray();
+
+            foreach (var zahl in bloecke)
+            {
+                Assert.AreEqual(RevealAreas.Bezugsbreite / 40, zahl, 0.0001,
+                    "Die Blockzahl haengt noch an der Flaeche: "
+                    + string.Join(", ", bloecke));
+            }
+        }
+
+        /// <summary>
+        /// Die Gegenprobe zur vorigen: <b>ohne</b> die Umrechnung wäre die Blockzahl verschieden.
+        /// <para>
+        /// <b>Sie ist der Beleg, dass die erste Zusicherung etwas misst.</b> Ohne sie bliebe
+        /// jene auch dann grün, wenn <see cref="RevealAreas.Anzeigestaerke"/> die Breite gar
+        /// nicht mehr einrechnete - denn eine Konstante erfüllt sie ebenfalls.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void WithoutTheConversionTheProjectorWouldRevealMore()
+        {
+            // Genau die alte Rechnung: die Staerke ging roh als Punkte der Anzeige hinein.
+            var vorschau = 400 / 40.0;
+            var beamer = 1920 / 40.0;
+
+            Assert.IsTrue(beamer > vorschau * 4,
+                "Die alte Rechnung gab dem Beamer nicht mehr Bloecke - dann war der Befund, "
+                + "aus dem F13 entstand, falsch.");
+
+            Assert.AreEqual(
+                1920 / 400.0,
+                RevealAreas.Anzeigestaerke(40, 1920) / RevealAreas.Anzeigestaerke(40, 400),
+                0.0001,
+                "Die Staerke muss proportional zur Flaeche mitwachsen - genau das haelt die "
+                + "Blockzahl konstant.");
+        }
+
+        /// <summary>Ohne Stärke oder ohne ausgelegte Breite gibt es nichts umzurechnen.</summary>
+        [TestMethod]
+        public void NothingToConvertStaysZero()
+        {
+            Assert.AreEqual(0, RevealAreas.Anzeigestaerke(0, 800), "Staerke 0 heisst scharf.");
+            Assert.AreEqual(0, RevealAreas.Anzeigestaerke(40, 0), "Ohne Flaeche kein Bezug.");
+        }
     }
 }
