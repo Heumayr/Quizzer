@@ -144,7 +144,6 @@ export class InputLayout {
 
         try {
             await this.actions.submitInput({
-                playerId: this.lastContext.playerId,
                 value
             });
         } catch {

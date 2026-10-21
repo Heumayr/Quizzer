@@ -37,21 +37,26 @@ export function isGuid(s) {
         /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(s.trim());
 }
 
-export function resolvePlayerId() {
-    const params = new URLSearchParams(location.search);
-    const urlIdRaw = params.get("id");
-    const urlId = urlIdRaw?.trim() ?? null;
+// Der Zugangsschluessel: 22 Zeichen Base64url (BuzzerAccessKeys). Eine Spieler-Id (GUID)
+// ist ausdruecklich KEIN Schluessel mehr - sie stand frueher in QR-Codes und Cookies.
+export function isAccessKey(s) {
+    return typeof s === "string" && !isGuid(s) && /^[A-Za-z0-9_-]{16,64}$/.test(s.trim());
+}
 
-    if (urlId && isGuid(urlId)) {
-        setCookie(COOKIE_NAME, urlId, COOKIE_DAYS);
-        return urlId;
+export function resolveAccessKey() {
+    const params = new URLSearchParams(location.search);
+    const urlKey = params.get("key")?.trim() ?? null;
+
+    if (urlKey && isAccessKey(urlKey)) {
+        setCookie(COOKIE_NAME, urlKey, COOKIE_DAYS);
+        return urlKey;
     }
 
-    const cookieIdRaw = getCookie(COOKIE_NAME);
-    const cookieId = cookieIdRaw ? decodeURIComponent(cookieIdRaw).trim() : null;
+    const cookieRaw = getCookie(COOKIE_NAME);
+    const cookieKey = cookieRaw ? decodeURIComponent(cookieRaw).trim() : null;
 
-    if (cookieId && isGuid(cookieId)) {
-        return cookieId;
+    if (cookieKey && isAccessKey(cookieKey)) {
+        return cookieKey;
     }
 
     // M10: ohne Kennung meldet man sich mit Namen an (join.js) - statt eine GUID einzutippen.

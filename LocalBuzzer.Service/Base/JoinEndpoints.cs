@@ -15,23 +15,42 @@ namespace LocalBuzzer.Service.Base
     /// </summary>
     public static class JoinEndpoints
     {
-        public sealed record CandidateDto(Guid PlayerId, string Name);
+        /// <summary>
+        /// Ein Name zur Auswahl. <b>Keine Spieler-Id</b> (Sicherheitsprüfung 2026-10-21): die
+        /// Kennung ist abgeleitet und taugt nicht als Zugang zum Hub.
+        /// </summary>
+        public sealed record CandidateDto(string CandidateId, string Name);
 
-        public sealed record JoinRequestDto(Guid? PlayerId, string? GuestName);
+        public sealed record JoinRequestDto(string? CandidateId, string? GuestName);
 
         public sealed record JoinCreatedDto(Guid RequestId);
 
-        public sealed record JoinStatusDto(string Status, Guid? PlayerId);
+        /// <summary>Bei „accepted" der Zugangsschlüssel - nur der Anfragende kennt die RequestId.</summary>
+        public sealed record JoinStatusDto(string Status, string? AccessKey);
 
-        public static void Map(IEndpointRouteBuilder app, JoinRequestRegistry registry, Func<IReadOnlyList<JoinCandidate>> candidates)
+        public static void Map(IEndpointRouteBuilder app, JoinRequestRegistry registry, Func<IReadOnlyList<JoinCandidate>> candidates, BuzzerAccessKeys keys)
         {
             app.MapGet("/join/candidates", () =>
-                candidates().Select(c => new CandidateDto(c.PlayerId, c.Name)).OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase).ToList());
+                candidates().Select(c => new CandidateDto(keys.KandidatFuer(c.PlayerId), c.Name)).OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase).ToList());
 
             app.MapPost("/join/request", (JoinRequestDto dto, HttpContext http) =>
             {
                 var remote = http.Connection.RemoteIpAddress?.ToString() ?? "unbekannt";
-                var (result, request) = registry.Create(dto.PlayerId, dto.GuestName, candidates(), remote);
+                var liste = candidates();
+
+                Guid? playerId = null;
+
+                if (!string.IsNullOrWhiteSpace(dto.CandidateId))
+                {
+                    var gewaehlt = keys.FindeKandidat(dto.CandidateId, liste, c => c.PlayerId);
+
+                    if (gewaehlt == null)
+                        return Results.BadRequest();
+
+                    playerId = gewaehlt.PlayerId;
+                }
+
+                var (result, request) = registry.Create(playerId, dto.GuestName, liste, remote);
 
                 return result switch
                 {
@@ -49,7 +68,9 @@ namespace LocalBuzzer.Service.Base
 
                 return Results.Ok(new JoinStatusDto(
                     request.Status.ToString().ToLowerInvariant(),
-                    request.Status == JoinStatus.Accepted ? request.AssignedPlayerId : null));
+                    request.Status == JoinStatus.Accepted && request.AssignedPlayerId is Guid zugewiesen
+                        ? keys.SchluesselFuer(zugewiesen)
+                        : null));
             });
         }
     }

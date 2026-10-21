@@ -78,10 +78,10 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             public ValueTask DisposeAsync() => Connection.DisposeAsync();
         }
 
-        private static async Task<TestPhone> ConnectAsync(Player player)
+        private async Task<TestPhone> ConnectAsync(Player player)
         {
             var connection = new HubConnectionBuilder()
-                .WithUrl($"http://127.0.0.1:{TestPort}/hub?playerid={player.Id}")
+                .WithUrl($"http://127.0.0.1:{TestPort}/hub?key={server.AccessKeys.SchluesselFuer(player.Id)}")
                 .Build();
 
             var phone = new TestPhone { Connection = connection };
@@ -216,7 +216,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         public async Task AForeignPlayerIsRejectedWithAGermanHint()
         {
             var connection = new HubConnectionBuilder()
-                .WithUrl($"http://127.0.0.1:{TestPort}/hub?playerid={Guid.NewGuid()}")
+                .WithUrl($"http://127.0.0.1:{TestPort}/hub?key={server.AccessKeys.SchluesselFuer(Guid.NewGuid())}")
                 .Build();
 
             Exception? closeError = null;

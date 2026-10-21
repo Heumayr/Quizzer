@@ -333,7 +333,6 @@
             : [...this.selectedKeys];
 
         const payload = {
-            playerId: this.lastContext.playerId,
             selectedKeys: keys,
             committedResult: true
         };

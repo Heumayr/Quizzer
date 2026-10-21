@@ -20,15 +20,17 @@ namespace LocalBuzzer.Service.Hubs
         private readonly GameAccessor _gameAccessor;
         private readonly PlayerConnectionRegistry _registry;
         private readonly ILogger<BuzzerHub> _logger;
+        private readonly BuzzerAccessKeys _accessKeys;
 
         public BuzzerHub(LayoutStateManager stateManager, BuzzerEventBus bus, GameAccessor gameAccessor,
-            PlayerConnectionRegistry registry, ILogger<BuzzerHub> logger)
+            PlayerConnectionRegistry registry, ILogger<BuzzerHub> logger, BuzzerAccessKeys accessKeys)
         {
             _stateManager = stateManager;
             _bus = bus;
             _gameAccessor = gameAccessor;
             _registry = registry;
             _logger = logger;
+            _accessKeys = accessKeys;
         }
 
         public override async Task OnConnectedAsync()
@@ -66,14 +68,16 @@ namespace LocalBuzzer.Service.Hubs
             if (game == null)
                 throw new HubException("Kein Spiel geladen – der Spielleiter muss zuerst ein Spiel öffnen.");
 
-            var qs = Context.GetHttpContext()?.Request.Query["playerid"].ToString();
+            // Der Ausweis ist der abgeleitete Zugangsschluessel, nicht die Spieler-Id
+            // (Sicherheitspruefung 2026-10-21, BuzzerAccessKeys).
+            var key = Context.GetHttpContext()?.Request.Query["key"].ToString();
 
-            if (!Guid.TryParse(qs, out var guid))
-                throw new HubException("Ungültige oder fehlende Spieler-Kennung – bitte den QR-Code neu scannen.");
+            if (string.IsNullOrWhiteSpace(key))
+                throw new HubException("Fehlender Zugangsschlüssel – bitte den QR-Code neu scannen oder sich neu anmelden.");
 
-            var player = game.Players.FirstOrDefault(p => p.Id == guid);
+            var player = _accessKeys.FindeSchluessel(key, game.Players, p => p.Id);
             if (player == null)
-                throw new HubException("Dieser Spieler gehört nicht zum laufenden Spiel – bitte den QR-Code dieses Spiels scannen.");
+                throw new HubException("Dieser Zugang gehört nicht zum laufenden Spiel – bitte den QR-Code dieses Spiels scannen oder sich neu anmelden.");
 
             return player;
         }
@@ -128,16 +132,22 @@ namespace LocalBuzzer.Service.Hubs
         /// </summary>
         public async Task SubmitInput(InputResult result)
         {
-            if (_stateManager.CurrentState is not BuzzerInputState inputState || result.PlayerId == Guid.Empty)
+            if (_stateManager.CurrentState is not BuzzerInputState inputState || result == null)
+                return;
+
+            // Eine geschlossene Runde nimmt nichts mehr an - und meldet nichts mehr weiter.
+            // Bis zur Sicherheitspruefung 2026-10-21 lief jede spaete Abgabe ungeprueft an den
+            // Spielleiter durch, setzte dessen Bewertungsvorschlaege neu und schickte jedes Mal
+            // StateChanged an alle Telefone.
+            if (inputState.Locked)
                 return;
 
             if (!_registry.TryGetPlayer(Context.ConnectionId, out var player))
                 return;
 
-            // Ein Spieler darf nur fuer sich selbst abgeben.
-            if (result.PlayerId != player.Id)
-                return;
-
+            // Wer abgibt, sagt die Verbindung - nicht die Nachricht. Ein Spieler kann so nur
+            // fuer sich selbst abgeben, egal was er mitschickt.
+            result.PlayerId = player.Id;
             result.Player = player;
             inputState.SetInput(result);
             _bus.OnPlayerSubmittedInput(result);
@@ -154,17 +164,25 @@ namespace LocalBuzzer.Service.Hubs
 
         public async Task SelectionResults(SelectionResult results)
         {
-            if (_stateManager.CurrentState is not BuzzerKeySelector keySelector || results.PlayerId == Guid.Empty)
+            if (_stateManager.CurrentState is not BuzzerKeySelector keySelector || results?.SelectedKeys == null)
+                return;
+
+            // Siehe SubmitInput: nach dem Schliessen der Runde nichts mehr annehmen.
+            if (keySelector.Locked)
                 return;
 
             if (!_registry.TryGetPlayer(Context.ConnectionId, out var player))
                 return;
 
-            if (results.PlayerId != player.Id)
-                return;
-
+            results.PlayerId = player.Id;
             results.Player = player;
             keySelector.SetSelectedKeys(results);
+
+            // Nur Gepruefte weitermelden - eine verworfene Abgabe (doppelte oder unbekannte
+            // Tasten) erreicht den Spielleiter nicht.
+            if (!results.CommittedResult)
+                return;
+
             _bus.OnPlayerSelectedKeys(results);
 
             if (keySelector.Locked)

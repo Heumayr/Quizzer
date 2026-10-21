@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.SignalR.Client;
 using LocalBuzzer.Service;
 using LocalBuzzer.Service.Base;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -22,11 +23,11 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         private readonly Player anna = new() { Id = Guid.NewGuid(), Designation = "Anna", DisplayName = "Anna" };
         private readonly Player bert = new() { Id = Guid.NewGuid(), Designation = "Bert", DisplayName = "Bert" };
 
-        private sealed record Candidate(Guid PlayerId, string Name);
+        private sealed record Candidate(string CandidateId, string Name);
 
         private sealed record Created(Guid RequestId);
 
-        private sealed record JoinState(string Status, Guid? PlayerId);
+        private sealed record JoinState(string Status, string? AccessKey);
 
         [TestInitialize]
         public async Task StartServer()
@@ -61,26 +62,79 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             var candidates = await http.GetFromJsonAsync<List<Candidate>>("/join/candidates");
             CollectionAssert.AreEquivalent(new[] { "Anna", "Bert" }, candidates!.Select(c => c.Name).ToList());
 
-            var response = await http.PostAsJsonAsync("/join/request", new { playerId = bert.Id, guestName = (string?)null });
+            var bertsKennung = candidates.Single(c => c.Name == "Bert").CandidateId;
+
+            var response = await http.PostAsJsonAsync("/join/request", new { candidateId = bertsKennung, guestName = (string?)null });
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var created = (await response.Content.ReadFromJsonAsync<Created>())!;
 
             var waiting = await http.GetFromJsonAsync<JoinState>($"/join/status/{created.RequestId}");
             Assert.AreEqual("pending", waiting!.Status);
-            Assert.IsNull(waiting.PlayerId, "Vor dem Annehmen verraet der Server keine Kennung.");
+            Assert.IsNull(waiting.AccessKey, "Vor dem Annehmen verraet der Server keinen Schluessel.");
 
             Assert.AreEqual(1, server.JoinRequests.Pending().Count, "Am Laptop steht die Anfrage.");
             server.JoinRequests.Accept(created.RequestId, bert.Id);
 
             var accepted = await http.GetFromJsonAsync<JoinState>($"/join/status/{created.RequestId}");
             Assert.AreEqual("accepted", accepted!.Status);
-            Assert.AreEqual(bert.Id, accepted.PlayerId);
+            Assert.AreEqual(server.AccessKeys.SchluesselFuer(bert.Id), accepted.AccessKey);
+        }
+
+        /// <summary>
+        /// <b>Sicherheitsprüfung 2026-10-21:</b> was die Kandidatenliste herausgibt, öffnet den Hub
+        /// nicht - weder als Kandidatenkennung noch als Spieler-Id. Vorher reichte die Id aus der
+        /// Liste, um sich als Anna zu verbinden und sie zu verdrängen.
+        /// </summary>
+        [TestMethod]
+        public async Task WhatTheCandidateListRevealsDoesNotOpenTheHub()
+        {
+            var candidates = (await http.GetFromJsonAsync<List<Candidate>>("/join/candidates"))!;
+            var annasKennung = candidates.Single(c => c.Name == "Anna").CandidateId;
+
+            Assert.IsFalse(annasKennung.Contains(anna.Id.ToString("N"), StringComparison.OrdinalIgnoreCase)
+                    || annasKennung.Contains(anna.Id.ToString(), StringComparison.OrdinalIgnoreCase),
+                "Die Kandidatenliste traegt die Spieler-Id.");
+
+            foreach (var abfrage in new[] { $"key={annasKennung}", $"playerid={anna.Id}", $"key={anna.Id}" })
+            {
+                await using var verbindung = new HubConnectionBuilder()
+                    .WithUrl($"http://127.0.0.1:{TestPort}/hub?{abfrage}")
+                    .Build();
+
+                var zugelassen = true;
+
+                try
+                {
+                    await verbindung.StartAsync();
+                    await Task.Delay(300);
+                    zugelassen = verbindung.State == HubConnectionState.Connected;
+                }
+                catch
+                {
+                    zugelassen = false;
+                }
+
+                Assert.IsFalse(zugelassen, $"Mit '{abfrage}' liess der Hub ein fremdes Telefon als Anna hinein.");
+            }
+
+            // Gegenprobe: der echte Schluessel (QR-Code beim Spielleiter) oeffnet ihn.
+            await using var echt = new HubConnectionBuilder()
+                .WithUrl($"http://127.0.0.1:{TestPort}/hub?key={server.AccessKeys.SchluesselFuer(anna.Id)}")
+                .Build();
+
+            var zugewiesen = new TaskCompletionSource();
+            echt.On<object>("Assigned", _ => zugewiesen.TrySetResult());
+
+            await echt.StartAsync();
+
+            Assert.AreEqual(zugewiesen.Task, await Task.WhenAny(zugewiesen.Task, Task.Delay(5000)),
+                "Mit dem echten Schluessel wurde Anna nicht zugewiesen.");
         }
 
         [TestMethod]
         public async Task ANameThatIsNotOfferedIsRefused()
         {
-            var response = await http.PostAsJsonAsync("/join/request", new { playerId = Guid.NewGuid(), guestName = (string?)null });
+            var response = await http.PostAsJsonAsync("/join/request", new { candidateId = "erfunden-erfunden-1", guestName = (string?)null });
 
             Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.AreEqual(0, server.JoinRequests.Pending().Count);

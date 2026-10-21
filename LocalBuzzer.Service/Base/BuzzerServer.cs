@@ -30,6 +30,12 @@ namespace LocalBuzzer.Service
         /// </summary>
         public Func<IReadOnlyList<JoinCandidate>>? GetJoinCandidates { get; set; }
 
+        /// <summary>
+        /// Die Zugangsschlüssel der Telefone (Sicherheitsprüfung 2026-10-21). Ohne Angabe gelten
+        /// sie nur für diesen Lauf; das WPF setzt den dauerhaften Satz aus dem Benutzerordner.
+        /// </summary>
+        public BuzzerAccessKeys AccessKeys { get; set; } = BuzzerAccessKeys.Fluechtig();
+
         /// <summary>Die Beitrittsanfragen - eine Liste je Serverlauf.</summary>
         public JoinRequestRegistry JoinRequests { get; private set; } = new();
 
@@ -65,8 +71,12 @@ namespace LocalBuzzer.Service
                 builder.Services.AddSingleton<BuzzerEventBus>();
                 builder.Services.AddSingleton<GameAccessor>();
                 builder.Services.AddSingleton<PlayerConnectionRegistry>();
+                builder.Services.AddSingleton(AccessKeys);
+
+                // Keine ausfuehrlichen Fehler an die Telefone: Ausnahmetexte aus dem Inneren des
+                // Spielleiter-Laptops gehen niemanden im WLAN etwas an. Was ein Telefon wissen
+                // muss, steht in HubException-Texten - die kommen auch so an.
                 builder.Services.AddSignalR();
-                builder.Services.AddSignalR(o => o.EnableDetailedErrors = true);
 
                 var app = builder.Build(); // local until started successfully
 
@@ -82,7 +92,7 @@ namespace LocalBuzzer.Service
                     app.MapHub<BuzzerHub>("/hub");
 
                     JoinRequests = new JoinRequestRegistry();
-                    JoinEndpoints.Map(app, JoinRequests, CurrentCandidates);
+                    JoinEndpoints.Map(app, JoinRequests, CurrentCandidates, AccessKeys);
 
                     var eventBus = app.Services.GetRequiredService<BuzzerEventBus>();
                     var buzzerHubContext = app.Services.GetRequiredService<IHubContext<BuzzerHub>>();

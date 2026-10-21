@@ -285,7 +285,11 @@ namespace Quizzer.Views.BuzzerViews
                 {
                     _server = new BuzzerServer
                     {
-                        GetGame = () => Game
+                        GetGame = () => Game,
+
+                        // Dauerhaft im Benutzerordner, damit QR-Codes und angemeldete Telefone
+                        // einen Neustart ueberstehen (Sicherheitspruefung 2026-10-21).
+                        AccessKeys = LocalBuzzer.Service.Base.BuzzerAccessKeys.LadeOderErzeuge(DataModels.UserSettings.Folder),
                     };
                 }
 

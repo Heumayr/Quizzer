@@ -46,8 +46,8 @@ const sofort = async () => { };
 // 1. Name waehlen, Spielleiter nimmt an -> das Telefon geht mit der Kennung zum Buzzer.
 {
     const s = server({
-        kandidaten: [{ playerId: "p-1", name: "Anna" }, { playerId: "p-2", name: "Bert" }],
-        status: [antwort(200, { status: "pending" }), antwort(200, { status: "accepted", playerId: "p-2" })]
+        kandidaten: [{ candidateId: "k-1", name: "Anna" }, { candidateId: "k-2", name: "Bert" }],
+        status: [antwort(200, { status: "pending" }), antwort(200, { status: "accepted", accessKey: "z-2" })]
     });
     let ziel = null;
     const h = host();
@@ -62,14 +62,14 @@ const sofort = async () => { };
     await new Promise(r => setTimeout(r, 10));
 
     const post = s.aufrufe.find(a => a.url === "/join/request");
-    pruefe(post && JSON.parse(post.opt.body).playerId === "p-2", "die Anfrage nennt Berts Kennung");
+    pruefe(post && JSON.parse(post.opt.body).candidateId === "k-2", "die Anfrage nennt Berts Kandidatenkennung");
     pruefe(post && !("password" in JSON.parse(post.opt.body)), "kein Kennwort in der Anfrage");
-    pruefe(ziel === "/?id=p-2", "nach dem Annehmen geht es zu /?id=p-2, war: " + ziel);
+    pruefe(ziel === "/?key=z-2", "nach dem Annehmen geht es mit dem Zugangsschluessel zu /?key=z-2, war: " + ziel);
 }
 
 // 2. Gast: der eingetippte Name geht mit, keine Kennung.
 {
-    const s = server({ status: [antwort(200, { status: "accepted", playerId: "g-9" })] });
+    const s = server({ status: [antwort(200, { status: "accepted", accessKey: "z-9" })] });
     let ziel = null;
     const h = host();
     const flow = new JoinFlow({ host: h, fetchImpl: s.fetchImpl, navigate: u => { ziel = u; }, storage: speicher(), wait: sofort });
@@ -80,14 +80,14 @@ const sofort = async () => { };
     await new Promise(r => setTimeout(r, 10));
 
     const body = JSON.parse(s.aufrufe.find(a => a.url === "/join/request").opt.body);
-    pruefe(body.guestName === "Carla" && body.playerId === null, "Gast Carla ohne Kennung, war: " + JSON.stringify(body));
-    pruefe(ziel === "/?id=g-9", "der Gast verbindet unter der neuen Kennung");
+    pruefe(body.guestName === "Carla" && body.candidateId === null, "Gast Carla ohne Kennung, war: " + JSON.stringify(body));
+    pruefe(ziel === "/?key=z-9", "der Gast verbindet unter der neuen Kennung");
 }
 
 // 3. Abgelehnt -> zurueck zur Auswahl mit Hinweis, die gespeicherte Anfrage ist weg.
 {
     const store = speicher();
-    const s = server({ kandidaten: [{ playerId: "p-1", name: "Anna" }], status: [antwort(200, { status: "declined" })] });
+    const s = server({ kandidaten: [{ candidateId: "k-1", name: "Anna" }], status: [antwort(200, { status: "declined" })] });
     const h = host();
     const flow = new JoinFlow({ host: h, fetchImpl: s.fetchImpl, navigate: () => { }, storage: store, wait: sofort });
 
@@ -101,7 +101,7 @@ const sofort = async () => { };
 
 // 4. Zu viele offene Anfragen -> verstaendlicher Hinweis statt stiller Leere.
 {
-    const s = server({ kandidaten: [{ playerId: "p-1", name: "Anna" }], anfrage: antwort(429, null) });
+    const s = server({ kandidaten: [{ candidateId: "k-1", name: "Anna" }], anfrage: antwort(429, null) });
     const h = host();
     const flow = new JoinFlow({ host: h, fetchImpl: s.fetchImpl, navigate: () => { }, storage: speicher(), wait: sofort });
 
@@ -116,14 +116,14 @@ const sofort = async () => { };
 {
     const store = speicher();
     store.setItem(PENDING_KEY, "r-7");
-    const s = server({ status: [antwort(200, { status: "accepted", playerId: "p-7" })] });
+    const s = server({ status: [antwort(200, { status: "accepted", accessKey: "z-7" })] });
     let ziel = null;
     const flow = new JoinFlow({ host: host(), fetchImpl: s.fetchImpl, navigate: u => { ziel = u; }, storage: store, wait: sofort });
 
     await flow.start();
     pruefe(!s.aufrufe.some(a => a.url === "/join/request"), "keine zweite Anfrage nach dem Neuladen");
     pruefe(s.aufrufe.some(a => a.url === "/join/status/r-7"), "es wird die gespeicherte Anfrage abgefragt");
-    pruefe(ziel === "/?id=p-7", "und danach verbunden");
+    pruefe(ziel === "/?key=z-7", "und danach verbunden");
 }
 
 if (fehler > 0) {

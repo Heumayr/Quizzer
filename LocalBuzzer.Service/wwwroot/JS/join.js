@@ -79,8 +79,8 @@ export class JoinFlow {
         for (const c of candidates) {
             const btn = el("button", "join-candidate", c.name);
             btn.type = "button";
-            btn.dataset.playerId = c.playerId;
-            btn.addEventListener("click", () => this.request({ playerId: c.playerId, guestName: null }));
+            btn.dataset.candidateId = c.candidateId;
+            btn.addEventListener("click", () => this.request({ candidateId: c.candidateId, guestName: null }));
             list.appendChild(btn);
         }
         root.appendChild(list);
@@ -96,7 +96,7 @@ export class JoinFlow {
         guest.type = "button";
         guest.addEventListener("click", () => {
             const name = String(input.value ?? "").trim();
-            if (name.length > 0) this.request({ playerId: null, guestName: name });
+            if (name.length > 0) this.request({ candidateId: null, guestName: name });
         });
         root.appendChild(guest);
 
@@ -144,9 +144,9 @@ export class JoinFlow {
                 status = null;
             }
 
-            if (status?.status === "accepted" && status.playerId) {
+            if (status?.status === "accepted" && status.accessKey) {
                 this.storage.removeItem(PENDING_KEY);
-                this.navigate(`/?id=${encodeURIComponent(status.playerId)}`);
+                this.navigate(`/?key=${encodeURIComponent(status.accessKey)}`);
                 return "accepted";
             }
 

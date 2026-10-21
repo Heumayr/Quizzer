@@ -5,5 +5,7 @@
     Input: 3
 });
 
-export const COOKIE_NAME = "playerId";
+// Seit der Sicherheitspruefung 2026-10-21 der Zugangsschluessel, nicht mehr die Spieler-Id.
+// Neuer Name, damit ein altes Cookie mit einer Id einfach nicht mehr gelesen wird.
+export const COOKIE_NAME = "zugang";
 export const COOKIE_DAYS = 365;

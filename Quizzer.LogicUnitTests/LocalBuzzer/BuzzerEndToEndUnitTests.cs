@@ -68,14 +68,14 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
                 await server.DisposeAsync();
         }
 
-        /// <summary>Verbindet sich wie ein Telefon: mit playerid in der Abfrage.</summary>
-        private static async Task<(HubConnection Connection, List<ClientLayoutStateDto> States)>
+        /// <summary>Verbindet sich wie ein Telefon: mit dem Zugangsschluessel in der Abfrage.</summary>
+        private async Task<(HubConnection Connection, List<ClientLayoutStateDto> States)>
             ConnectAsync(Player player)
         {
             var states = new List<ClientLayoutStateDto>();
 
             var connection = new HubConnectionBuilder()
-                .WithUrl($"http://127.0.0.1:{TestPort}/hub?playerid={player.Id}")
+                .WithUrl($"http://127.0.0.1:{TestPort}/hub?key={server.AccessKeys.SchluesselFuer(player.Id)}")
                 .Build();
 
             connection.On<ClientLayoutStateDto>("StateChanged", dto =>

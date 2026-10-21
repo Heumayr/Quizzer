@@ -1,5 +1,5 @@
 ﻿import { Layouts } from "./constants.js";
-import { dom, resolvePlayerId, clearPlayerCookie, showError, getErrMsg, toast, nextRetryDelay, setConnectionIndicator } from "./helpers.js";
+import { dom, resolveAccessKey, clearPlayerCookie, showError, getErrMsg, toast, nextRetryDelay, setConnectionIndicator } from "./helpers.js";
 import { JoinFlow } from "./join.js";
 import { LayoutManager } from "./layoutManager.js";
 import { BuzzerLayout } from "./layouts/buzzerLayout.js";
@@ -9,7 +9,7 @@ import { InputLayout } from "./layouts/inputLayout.js";
 const WAITING_FOR_HOST = "Verbunden – warte auf den Spielleiter";
 
 const state = {
-    playerId: null,
+    accessKey: null,
     playerName: "—",
     round: 0,
     resetCount: 0,
@@ -27,7 +27,6 @@ const layoutManager = new LayoutManager(state);
 function buildContext() {
     return {
         host: dom.host,
-        playerId: state.playerId,
         playerName: state.playerName,
         round: state.round,
         resetCount: state.resetCount,
@@ -208,8 +207,8 @@ async function start() {
         clearPlayerCookie();
     }
 
-    state.playerId = resolvePlayerId();
-    if (!state.playerId) {
+    state.accessKey = resolveAccessKey();
+    if (!state.accessKey) {
         await startJoin();
         return;
     }
@@ -217,7 +216,7 @@ async function start() {
     registerLayouts();
 
     const conn = new signalR.HubConnectionBuilder()
-        .withUrl(`/hub?playerid=${encodeURIComponent(state.playerId)}`)
+        .withUrl(`/hub?key=${encodeURIComponent(state.accessKey)}`)
         .withAutomaticReconnect({ nextRetryDelayInMilliseconds: nextRetryDelay })
         .build();
 

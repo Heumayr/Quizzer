@@ -117,7 +117,7 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
             var received = new List<ClientLayoutStateDto>();
 
             var connection = new HubConnectionBuilder()
-                .WithUrl($"http://127.0.0.1:{Port}/hub?playerid={player.Id}")
+                .WithUrl($"http://127.0.0.1:{Port}/hub?key={serverVm!._server!.AccessKeys.SchluesselFuer(player.Id)}")
                 .Build();
 
             connection.On<ClientLayoutStateDto>("StateChanged", dto =>

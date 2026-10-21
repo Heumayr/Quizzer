@@ -116,11 +116,14 @@ namespace LocalBuzzer.Service.Base.States
         /// </summary>
         public bool IsCompleteOrder(IReadOnlyCollection<string> keys)
         {
-            // Wahr oder falsch: jede Taste hoechstens einmal und nur bekannte - sonst zaehlte eine
-            // doppelt geschickte Aussage zweimal.
-            if (Infos.TrueFalse)
-                return keys.Distinct(StringComparer.Ordinal).Count() == keys.Count
-                    && keys.All(k => k != null && Infos.KeysAndDesignations.ContainsKey(k));
+            // Jede Taste hoechstens einmal und nur bekannte - fuer ALLE Arten. Bei Multiple Choice
+            // mit zwei Loesungen hielt ["A","A"] sonst als "zwei richtige" (Sicherheitspruefung
+            // 2026-10-21), bei Wahr oder falsch zaehlte eine doppelte Aussage zweimal.
+            var eindeutigUndBekannt = keys.Distinct(StringComparer.Ordinal).Count() == keys.Count
+                && keys.All(k => k != null && Infos.KeysAndDesignations.ContainsKey(k));
+
+            if (!eindeutigUndBekannt)
+                return false;
 
             if (!Infos.Ordered)
                 return true;

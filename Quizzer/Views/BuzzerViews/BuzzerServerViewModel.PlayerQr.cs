@@ -42,7 +42,11 @@ namespace Quizzer.Views.BuzzerViews
                 return;
             }
 
-            ShowQrWindow(player, $"http://{endpoint}?id={Uri.EscapeDataString(player.Id.ToString())}");
+            // Der Zugangsschluessel, nicht die Spieler-Id: die Id stand frueher hier und war damit
+            // der ganze Ausweis - seit M10 kennt sie aber jedes Telefon im WLAN.
+            var schluessel = _server!.AccessKeys.SchluesselFuer(player.Id);
+
+            ShowQrWindow(player, $"http://{endpoint}?key={Uri.EscapeDataString(schluessel)}");
         }
 
         /// <summary>
