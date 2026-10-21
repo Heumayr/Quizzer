@@ -7,6 +7,8 @@
         this.commitBtn = null;
 
         this.selectedKeys = new Set();
+        this.ordered = false;
+        this.maxSelections = 1;
         this.locked = true;
         this.submitted = false;
 
@@ -56,6 +58,7 @@
         const showDesignations = info.showDesignations !== false;
         const maxSelections = info.maxAllowedSelections ?? 1;
         const questionId = info.questionId ?? "";
+        const ordered = info.ordered === true;
 
         // Der Ruecksetzstand gehoert dazu: ohne ihn bleibt die Kennung beim Zuruecksetzen
         // gleich, das Layout wird nicht neu gebaut, und wer schon abgegeben hatte, blieb fuer
@@ -67,6 +70,7 @@
             showDesignations,
             maxSelections,
             questionId,
+            ordered,
             resetCount
         });
     }
@@ -79,6 +83,12 @@
         const showDesignations = info.showDesignations !== false;
         const maxSelections = info.maxAllowedSelections ?? 1;
         const questionId = info.questionId ?? "";
+
+        // Reihenfolgefrage (M12): die Klickfolge ist die Antwort, und abgegeben wird erst,
+        // wenn alle Tasten gewaehlt sind. Ein Set behaelt die Einfuegereihenfolge - genau die
+        // geht an den Server.
+        this.ordered = info.ordered === true;
+        this.maxSelections = maxSelections;
 
         const canReselect =
             !!questionId &&
@@ -103,16 +113,17 @@
 
         // Neue Runde: die Abgabe der letzten gilt nicht mehr.
         this.submitted = false;
-        this.commitBtn.textContent = "Auswahl bestätigen";
+        this.commitBtn.textContent = this.commitLabel();
 
         for (const [key, designation] of entries) {
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "key-btn";
             btn.dataset.key = key;
-            btn.textContent = showDesignations
+            btn.dataset.label = showDesignations
                 ? `${key}: ${designation}`
                 : key;
+            btn.textContent = btn.dataset.label;
 
             btn.setAttribute("aria-pressed", "false");
 
@@ -142,12 +153,14 @@
                     this.markSelected(btn, true);
                 }
 
+                this.updatePositions();
                 this.updateCommitState();
             });
 
             this.keysWrap.appendChild(btn);
         }
 
+        this.updatePositions();
         this.updateCommitState();
         this.setLocked(context.currentLayoutLocked || context.allLocked);
     }
@@ -157,6 +170,31 @@
     markSelected(btn, selected) {
         btn.classList.toggle("selected", selected);
         btn.setAttribute("aria-pressed", String(selected));
+    }
+
+    commitLabel() {
+        return this.ordered ? "Reihenfolge bestätigen" : "Auswahl bestätigen";
+    }
+
+    // Bei der Reihenfolge steht der Platz vorn auf der Taste ("2. B: Text") - ein Haken
+    // allein sagte nicht, an welcher Stelle das Element liegt.
+    updatePositions() {
+        if (!this.root) return;
+
+        const order = [...this.selectedKeys];
+
+        this.root.querySelectorAll(".key-btn").forEach(btn => {
+            const label = btn.dataset.label ?? btn.dataset.key;
+            const pos = order.indexOf(btn.dataset.key);
+
+            if (this.ordered && pos >= 0) {
+                btn.textContent = `${pos + 1}. ${label}`;
+                btn.dataset.position = String(pos + 1);
+            } else {
+                btn.textContent = label;
+                delete btn.dataset.position;
+            }
+        });
     }
 
     setLocked(locked) {
@@ -179,13 +217,16 @@
             return;
         }
 
-        this.commitBtn.disabled = this.locked || this.selectedKeys.size === 0;
+        const incomplete = this.ordered && this.selectedKeys.size !== this.maxSelections;
+
+        this.commitBtn.disabled = this.locked || this.selectedKeys.size === 0 || incomplete;
     }
 
     async handleCommitClick() {
         if (this.locked) return;
         if (!this.lastContext) return;
         if (this.selectedKeys.size === 0) return;
+        if (this.ordered && this.selectedKeys.size !== this.maxSelections) return;
 
         const payload = {
             playerId: this.lastContext.playerId,
@@ -214,7 +255,7 @@
         this.updateCommitState();
 
         if (typeof window.show_toast === "function") {
-            window.show_toast("info", "Auswahl übermittelt");
+            window.show_toast("info", this.ordered ? "Reihenfolge übermittelt" : "Auswahl übermittelt");
         }
     }
 

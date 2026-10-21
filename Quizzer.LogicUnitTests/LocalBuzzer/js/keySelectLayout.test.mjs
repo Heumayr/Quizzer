@@ -77,6 +77,58 @@ pruefe(knopf().disabled === false,
     "Nach dem Zuruecksetzen laesst sich nicht erneut abgeben - der Spieler ist fuer diese "
     + "Frage aus dem Spiel, und die Runde kann nie mehr schliessen.");
 
+// --- Reihenfolgefrage (M12): die Klickfolge ist die Antwort, abgegeben wird erst komplett ---
+{
+    const wurzel2 = baueDom().wurzel;
+    let gesendet = null;
+
+    const reihe = new KeySelectLayout({ submitSelection: async p => { gesendet = p; } });
+
+    reihe.render(wurzel2, {
+        playerId: "11111111-1111-1111-1111-111111111111",
+        resetCount: 1,
+        currentLayoutLocked: false,
+        allLocked: false,
+        layoutInfo: {
+            questionId: "33333333-3333-3333-3333-333333333333",
+            keysAndDesignations: { A: "Steinzeit", B: "Mittelalter", C: "Antike" },
+            showDesignations: true,
+            maxAllowedSelections: 3,
+            ordered: true
+        }
+    });
+
+    const t = () => wurzel2.querySelectorAll(".key-btn");
+    const k = () => wurzel2.querySelector(".commit-btn");
+
+    pruefe(k().textContent === "Reihenfolge bestätigen",
+        "Bei der Reihenfolge steht nicht 'Reihenfolge bestätigen' auf dem Knopf: " + k().textContent);
+
+    t()[0].click(); // A -> 1
+    t()[2].click(); // C -> 2
+
+    pruefe(k().disabled === true,
+        "Mit zwei von drei Elementen laesst sich schon abgeben - der dritte Platz bliebe leer.");
+    pruefe(t()[2].textContent.startsWith("2. "),
+        "Das zweite angetippte Element zeigt nicht seinen Platz: " + t()[2].textContent);
+
+    t()[0].click(); // A abwaehlen -> C rutscht auf 1
+    pruefe(t()[2].textContent.startsWith("1. "),
+        "Nach dem Abwaehlen ruecken die Plaetze nicht nach: " + t()[2].textContent);
+    pruefe(!t()[0].textContent.startsWith("1. ") && !t()[0].textContent.startsWith("2. "),
+        "Ein abgewaehltes Element traegt noch einen Platz: " + t()[0].textContent);
+
+    t()[0].click(); // A -> 2
+    t()[1].click(); // B -> 3
+
+    pruefe(k().disabled === false, "Mit allen drei Elementen laesst sich nicht abgeben.");
+
+    await reihe.handleCommitClick();
+
+    pruefe(gesendet && gesendet.selectedKeys.join("") === "CAB",
+        "Gesendet wird nicht die Klickfolge C, A, B: " + JSON.stringify(gesendet?.selectedKeys));
+}
+
 if (fehler > 0) {
     console.error(`${fehler} Zusicherung(en) rot.`);
     process.exit(1);

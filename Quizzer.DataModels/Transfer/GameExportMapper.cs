@@ -173,6 +173,7 @@ namespace Quizzer.DataModels.Transfer
                 daten.Schritte.Add(new GameExportDocument.StepData
                 {
                     SequenceNumber = schritt.SequenceNumber,
+                    SolutionNumber = schritt.SolutionNumber == 0 ? null : schritt.SolutionNumber,
                     Designation = schritt.Designation,
                     StepText = schritt.StepText,
                     IsStart = schritt.IsStart,
@@ -335,6 +336,7 @@ namespace Quizzer.DataModels.Transfer
                 frage.Steps.Add(new QuestionStepResource
                 {
                     SequenceNumber = schritt.SequenceNumber,
+                    SolutionNumber = schritt.SolutionNumber ?? 0,
                     Designation = schritt.Designation,
                     StepText = schritt.StepText,
                     IsStart = schritt.IsStart,

@@ -24,6 +24,13 @@ namespace LocalBuzzer.Service.Base.States
             public Dictionary<string, string> KeysAndDesignations { get; set; } = new();
             public int MaxAllowedSelections { get; set; } = 1;
             public Guid? QuestionId { get; set; } = null;
+
+            /// <summary>
+            /// Reihenfolgefrage (M12): die Reihenfolge der Klicks ist die Antwort, und abgegeben
+            /// wird erst, wenn <b>alle</b> Tasten gewählt sind. Das Telefon zeigt dann den Platz
+            /// auf jeder gewählten Taste statt eines Hakens.
+            /// </summary>
+            public bool Ordered { get; set; }
         }
 
         public sealed class SelectionResult
@@ -48,7 +55,8 @@ namespace LocalBuzzer.Service.Base.States
             ShowDesignations = Infos.ShowDesignations,
             KeysAndDesignations = Infos.KeysAndDesignations,
             MaxAllowedSelections = Infos.MaxAllowedSelections,
-            QuestionId = Infos.QuestionId
+            QuestionId = Infos.QuestionId,
+            Ordered = Infos.Ordered
         };
 
         public void SetSelectedKeys(SelectionResult results)
@@ -58,7 +66,7 @@ namespace LocalBuzzer.Service.Base.States
 
             lock (this)
             {
-                if (results.SelectedKeys.Count > Infos.MaxAllowedSelections)
+                if (results.SelectedKeys.Count > Infos.MaxAllowedSelections || !IsCompleteOrder(results.SelectedKeys))
                 {
                     results.SelectedKeys.Clear();
                     results.CommittedResult = false;
@@ -83,6 +91,24 @@ namespace LocalBuzzer.Service.Base.States
             }
         }
 
+        /// <summary>
+        /// Ob eine Abgabe zu einer Reihenfolgefrage taugt: jede Taste genau einmal, alle gewählt,
+        /// keine unbekannte. Ohne Reihenfolge ist jede Abgabe recht.
+        /// <para>
+        /// <b>Hier und nicht nur am Telefon geprüft:</b> die Seite kommt aus dem WLAN des
+        /// Spielorts, und eine doppelte Taste bekäme sonst zwei Plätze gutgeschrieben.
+        /// </para>
+        /// </summary>
+        public bool IsCompleteOrder(IReadOnlyCollection<string> keys)
+        {
+            if (!Infos.Ordered)
+                return true;
+
+            return keys.Count == Infos.MaxAllowedSelections
+                && keys.Distinct(StringComparer.Ordinal).Count() == keys.Count
+                && keys.All(k => k != null && Infos.KeysAndDesignations.ContainsKey(k));
+        }
+
         public void Reset()
         {
             KeyResultsForPlayer.Clear();
@@ -94,6 +120,7 @@ namespace LocalBuzzer.Service.Base.States
             Infos.KeysAndDesignations.Clear();
             KeyResultsForPlayer.Clear();
             Infos.ShowDesignations = true;
+            Infos.Ordered = false;
             Locked = true;
         }
 

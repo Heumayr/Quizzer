@@ -34,6 +34,19 @@ namespace Quizzer.DataModels.Models.Base
         /// </summary>
         public int SequenceNumber { get; set; }
 
+        /// <summary>
+        /// Wo dieser Schritt in der Lösung steht - 0 heißt: er steht in keiner.
+        /// <para>
+        /// <b>Reihenfolgefrage:</b> der Platz in der richtigen Reihenfolge, ab 1.
+        /// </para>
+        /// <para>
+        /// <b>Warum nicht <see cref="SequenceNumber"/>:</b> <c>CalculateOrderdSteps</c> mischt die
+        /// Schritte beim Spielen und schreibt die Nummern dabei <i>auf denselben Objekten</i> neu.
+        /// Eine Lösung, die an der Nummer hinge, wäre nach dem ersten Spielen eine andere.
+        /// </para>
+        /// </summary>
+        public int SolutionNumber { get; set; }
+
         /// <summary>Anzeigetext des Schritts (Frage, Hinweis oder Antwort-Option).</summary>
         public string StepText { get; set; } = string.Empty;
 
@@ -114,6 +127,7 @@ namespace Quizzer.DataModels.Models.Base
                 IsResult = IsResult,
                 IsFinish = IsFinish,
                 SequenceNumber = SequenceNumber,
+                SolutionNumber = SolutionNumber,
                 StepText = StepText,
                 ResourceFileName = ResourceFileName,
                 ResourceTyp = ResourceTyp,

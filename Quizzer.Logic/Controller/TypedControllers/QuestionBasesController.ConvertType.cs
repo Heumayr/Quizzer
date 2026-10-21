@@ -212,6 +212,14 @@ namespace Quizzer.Logic.Controller.TypedControllers
             if (to == QuestionType.Reveal)
                 effects.Add("Bild und Aufdeckflächen müssen danach neu eingerichtet werden.");
 
+            if (to == QuestionType.Ordering)
+                effects.Add("Die bisherige Schrittfolge wird zum Vorschlag für die richtige "
+                          + "Reihenfolge - sie gilt erst, wenn die Frage einmal in der Maske "
+                          + "gespeichert ist.");
+
+            if (from == QuestionType.Ordering)
+                effects.Add("Die hinterlegte richtige Reihenfolge wird nicht mehr gewertet.");
+
             if (!target.AllowsMultipleResultSteps)
                 effects.Add($"{target.DisplayName} verträgt nur eine Lösungsmarkierung - "
                           + "weitere werden entfernt.");

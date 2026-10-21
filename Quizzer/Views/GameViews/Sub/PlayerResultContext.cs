@@ -105,6 +105,10 @@ namespace Quizzer.Views.GameViews.Sub
                 return;
             }
 
+            if (question.Typ == DataModels.Enumerations.QuestionType.Ordering
+                && WerteReihenfolge(question, selectedKeys))
+                return;
+
             foreach (var key in selectedKeys)
             {
                 if (string.IsNullOrEmpty(key))

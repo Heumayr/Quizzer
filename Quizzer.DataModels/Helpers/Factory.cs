@@ -29,6 +29,7 @@ namespace Quizzer.DataModels.Helpers
                 QuestionType.Properties => new PropertiesQuestion(),
                 QuestionType.Appreciate => new AppreciateQestion(),
                 QuestionType.Reveal => new RevealQuestion(),
+                QuestionType.Ordering => new OrderingQuestion(),
                 _ => new DefaultQuestion()
             };
         }

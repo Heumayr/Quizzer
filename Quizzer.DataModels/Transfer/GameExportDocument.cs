@@ -179,6 +179,13 @@ namespace Quizzer.DataModels.Transfer
         public sealed class StepData
         {
             public int SequenceNumber { get; set; }
+
+            /// <summary>
+            /// Der Platz in der Lösung einer Reihenfolgefrage. <c>null</c> heißt: keiner - so
+            /// bleibt ein Bündel von vor M12 lesbar, und andere Typen schreiben das Feld nicht.
+            /// </summary>
+            public int? SolutionNumber { get; set; }
+
             public string Designation { get; set; } = string.Empty;
             public string StepText { get; set; } = string.Empty;
 

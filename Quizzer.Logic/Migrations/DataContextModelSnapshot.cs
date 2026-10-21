@@ -513,6 +513,9 @@ namespace Quizzer.Logic.Migrations
                     b.Property<int>("SequenceNumber")
                         .HasColumnType("int");
 
+                    b.Property<int>("SolutionNumber")
+                        .HasColumnType("int");
+
                     b.Property<string>("StepText")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -647,6 +650,13 @@ namespace Quizzer.Logic.Migrations
                     b.HasBaseType("Quizzer.DataModels.Models.QuestionBase");
 
                     b.ToTable("MultipleChoiceQuestion", "question");
+                });
+
+            modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.OrderingQuestion", b =>
+                {
+                    b.HasBaseType("Quizzer.DataModels.Models.QuestionBase");
+
+                    b.ToTable("OrderingQuestion", "question");
                 });
 
             modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.PropertiesQuestion", b =>
@@ -844,6 +854,15 @@ namespace Quizzer.Logic.Migrations
                     b.HasOne("Quizzer.DataModels.Models.QuestionBase", null)
                         .WithOne()
                         .HasForeignKey("Quizzer.DataModels.Models.QuestionTypes.MultipleChoiceQuestion", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.OrderingQuestion", b =>
+                {
+                    b.HasOne("Quizzer.DataModels.Models.QuestionBase", null)
+                        .WithOne()
+                        .HasForeignKey("Quizzer.DataModels.Models.QuestionTypes.OrderingQuestion", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

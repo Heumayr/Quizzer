@@ -205,14 +205,15 @@ namespace Quizzer.Views.BuzzerViews
         /// Stellt die Tastenwahl auf die Frage ein. <paramref name="showDesignations"/> wurde bis
         /// 2026-09-05 durch ein festes <c>true</c> ersetzt - der Schalter des Editors blieb wirkungslos.
         /// </summary>
-        public async Task SetKeySelectorDictionary(Dictionary<string, string>? keySelectorDic, int maxAllowedSelections = 1, bool showDesignations = true, Guid? questionId = null)
+        public async Task SetKeySelectorDictionary(Dictionary<string, string>? keySelectorDic, int maxAllowedSelections = 1, bool showDesignations = true, Guid? questionId = null, bool ordered = false)
         {
             var info = new BuzzerKeySelectorInfo()
             {
                 MaxAllowedSelections = maxAllowedSelections,
                 KeysAndDesignations = keySelectorDic ?? new(),
                 ShowDesignations = showDesignations,
-                QuestionId = questionId
+                QuestionId = questionId,
+                Ordered = ordered
             };
 
             BuzzerController?.StateManager.BuzzerKeySelector.Infos = info;

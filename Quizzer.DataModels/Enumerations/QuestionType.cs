@@ -32,5 +32,11 @@ namespace Quizzer.DataModels.Enumerations
         /// </para>
         /// </summary>
         Reveal = 4,
+
+        /// <summary>
+        /// Reihenfolgefrage (M12, 2026-10-21): die Spieler tippen die Elemente am Telefon in der
+        /// richtigen Reihenfolge an. Jedes Element am richtigen Platz bringt seinen Anteil.
+        /// </summary>
+        Ordering = 5,
     }
 }

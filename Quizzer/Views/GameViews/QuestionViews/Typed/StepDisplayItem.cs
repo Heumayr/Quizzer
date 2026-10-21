@@ -88,12 +88,34 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
         public Brush HorizontalBackgroundBrush => ThemeBrushes.Current.Schrittleiste;
 
         public Brush GridBackground =>
-            IsVisibleSlot && ((owner.IsMasterView && Step.IsResult) || owner.Step?.IsFinish == true && Step.IsResult)
+            IsVisibleSlot && ZeigtRichtig
                 ? GridBackgroundResultBrush
                 : GridBackgroundBrush;
 
+        // Bei der Reihenfolge bedeuten Haekchen nichts - eine umgewandelte Multiple-Choice-Frage
+        // traegt sie aber noch, und dann leuchteten zufaellige Felder als "richtig".
+        private bool ZeigtRichtig =>
+            Step.IsResult
+            && owner.Question?.Typ != QuestionType.Ordering
+            && (owner.IsMasterView || owner.Step?.IsFinish == true);
+
+        /// <summary>
+        /// Reihenfolgefrage: der richtige Platz dieses Elements - beim Spielleiter immer, auf dem
+        /// Beamer erst bei der Auflösung. Die Tasten mischt das Spiel; der Platz bleibt.
+        /// </summary>
+        public string SolutionBadge =>
+            IsVisibleSlot
+            && owner.Question?.Typ == QuestionType.Ordering
+            && Step.SolutionNumber > 0
+            && (owner.IsMasterView || owner.Step?.IsFinish == true)
+                ? $"Platz {Step.SolutionNumber}"
+                : string.Empty;
+
+        public Visibility SolutionBadgeVisibility =>
+            string.IsNullOrEmpty(SolutionBadge) ? Visibility.Collapsed : Visibility.Visible;
+
         public Brush VerticalBackground =>
-           IsVisibleSlot && ((owner.IsMasterView && Step.IsResult) || owner.Step?.IsFinish == true && Step.IsResult)
+           IsVisibleSlot && ZeigtRichtig
                ? Brushes.Transparent
                : HorizontalBackgroundBrush;
     }

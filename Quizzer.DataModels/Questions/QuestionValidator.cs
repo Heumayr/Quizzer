@@ -42,6 +42,7 @@ namespace Quizzer.DataModels.Questions
         public const string RevealImageMissing = "reveal-image-missing";
         public const string FinishTextMissing = "finish-text-missing";
         public const string KeySelectWillBeAdjusted = "key-select-will-be-adjusted";
+        public const string OrderingSolutionIncomplete = "ordering-solution-incomplete";
 
         /// <summary>Prueft die Frage und liefert alle Beanstandungen.</summary>
         public static IReadOnlyList<ValidationIssue> Validate(QuestionBase question)
@@ -58,6 +59,7 @@ namespace Quizzer.DataModels.Questions
             ValidateExpectedValue(question, issues);
             ValidateRevealImage(question, issues);
             ValidateFinishText(question, profile, issues);
+            ValidateOrdering(question, issues);
 
             return issues;
         }
@@ -181,6 +183,27 @@ namespace Quizzer.DataModels.Questions
                     + "und erst dort steht die Lösung.", nameof(question.Steps)));
         }
 
+        /// <summary>
+        /// Reihenfolgefrage: jedes Element braucht einen eigenen Platz 1 bis n.
+        /// <para>
+        /// <b>Eine Warnung, kein Fehler.</b> Die Maske stempelt die Plätze beim Speichern aus der
+        /// Zeilenfolge; fehlen sie, ist die Frage aus einem anderen Typ umgewandelt und noch nie
+        /// in der Maske gespeichert worden. Spielbar bleibt sie - nur wertet das Spiel dann nicht
+        /// selbst, der Spielleiter bewertet von Hand.
+        /// </para>
+        /// </summary>
+        private static void ValidateOrdering(QuestionBase question, List<ValidationIssue> issues)
+        {
+            if (question.Typ != QuestionType.Ordering)
+                return;
+
+            if (ReihenfolgeEvaluator.Loesung(question) == null)
+                issues.Add(new(OrderingSolutionIncomplete, ValidationSeverity.Warning,
+                    "Die richtige Reihenfolge ist nicht vollständig hinterlegt - einmal in der "
+                    + "Maske speichern, dann gilt die Reihenfolge der Zeilen.",
+                    nameof(question.Steps)));
+        }
+
         private static void ValidateKeySelect(
             QuestionBase question, QuestionTypeProfile profile, List<ValidationIssue> issues)
         {
@@ -289,6 +312,11 @@ namespace Quizzer.DataModels.Questions
             // Aufloesungsschritt bereits als FEHLER (F16) - dieselbe Sache zweimal zu melden
             // macht die schwaechere Meldung zur Gewohnheit.
             if (question.UseProportionalScoreReductionOnStep)
+                return;
+
+            // Die Reihenfolge bringt ihre Aufloesung ebenfalls selbst mit: bei IsFinish zeigt der
+            // Beamer zu jedem Element seinen Platz (StepDisplayItem.SolutionBadge).
+            if (question.Typ == QuestionType.Ordering)
                 return;
 
             var steps = question.Steps ?? new List<QuestionStepResource>();

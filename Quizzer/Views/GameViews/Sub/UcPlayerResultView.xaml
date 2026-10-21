@@ -101,6 +101,13 @@
                FontWeight="Bold"
                Foreground="White" />
 
+                <!-- Reihenfolgefrage: die Wertung in einem Satz, die Plaetze darunter -->
+                <TextBlock Text="{Binding ReihenfolgeText}"
+                           Visibility="{Binding ReihenfolgeVisibility}"
+                           Margin="6,0,6,2"
+                           FontSize="14"
+                           Foreground="White" />
+
                 <ItemsControl ItemsSource="{Binding KeyViews}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>

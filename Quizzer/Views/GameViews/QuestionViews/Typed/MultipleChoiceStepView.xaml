@@ -50,6 +50,20 @@
                                        VerticalAlignment="Center"
                                        HorizontalAlignment="Center" />
                         </Viewbox>
+
+                        <!-- Reihenfolgefrage: der richtige Platz, unter der Taste -->
+                        <Border Visibility="{Binding SolutionBadgeVisibility}"
+                                Background="{Binding GridBackgroundResultBrush}"
+                                CornerRadius="3"
+                                Padding="6,2"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Bottom"
+                                Margin="0,0,0,-12">
+                            <TextBlock Text="{Binding SolutionBadge}"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       Foreground="WhiteSmoke" />
+                        </Border>
                     </Grid>
 
                     <!-- Content -->

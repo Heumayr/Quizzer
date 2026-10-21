@@ -4,7 +4,7 @@ using Quizzer.DataModels.Models.QuestionTypes;
 namespace Quizzer.DataModels.Questions
 {
     /// <summary>
-    /// Die vier Fragetyp-Profile. Einzige Stelle, an der steht, was ein Typ mitbringt.
+    /// Die Fragetyp-Profile. Einzige Stelle, an der steht, was ein Typ mitbringt.
     /// </summary>
     public static class QuestionTypeProfiles
     {
@@ -106,9 +106,35 @@ namespace Quizzer.DataModels.Questions
             AllowsMultipleResultSteps = false,
         };
 
+        private static readonly QuestionTypeProfile Ordering = new()
+        {
+            Typ = QuestionType.Ordering,
+            DisplayName = "Reihenfolge",
+            HelpText = "Die Spieler tippen die Elemente am Telefon in der richtigen Reihenfolge an. "
+                     + "Die Elemente werden gemischt angezeigt; jedes Element am richtigen Platz "
+                     + "bringt seinen Anteil der Punkte.",
+            TableName = nameof(OrderingQuestion),
+
+            // Dieselbe Tastenwahl wie Multiple Choice - nur zaehlt hier die Reihenfolge der
+            // Klicks, und gewaehlt werden muessen alle (BuzzerKeySelectorInfo.Ordered).
+            BuzzerControlsLayout = BuzzerControlsLayout.KeySelect,
+            StepDisplayLayoutMode = StepDisplayLayoutMode.Grid,
+            QuestionViewKeyType = QuestionViewKeyType.Alphabetical,
+            UseRandomSequenceOnNoneFinishSteps = true,
+            UseProportionalScoreReductionOnStep = false,
+            ShowShowTextOnKeySelect = true,
+            ShowIsResultPerStep = false,
+            MinNormalSteps = 3,
+            RequiresResultStep = false,
+
+            // Haekchen bedeuten hier nichts. Erlaubt bleiben sie trotzdem, damit eine
+            // umgewandelte Multiple-Choice-Frage sie beim Zurueckwandeln noch hat.
+            AllowsMultipleResultSteps = true,
+        };
+
         /// <summary>Alle Profile in der Reihenfolge, in der sie angeboten werden.</summary>
         public static IReadOnlyList<QuestionTypeProfile> All { get; } =
-            [Default, MultipleChoice, Properties, Appreciate, Reveal];
+            [Default, MultipleChoice, Properties, Appreciate, Reveal, Ordering];
 
         /// <summary>Liefert das Profil zu einem Fragetyp.</summary>
         /// <exception cref="ArgumentOutOfRangeException">Bei einem unbekannten Typ.</exception>

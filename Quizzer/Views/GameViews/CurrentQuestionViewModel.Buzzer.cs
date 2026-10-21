@@ -72,11 +72,18 @@ namespace Quizzer.Views.GameViews
                     break;
 
                 case BuzzerControlsLayout.KeySelect:
+                    var tasten = Question?.Steps.GetKeyDictionary();
+                    var reihenfolge = Question is OrderingQuestion;
+
+                    // Bei der Reihenfolge muessen alle Tasten gewaehlt werden - die Zahl kommt
+                    // aus den Tasten selbst, nicht aus dem gespeicherten Wert, der hinter einer
+                    // umgewandelten Frage zuruecksein kann.
                     await BuzzerControlsViewModel.SetKeySelectorDictionary(
-                        Question?.Steps.GetKeyDictionary(),
-                        Question?.BuzzerMaxAllowedKeySelect ?? 1,
+                        tasten,
+                        reihenfolge ? Math.Max(tasten?.Count ?? 1, 1) : Question?.BuzzerMaxAllowedKeySelect ?? 1,
                         Question?.ShowTextOnKeySelect ?? true,
-                        Question?.Id);
+                        Question?.Id,
+                        reihenfolge);
 
                     BuzzerControlsViewModel.PlayerSelectedKeys = OnPlayerSelectedKeys;
                     BuzzerControlsViewModel.AllPlayersSelectedKeys = OnAllPlayersSelectedKeys;

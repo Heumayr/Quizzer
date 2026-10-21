@@ -20,6 +20,9 @@ namespace Quizzer.Views.GameViews.QuestionViews
             return ctx.QuestionType switch
             {
                 QuestionType.MultipleChoice => fe.FindResource("MultipleChoiceStepTemplate") as DataTemplate,
+
+                // Dieselbe Rasteransicht: Elemente mit Taste. Den Platz traegt StepDisplayItem.
+                QuestionType.Ordering => fe.FindResource("MultipleChoiceStepTemplate") as DataTemplate,
                 QuestionType.Properties => fe.FindResource("PropertiesStepTemplate") as DataTemplate,
                 QuestionType.Appreciate => fe.FindResource("AppreciateStepTemplate") as DataTemplate,
                 QuestionType.Reveal => fe.FindResource("RevealStepTemplate") as DataTemplate,
