@@ -75,6 +75,21 @@ Zertifikat des SQL Servers wird aber nicht geprüft (`TrustServerCertificate=Tru
 selbst erzeugt, und die Strecke verlässt das interne Docker-Netz nicht. Dasselbe gilt für
 Caddy → API (http im Netz `edge`).
 
+## Rauchtest gegen den laufenden Stapel
+
+Ein Test schickt das Demospiel „Alle Fragetypen" von einem „PC" über Caddy zum Server und holt
+es auf einem „Laptop" wieder ab - samt Bildern. **Er schreibt in den Stapel**, also nicht gegen den
+Server laufen lassen, auf dem die Freunde ihre Spiele haben.
+
+```powershell
+$env:QUIZZER_E2E_URL      = "https://<rechnername>.<tailnet>.ts.net:8443"
+$env:QUIZZER_E2E_PASSWORD = "<Admin-Kennwort>"
+# nur bei selbst erzeugtem Zertifikat: $env:QUIZZER_E2E_PIN = "<SHA-256 des Zertifikats>"
+dotnet test Quizzer.Server.Tests --filter StackSmoke
+```
+
+Gemessen 2026-10-21 gegen den Stapel mit Caddy: bestanden (alle 8 Fragetypen, Lösungen, Bilder).
+
 ## Sichern und zurückspielen
 
 ```powershell

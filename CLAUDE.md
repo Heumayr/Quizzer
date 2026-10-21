@@ -25,6 +25,8 @@ gehört ins `.harness`-Submodul (dort committen und pushen), nirgendwo sonst —
   (Einzelheiten: `was-gilt.md` und `quizzer-testaufbau.md`)
 - `dotnet test Quizzer.Server.Tests` — Server und Abgleich Ende zu Ende; Datenbank aus
   `QUIZZER_SERVER_TEST_SQL`, sonst LocalDB `Quizzer_Server_Tests` (`.harness/memory/quizzer-server.md`)
+- Optional, schreibt in den Stapel: `dotnet test Quizzer.Server.Tests --filter StackSmoke` mit
+  `QUIZZER_E2E_URL`/`QUIZZER_E2E_PASSWORD` - Rundlauf PC → Caddy → Laptop (`deploy/README.md`)
 - **Keine CI** — der Bau und die Tests auf diesem Rechner sind die einzige maschinelle Prüfung
 - Fehlt der Ordner aus `AppSettings.FilePathQuizzer` (`Quizzer.DataModels/appsettings.json`,
   standardmäßig `E:\QuizzerData`), **startet die Anwendung trotzdem** — sie sagt es seit
