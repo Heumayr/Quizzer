@@ -47,6 +47,7 @@ namespace Quizzer.Views.GameViews
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(ShowMainContent));
                 OnPropertyChanged(nameof(ShowBottomStats));
+                OnPropertyChanged(nameof(ShowLeftStats));
                 OnPropertyChanged(nameof(ShowFullscreenStats));
             }
         }
@@ -57,9 +58,37 @@ namespace Quizzer.Views.GameViews
                 : Visibility.Visible;
 
         public Visibility ShowBottomStats =>
-            ShowPlayerStats == Visibility.Visible && !IsGameFinished
+            ShowPlayerStats == Visibility.Visible && !IsGameFinished && !ScoresLeft
                 ? Visibility.Visible
                 : Visibility.Collapsed;
+
+        /// <summary>
+        /// Der Punktestand links untereinander statt unten nebeneinander (Nutzerwunsch
+        /// 2026-10-21). Links bleibt dem Raster und der Frage die volle Höhe - bei vielen
+        /// Antwortkacheln ist die Höhe knapper als die Breite.
+        /// </summary>
+        public Visibility ShowLeftStats =>
+            ShowPlayerStats == Visibility.Visible && !IsGameFinished && ScoresLeft
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
+        /// <summary>Wo der Punktestand steht - gemerkt in den Benutzereinstellungen.</summary>
+        public bool ScoresLeft
+        {
+            get => scoresLeft;
+            set
+            {
+                if (scoresLeft == value)
+                    return;
+
+                scoresLeft = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ShowBottomStats));
+                OnPropertyChanged(nameof(ShowLeftStats));
+            }
+        }
+
+        private bool scoresLeft = DataModels.UserSettings.Load().ScoresLeft;
 
         public Visibility ShowFullscreenStats =>
             ShowPlayerStats == Visibility.Visible && IsGameFinished
@@ -259,6 +288,7 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(IsGameFinished));
             OnPropertyChanged(nameof(ShowMainContent));
             OnPropertyChanged(nameof(ShowBottomStats));
+            OnPropertyChanged(nameof(ShowLeftStats));
             OnPropertyChanged(nameof(ShowFullscreenStats));
         }
 

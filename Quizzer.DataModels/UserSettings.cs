@@ -34,7 +34,8 @@ namespace Quizzer.DataModels
             bool UseServer = false,
             string? ServerUrl = null,
             string? ServerCertificateSha256 = null,
-            string? LastUserName = null);
+            string? LastUserName = null,
+            bool ScoresLeft = false);
 
         private static string? folderOverride;
 
@@ -119,6 +120,21 @@ namespace Quizzer.DataModels
                 JsonSerializer.Serialize(werte, new JsonSerializerOptions { WriteIndented = true }));
 
             Apply();
+        }
+
+        /// <summary>
+        /// Merkt sich, wo der Punktestand auf dem Beamer steht: links untereinander oder unten
+        /// nebeneinander (Nutzerwunsch 2026-10-21). Alles andere bleibt unberührt.
+        /// </summary>
+        public static void SaveScoresLeft(bool scoresLeft)
+        {
+            Directory.CreateDirectory(Folder);
+
+            var werte = Load() with { ScoresLeft = scoresLeft };
+
+            File.WriteAllText(
+                FilePath,
+                JsonSerializer.Serialize(werte, new JsonSerializerOptions { WriteIndented = true }));
         }
 
         /// <summary>

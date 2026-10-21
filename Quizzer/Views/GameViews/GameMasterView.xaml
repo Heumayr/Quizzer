@@ -66,6 +66,8 @@
                             ToolTip="Öffnet das Fenster für den Beamer. Ist es schon offen, kommt es nach vorne." />
                     <Button Content="{Binding ToggleStatsButtonText}" Command="{Binding TogglePlayerStatsViewCommand}"
                             ToolTip="Blendet den Punktestand auf dem Spielerbildschirm ein oder aus." />
+                    <Button Content="{Binding StatsPlacementButtonText}" Command="{Binding ToggleStatsPlacementCommand}"
+                            ToolTip="Punktestand links untereinander oder unten nebeneinander. Die Wahl bleibt für das nächste Spiel gespeichert." />
 
                     <TextBlock Style="{StaticResource SectionHeader}" Text="Bei mir" Margin="0,18,0,4" />
                     <Button Content="Vollbild umschalten" Command="{Binding ToggleFullScreenCommand}"

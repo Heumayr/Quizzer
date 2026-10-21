@@ -142,5 +142,29 @@ namespace Quizzer.LogicUnitTests.DataModels
             Assert.AreNotEqual(@"C:\Eigener\Ordner", Settings.FilePathQuizzer,
                 "LoadSettings hat den eigenen Datenordner angewandt.");
         }
+
+        /// <summary>
+        /// Die Platzierung des Punktestands (2026-10-21) wird gemerkt - und das Merken laesst
+        /// Ordner, Datenbank und Serverangaben stehen.
+        /// </summary>
+        [TestMethod]
+        public void ThePlacementOfTheScoresIsRememberedAlone()
+        {
+            UserSettings.Save(@"C:\Eigener\Ordner", "Eigene-Verbindung");
+            UserSettings.SaveServer(true, "https://quiz.example:8443", null, "anna");
+
+            UserSettings.SaveScoresLeft(true);
+
+            var werte = UserSettings.Load();
+
+            Assert.IsTrue(werte.ScoresLeft);
+            Assert.AreEqual("Eigene-Verbindung", werte.MsSqlConString);
+            Assert.AreEqual("https://quiz.example:8443", werte.ServerUrl);
+            Assert.IsTrue(werte.UseServer);
+
+            UserSettings.Save(@"C:\Anderer\Ordner", "Eigene-Verbindung");
+
+            Assert.IsTrue(UserSettings.Load().ScoresLeft, "Speichern des Ordners hat die Platzierung vergessen.");
+        }
     }
 }

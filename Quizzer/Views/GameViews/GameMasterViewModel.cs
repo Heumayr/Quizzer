@@ -621,6 +621,35 @@ namespace Quizzer.Views.GameViews
             GamePlayerViewModel.SetShowPlayerStats(showStats);
         }
 
+        /// <summary>Was auf dem Knopf steht: wohin der Punktestand als Naechstes wandert.</summary>
+        public string StatsPlacementButtonText
+            => GamePlayerViewModel?.ScoresLeft == true ? "Punktestand nach unten" : "Punktestand nach links";
+
+        private RelayCommand? toggleStatsPlacementCommand;
+
+        /// <summary>
+        /// Schaltet den Punktestand zwischen „links untereinander" und „unten nebeneinander" um
+        /// und merkt sich die Wahl fuer das naechste Spiel (Nutzerwunsch 2026-10-21).
+        /// </summary>
+        public ICommand ToggleStatsPlacementCommand => toggleStatsPlacementCommand ??= new RelayCommand(_ =>
+        {
+            if (GamePlayerViewModel == null)
+                return;
+
+            GamePlayerViewModel.ScoresLeft = !GamePlayerViewModel.ScoresLeft;
+
+            try
+            {
+                DataModels.UserSettings.SaveScoresLeft(GamePlayerViewModel.ScoresLeft);
+            }
+            catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException)
+            {
+                // Nicht merken koennen ist kein Grund, die Umstellung zu verweigern.
+            }
+
+            OnPropertyChanged(nameof(StatsPlacementButtonText));
+        });
+
         private int statsRowHeight = 1;
 
         public string StatsRowHeight
