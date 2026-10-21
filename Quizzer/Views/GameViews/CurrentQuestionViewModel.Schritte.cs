@@ -36,6 +36,7 @@ namespace Quizzer.Views.GameViews
                 currentStep = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CurrentStepContext));
+                RaisePointsNow();
             }
         }
 

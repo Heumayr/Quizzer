@@ -36,8 +36,7 @@ namespace Quizzer.Views.GameViews.Sub
 
         // Der ergaenzte Fragebildschirm zaehlt nicht mit: er traegt keinen Hinweis, und der
         // Punkteabzug je Hinweis wuerde sich sonst verschieben.
-        public int RegularStepCount => Coordinate?.QuestionBase?.OrderedSteps
-            .Count(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly) ?? 0;
+        public int RegularStepCount => RegularStepCountOf(Coordinate);
         public int PreviousStepsCount => CurrentQuestionViewModel?.CurrentStepContext?.PreviousStepsCount ?? 0;
 
         /// <summary>
@@ -54,20 +53,7 @@ namespace Quizzer.Views.GameViews.Sub
         /// Hinweis. Ebenso der Startbildschirm und der ergänzte Fragebildschirm.
         /// </para>
         /// </summary>
-        public int GezeigteSchritte
-        {
-            get
-            {
-                var schritt = CurrentQuestionViewModel?.CurrentStep;
-
-                var aktuellerZaehlt = schritt != null
-                                   && !schritt.IsStart
-                                   && !schritt.IsFinish
-                                   && !schritt.IsQuestionOnly;
-
-                return aktuellerZaehlt ? PreviousStepsCount + 1 : PreviousStepsCount;
-            }
-        }
+        public int GezeigteSchritte => GezeigteSchritteOf(CurrentQuestionViewModel);
 
         public Player Player
         {
@@ -238,31 +224,48 @@ namespace Quizzer.Views.GameViews.Sub
             _ => "Noch nicht bewertet",
         };
 
-        private int GetCurrentPoints()
+        private int GetCurrentPoints() => PunkteJetzt(Coordinate, CurrentQuestionViewModel);
+
+        /// <summary>
+        /// Was „richtig" in diesem Moment bringt. Statisch, damit das Fragefenster denselben Wert
+        /// zeigen kann, ohne eine Karte zu brauchen (M11) - eine zweite Abschrift liefe davon.
+        /// </summary>
+        internal static int PunkteJetzt(GameGridCoordinate? coordinate, CurrentQuestionViewModel? question)
         {
-            var frage = Coordinate?.QuestionBase;
+            var frage = coordinate?.QuestionBase;
 
             if (frage?.UseProportionalScoreReductionOnStep == true)
             {
                 // Der Aufloesungsschritt gibt nichts mehr (F16). Er ist der einzige Bildschirm,
                 // auf dem nicht mehr geraten werden kann - solange nur Hinweise stehen, sehr
                 // wohl, "auch wenn alles erkennbar ist".
-                if (CurrentQuestionViewModel?.CurrentStep?.IsFinish == true)
+                if (question?.CurrentStep?.IsFinish == true)
                     return 0;
 
                 // Die Rechnung steht in Punkteabzug, damit der Frageneditor beim Anlegen
                 // dieselbe anzeigen kann - eine zweite Abschrift liefe der ersten davon.
                 return DataModels.Questions.Punkteabzug.Verbleibend(
-                    Coordinate?.CurrentPoints ?? 0,
-                    RegularStepCount,
-                    GezeigteSchritte,
+                    coordinate?.CurrentPoints ?? 0,
+                    RegularStepCountOf(coordinate),
+                    GezeigteSchritteOf(question),
                     frage.ScoreReductionMode,
                     frage.ScoreReductionFactor);
             }
-            else
-            {
-                return Coordinate?.CurrentPoints ?? 0;
-            }
+
+            return coordinate?.CurrentPoints ?? 0;
+        }
+
+        internal static int RegularStepCountOf(GameGridCoordinate? coordinate)
+            => coordinate?.QuestionBase?.OrderedSteps.Count(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly) ?? 0;
+
+        internal static int GezeigteSchritteOf(CurrentQuestionViewModel? question)
+        {
+            var vorher = question?.CurrentStepContext?.PreviousStepsCount ?? 0;
+            var schritt = question?.CurrentStep;
+
+            var aktuellerZaehlt = schritt != null && !schritt.IsStart && !schritt.IsFinish && !schritt.IsQuestionOnly;
+
+            return aktuellerZaehlt ? vorher + 1 : vorher;
         }
 
         public bool CanNotEditManipulation => Suggestion != ScoreSuggestion.Correction;

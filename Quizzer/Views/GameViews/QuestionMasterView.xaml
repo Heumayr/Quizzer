@@ -81,6 +81,9 @@
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,4,12,4">
                 <TextBlock Text="{Binding QuestionSummary}" FontWeight="Bold" FontSize="14"
                            Foreground="Wheat" TextAlignment="Right" />
+                <!-- M11: der Wert JETZT - bei Hinweisfragen sinkt er mit jedem Schritt. -->
+                <TextBlock Text="{Binding PointsNowText}" FontWeight="Bold" FontSize="16"
+                           Foreground="#7CFC9A" TextAlignment="Right" Margin="0,2,0,0" />
                 <TextBlock Text="{Binding QuestionNotesLine}" FontSize="12" Opacity="0.75"
                            TextAlignment="Right" TextWrapping="Wrap" MaxWidth="320"
                            Visibility="{Binding NotesVisibility}" />

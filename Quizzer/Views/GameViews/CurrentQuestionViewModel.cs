@@ -132,6 +132,7 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(QuestionSummary));
             OnPropertyChanged(nameof(QuestionNotesLine));
             OnPropertyChanged(nameof(NotesVisibility));
+            RaisePointsNow();
         }
 
         protected override async Task OnClosed()
