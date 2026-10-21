@@ -45,8 +45,8 @@ namespace Quizzer.Server.Infrastructure
                         OnTokenValidated = async context =>
                         {
                             var account = CurrentAccount.From(context.Principal!);
-                            if (!await accounts.IsActiveAsync(account.AccountId, context.HttpContext.RequestAborted))
-                                context.Fail("Konto gesperrt.");
+                            if (!await accounts.IsActiveAsync(account.AccountId, account.Role, context.HttpContext.RequestAborted))
+                                context.Fail("Konto gesperrt oder Rolle geändert.");
                         },
                     };
                 });

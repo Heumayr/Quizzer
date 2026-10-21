@@ -107,14 +107,22 @@ namespace Quizzer.Server
                     : Results.NotFound());
 
             media.MapPut("/content", async (string path, HttpRequest request, MediaService service, CancellationToken ct) =>
-                await service.UploadAsync(path, request.Body, ct) switch
+            {
+                // Kestrel nimmt von sich aus hoechstens 30 MB an; die eigene Grenze steht in
+                // ServerOptions.MaxMediaBytes. Ohne das scheiterte jedes groessere Video - und mit
+                // ihm jeder folgende Abgleich (Durchsicht 2026-10-21, Fund 3).
+                if (request.HttpContext.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } limit)
+                    limit.MaxRequestBodySize = service.MaxBytes;
+
+                return await service.UploadAsync(path, request.Body, ct) switch
                 {
                     MediaService.UploadResult.Created => Results.StatusCode(StatusCodes.Status201Created),
                     MediaService.UploadResult.Unchanged => Results.NoContent(),
                     MediaService.UploadResult.TooLarge => Results.StatusCode(StatusCodes.Status413PayloadTooLarge),
                     MediaService.UploadResult.Exists => Results.Json(new ApiError("Unter diesem Namen liegt schon eine andere Datei."), statusCode: StatusCodes.Status409Conflict),
                     _ => Results.BadRequest(new ApiError("Dieser Pfad oder Dateityp wird nicht angenommen.")),
-                });
+                };
+            });
 
             var accounts = api.MapGroup("/accounts").RequireAuthorization(ServerSetup.AdminPolicy);
 

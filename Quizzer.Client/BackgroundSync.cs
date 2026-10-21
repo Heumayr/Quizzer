@@ -150,12 +150,36 @@ namespace Quizzer.Client
             catch (OperationCanceledException) when (stop.IsCancellationRequested)
             {
             }
-            catch (Exception ex) when (ex is ServerUnreachableException or ApiException or IOException)
+            catch (SyncSafetyException ex)
+            {
+                // Kein Wiederholen: derselbe Zustand fuehrte zum selben Ergebnis.
+                SetStatus(SyncStatus.Rejected, ex.Message);
+            }
+            catch (Exception ex) when (ex is ServerUnreachableException or IOException)
             {
                 SetStatus(SyncStatus.Offline, $"Server nicht erreichbar - lokal ist alles gespeichert. Neuer Versuch in {retryDelay.TotalSeconds:0} s. ({ex.Message})");
-                Schedule(retryDelay);
-                retryDelay = TimeSpan.FromTicks(Math.Min(retryDelay.Ticks * 2, MaxRetry.Ticks));
+                ScheduleRetry();
             }
+            catch (ApiException ex)
+            {
+                // Der Server ist da, hat aber nein gesagt - das ist etwas anderes als „nicht erreichbar".
+                SetStatus(SyncStatus.Rejected, $"Der Server hat abgelehnt: {ex.Message} Neuer Versuch in {retryDelay.TotalSeconds:0} s.");
+                ScheduleRetry();
+            }
+            catch (Exception ex)
+            {
+                // Alles andere (etwa die lokale Datenbank) darf den Abgleich nicht still im Zustand
+                // „Wird uebertragen" stehen lassen - der Fehler war bisher nirgends zu sehen
+                // (Durchsicht 2026-10-21, Fund 8).
+                SetStatus(SyncStatus.Rejected, $"Abgleich gescheitert: {ex.Message} Neuer Versuch in {retryDelay.TotalSeconds:0} s.");
+                ScheduleRetry();
+            }
+        }
+
+        private void ScheduleRetry()
+        {
+            Schedule(retryDelay);
+            retryDelay = TimeSpan.FromTicks(Math.Min(retryDelay.Ticks * 2, MaxRetry.Ticks));
         }
 
         private void SetStatus(SyncStatus status, string message, IReadOnlyList<SyncRejected>? rejected = null, bool success = false)

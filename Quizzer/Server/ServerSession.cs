@@ -86,7 +86,10 @@ namespace Quizzer.Server
             progress?.Report("Lokale Datenbank wird vorbereitet …");
             await SwitchToCacheAsync(account);
 
-            Sync = new ClientSyncService(api, () => new SyncStore(), new FileSyncStateStore(StatePath(api.BaseAddress, account.AccountId)), Settings.FilePathQuizzer);
+            // Ausdruecklich gegen die Zwischendatenbank, nicht gegen Settings.ConnectionString -
+            // die globale Einstellung kann sich unter dem laufenden Abgleich aendern (Fund 1).
+            var cache = CacheConnectionString!;
+            Sync = new ClientSyncService(api, () => new SyncStore(cache), new FileSyncStateStore(StatePath(api.BaseAddress, account.AccountId)), Settings.FilePathQuizzer);
 
             progress?.Report("Daten werden vom Server geladen …");
             var result = await Sync.PullAsync();
@@ -159,11 +162,31 @@ namespace Quizzer.Server
         /// </summary>
         public static string? LocalConnectionString { get; private set; }
 
+        /// <summary>Die Zwischendatenbank des Kontos. Der Abgleich arbeitet <b>nur</b> hiergegen.</summary>
+        public static string? CacheConnectionString { get; private set; }
+
+        /// <summary>
+        /// Nach dem Speichern oder Zuruecksetzen der Einstellungen: die laufende Sitzung bleibt auf
+        /// der Zwischendatenbank. <c>UserSettings.Save</c> setzt <c>Settings.ConnectionString</c>
+        /// auf die eigene lokale Datenbank - und ohne diesen Ruecksprung hielte der naechste Push
+        /// jede Serverzeile fuer lokal geloescht und loeschte sie am Server (Durchsicht
+        /// 2026-10-21, Fund 1).
+        /// </summary>
+        public static void KeepSessionDatabase()
+        {
+            if (CacheConnectionString == null)
+                return;
+
+            LocalConnectionString = Settings.ConnectionString;
+            Settings.ConnectionString = CacheConnectionString;
+        }
+
         private static async Task SwitchToCacheAsync(AccountInfo account)
         {
             LocalConnectionString ??= Settings.ConnectionString;
             var local = LocalConnectionString;
-            Settings.ConnectionString = DatabaseInitializer.WithDatabase(local, CacheDatabaseName(account.AccountId));
+            CacheConnectionString = DatabaseInitializer.WithDatabase(local, CacheDatabaseName(account.AccountId));
+            Settings.ConnectionString = CacheConnectionString;
             Account = account;
 
             await Task.Run(DatabaseInitializer.EnsureMigrated);

@@ -186,9 +186,15 @@ namespace Quizzer.Server.Sync
 
         public async Task<string?> CheckUpsertAsync(SyncRow row, object? serverEntity, CancellationToken ct)
         {
-            if (account.IsAdmin)
-                return null;
+            var denied = await CheckUpsertCoreAsync(row, serverEntity, ct);
 
+            // Der Admin darf alles - aber erst nach der Pruefung, denn sie merkt sich den
+            // bisherigen Besitzer und Gamemaster, die Enforce bewahren muss.
+            return account.IsAdmin ? null : denied;
+        }
+
+        private async Task<string?> CheckUpsertCoreAsync(SyncRow row, object? serverEntity, CancellationToken ct)
+        {
             switch (serverEntity ?? row.Type)
             {
                 case Category or GameTheme:
@@ -227,8 +233,21 @@ namespace Quizzer.Server.Sync
                     var newGame = GetGuid(row, "GameId");
                     var oldGame = serverEntity == null ? newGame : (Guid)context.Entry(serverEntity).Property("GameId").CurrentValue!;
 
-                    return await CanWriteGameAsync(newGame, ct) && await CanWriteGameAsync(oldGame, ct)
-                        ? null : "Nur der Gamemaster darf das Spiel ändern.";
+                    if (!(await CanWriteGameAsync(newGame, ct) && await CanWriteGameAsync(oldGame, ct)))
+                        return "Nur der Gamemaster darf das Spiel ändern.";
+
+                    // Zelle und Ergebnis verweisen auf eine Frage - und ein Verweis macht sie fuer
+                    // jeden im Spiel sichtbar (Visibility.QuestionIds). Verweisen darf man deshalb
+                    // nur auf Fragen, die man selbst sehen darf; ein unveraenderter Verweis bleibt
+                    // erlaubt (Durchsicht 2026-10-21, Fund 7).
+                    if (row.Values.ContainsKey("QuestionBaseId") && GetNullableGuid(row, "QuestionBaseId") is { } questionId)
+                    {
+                        var before = serverEntity == null ? null : context.Entry(serverEntity).Property("QuestionBaseId").CurrentValue as Guid?;
+                        if (before != questionId && !await CanReferenceQuestionAsync(questionId, ct))
+                            return "Auf diese Frage darf das Spiel nicht verweisen.";
+                    }
+
+                    return null;
             }
         }
 
@@ -323,9 +342,9 @@ namespace Quizzer.Server.Sync
 
         private async Task<bool> CanWriteGameAsync(Guid gameId, CancellationToken ct)
         {
-            if (account.IsAdmin)
-                return true;
-
+            // Auch fuer den Admin wird nachgesehen: Enforce braucht den bisherigen Gamemaster.
+            // Frueher kehrte der Admin hier sofort zurueck - und wurde bei jeder Korrektur an
+            // einem fremden Spiel selbst dessen Gamemaster (Durchsicht 2026-10-21, Fund 2).
             if (gameCache.TryGetValue(gameId, out var known))
                 return known;
 
@@ -340,8 +359,11 @@ namespace Quizzer.Server.Sync
             else
             {
                 gameMasters[gameId] = master.ModeratorPlayerId;
-                allowed = master.ModeratorPlayerId == null || master.ModeratorPlayerId == Me;
+                allowed = account.IsAdmin || master.ModeratorPlayerId == null || master.ModeratorPlayerId == Me;
             }
+
+            if (account.IsAdmin)
+                allowed = true;
 
             gameCache[gameId] = allowed;
             return allowed;
@@ -349,9 +371,7 @@ namespace Quizzer.Server.Sync
 
         private async Task<bool> CanWriteQuestionAsync(Guid questionId, CancellationToken ct)
         {
-            if (account.IsAdmin)
-                return true;
-
+            // Wie bei den Spielen: auch der Admin braucht den bisherigen Besitzer fuer Enforce.
             if (questionCache.TryGetValue(questionId, out var known))
                 return known;
 
@@ -370,6 +390,9 @@ namespace Quizzer.Server.Sync
                 allowed = owner.OwnerPlayerId == null || owner.OwnerPlayerId == Me;
             }
 
+            if (account.IsAdmin)
+                allowed = true;
+
             questionCache[questionId] = allowed;
             return allowed;
         }
@@ -381,6 +404,20 @@ namespace Quizzer.Server.Sync
 
             return !await context.Accounts.AnyAsync(a => a.PlayerId == playerId, ct);
         }
+
+        private async Task<bool> CanReferenceQuestionAsync(Guid questionId, CancellationToken ct)
+        {
+            if (account.IsAdmin || newQuestionsInPush.Contains(questionId))
+                return true;
+
+            return await context.QuestionBases.AsNoTracking().AnyAsync(q => q.Id == questionId
+                && (q.OwnerPlayerId == null || q.OwnerPlayerId == Me || q.IsShared), ct);
+        }
+
+        private static Guid? GetNullableGuid(SyncRow row, string name)
+            => row.Values.TryGetValue(name, out var value) && value.ValueKind == JsonValueKind.String
+                ? value.GetGuid()
+                : null;
 
         private static Guid GetGuid(SyncRow row, string name)
             => row.Values.TryGetValue(name, out var value) && value.ValueKind == JsonValueKind.String

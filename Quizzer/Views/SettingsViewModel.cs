@@ -375,6 +375,7 @@ namespace Quizzer.Views
 
             UserSettings.Save(Datenordner, angaben.Verbindung);
             UserSettings.SaveServer(UseServer, ServerUrl, fingerprint, UserSettings.Load().LastUserName);
+            Quizzer.Server.ServerSession.KeepSessionDatabase();
 
             if (hinweis != null)
                 UserPrompt.Inform(hinweis, "Einstellungen");
@@ -469,10 +470,11 @@ namespace Quizzer.Views
             }
 
             Settings.LoadSettings();
+            Quizzer.Server.ServerSession.KeepSessionDatabase();
 
             Datenordner = Settings.FilePathQuizzer;
 
-            Uebernimm(Datenbankangaben.Zerlege(Settings.ConnectionString));
+            Uebernimm(Datenbankangaben.Zerlege(Quizzer.Server.ServerSession.LocalConnectionString ?? Settings.ConnectionString));
         });
     }
 }

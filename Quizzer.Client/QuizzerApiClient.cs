@@ -185,22 +185,35 @@ namespace Quizzer.Client
         /// <summary>Laedt eine Mediendatei hoch. <c>false</c>, wenn unter dem Namen schon eine andere liegt.</summary>
         public async Task<bool> UploadMediaAsync(string path, Func<Stream> open, CancellationToken ct = default)
         {
-            using var response = await SendRawAsync(() =>
+            // Jede Anfrage haelt ihren eigenen Datenstrom - und gibt ihn wieder frei. Sonst bliebe
+            // die Datei unter Windows bis zur naechsten Speicherbereinigung gesperrt (Fund 9).
+            var requests = new List<HttpRequestMessage>();
+            try
             {
-                var request = new HttpRequestMessage(HttpMethod.Put, "media/content?path=" + Uri.EscapeDataString(path))
+                using var response = await SendRawAsync(() =>
                 {
-                    Content = new StreamContent(open()),
-                };
-                request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                return request;
-            }, ct);
+                    var request = new HttpRequestMessage(HttpMethod.Put, "media/content?path=" + Uri.EscapeDataString(path))
+                    {
+                        Content = new StreamContent(open()),
+                    };
+                    request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                    requests.Add(request);
+                    return request;
+                }, ct);
 
-            if (response.StatusCode == HttpStatusCode.Conflict)
-                return false;
+                if (response.StatusCode == HttpStatusCode.Conflict)
+                    return false;
 
-            await EnsureSuccessAsync(response, ct);
-            return true;
+                await EnsureSuccessAsync(response, ct);
+                return true;
+            }
+            finally
+            {
+                foreach (var request in requests)
+                    request.Dispose();
+            }
         }
+
 
         private void Accept(TokenResponse tokens)
         {

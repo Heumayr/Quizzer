@@ -141,11 +141,15 @@ namespace Quizzer.Server.Auth
             return account == null ? null : ToInfo(account);
         }
 
-        /// <summary>Ob das Konto noch gilt - wird bei jedem Ausweis geprueft, nicht nur beim Anmelden.</summary>
-        public async Task<bool> IsActiveAsync(Guid accountId, CancellationToken ct)
+        /// <summary>
+        /// Ob das Konto noch gilt - und noch die Rolle hat, die im Ausweis steht. Wird bei jedem
+        /// Ausweis geprueft: ein herabgestufter Admin verliert die Rechte sofort, nicht erst, wenn
+        /// sein Ausweis ablaeuft (Durchsicht 2026-10-21, Fund 10).
+        /// </summary>
+        public async Task<bool> IsActiveAsync(Guid accountId, AccountRole role, CancellationToken ct)
         {
             await using var context = new DataContext();
-            return await context.Accounts.AsNoTracking().AnyAsync(a => a.Id == accountId && !a.IsDisabled, ct);
+            return await context.Accounts.AsNoTracking().AnyAsync(a => a.Id == accountId && !a.IsDisabled && a.Role == role, ct);
         }
 
         public async Task<string?> ChangePasswordAsync(Guid accountId, ChangePasswordRequest request, CancellationToken ct)

@@ -93,8 +93,31 @@ namespace Quizzer.Views
         private AsyncRelayCommand? addGameCommand;
         public ICommand AddGameCommand => addGameCommand ??= new AsyncRelayCommand((p) => EditGameAsync(new Game()));
 
+        /// <summary>
+        /// Im Servermodus darf nur der Gamemaster sein Spiel starten oder umbauen. Wer nur
+        /// mitspielt, sieht es in der Liste - und bekaeme sonst jeden Spielzug vom Server
+        /// abgewiesen, ohne es zu merken (Durchsicht 2026-10-21, Fund 6).
+        /// </summary>
+        internal static bool DarfLeiten(Game game)
+        {
+            if (!Server.ServerSession.IsActive || Server.ServerSession.IsAdmin)
+                return true;
+
+            if (game.ModeratorPlayerId == null || game.ModeratorPlayerId == Guid.Empty || game.ModeratorPlayerId == DataModels.Session.CurrentModeratorId)
+                return true;
+
+            UserPrompt.Inform(
+                "Dieses Spiel leitet jemand anderes. Du siehst es, weil du mitspielst - "
+                + "starten und ändern kann es nur der Gamemaster.",
+                "Spiel");
+            return false;
+        }
+
         private async Task EditGameAsync(Game game)
         {
+            if (game.Id != Guid.Empty && !DarfLeiten(game))
+                return;
+
             try
             {
                 var window = new EditGameView();
@@ -216,6 +239,9 @@ namespace Quizzer.Views
             var game = WelchesSpiel(commandParameter);
 
             if (game == null || game.Id == Guid.Empty) return;
+
+            if (!DarfLeiten(game))
+                return;
 
             // M9: die Mitspieler werden beim Start geholt. Abbrechen heisst: nicht starten.
             if (!GamePlayersView.Ask(game.Id))

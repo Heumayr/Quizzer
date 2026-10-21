@@ -1,4 +1,4 @@
-using LocalBuzzer.Service.Base;
+﻿using LocalBuzzer.Service.Base;
 using Quizzer.Base;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Logic.Controller.TypedControllers;
@@ -45,14 +45,27 @@ namespace Quizzer.Views.BuzzerViews
             });
         }
 
-        /// <summary>Alle Mitspieler ausser dem Gamemaster - auch die schon eingetragenen (neues Telefon).</summary>
+        /// <summary>
+        /// Wer am Telefon zur Wahl steht: die Mitspieler dieses Spiels und alle, die schon einmal in
+        /// einem Spiel dieses Rechners dabei waren - ohne den Gamemaster.
+        /// <para>
+        /// <b>Nicht alle Konten des Servers:</b> die Liste ist ohne Anmeldung im WLAN des
+        /// Spielorts abrufbar (Durchsicht 2026-10-21, Fund 11). Wer fehlt, meldet sich als Gast.
+        /// </para>
+        /// </summary>
         private async Task RefreshJoinCandidatesAsync()
         {
             using var players = new PlayersController();
             var all = await players.GetAllAsync();
 
+            using var seats = new PlayerXGamesController();
+            var playedBefore = (await seats.GetAllAsync()).Select(x => x.PlayerId).ToHashSet();
+
+            var seated = Game?.PlayerXGames.Select(x => x.PlayerId).ToHashSet() ?? [];
+
             joinCandidates = all
                 .Where(p => p.Id != Game?.ModeratorPlayerId)
+                .Where(p => seated.Contains(p.Id) || playedBefore.Contains(p.Id))
                 .Select(p => new JoinCandidate(p.Id, p.CalculatedDisplayName))
                 .ToList();
         }

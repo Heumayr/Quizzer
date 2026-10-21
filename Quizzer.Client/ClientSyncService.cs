@@ -128,6 +128,14 @@ namespace Quizzer.Client
 
         private const string DeletedMarker = "(gelöscht)";
 
+        /// <summary>
+        /// Ab hier gilt ein Push als verdaechtig: mehr als die Haelfte aller bekannten Zeilen,
+        /// und mindestens so viele, sollen weg. So sieht es aus, wenn der Abgleich gegen die
+        /// falsche lokale Datenbank liest - nicht, wenn jemand aufraeumt (Durchsicht 2026-10-21,
+        /// Fund 1, als zweite Linie).
+        /// </summary>
+        public const int MassDeleteMinimum = 10;
+
         private async Task<PushResult> PushCoreAsync(SyncState state, CancellationToken ct)
         {
             var request = await BuildRequestAsync(state, ct);
@@ -135,9 +143,35 @@ namespace Quizzer.Client
             if (request.Upserts.Count == 0 && request.Deletes.Count == 0)
                 return PushResult.Nothing;
 
+            // Gezaehlt werden nur Hauptzeilen: ein geloeschtes Spiel nimmt seine Zellen und
+            // Kopfzeilen mit, und die allein machten bei einem kleinen Bestand schnell die
+            // Haelfte aus.
+            var rootDeletes = request.Deletes.Count(d => IsRootType(d.Type));
+            var rootKnown = state.Manifest.Keys.Count(k => IsRootType(k.Type));
+
+            if (rootDeletes >= MassDeleteMinimum && rootDeletes * 2 > rootKnown)
+            {
+                throw new SyncSafetyException(
+                    $"Der Abgleich würde {rootDeletes} von {rootKnown} Einträgen am Server löschen. "
+                    + "Das sieht nach einer falschen lokalen Datenbank aus - es wurde nichts übertragen. "
+                    + "Bitte das Programm neu starten; besteht es weiter, „Vom Server neu laden\".");
+            }
+
             var (uploaded, mediaProblems) = await UploadMediaAsync(request.Upserts.Select(u => u.Row), ct);
 
-            var response = await api.PushAsync(request, ct);
+            SyncPushResponse response;
+            try
+            {
+                response = await api.PushAsync(request, ct);
+            }
+            catch (ApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                // Der Server konnte die Zeilen als Ganzes nicht speichern (etwa ein Verweis auf eine
+                // inzwischen geloeschte Zeile). Dann einzeln: was geht, geht hinein, was nicht geht,
+                // wird zurueckgestellt - sonst scheiterte derselbe Stapel bei jedem Versuch, und auch
+                // das Abholen bliebe blockiert (Durchsicht 2026-10-21, Fund 4).
+                response = await PushOneByOneAsync(request, ex.Message, ct);
+            }
 
             foreach (var accepted in response.Accepted)
             {
@@ -168,6 +202,47 @@ namespace Quizzer.Client
             stateStore.Save(state);
 
             return new PushResult(response.Accepted.Count, response.Deleted.Count, response.Rejected, uploaded, mediaProblems);
+        }
+
+        private static bool IsRootType(string type)
+            => SyncModel.TryGet(type, out var entry) && (entry.Rank <= 2 || entry.Rank == 4);
+
+        private async Task<SyncPushResponse> PushOneByOneAsync(SyncPushRequest request, string reason, CancellationToken ct)
+        {
+            var total = new SyncPushResponse();
+
+            // Loeschungen zuerst und von unten nach oben, Zeilen von oben nach unten - dieselbe
+            // Reihenfolge, die der Server selbst verwendet.
+            var singles = request.Deletes
+                .OrderByDescending(d => SyncModel.TryGet(d.Type, out var e) ? e.Rank : 0)
+                .Select(d => new SyncPushRequest { Deletes = [d] })
+                .Concat(request.Upserts
+                    .OrderBy(u => SyncModel.TryGet(u.Row.Type, out var e) ? e.Rank : 0)
+                    .Select(u => new SyncPushRequest { Upserts = [u] }));
+
+            foreach (var single in singles)
+            {
+                try
+                {
+                    var part = await api.PushAsync(single, ct);
+                    total.Accepted.AddRange(part.Accepted);
+                    total.Deleted.AddRange(part.Deleted);
+                    total.Rejected.AddRange(part.Rejected);
+                }
+                catch (ApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    var key = single.Deletes.Count > 0 ? single.Deletes[0].Key : single.Upserts[0].Row.Key;
+                    total.Rejected.Add(new SyncRejected
+                    {
+                        Type = key.Type,
+                        Id = key.Id,
+                        Reason = SyncRejectReason.Invalid,
+                        Message = string.IsNullOrWhiteSpace(ex.Message) ? reason : ex.Message,
+                    });
+                }
+            }
+
+            return total;
         }
 
         private SyncState LoadState()
@@ -271,10 +346,19 @@ namespace Quizzer.Client
                 if (full == null || !File.Exists(full))
                     continue;
 
-                if (await api.UploadMediaAsync(normalized, () => File.OpenRead(full), ct))
-                    count++;
-                else
-                    problems.Add($"{normalized}: am Server liegt unter diesem Namen schon eine andere Datei.");
+                try
+                {
+                    if (await api.UploadMediaAsync(normalized, () => File.OpenRead(full), ct))
+                        count++;
+                    else
+                        problems.Add($"{normalized}: am Server liegt unter diesem Namen schon eine andere Datei.");
+                }
+                catch (ApiException ex)
+                {
+                    // Eine Datei, die der Server nicht nimmt (zu gross, falsche Endung), darf den
+                    // Abgleich der Zeilen nicht aufhalten (Durchsicht 2026-10-21, Fund 3).
+                    problems.Add($"{normalized}: vom Server abgewiesen ({ex.Message}).");
+                }
             }
 
             return (count, problems);

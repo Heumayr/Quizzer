@@ -21,6 +21,8 @@ namespace Quizzer.Server.Media
 
         public string Root => settings.MediaRoot;
 
+        public long MaxBytes => settings.MaxMediaBytes;
+
         /// <summary>Die Grundtexturen, die <c>Settings</c> unter festen Namen sucht.</summary>
         private static readonly HashSet<string> SkinFiles = new(StringComparer.OrdinalIgnoreCase)
         {
