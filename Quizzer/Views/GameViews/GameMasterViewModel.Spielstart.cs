@@ -26,13 +26,13 @@ namespace Quizzer.Views.GameViews
 
             if (dbGame.ModeratorPlayerId == null || dbGame.ModeratorPlayerId == Guid.Empty || dbGame.Moderator == null)
             {
-                errors.Add("Dem Spiel fehlt der Moderator. Er wird im Spielaufbau ausgewählt.");
+                errors.Add("Dem Spiel fehlt der Moderator (Gamemaster). Er wird beim Start gesetzt - wer das Spiel startet, leitet es.");
             }
 
             if (!dbGame.Players.Any())
             {
-                errors.Add("Dem Spiel ist kein Mitspieler zugeordnet. Mindestens einer muss im "
-                         + "Spielaufbau hinzugefügt werden.");
+                errors.Add("Dem Spiel ist kein Mitspieler zugeordnet. Mindestens einer muss beim "
+                         + "Start ausgewählt werden.");
             }
 
             // Nur die belegten Zellen zaehlen. Der Rasteraufbau legt fuer JEDE Position eine

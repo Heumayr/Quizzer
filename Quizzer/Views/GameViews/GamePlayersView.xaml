@@ -1,0 +1,63 @@
+<base:WindowBase x:Class="Quizzer.Views.GameViews.GamePlayersView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:base="clr-namespace:Quizzer.Base"
+        xmlns:local="clr-namespace:Quizzer.Views.GameViews"
+        Title="Wer spielt mit?" Height="620" Width="520"
+        WindowStartupLocation="CenterScreen">
+    <base:WindowBase.DataContext>
+        <local:GamePlayersViewModel />
+    </base:WindowBase.DataContext>
+
+    <Grid Background="{StaticResource AppBgBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="{Binding GameName}" FontSize="22" FontWeight="Bold" />
+            <TextBlock Opacity="0.7" Margin="0,4,0,12">
+                <Run Text="Gamemaster:" />
+                <Run Text="{Binding GameMasterName, Mode=OneWay}" FontWeight="SemiBold" />
+            </TextBlock>
+            <TextBlock Text="Mitspieler" Style="{StaticResource SectionHeader}" />
+        </StackPanel>
+
+        <Border Grid.Row="1" Background="{StaticResource PanelBgBrush}" BorderBrush="{StaticResource BorderBrushDark}"
+                BorderThickness="1" CornerRadius="6" Padding="8">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Choices}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding IsChecked}" Margin="4,6" FontSize="16">
+                                <TextBlock Text="{Binding Name}" />
+                            </CheckBox>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0">
+            <TextBox Text="{Binding NewGuestName, UpdateSourceTrigger=PropertyChanged}" Width="240" Height="32"
+                     VerticalContentAlignment="Center"
+                     ToolTip="Name eines Gastes ohne Konto." />
+            <Button Content="Gast hinzufügen" Command="{Binding AddGuestCommand}" Margin="8,0,0,0" Padding="12,4"
+                    ToolTip="Legt einen Mitspieler ohne Konto an und nimmt ihn in dieses Spiel auf." />
+        </StackPanel>
+
+        <TextBlock Grid.Row="3" Text="{Binding Message}" TextWrapping="Wrap" Margin="0,10,0,0" Foreground="#FFD180" />
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Abbrechen" Command="{Binding CancelCommand}" MinWidth="110" Height="36" Margin="0,0,8,0"
+                    ToolTip="Startet das Spiel nicht." />
+            <Button Content="Spiel starten" Command="{Binding ConfirmCommand}" MinWidth="150" Height="36"
+                    FontWeight="Bold" IsDefault="True"
+                    ToolTip="Übernimmt die Haken und öffnet das Spiel." />
+        </StackPanel>
+    </Grid>
+</base:WindowBase>

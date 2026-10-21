@@ -52,8 +52,9 @@
                 <TextBox VerticalContentAlignment="Center" Text="{Binding Path=Designation}" MinWidth="200" Margin="5,0,0,0" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label MinWidth="210" Content="Moderator:" VerticalAlignment="Center" />
-                <ComboBox ItemsSource="{Binding ModeratorPlayersView}" DisplayMemberPath="CalculatedDisplayName" SelectedValuePath="Id" SelectedValue="{Binding ModeratorPlayerId}" Width="200" Margin="0,8,10,8" />
+                <Label MinWidth="210" Content="Gamemaster:" VerticalAlignment="Center"
+                       ToolTip="Wer das Spiel angelegt hat, leitet es. Am Server darf nur der Gamemaster das Spiel ändern." />
+                <TextBlock Text="{Binding GameMasterName}" VerticalAlignment="Center" FontWeight="SemiBold" Margin="5,8,10,8" />
             </StackPanel>
             <!-- Das Design gehoert zum Spielabend. Das Raster rechts zeigt die Wahl sofort. -->
             <StackPanel Orientation="Horizontal" Margin="5">
@@ -74,16 +75,15 @@
                            TextWrapping="Wrap" MaxWidth="420" VerticalAlignment="Center" />
             </StackPanel>
             <StackPanel Orientation="Vertical">
+                <!-- M9: Mitspieler werden beim Start geholt, nicht im Aufbau. Die Liste zeigt die vom letzten Start. -->
                 <StackPanel Orientation="Horizontal" Margin="5">
-                    <ComboBox ItemsSource="{Binding AvailablePlayersView}" DisplayMemberPath="CalculatedDisplayName" SelectedItem="{Binding CmbSelectedPlayer}" Width="200" Margin="0,8,10,8" />
-                    <Button Content="Hinzufügen"
-                            ToolTip="Nimmt den gewählten Mitspieler in diesen Abend auf." Command="{Binding AddPlayerCommand}" />
-                    <Button Content="Entfernen"
-                            ToolTip="Nimmt den gewählten Mitspieler wieder aus diesem Abend heraus." Command="{Binding RemovePlayerCommand}" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="5">
-                    <Label MinWidth="210" Content="Mitspieler:" VerticalAlignment="Center" />
-                    <ListView Margin="5,0,0,0" MinHeight="20" MinWidth="200" MaxWidth="250" ItemsSource="{Binding GameAddedPlayersView}" SelectedItem="{Binding SelectedPlayer}" />
+                    <Label MinWidth="210" Content="Mitspieler:" VerticalAlignment="Top" />
+                    <StackPanel>
+                        <TextBlock Text="Werden beim Start des Spiels gewählt - auch Gäste ohne Konto." Opacity="0.7"
+                                   FontSize="12" Margin="5,6,0,4" TextWrapping="Wrap" MaxWidth="420" />
+                        <ListView Margin="5,0,0,0" MinHeight="20" MinWidth="200" MaxWidth="250" IsEnabled="False"
+                                  ItemsSource="{Binding GameAddedPlayersView}" />
+                    </StackPanel>
                 </StackPanel>
             </StackPanel>
             <StackPanel Orientation="Vertical">

@@ -1,4 +1,5 @@
 ﻿using Quizzer.Base;
+using Quizzer.DataModels;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Logic.Controller.TypedControllers;
@@ -41,7 +42,9 @@ namespace Quizzer.Views
             }
             else
             {
-                var game = new Game();
+                // M9: der Gamemaster ist, wer das Spiel anlegt - er wird nicht mehr gewaehlt.
+                // Am Server setzt der Push ihn ohnehin selbst; lokal steht er so gleich richtig.
+                var game = new Game { ModeratorPlayerId = Session.CurrentModeratorId };
 
                 // B15: stand bis 2026-09-06 als "No Name - New Game" englisch in einer sonst
                 // durchgehend deutschen Maske - und in der Datenbank, bevor das Fenster aufging.
@@ -459,6 +462,7 @@ namespace Quizzer.Views
             OnPropertyChanged(nameof(CmbSelectedPlayer));
 
             OnPropertyChanged(nameof(ModeratorPlayerId));
+            OnPropertyChanged(nameof(GameMasterName));
 
             await RebuildCellsAsync();
         }
@@ -511,6 +515,25 @@ namespace Quizzer.Views
 
                 CalculatePlayerLists();
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(GameMasterName));
+            }
+        }
+
+        /// <summary>
+        /// M9: „beim spiel wird kuenftig nur noch der gamemaster definiert ... der der das spiel
+        /// erzeugt". Angezeigt, nicht waehlbar.
+        /// </summary>
+        public string GameMasterName
+        {
+            get
+            {
+                var id = Game?.ModeratorPlayerId;
+                if (id == null || id == Guid.Empty)
+                    return "(noch niemand - wird beim Start gesetzt)";
+
+                return AllPlayers.FirstOrDefault(p => p.Id == id)?.CalculatedDisplayName
+                    ?? Game?.Moderator?.CalculatedDisplayName
+                    ?? "(unbekannt)";
             }
         }
 

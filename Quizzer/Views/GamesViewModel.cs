@@ -217,6 +217,10 @@ namespace Quizzer.Views
 
             if (game == null || game.Id == Guid.Empty) return;
 
+            // M9: die Mitspieler werden beim Start geholt. Abbrechen heisst: nicht starten.
+            if (!GamePlayersView.Ask(game.Id))
+                return;
+
             try
             {
                 this.Window?.Hide();
