@@ -64,6 +64,12 @@ namespace Quizzer.Client
 
                     var upserts = snapshot.Rows.Where(r => !local.TryGetValue(r.Key, out var l) || l.Hash != r.Hash).ToList();
 
+                    // Zweite Linie hinter dem Server: ein Dateifeld mit Pfad statt Namen wird
+                    // geleert, bevor es lokal landet - sonst oeffnete das Anzeigen eine Verbindung
+                    // zu einem fremden Rechner (SyncDateifelder).
+                    foreach (var row in upserts)
+                        SyncDateifelder.Entschaerfe(row);
+
                     // Lokal vorhanden, am Server nicht (mehr) sichtbar. Eine Frage, die am Server nur
                     // den Typ gewechselt hat, ist kein Loeschfall - die Umwandlung erledigt ApplyAsync.
                     var remoteIds = remote.Keys.Select(k => k.Id).ToHashSet();

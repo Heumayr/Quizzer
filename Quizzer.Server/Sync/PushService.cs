@@ -40,7 +40,7 @@ namespace Quizzer.Server.Sync
                 foreach (var upsert in request.Upserts)
                 {
                     var row = upsert.Row;
-                    var problem = store.Validate(row);
+                    var problem = store.Validate(row) ?? SyncDateifelder.Pruefe(row);
 
                     if (problem != null)
                     {
@@ -197,9 +197,15 @@ namespace Quizzer.Server.Sync
         {
             switch (serverEntity ?? row.Type)
             {
-                case Category or GameTheme:
+                case Category:
                 case string and (nameof(Category) or nameof(GameTheme)):
                     return null;
+
+                // Ein Design gilt fuer alle, und sein Ordner bestimmt, welche Dateien jeder Client
+                // laedt und welche "Textur zuruecknehmen" loescht. Neu anlegen darf jeder, aendern
+                // nur der Admin (Sicherheitspruefung 2026-10-21).
+                case GameTheme:
+                    return "Bestehende Designs ändert nur der Admin.";
 
                 case Player player:
                     return await CanWritePlayerAsync(player.Id, ct) ? null : "Fremde Mitspieler mit Konto lassen sich nicht ändern.";
@@ -246,6 +252,14 @@ namespace Quizzer.Server.Sync
                         if (before != questionId && !await CanReferenceQuestionAsync(questionId, ct))
                             return "Auf diese Frage darf das Spiel nicht verweisen.";
                     }
+
+                    // Ein Ergebnis gehoert zu einer Zelle DESSELBEN Spiels. Sonst haengte ein
+                    // fremdes Ergebnis (NO ACTION) an Bobs Zelle, und Bob koennte sein Spiel nie
+                    // mehr loeschen (Sicherheitspruefung 2026-10-21).
+                    if (row.Values.ContainsKey(nameof(QuestionResult.GameGridCoordinateId))
+                        && GetNullableGuid(row, nameof(QuestionResult.GameGridCoordinateId)) is { } cellId
+                        && !await CellBelongsToGameAsync(cellId, newGame, ct))
+                        return "Das Ergebnis verweist auf eine Zelle eines anderen Spiels.";
 
                     return null;
             }
@@ -407,11 +421,33 @@ namespace Quizzer.Server.Sync
 
         private async Task<bool> CanReferenceQuestionAsync(Guid questionId, CancellationToken ct)
         {
-            if (account.IsAdmin || newQuestionsInPush.Contains(questionId))
+            if (account.IsAdmin)
+                return true;
+
+            // "Neu in diesem Push" zaehlt nur, wenn es die Frage am Server wirklich noch nicht
+            // gibt. Die Liste stammt aus der rohen Anfrage - eine abgelehnte Zeile mit der Id
+            // einer fremden privaten Frage oeffnete sonst den Verweis darauf und damit die Frage
+            // im naechsten Abholen (Sicherheitspruefung 2026-10-21).
+            if (newQuestionsInPush.Contains(questionId)
+                && !await context.QuestionBases.AsNoTracking().AnyAsync(q => q.Id == questionId, ct))
                 return true;
 
             return await context.QuestionBases.AsNoTracking().AnyAsync(q => q.Id == questionId
                 && (q.OwnerPlayerId == null || q.OwnerPlayerId == Me || q.IsShared), ct);
+        }
+
+        /// <summary>Ob die Zelle zu <paramref name="gameId"/> gehört - am Server oder neu in diesem Push.</summary>
+        private async Task<bool> CellBelongsToGameAsync(Guid cellId, Guid gameId, CancellationToken ct)
+        {
+            var amServer = await context.GameGridCoordinates.AsNoTracking()
+                .Where(c => c.Id == cellId).Select(c => (Guid?)c.GameId).FirstOrDefaultAsync(ct);
+
+            if (amServer != null)
+                return amServer == gameId;
+
+            return request.Upserts.Any(u => u.Row.Type == nameof(GameGridCoordinate)
+                && u.Row.Id == cellId
+                && GetGuid(u.Row, "GameId") == gameId);
         }
 
         private static Guid? GetNullableGuid(SyncRow row, string name)
