@@ -1,4 +1,4 @@
-using Quizzer.DataModels.Models;
+﻿using Quizzer.DataModels.Models;
 
 namespace Quizzer.DataModels
 {
@@ -27,7 +27,8 @@ namespace Quizzer.DataModels
             if (!Session.IsSignedIn)
                 return true;
 
-            return frage.OwnerPlayerId == null || frage.OwnerPlayerId == Session.CurrentModeratorId;
+            // IsShared: am Server geteilte Fragen anderer Konten (M9, „eigene + geteilte").
+            return frage.OwnerPlayerId == null || frage.OwnerPlayerId == Session.CurrentModeratorId || frage.IsShared;
         }
 
         /// <summary>Filtert eine Liste nach derselben Regel.</summary>

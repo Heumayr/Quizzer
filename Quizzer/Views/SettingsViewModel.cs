@@ -1,4 +1,4 @@
-using Quizzer.Base;
+﻿using Quizzer.Base;
 using Quizzer.DataModels;
 using Quizzer.Logic.Context;
 using System.IO;
@@ -186,11 +186,78 @@ namespace Quizzer.Views
         /// <summary>Wo die eigenen Werte abgelegt werden. Steht in der Maske, damit man sie findet.</summary>
         public string Ablageort => UserSettings.FilePath;
 
+        private (bool, string, string) serverBeimLaden;
+        private bool useServer;
+        private string serverUrl = string.Empty;
+        private string serverFingerprint = string.Empty;
+        private string serverBefund = string.Empty;
+
+        /// <summary>M9: mit Konto am Quizzer-Server arbeiten statt nur lokal.</summary>
+        public bool UseServer
+        {
+            get => useServer;
+            set { useServer = value; OnPropertyChanged(); OnPropertyChanged(nameof(ServerDetailsVisibility)); }
+        }
+
+        public Visibility ServerDetailsVisibility => UseServer ? Visibility.Visible : Visibility.Collapsed;
+
+        public string ServerUrl
+        {
+            get => serverUrl;
+            set { serverUrl = value; ServerBefund = string.Empty; OnPropertyChanged(); }
+        }
+
+        /// <summary>SHA-256 eines selbst erzeugten Zertifikats - nur dann noetig.</summary>
+        public string ServerFingerprint
+        {
+            get => serverFingerprint;
+            set { serverFingerprint = value; ServerBefund = string.Empty; OnPropertyChanged(); }
+        }
+
+        public string ServerBefund
+        {
+            get => serverBefund;
+            private set { serverBefund = value; OnPropertyChanged(); }
+        }
+
+        private AsyncRelayCommand? testServerCommand;
+
+        /// <summary>Fragt den Server nach seiner Version - ohne Anmeldung, ohne etwas zu speichern.</summary>
+        public ICommand TestServerCommand => testServerCommand ??= new AsyncRelayCommand(async _ =>
+        {
+            ServerBefund = "Wird geprüft …";
+
+            try
+            {
+                var url = Quizzer.Server.ServerSession.NormalizeUrl(ServerUrl);
+                using var api = new Client.QuizzerApiClient(url, new Client.MemoryTokenStore(),
+                    Client.QuizzerApiClient.NormalizeThumbprint(ServerFingerprint));
+
+                var version = await api.GetVersionAsync();
+
+                ServerBefund = version.ApiVersion == DataModels.Transfer.Server.ApiInfo.ApiVersion
+                    ? $"Server erreichbar, Zertifikat in Ordnung (Server {version.ServerVersion})."
+                    : $"Server erreichbar, spricht aber API {version.ApiVersion} - dieses Programm kennt {DataModels.Transfer.Server.ApiInfo.ApiVersion}.";
+            }
+            catch (Exception ex) when (ex is ArgumentException or Client.ServerUnreachableException or Client.ApiException)
+            {
+                ServerBefund = ex.Message;
+            }
+        });
+
         protected override Task OnloadAsync()
         {
             Datenordner = Settings.FilePathQuizzer;
 
-            Uebernimm(Datenbankangaben.Zerlege(Settings.ConnectionString));
+            // Im Servermodus zeigt Settings.ConnectionString auf die Zwischendatenbank des Kontos -
+            // angezeigt und gespeichert wird aber die eigene lokale Verbindung.
+            Uebernimm(Datenbankangaben.Zerlege(Quizzer.Server.ServerSession.LocalConnectionString ?? Settings.ConnectionString));
+
+            var werte = UserSettings.Load();
+            UseServer = werte.UseServer;
+            ServerUrl = werte.ServerUrl ?? string.Empty;
+            ServerFingerprint = werte.ServerCertificateSha256 ?? string.Empty;
+            serverBeimLaden = (UseServer, ServerUrl.Trim(), ServerFingerprint.Trim());
 
             verbindungBeimLaden = angaben.Verbindung;
             datenordnerBeimLaden = Datenordner.Trim();
@@ -291,9 +358,23 @@ namespace Quizzer.Views
                 return;
             }
 
+            string? fingerprint;
+            try
+            {
+                fingerprint = Client.QuizzerApiClient.NormalizeThumbprint(ServerFingerprint);
+                if (UseServer)
+                    Quizzer.Server.ServerSession.NormalizeUrl(ServerUrl);
+            }
+            catch (ArgumentException ex)
+            {
+                UserPrompt.Inform(ex.Message, "Einstellungen");
+                return;
+            }
+
             var hinweis = Neustarthinweis();
 
             UserSettings.Save(Datenordner, angaben.Verbindung);
+            UserSettings.SaveServer(UseServer, ServerUrl, fingerprint, UserSettings.Load().LastUserName);
 
             if (hinweis != null)
                 UserPrompt.Inform(hinweis, "Einstellungen");
@@ -321,6 +402,13 @@ namespace Quizzer.Views
         private string? Neustarthinweis()
         {
             var teile = new List<string>();
+
+            if (serverBeimLaden != (UseServer, ServerUrl.Trim(), ServerFingerprint.Trim()))
+            {
+                teile.Add(UseServer
+                    ? "Die Anmeldung am Server gilt ab dem nächsten Start."
+                    : "Ab dem nächsten Start arbeitet das Programm wieder nur mit der lokalen Datenbank.");
+            }
 
             if (!string.Equals(datenordnerBeimLaden, Datenordner.Trim(),
                     StringComparison.OrdinalIgnoreCase))

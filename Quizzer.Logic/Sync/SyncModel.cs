@@ -62,7 +62,7 @@ namespace Quizzer.Logic.Sync
         public static Entry For(Type clrType)
             => ByName.TryGetValue(clrType.Name, out var entry) && entry.ClrType == clrType
                 ? entry
-                : throw new SyncFormatException($"Der Typ '{clrType.FullName}' gehoert nicht zum Abgleich.");
+                : throw new SyncFormatException($"Der Typ '{clrType.FullName}' gehört nicht zum Abgleich.");
 
         public static bool IsExcluded(Type declaringOrEntityType, string propertyName)
         {

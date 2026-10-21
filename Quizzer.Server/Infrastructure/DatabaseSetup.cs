@@ -36,7 +36,7 @@ namespace Quizzer.Server.Infrastructure
 
             if (string.IsNullOrWhiteSpace(options.AppLogin.Name) || string.IsNullOrWhiteSpace(options.AppLogin.Password))
             {
-                log.LogWarning("Keine Betriebsanmeldung konfiguriert (Quizzer__AppLogin__Name/Password) - uebersprungen.");
+                log.LogWarning("Keine Betriebsanmeldung konfiguriert (Quizzer__AppLogin__Name/Password) - übersprungen.");
                 return;
             }
 
@@ -51,7 +51,7 @@ namespace Quizzer.Server.Infrastructure
         private static async Task EnsureAppLoginAsync(string name, string password, ILogger log, CancellationToken ct)
         {
             if (name.Length > 128 || password.Length > 128)
-                throw new InvalidOperationException("Name und Kennwort der Betriebsanmeldung duerfen hoechstens 128 Zeichen haben.");
+                throw new InvalidOperationException("Name und Kennwort der Betriebsanmeldung dürfen höchstens 128 Zeichen haben.");
 
             const string sql = """
                 DECLARE @stmt nvarchar(max);

@@ -124,6 +124,14 @@ namespace Quizzer.Logic.Context
         /// Bringt die Datenbank auf den Stand der Migrationen, ohne etwas zu loeschen.
         /// Legt sie an, wenn es sie noch nicht gibt. Gefahrlos und deshalb oeffentlich.
         /// </summary>
+        /// <summary>
+        /// Dieselbe Verbindung, nur mit anderem Datenbanknamen. Der Servermodus arbeitet so auf
+        /// einer eigenen lokalen Zwischendatenbank je Konto - die bisherige lokale Spieldatenbank
+        /// bleibt unberuehrt.
+        /// </summary>
+        public static string WithDatabase(string connectionString, string database)
+            => new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connectionString) { InitialCatalog = database }.ConnectionString;
+
         public static void EnsureMigrated()
         {
             using var context = new DataContext();

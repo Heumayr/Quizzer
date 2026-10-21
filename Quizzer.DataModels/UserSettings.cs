@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace Quizzer.DataModels
 {
@@ -28,7 +28,13 @@ namespace Quizzer.DataModels
         /// <summary>Was in der Datei steht. Ein leeres Feld heißt: die Vorgabe gilt weiter.</summary>
         /// <param name="FilePathQuizzer">Der Ordner für Bilder und Medien.</param>
         /// <param name="MsSqlConString">Die Verbindungszeichenfolge zur Datenbank.</param>
-        public sealed record Werte(string? FilePathQuizzer, string? MsSqlConString);
+        public sealed record Werte(
+            string? FilePathQuizzer,
+            string? MsSqlConString,
+            bool UseServer = false,
+            string? ServerUrl = null,
+            string? ServerCertificateSha256 = null,
+            string? LastUserName = null);
 
         private static string? folderOverride;
 
@@ -101,15 +107,40 @@ namespace Quizzer.DataModels
         {
             Directory.CreateDirectory(Folder);
 
-            var werte = new Werte(
-                string.IsNullOrWhiteSpace(filePathQuizzer) ? null : filePathQuizzer.Trim(),
-                string.IsNullOrWhiteSpace(msSqlConString) ? null : msSqlConString.Trim());
+            // Die Serverangaben bleiben, wie sie sind - diese Methode aendert nur Ordner und Datenbank.
+            var werte = Load() with
+            {
+                FilePathQuizzer = string.IsNullOrWhiteSpace(filePathQuizzer) ? null : filePathQuizzer.Trim(),
+                MsSqlConString = string.IsNullOrWhiteSpace(msSqlConString) ? null : msSqlConString.Trim(),
+            };
 
             File.WriteAllText(
                 FilePath,
                 JsonSerializer.Serialize(werte, new JsonSerializerOptions { WriteIndented = true }));
 
             Apply();
+        }
+
+        /// <summary>
+        /// Schreibt nur die Serverangaben (M9). Ordner und Datenbank bleiben unberuehrt.
+        /// <b>Kein Kennwort, kein Ausweis</b> - der Erneuerungsschluessel liegt getrennt und
+        /// verschluesselt (<c>DpapiTokenStore</c>).
+        /// </summary>
+        public static void SaveServer(bool useServer, string? serverUrl, string? certificateSha256, string? lastUserName)
+        {
+            Directory.CreateDirectory(Folder);
+
+            var werte = Load() with
+            {
+                UseServer = useServer,
+                ServerUrl = string.IsNullOrWhiteSpace(serverUrl) ? null : serverUrl.Trim(),
+                ServerCertificateSha256 = string.IsNullOrWhiteSpace(certificateSha256) ? null : certificateSha256.Trim(),
+                LastUserName = string.IsNullOrWhiteSpace(lastUserName) ? null : lastUserName.Trim(),
+            };
+
+            File.WriteAllText(
+                FilePath,
+                JsonSerializer.Serialize(werte, new JsonSerializerOptions { WriteIndented = true }));
         }
     }
 }

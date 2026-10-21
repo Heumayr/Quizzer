@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Text.RegularExpressions;
 
 namespace Quizzer.LogicUnitTests.Standards
@@ -43,6 +43,8 @@ namespace Quizzer.LogicUnitTests.Standards
         private static readonly string[] Quellordner =
         [
             "Quizzer", "Quizzer.DataModels", "Quizzer.Logic", "LocalBuzzer.Service",
+            // M9: die Meldungen von Server und Client landen ebenfalls vor dem Nutzer.
+            "Quizzer.Server", "Quizzer.Client",
         ];
 
         /// <summary>

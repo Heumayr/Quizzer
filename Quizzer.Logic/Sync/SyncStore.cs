@@ -90,7 +90,7 @@ namespace Quizzer.Logic.Sync
                 }
                 catch (System.Text.Json.JsonException)
                 {
-                    return $"'{row.Type}.{name}' hat einen ungueltigen Wert.";
+                    return $"'{row.Type}.{name}' hat einen ungültigen Wert.";
                 }
             }
 
@@ -166,7 +166,7 @@ namespace Quizzer.Logic.Sync
                 if (entity == null)
                 {
                     entity = Activator.CreateInstance(entry.ClrType, nonPublic: true)
-                        ?? throw new SyncFormatException($"'{row.Type}' laesst sich nicht anlegen.");
+                        ?? throw new SyncFormatException($"'{row.Type}' lässt sich nicht anlegen.");
 
                     var newEntry = context.Entry(entity);
                     newEntry.Property("Id").CurrentValue = row.Id;

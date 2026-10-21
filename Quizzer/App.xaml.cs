@@ -29,18 +29,36 @@ namespace Quizzer
             // Spieldatenbank.
             UserSettings.Apply();
 
-            if (!DatenbankMitZweitemVersuch())
+            if (Server.ServerSession.IsConfigured)
             {
-                Shutdown();
-                return;
+                // M9: im Servermodus meldet man sich mit seinem Konto an. Die lokale Datenbank
+                // waehlt dabei die Sitzung (eine eigene je Konto) - die Schritte fuer die
+                // lokale Spieldatenbank und die Spielleiterwahl entfallen.
+                DatenordnerPruefen();
+
+                if (!AmServerAnmelden())
+                {
+                    Shutdown();
+                    return;
+                }
+
+                Server.ServerSession.StartBackground();
             }
-
-            DatenordnerPruefen();
-
-            if (!Anmelden())
+            else
             {
-                Shutdown();
-                return;
+                if (!DatenbankMitZweitemVersuch())
+                {
+                    Shutdown();
+                    return;
+                }
+
+                DatenordnerPruefen();
+
+                if (!Anmelden())
+                {
+                    Shutdown();
+                    return;
+                }
             }
 
             var mainVm = new MainViewModel();
@@ -250,6 +268,21 @@ namespace Quizzer
             }
 
             return true;
+        }
+
+        /// <summary>Die Anmeldung am Server; <c>false</c> heisst: das Programm endet.</summary>
+        private static bool AmServerAnmelden()
+        {
+            var fenster = new Server.ServerLoginView();
+            fenster.ShowDialog();
+            return fenster.SignedIn;
+        }
+
+        /// <summary>Vor dem Beenden noch Offenes an den Server schicken (hoechstens wenige Sekunden).</summary>
+        protected override void OnExit(ExitEventArgs e)
+        {
+            Server.ServerSession.Shutdown();
+            base.OnExit(e);
         }
 
         /// <summary>

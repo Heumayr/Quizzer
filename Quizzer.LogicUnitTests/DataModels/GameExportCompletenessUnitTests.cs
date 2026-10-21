@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
@@ -79,6 +79,7 @@ namespace Quizzer.LogicUnitTests.DataModels
                 ["RowVersion"] = "gehoert der Zieldatenbank",
                 ["CategoryId"] = "der Verweis laeuft ueber KategorieIndex im Dokument",
                 ["OwnerPlayerId"] = "beim Import gilt der angemeldete Spielleiter - eine fremde Id machte die Frage unsichtbar",
+                ["IsShared"] = "das Teilen gilt am jeweiligen Server (M9), nicht für den Inhalt einer Spieldatei - eine importierte Frage ist erst einmal privat",
             },
         };
 

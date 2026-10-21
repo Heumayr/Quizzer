@@ -27,8 +27,106 @@ namespace Quizzer.Views
         /// </para>
         /// </summary>
         public string AngemeldetAls => Session.CurrentModerator is { } leiter
-            ? $"Angemeldet als {leiter.CalculatedDisplayName}"
+            ? Server.ServerSession.IsActive
+                ? $"Angemeldet als {leiter.CalculatedDisplayName} ({Server.ServerSession.Account!.UserName})"
+                : $"Angemeldet als {leiter.CalculatedDisplayName}"
             : "Nicht angemeldet";
+
+        public MainViewModel()
+        {
+            if (Server.ServerSession.Background is { } background)
+                background.StatusChanged += (_, _) => RunOnUi(() => OnPropertyChanged(nameof(SyncStatusText)));
+        }
+
+        /// <summary>M9: im Servermodus der Abschnitt „Server" im Startfenster.</summary>
+        public System.Windows.Visibility ServerVisibility =>
+            Server.ServerSession.IsActive ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+
+        /// <summary>Den Spielleiter wechselt man im Servermodus nicht - man ist sein Konto.</summary>
+        public System.Windows.Visibility LocalModeratorVisibility =>
+            Server.ServerSession.IsActive ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
+
+        public System.Windows.Visibility AdminVisibility =>
+            Server.ServerSession.IsAdmin ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+
+        public string SyncStatusText
+        {
+            get
+            {
+                if (!Server.ServerSession.IsActive)
+                    return string.Empty;
+
+                if (Server.ServerSession.IsOffline)
+                    return "Offline - alles wird lokal gespeichert und beim nächsten Anmelden übertragen.";
+
+                var status = Server.ServerSession.Background?.Status;
+                if (status == null)
+                    return "Abgeglichen.";
+
+                var zuletzt = status.LastSuccess is { } wann ? $" Zuletzt: {wann:HH:mm:ss}." : string.Empty;
+                return status.Message + zuletzt;
+            }
+        }
+
+        private RelayCommand? statisticsCommand;
+
+        public ICommand StatisticsCommand => statisticsCommand ??= new RelayCommand(
+            _ => new Server.StatisticsView().ShowDialog(),
+            _ => !Server.ServerSession.IsOffline);
+
+        private RelayCommand? accountsCommand;
+
+        public ICommand AccountsCommand => accountsCommand ??= new RelayCommand(
+            _ => new Server.AccountsView().ShowDialog(),
+            _ => Server.ServerSession.IsAdmin);
+
+        private RelayCommand? changePasswordCommand;
+
+        public ICommand ChangePasswordCommand => changePasswordCommand ??= new RelayCommand(
+            _ => new Server.ChangePasswordView().ShowDialog(),
+            _ => !Server.ServerSession.IsOffline);
+
+        private AsyncRelayCommand? syncNowCommand;
+
+        public ICommand SyncNowCommand => syncNowCommand ??= new AsyncRelayCommand(async _ =>
+        {
+            if (Server.ServerSession.Background is { } background)
+                await Task.Run(background.FlushAsync);
+
+            OnPropertyChanged(nameof(SyncStatusText));
+        }, _ => !Server.ServerSession.IsOffline);
+
+        private AsyncRelayCommand? reloadCommand;
+
+        /// <summary>
+        /// Holt den Stand des Servers erneut. Offenes geht vorher hinaus (PullAsync); was der
+        /// Server abgewiesen hat, wird dabei durch seinen Stand ersetzt - deshalb die Rueckfrage.
+        /// </summary>
+        public ICommand ReloadCommand => reloadCommand ??= new AsyncRelayCommand(async _ =>
+        {
+            if (Server.ServerSession.Sync is not { } sync)
+                return;
+
+            if (!UserPrompt.Confirm(
+                    "Den Stand vom Server neu laden?"
+                    + Environment.NewLine + Environment.NewLine
+                    + "Deine gespeicherten Änderungen werden vorher übertragen. Was der Server "
+                    + "abgewiesen hat, wird durch seinen Stand ersetzt.",
+                    "Vom Server laden"))
+                return;
+
+            try
+            {
+                var result = await sync.PullAsync();
+                UserPrompt.Inform($"Geladen: {result.Changed} geänderte, {result.Deleted} entfernte Einträge, {result.MediaDownloaded} neue Medien.", "Vom Server laden");
+            }
+            catch (Exception ex) when (ex is Client.ServerUnreachableException or Client.ApiException)
+            {
+                UserPrompt.Inform(ex.Message, "Vom Server laden");
+            }
+
+            OnPropertyChanged(nameof(SyncStatusText));
+        }, _ => !Server.ServerSession.IsOffline);
 
         private RelayCommand? switchModeratorCommand;
 

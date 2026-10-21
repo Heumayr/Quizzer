@@ -1,0 +1,34 @@
+<base:WindowBase x:Class="Quizzer.Server.StatisticsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:base="clr-namespace:Quizzer.Base"
+        xmlns:local="clr-namespace:Quizzer.Server"
+        Title="Meine Statistik" Height="520" Width="900"
+        WindowStartupLocation="CenterOwner">
+    <base:WindowBase.DataContext>
+        <local:StatisticsViewModel />
+    </base:WindowBase.DataContext>
+
+    <Grid Background="{StaticResource AppBgBrush}" Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="{Binding Summary}" FontSize="15" TextWrapping="Wrap" Margin="0,0,0,12" />
+
+        <DataGrid Grid.Row="1" ItemsSource="{Binding Games}" AutoGenerateColumns="False"
+                  CanUserAddRows="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Spiel" Binding="{Binding Spiel}" Width="2*" />
+                <DataGridTextColumn Header="Gamemaster" Binding="{Binding Gamemaster}" Width="*" />
+                <DataGridTextColumn Header="Stand" Binding="{Binding Stand}" Width="*" />
+                <DataGridTextColumn Header="Platz" Binding="{Binding Platz}" Width="*" />
+                <DataGridTextColumn Header="Punkte" Binding="{Binding Punkte}" Width="Auto" />
+                <DataGridTextColumn Header="Richtig" Binding="{Binding Richtig}" Width="Auto" />
+                <DataGridTextColumn Header="Falsch" Binding="{Binding Falsch}" Width="Auto" />
+                <DataGridTextColumn Header="Gespielt" Binding="{Binding Gespielt}" Width="Auto" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</base:WindowBase>

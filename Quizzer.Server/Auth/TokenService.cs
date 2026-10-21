@@ -90,7 +90,7 @@ namespace Quizzer.Server.Auth
             if (string.IsNullOrWhiteSpace(text))
             {
                 throw new InvalidOperationException(
-                    "Kein Signierschluessel. Setze Quizzer__Jwt__SigningKey (Base64, mindestens 32 Byte) "
+                    "Kein Signierschlüssel. Setze Quizzer__Jwt__SigningKey (Base64, mindestens 32 Byte) "
                     + "oder Quizzer__Jwt__SigningKeyFile.");
             }
 
@@ -101,11 +101,11 @@ namespace Quizzer.Server.Auth
             }
             catch (FormatException ex)
             {
-                throw new InvalidOperationException("Der Signierschluessel ist kein Base64.", ex);
+                throw new InvalidOperationException("Der Signierschlüssel ist kein Base64.", ex);
             }
 
             if (key.Length < 32)
-                throw new InvalidOperationException("Der Signierschluessel muss mindestens 32 Byte lang sein.");
+                throw new InvalidOperationException("Der Signierschlüssel muss mindestens 32 Byte lang sein.");
 
             return key;
         }

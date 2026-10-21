@@ -7,7 +7,7 @@
         xmlns:vm="clr-namespace:Quizzer.Views"
         xmlns:base="clr-namespace:Quizzer.Base"
         mc:Ignorable="d"
-        Title="Quizzer" Height="450" Width="800">
+        Title="Quizzer" Height="640" Width="860">
     <base:WindowBase.DataContext>
         <vm:MainViewModel />
     </base:WindowBase.DataContext>
@@ -27,6 +27,7 @@
                 BorderBrush="{StaticResource BorderBrushDark}"
                 BorderThickness="0,0,1,0"
                 Padding="16">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Width="220">
                 <TextBlock Text="Verwaltung" Style="{StaticResource SectionHeader}" />
 
@@ -75,9 +76,31 @@
 
                 <Button Content="Spielleiter wechseln"
                         Command="{Binding SwitchModeratorCommand}"
+                        Visibility="{Binding LocalModeratorVisibility}"
                         Height="32"
                         ToolTip="Öffnet die Anmeldung erneut. Wer abbricht, bleibt angemeldet wie bisher." />
+
+                <!-- M9: der Abschnitt gibt es nur im Servermodus. -->
+                <StackPanel Visibility="{Binding ServerVisibility}">
+                    <TextBlock Text="Server" Style="{StaticResource SectionHeader}" Margin="0,20,0,4" />
+
+                    <TextBlock Text="{Binding SyncStatusText}" TextWrapping="Wrap" FontSize="12"
+                               Opacity="0.75" Margin="0,0,0,6" />
+
+                    <Button Content="Meine Statistik" Command="{Binding StatisticsCommand}" Height="32" Margin="0,0,0,4"
+                            ToolTip="Deine Spiele mit Platz und Punkten - als Mitspieler und als Gamemaster." />
+                    <Button Content="Jetzt abgleichen" Command="{Binding SyncNowCommand}" Height="32" Margin="0,0,0,4"
+                            ToolTip="Schickt Gespeichertes sofort an den Server, statt auf den nächsten Durchlauf zu warten." />
+                    <Button Content="Vom Server neu laden" Command="{Binding ReloadCommand}" Height="32" Margin="0,0,0,4"
+                            ToolTip="Holt den aktuellen Stand, etwa nach dem Vorbereiten an einem anderen Rechner." />
+                    <Button Content="Kennwort ändern" Command="{Binding ChangePasswordCommand}" Height="32" Margin="0,0,0,4"
+                            ToolTip="Ändert das Kennwort deines Kontos. Andere Sitzungen werden dabei beendet." />
+                    <Button Content="Konten verwalten" Command="{Binding AccountsCommand}" Visibility="{Binding AdminVisibility}"
+                            Height="32"
+                            ToolTip="Nur für den Admin: Konten anlegen, Kennwörter zurücksetzen, sperren." />
+                </StackPanel>
             </StackPanel>
+            </ScrollViewer>
         </Border>
 
         <StackPanel Grid.Column="1"

@@ -80,7 +80,7 @@ namespace Quizzer.Logic.Sync
                 }
                 catch (JsonException ex)
                 {
-                    throw new SyncFormatException($"'{row.Type}.{name}' hat einen ungueltigen Wert.", ex);
+                    throw new SyncFormatException($"'{row.Type}.{name}' hat einen ungültigen Wert.", ex);
                 }
 
                 if (value == null && !property.IsNullable)

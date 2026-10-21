@@ -301,6 +301,14 @@
                               IsChecked="{Binding Path=Question.WarnOnFinishStep}" />
                 </StackPanel>
 
+                <!-- M9: am Server sehen andere Konten die Frage nur, wenn sie geteilt ist. -->
+                <StackPanel Style="{StaticResource FieldRow}">
+                    <Label Style="{StaticResource FieldLabel}" Content="Mit anderen teilen"
+                           ToolTip="Am Server sehen andere Konten diese Frage und können sie in ihre Spiele nehmen. Ändern kann sie weiterhin nur, wem sie gehört. Ohne Server wirkt der Haken nicht." />
+                    <CheckBox VerticalAlignment="Center"
+                              IsChecked="{Binding Path=Question.IsShared}" />
+                </StackPanel>
+
                 <StackPanel Style="{StaticResource FieldRow}">
                     <Label Style="{StaticResource FieldLabel}" Content="Notizen" VerticalAlignment="Top"
                            ToolTip="Nur für den Spielleiter. Die Spieler sehen das nicht." />

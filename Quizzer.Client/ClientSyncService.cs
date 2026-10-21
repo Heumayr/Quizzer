@@ -126,7 +126,7 @@ namespace Quizzer.Client
             return request;
         }
 
-        private const string DeletedMarker = "(geloescht)";
+        private const string DeletedMarker = "(gelöscht)";
 
         private async Task<PushResult> PushCoreAsync(SyncState state, CancellationToken ct)
         {

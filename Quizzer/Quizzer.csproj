@@ -12,6 +12,7 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="QRCoder" Version="1.7.0" />
 		<PackageReference Include="SkiaSharp" Version="3.119.2" />
+		<PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.3" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -27,5 +28,6 @@
 		<ProjectReference Include="..\LocalBuzzer.Service\LocalBuzzer.Service.csproj" />
 		<ProjectReference Include="..\Quizzer.DataModels\Quizzer.DataModels.csproj" />
 		<ProjectReference Include="..\Quizzer.Logic\Quizzer.Logic.csproj" />
+		<ProjectReference Include="..\Quizzer.Client\Quizzer.Client.csproj" />
 	</ItemGroup>
 </Project>

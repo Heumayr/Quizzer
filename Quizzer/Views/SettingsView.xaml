@@ -112,6 +112,31 @@
                 <TextBlock FontSize="12" Opacity="0.8" Margin="2,8,0,0" TextWrapping="Wrap"
                            Text="Fehlt die Datenbank, fragt das Programm beim nächsten Start, ob es sie anlegen soll." />
 
+                <TextBlock Style="{StaticResource SectionHeader}" Margin="0,24,0,4" Text="Server" />
+
+                <CheckBox IsChecked="{Binding UseServer}"
+                          Content="Mit Konto am Quizzer-Server arbeiten"
+                          ToolTip="Beim Start meldest du dich mit Benutzername und Kennwort an. Alle Daten, die du sehen darfst, werden geladen; gespeicherte Änderungen gehen nebenher an den Server." />
+
+                <StackPanel Visibility="{Binding ServerDetailsVisibility}" Margin="0,8,0,0">
+                    <TextBlock Text="Adresse" FontSize="12" Opacity="0.8" />
+                    <TextBox Text="{Binding ServerUrl, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Zum Beispiel https://quizzer-pc.tailnet-name.ts.net:8443 - nur https." />
+
+                    <TextBlock Text="Fingerabdruck des Zertifikats (nur bei einem selbst erzeugten)" FontSize="12" Opacity="0.8" Margin="0,8,0,0" />
+                    <TextBox Text="{Binding ServerFingerprint, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="SHA-256 des Serverzertifikats, 64 Hex-Zeichen. Leer lassen bei einem Zertifikat von Let's Encrypt oder Tailscale." />
+
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <Button Content="Server prüfen" Command="{Binding TestServerCommand}" Padding="12,4"
+                                ToolTip="Fragt den Server nach seiner Version, ohne anzumelden." />
+                    </StackPanel>
+                    <TextBlock Text="{Binding ServerBefund}" FontSize="12" TextWrapping="Wrap" Margin="2,6,0,0" />
+
+                    <TextBlock FontSize="12" Opacity="0.8" Margin="2,8,0,0" TextWrapping="Wrap"
+                               Text="Im Servermodus arbeitet das Programm auf einer eigenen lokalen Datenbank je Konto. Die oben eingetragene Datenbank bleibt unverändert und gilt wieder, wenn der Haken fehlt." />
+                </StackPanel>
+
                 <TextBlock Style="{StaticResource SectionHeader}" Margin="0,20,0,4" Text="Abgelegt unter" />
                 <TextBlock Text="{Binding Ablageort}" FontSize="12" Opacity="0.8" TextWrapping="Wrap" />
                 <TextBlock FontSize="12" Opacity="0.8" Margin="0,4,0,0" TextWrapping="Wrap"

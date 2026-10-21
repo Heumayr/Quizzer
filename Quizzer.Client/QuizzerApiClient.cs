@@ -35,7 +35,7 @@ namespace Quizzer.Client
             HttpMessageHandler? handler = null, TimeProvider? time = null)
         {
             if (!string.Equals(baseAddress.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
-                throw new ArgumentException("Der Server wird nur ueber https angesprochen.", nameof(baseAddress));
+                throw new ArgumentException("Der Server wird nur über https angesprochen.", nameof(baseAddress));
 
             this.tokenStore = tokenStore;
             this.time = time ?? TimeProvider.System;
@@ -294,13 +294,13 @@ namespace Quizzer.Client
             }
             catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
             {
-                throw new ServerUnreachableException("Der Server antwortet nicht (Zeitueberschreitung).", ex);
+                throw new ServerUnreachableException("Der Server antwortet nicht (Zeitüberschreitung).", ex);
             }
         }
 
         private static string DescribeUnreachable(HttpRequestException ex)
             => ex.InnerException is System.Security.Authentication.AuthenticationException
-                ? "Das Zertifikat des Servers wurde nicht angenommen. Ist die Adresse richtig, oder gehoert ein Fingerabdruck in die Einstellungen?"
+                ? "Das Zertifikat des Servers wurde nicht angenommen. Ist die Adresse richtig, oder gehört ein Fingerabdruck in die Einstellungen?"
                 : "Der Server ist nicht erreichbar: " + ex.Message;
 
         private static async Task EnsureSuccessAsync(HttpResponseMessage response, CancellationToken ct)
@@ -325,7 +325,7 @@ namespace Quizzer.Client
         private static string DefaultMessage(HttpStatusCode status) => status switch
         {
             HttpStatusCode.Unauthorized => "Nicht angemeldet.",
-            HttpStatusCode.Forbidden => "Dafuer fehlt die Berechtigung.",
+            HttpStatusCode.Forbidden => "Dafür fehlt die Berechtigung.",
             HttpStatusCode.NotFound => "Nicht gefunden.",
             HttpStatusCode.TooManyRequests => "Zu viele Versuche. Bitte eine Minute warten.",
             _ => $"Der Server meldet einen Fehler ({(int)status}).",

@@ -97,7 +97,7 @@ namespace Quizzer.Server.Auth
             {
                 await RevokeFamilyAsync(context, stored.FamilyId, now, ct);
                 await context.SaveChangesAsync(ct);
-                log.LogWarning("Wiederverwendeter Erneuerungsschluessel - Familie widerrufen: Konto {AccountId}", stored.AccountId);
+                log.LogWarning("Wiederverwendeter Erneuerungsschlüssel - Familie widerrufen: Konto {AccountId}", stored.AccountId);
                 return null;
             }
 
@@ -291,13 +291,13 @@ namespace Quizzer.Server.Auth
                 return $"Das Kennwort braucht mindestens {settings.PasswordMinLength} Zeichen.";
 
             if (password.Length > 256)
-                return "Das Kennwort darf hoechstens 256 Zeichen lang sein.";
+                return "Das Kennwort darf höchstens 256 Zeichen lang sein.";
 
             if (string.Equals(password.Trim(), userName.Trim(), StringComparison.OrdinalIgnoreCase))
                 return "Das Kennwort darf nicht der Benutzername sein.";
 
             if (CommonPasswords.Contains(password))
-                return "Dieses Kennwort steht auf den Listen bekannter Kennwoerter.";
+                return "Dieses Kennwort steht auf den Listen bekannter Kennwörter.";
 
             return null;
         }

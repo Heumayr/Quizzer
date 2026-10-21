@@ -27,7 +27,7 @@ namespace Quizzer.Server.Sync
         public async Task<SyncPushResponse> PushAsync(CurrentAccount account, SyncPushRequest request, CancellationToken ct)
         {
             if (request.FormatVersion != SyncSnapshot.CurrentFormatVersion)
-                throw new ArgumentException($"Abgleichsformat {request.FormatVersion} wird nicht unterstuetzt.");
+                throw new ArgumentException($"Abgleichsformat {request.FormatVersion} wird nicht unterstützt.");
 
             var response = new SyncPushResponse();
             var acceptedUpserts = new List<SyncRow>();
@@ -54,7 +54,7 @@ namespace Quizzer.Server.Sync
                     if (IsConflict(upsert.BaseHash, serverHash, row.Hash))
                     {
                         Reject(response, row.Type, row.Id, SyncRejectReason.Conflict,
-                            serverHash == null ? "Am Server inzwischen geloescht." : "Am Server inzwischen geaendert.");
+                            serverHash == null ? "Am Server inzwischen gelöscht." : "Am Server inzwischen geändert.");
                         continue;
                     }
 
@@ -87,7 +87,7 @@ namespace Quizzer.Server.Sync
 
                     if (store.ToRow(serverEntity).Hash != delete.BaseHash)
                     {
-                        Reject(response, delete.Type, delete.Id, SyncRejectReason.Conflict, "Am Server inzwischen geaendert.");
+                        Reject(response, delete.Type, delete.Id, SyncRejectReason.Conflict, "Am Server inzwischen geändert.");
                         continue;
                     }
 
@@ -113,8 +113,8 @@ namespace Quizzer.Server.Sync
                 {
                     log.LogWarning(ex, "Push von Konto {AccountId} passte nicht zusammen", account.AccountId);
                     throw new PushFailedException(
-                        "Die Aenderungen passen am Server nicht zusammen (etwa ein Verweis auf eine abgewiesene "
-                        + "oder geloeschte Zeile). Es wurde nichts uebernommen.", ex);
+                        "Die Änderungen passen am Server nicht zusammen (etwa ein Verweis auf eine abgewiesene "
+                        + "oder gelöschte Zeile). Es wurde nichts übernommen.", ex);
                 }
             }
 
@@ -131,7 +131,7 @@ namespace Quizzer.Server.Sync
 
             response.Deleted.AddRange(acceptedDeletes);
 
-            log.LogInformation("Push von Konto {AccountId}: {Accepted} uebernommen, {Deleted} geloescht, {Rejected} abgewiesen",
+            log.LogInformation("Push von Konto {AccountId}: {Accepted} übernommen, {Deleted} gelöscht, {Rejected} abgewiesen",
                 account.AccountId, response.Accepted.Count, response.Deleted.Count, response.Rejected.Count);
 
             return response;
@@ -196,13 +196,13 @@ namespace Quizzer.Server.Sync
                     return null;
 
                 case Player player:
-                    return await CanWritePlayerAsync(player.Id, ct) ? null : "Fremde Mitspieler mit Konto lassen sich nicht aendern.";
+                    return await CanWritePlayerAsync(player.Id, ct) ? null : "Fremde Mitspieler mit Konto lassen sich nicht ändern.";
 
                 case string and nameof(Player):
                     return null;
 
                 case QuestionBase question:
-                    return await CanWriteQuestionAsync(question.Id, ct) ? null : "Die Frage gehoert jemand anderem.";
+                    return await CanWriteQuestionAsync(question.Id, ct) ? null : "Die Frage gehört jemand anderem.";
 
                 case string type when SyncModel.IsQuestion(SyncModel.Get(type)):
                     return null;
@@ -210,14 +210,14 @@ namespace Quizzer.Server.Sync
                 case QuestionStepResource step:
                     return await CanWriteQuestionAsync(step.QuestionBaseId, ct)
                         && await CanWriteQuestionAsync(GetGuid(row, nameof(QuestionStepResource.QuestionBaseId)), ct)
-                        ? null : "Die Frage gehoert jemand anderem.";
+                        ? null : "Die Frage gehört jemand anderem.";
 
                 case string and nameof(QuestionStepResource):
                     return await CanWriteQuestionAsync(GetGuid(row, nameof(QuestionStepResource.QuestionBaseId)), ct)
-                        ? null : "Die Frage gehoert jemand anderem.";
+                        ? null : "Die Frage gehört jemand anderem.";
 
                 case Game game:
-                    return await CanWriteGameAsync(game.Id, ct) ? null : "Nur der Gamemaster darf das Spiel aendern.";
+                    return await CanWriteGameAsync(game.Id, ct) ? null : "Nur der Gamemaster darf das Spiel ändern.";
 
                 case string and nameof(Game):
                     return null;
@@ -228,7 +228,7 @@ namespace Quizzer.Server.Sync
                     var oldGame = serverEntity == null ? newGame : (Guid)context.Entry(serverEntity).Property("GameId").CurrentValue!;
 
                     return await CanWriteGameAsync(newGame, ct) && await CanWriteGameAsync(oldGame, ct)
-                        ? null : "Nur der Gamemaster darf das Spiel aendern.";
+                        ? null : "Nur der Gamemaster darf das Spiel ändern.";
             }
         }
 
@@ -240,11 +240,11 @@ namespace Quizzer.Server.Sync
             switch (serverEntity)
             {
                 case Category or GameTheme or Player:
-                    return "Loeschen darf hier nur der Admin.";
+                    return "Löschen darf hier nur der Admin.";
 
                 case QuestionBase question:
                     if (!await CanWriteQuestionAsync(question.Id, ct))
-                        return "Die Frage gehoert jemand anderem.";
+                        return "Die Frage gehört jemand anderem.";
 
                     // Ergebnisse haengen mit Cascade an der Frage: das Loeschen naehme fremde
                     // Spielhistorie mit. Das darf nur, wem alle betroffenen Spiele gehoeren.
@@ -261,14 +261,14 @@ namespace Quizzer.Server.Sync
                     return null;
 
                 case QuestionStepResource step:
-                    return await CanWriteQuestionAsync(step.QuestionBaseId, ct) ? null : "Die Frage gehoert jemand anderem.";
+                    return await CanWriteQuestionAsync(step.QuestionBaseId, ct) ? null : "Die Frage gehört jemand anderem.";
 
                 case Game game:
-                    return await CanWriteGameAsync(game.Id, ct) ? null : "Nur der Gamemaster darf das Spiel loeschen.";
+                    return await CanWriteGameAsync(game.Id, ct) ? null : "Nur der Gamemaster darf das Spiel löschen.";
 
                 default:
                     var gameId = (Guid)context.Entry(serverEntity).Property("GameId").CurrentValue!;
-                    return await CanWriteGameAsync(gameId, ct) ? null : "Nur der Gamemaster darf das Spiel aendern.";
+                    return await CanWriteGameAsync(gameId, ct) ? null : "Nur der Gamemaster darf das Spiel ändern.";
             }
         }
 
