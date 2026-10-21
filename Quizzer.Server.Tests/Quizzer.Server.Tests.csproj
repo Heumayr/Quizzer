@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Quizzer.Server\Quizzer.Server.csproj" />
+    <ProjectReference Include="..\Quizzer.Client\Quizzer.Client.csproj" />
     <ProjectReference Include="..\Quizzer.Logic\Quizzer.Logic.csproj" />
     <ProjectReference Include="..\Quizzer.DataModels\Quizzer.DataModels.csproj" />
   </ItemGroup>

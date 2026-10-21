@@ -20,9 +20,26 @@ namespace Quizzer.Logic.Context
             }
         }
 
+        private readonly string? connectionStringOverride;
+
+        public DataContext()
+        {
+            SavedChanges += (_, e) => DataChangeNotifier.RaiseSaved(e.EntitiesSavedCount);
+        }
+
+        /// <summary>
+        /// Ein Kontext auf eine bestimmte Datenbank statt auf <see cref="Settings.ConnectionString"/>.
+        /// Der Abgleich braucht das: im Test laufen Server und Client im selben Prozess, jeder
+        /// gegen seine eigene Datenbank.
+        /// </summary>
+        public DataContext(string connectionString) : this()
+        {
+            connectionStringOverride = connectionString;
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var connectionString = Settings.ConnectionString;
+            var connectionString = connectionStringOverride ?? Settings.ConnectionString;
 
             if (string.IsNullOrEmpty(connectionString))
             {

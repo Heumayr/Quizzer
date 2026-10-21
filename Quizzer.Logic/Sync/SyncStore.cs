@@ -16,10 +16,19 @@ namespace Quizzer.Logic.Sync
     public sealed class SyncStore : IDisposable, IAsyncDisposable
     {
         private readonly DataContext context;
+        private readonly string? connectionString;
 
+        /// <summary>Gegen <c>Settings.ConnectionString</c> - am Server und im WPF.</summary>
         public SyncStore()
         {
             context = new DataContext();
+        }
+
+        /// <summary>Gegen eine bestimmte Datenbank (Tests, in denen Server und Client im selben Prozess laufen).</summary>
+        public SyncStore(string connectionString)
+        {
+            this.connectionString = connectionString;
+            context = new DataContext(connectionString);
         }
 
         internal DataContext Context => context;
@@ -203,6 +212,15 @@ namespace Quizzer.Logic.Sync
                 var target = (QuestionBase)Activator.CreateInstance(SyncModel.Get(row.Type).ClrType, nonPublic: true)!;
 
                 using var controller = new QuestionBasesController();
+
+                if (connectionString != null)
+                {
+                    // Der Controller oeffnet sonst einen Kontext auf Settings.ConnectionString -
+                    // also womoeglich auf eine andere Datenbank als dieser Abgleich.
+                    controller.Context.Dispose();
+                    controller.Context = new DataContext(connectionString);
+                }
+
                 await controller.ConvertTypeAsync(question.Id, target.Typ);
             }
 
