@@ -11,8 +11,26 @@
     <base:WindowBase.DataContext>
         <local:PlayersResultViewModel></local:PlayersResultViewModel>
     </base:WindowBase.DataContext>
+    <!-- M11: alle Kuerzel mit Strg - die Karten haben ein Zahlenfeld, in das sonst getippt wuerde. -->
+    <base:WindowBase.InputBindings>
+        <KeyBinding Modifiers="Control" Key="R" Command="{Binding QuickRightCommand}" />
+        <KeyBinding Modifiers="Control" Key="F" Command="{Binding QuickWrongCommand}" />
+        <KeyBinding Modifiers="Control" Key="D0" Command="{Binding QuickNoneCommand}" />
+        <KeyBinding Modifiers="Control" Key="S" Command="{Binding SaveCommand}" />
+        <KeyBinding Modifiers="Control" Key="Return" Command="{Binding SaveIsDoneFinishStateCommand}" />
+        <KeyBinding Modifiers="Control" Key="D1" Command="{Binding SelectCardCommand}" CommandParameter="1" />
+        <KeyBinding Modifiers="Control" Key="D2" Command="{Binding SelectCardCommand}" CommandParameter="2" />
+        <KeyBinding Modifiers="Control" Key="D3" Command="{Binding SelectCardCommand}" CommandParameter="3" />
+        <KeyBinding Modifiers="Control" Key="D4" Command="{Binding SelectCardCommand}" CommandParameter="4" />
+        <KeyBinding Modifiers="Control" Key="D5" Command="{Binding SelectCardCommand}" CommandParameter="5" />
+        <KeyBinding Modifiers="Control" Key="D6" Command="{Binding SelectCardCommand}" CommandParameter="6" />
+        <KeyBinding Modifiers="Control" Key="D7" Command="{Binding SelectCardCommand}" CommandParameter="7" />
+        <KeyBinding Modifiers="Control" Key="D8" Command="{Binding SelectCardCommand}" CommandParameter="8" />
+        <KeyBinding Modifiers="Control" Key="D9" Command="{Binding SelectCardCommand}" CommandParameter="9" />
+    </base:WindowBase.InputBindings>
     <Grid Background="Black">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <!-- Die Karten nehmen den Platz, die Knopfleiste bleibt darunter stehen. Bis
                  2026-09-06 war die erste Zeile auf "auto": ab etwa fuenf Mitspielern wuchsen
                  die Karten aus dem Fenster, und die Knoepfe rutschten mit hinaus. -->
@@ -20,7 +38,23 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto"
+        <!-- M11: wer gebuzzert hat, steht oben - mit den Werten, bevor man klickt. -->
+        <Border Grid.Row="0" Background="#1B2A1B" Padding="10" Visibility="{Binding WinnerBarVisibility}">
+            <DockPanel>
+                <TextBlock Text="{Binding WinnerText}" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"
+                           Foreground="White" Margin="4,0,16,0" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="{Binding WinnerRightText}" Command="{Binding WinnerRightCommand}"
+                            Background="DarkGreen" FontSize="18" FontWeight="Bold" Padding="18,6" Margin="0,0,8,0"
+                            ToolTip="Setzt für den Buzzer-Gewinner „richtig“. Gespeichert wird erst mit Speichern (Strg+S) oder Abschließen (Strg+Enter)." />
+                    <Button Content="{Binding WinnerWrongText}" Command="{Binding WinnerWrongCommand}"
+                            Background="DarkRed" FontSize="18" FontWeight="Bold" Padding="18,6"
+                            ToolTip="Setzt für den Buzzer-Gewinner „falsch“ mit den Minuspunkten der Zelle. Gespeichert wird erst mit Speichern." />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
             <ItemsControl ItemsSource="{Binding PlayerResultContextList}">
                 <ItemsControl.ItemsPanel>
@@ -40,7 +74,10 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <Border Grid.Row="1" Background="#161616" Padding="8">
+        <Border Grid.Row="2" Background="#161616" Padding="8">
+            <StackPanel>
+            <TextBlock Text="{x:Static local:PlayersResultViewModel.KeyHint}" Foreground="Gray" FontSize="12"
+                       HorizontalAlignment="Center" Margin="0,0,0,6" TextWrapping="Wrap" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button Content="Speichern" Command="{Binding SaveCommand}"
                         ToolTip="Schreibt die Punkte, das Fenster bleibt offen." />
@@ -54,6 +91,7 @@
                 <Button Content="Speichern und Zelle abschließen" Command="{Binding SaveIsDoneFinishStateCommand}"
                         Background="DarkGreen"
                         ToolTip="Schreibt die Punkte und markiert die Zelle als gespielt." />
+            </StackPanel>
             </StackPanel>
         </Border>
     </Grid>

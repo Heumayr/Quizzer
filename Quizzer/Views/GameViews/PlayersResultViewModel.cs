@@ -64,6 +64,8 @@ namespace Quizzer.Views.GameViews
                 }
 
                 GamePlayerViewModel?.CurrentBuzzerWinner = value;
+
+                RefreshQuickRating();
             }
         }
 
@@ -74,6 +76,7 @@ namespace Quizzer.Views.GameViews
             {
                 playerResultContextList = value;
                 OnPropertyChanged();
+                RefreshQuickRating();
             }
         }
 

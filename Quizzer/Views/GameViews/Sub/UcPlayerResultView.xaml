@@ -11,7 +11,11 @@
     <!--<UserControl.DataContext>
         <local:PlayerResultContext></local:PlayerResultContext>
     </UserControl.DataContext>-->
-    <Border BorderThickness="3" BorderBrush="#333333" CornerRadius="2">
+    <!-- M11: der goldene Rahmen zeigt, auf welche Karte die Tastenkuerzel wirken; ein Klick waehlt sie. -->
+    <Border BorderThickness="3" BorderBrush="{Binding SelectionBorderBrush}" CornerRadius="2">
+        <Border.InputBindings>
+            <MouseBinding MouseAction="LeftClick" Command="{Binding SelectThisCommand}" />
+        </Border.InputBindings>
         <Grid MinHeight="50" MinWidth="50" Background="{Binding BackgroundBrush}" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"></ColumnDefinition>
@@ -27,7 +31,7 @@
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center">
-                <Label FontSize="18" FontWeight="ExtraBlack" Content="{Binding Player.Designation}"></Label>
+                <Label FontSize="18" FontWeight="ExtraBlack" Content="{Binding CardLabel}"></Label>
             </Grid>
 
             <Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center">
