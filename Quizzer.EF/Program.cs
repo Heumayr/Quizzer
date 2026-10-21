@@ -14,7 +14,8 @@ if (args.Length == 0)
 {
     Console.WriteLine("Quizzer.EF - Startprojekt fuer die EF-Werkzeuge.");
     Console.WriteLine();
-    Console.WriteLine("  demo-anlegen     legt einen vollstaendigen Demo-Quizabend an");
+    Console.WriteLine("  demo-anlegen     legt den Demo-Quizabend und das Spiel 'Alle Fragetypen' an");
+    Console.WriteLine("  demo-typen       legt nur das Spiel 'Alle Fragetypen' an (je Typ eine Spalte)");
     Console.WriteLine("  demo-design      legt ein zweites Design mit eigenen Texturen an");
     Console.WriteLine("  demo-entfernen   entfernt alles mit der Marke " + DemoDataSeeder.Marke);
     return 0;
@@ -38,8 +39,13 @@ switch (args[0])
             // falsch, es waren zwei. Eine Zahl im Fliesstext altert lautlos.
             Console.WriteLine($"  Mitspieler:  {e.Mitspieler}");
             Console.WriteLine($"  Belegte Zellen: {e.Zellen}");
-            return 0;
+            Console.WriteLine();
+
+            return await TypenschauAsync();
         }
+
+    case "demo-typen":
+        return await TypenschauAsync();
 
     case "demo-design":
         {
@@ -78,4 +84,19 @@ switch (args[0])
     default:
         Console.Error.WriteLine($"Unbekannter Befehl: {args[0]}");
         return 1;
+}
+
+static async Task<int> TypenschauAsync()
+{
+    var t = await DemoDataSeeder.CreateTypenschauAsync();
+
+    Console.WriteLine($"Angelegt: \"{t.Spiel.Designation}\"");
+    Console.WriteLine($"  Fragen:      {t.Fragen}");
+    Console.WriteLine($"  Fragetypen:  {string.Join(", ", t.Typen.Select(Quizzer.DataModels.Questions.QuestionTypeProfiles.For).Select(p => p.DisplayName))}");
+
+    if (t.OhneBilder)
+        Console.WriteLine("  Hinweis: der Ressourcenordner war nicht beschreibbar - Bilderfragen und "
+            + "Aufdeckfragen fehlen. Pfad steht in appsettings.json (FilePathQuizzer).");
+
+    return 0;
 }

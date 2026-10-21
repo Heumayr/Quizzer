@@ -134,6 +134,79 @@ namespace Quizzer.LogicUnitTests.Logic
         }
 
         /// <summary>
+        /// Die Typenschau (2026-10-21): <b>jeder</b> Fragetyp kommt vor, jede Frage besteht die
+        /// Prüfung, jedes Bild liegt als lesbares PNG im Ressourcenordner, und das Raster ist voll.
+        /// <para>
+        /// Läuft über <see cref="QuestionTypeProfiles.All"/>, nicht über eine Liste von Hand - ein
+        /// neuer Fragetyp ohne Demofrage wird hier rot.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public async Task TheTypeShowCoversEveryTypeAndEveryQuestionIsPlayable()
+        {
+            var t = await DemoDataSeeder.CreateTypenschauAsync();
+
+            Assert.IsFalse(t.OhneBilder, "Der Testordner war nicht beschreibbar - dann sagt die Probe nichts.");
+
+            CollectionAssert.AreEquivalent(
+                QuestionTypeProfiles.All.Select(p => p.Typ).ToList(), t.Typen.ToList(),
+                "Nicht jeder Fragetyp hat eine Spalte in der Typenschau.");
+
+            using var spiele = new GamesController();
+            var spiel = await spiele.GetAsync(t.Spiel.Id);
+
+            Assert.IsNotNull(spiel);
+            Assert.AreEqual(QuestionTypeProfiles.All.Count, spiel!.Width);
+            Assert.IsTrue(spiel.GameGridCoordinates.All(z => z.QuestionBaseId.HasValue && z.CurrentPoints > 0),
+                "Eine Zelle der Typenschau ist leer oder null Punkte wert.");
+
+            using var ctrl = new QuestionBasesController();
+            var maengel = new List<string>();
+
+            foreach (var zelle in spiel.GameGridCoordinates)
+            {
+                var frage = (await ctrl.GetAsync(zelle.QuestionBaseId!.Value))!;
+
+                foreach (var fehler in QuestionValidator.Validate(frage).Where(i => i.IsError))
+                    maengel.Add($"{frage.Designation}: {fehler.Message}");
+
+                var dateien = frage.Steps.Select(s => s.ResourceFileName)
+                    .Append((frage as RevealQuestion)?.ImageFileName)
+                    .Where(n => !string.IsNullOrWhiteSpace(n));
+
+                foreach (var datei in dateien)
+                {
+                    var pfad = Path.Combine(Quizzer.DataModels.Settings.ResourceRootFolder, datei!);
+
+                    if (!File.Exists(pfad))
+                        maengel.Add($"{frage.Designation}: {datei} fehlt");
+                    else if (!File.ReadAllBytes(pfad).AsSpan(0, 8).SequenceEqual(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }))
+                        maengel.Add($"{frage.Designation}: {datei} ist kein PNG");
+                }
+
+                if (frage is OrderingQuestion)
+                    Assert.IsNotNull(ReihenfolgeEvaluator.Loesung(frage), $"{frage.Designation}: keine Loesung");
+            }
+
+            Assert.AreEqual(0, maengel.Count, string.Join(Environment.NewLine, maengel));
+        }
+
+        /// <summary>Ein zweiter Lauf legt keine zweite Anna an.</summary>
+        [TestMethod]
+        public async Task TheTypeShowReusesTheDemoPlayers()
+        {
+            await DemoDataSeeder.CreateAsync();
+            await DemoDataSeeder.CreateTypenschauAsync();
+            await DemoDataSeeder.CreateTypenschauAsync();
+
+            using var ctrl = new PlayersController();
+
+            var annas = (await ctrl.GetAllAsync()).Count(p => p.Designation == $"{DemoDataSeeder.Marke} Anna");
+
+            Assert.AreEqual(1, annas, "Die Typenschau hat die Demo-Mitspieler noch einmal angelegt.");
+        }
+
+        /// <summary>
         /// <b>B42.</b> Das Demo-Design verschwindet mit den Demodaten.
         /// <para>
         /// Es trug die Marke bisher gar nicht, und der Aufraeumweg kannte Designs nicht - es
