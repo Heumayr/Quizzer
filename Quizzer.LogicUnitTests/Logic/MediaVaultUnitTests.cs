@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels;
 using Quizzer.Logic.Transfer;
 
@@ -193,6 +193,22 @@ namespace Quizzer.LogicUnitTests.Logic
 
             Assert.IsTrue(name.EndsWith(".bin", StringComparison.Ordinal),
                 "Erwartet war der Rueckfall auf .bin, gespeichert wurde: " + name);
+        }
+
+        /// <summary>
+        /// Was der Editor annimmt, muss den Export überleben. Bis 2026-10-21 fehlten hier vier
+        /// Endungen, die <c>FileHelper</c> seit 2026-09-07 annimmt - sie kamen als .bin an.
+        /// </summary>
+        [TestMethod]
+        [DataRow(".webm")]
+        [DataRow(".m4v")]
+        [DataRow(".m4a")]
+        [DataRow(".aac")]
+        public void MediaTheEditorAcceptsKeepTheirExtension(string endung)
+        {
+            var name = tresor.Write(MediaRoot.Resources, null, endung, [1, 2, 3, 4]);
+
+            Assert.AreEqual(endung, Path.GetExtension(name));
         }
     }
 }

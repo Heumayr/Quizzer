@@ -1,4 +1,4 @@
-using Quizzer.DataModels;
+﻿using Quizzer.DataModels;
 using System.Security.Cryptography;
 
 namespace Quizzer.Logic.Transfer
@@ -61,13 +61,13 @@ namespace Quizzer.Logic.Transfer
     public sealed class FileSystemMediaVault : IMediaVault
     {
         /// <summary>Endungen, die überhaupt abgelegt werden. Alles andere wird abgewiesen.</summary>
-        private static readonly string[] ErlaubteEndungen =
-        [
-            ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp",
-            ".mp4", ".avi", ".mov", ".wmv", ".mkv",
-            ".mp3", ".wav", ".ogg", ".flac",
-            ".pdf", ".doc", ".docx", ".txt",
-        ];
+        /// <remarks>
+        /// Seit 2026-10-21 dieselbe Liste wie <c>MediaPaths.AllowedExtensions</c> (und damit wie
+        /// <c>FileHelper.DetectResourceType</c>). Vorher stand hier eine eigene Abschrift ohne
+        /// .webm, .m4v, .m4a und .aac - ein exportiertes Spiel mit solchen Medien kam beim Import
+        /// als .bin an und spielte nicht.
+        /// </remarks>
+        private static IReadOnlySet<string> ErlaubteEndungen => Quizzer.DataModels.Transfer.Server.MediaPaths.AllowedExtensions;
 
         /// <summary>Der Ordner einer Wurzel - und der einzige Ort, an dem er entsteht.</summary>
         public static string RootFolder(MediaRoot wurzel, string? ordner)

@@ -1,4 +1,4 @@
-# Quizzer
+﻿# Quizzer
 
 WPF-Desktop-Anwendung für ein Quizspiel im Jeopardy-Stil; die Mitspieler buzzern über den
 Browser ihres Smartphones gegen einen eingebetteten SignalR-Server. Branch `master`.
@@ -23,6 +23,8 @@ gehört ins `.harness`-Submodul (dort committen und pushen), nirgendwo sonst —
 - `dotnet test` je Testprojekt (`Quizzer.LogicUnitTests`, `Quizzer.UnitTests`) — **zwei
   Testprojekte mit je eigener LocalDB**; `DoNotParallelize` wirkt nur innerhalb einer Assembly
   (Einzelheiten: `was-gilt.md` und `quizzer-testaufbau.md`)
+- `dotnet test Quizzer.Server.Tests` — Server und Abgleich Ende zu Ende; Datenbank aus
+  `QUIZZER_SERVER_TEST_SQL`, sonst LocalDB `Quizzer_Server_Tests` (`.harness/memory/quizzer-server.md`)
 - **Keine CI** — der Bau und die Tests auf diesem Rechner sind die einzige maschinelle Prüfung
 - Fehlt der Ordner aus `AppSettings.FilePathQuizzer` (`Quizzer.DataModels/appsettings.json`,
   standardmäßig `E:\QuizzerData`), **startet die Anwendung trotzdem** — sie sagt es seit
