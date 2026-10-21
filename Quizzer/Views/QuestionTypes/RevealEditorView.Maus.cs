@@ -34,6 +34,12 @@ namespace Quizzer.Views.QuestionTypes
             if (art != RevealMode.Areas || Bildlage() == null)
                 return;
 
+            if (VieleckAktiv)
+            {
+                VieleckKlick(e);
+                return;
+            }
+
             zugStart = e.GetPosition(Buehne);
 
             zugRechteck = new System.Windows.Shapes.Rectangle
@@ -49,6 +55,12 @@ namespace Quizzer.Views.QuestionTypes
 
         private void Buehne_MouseMove(object sender, MouseEventArgs e)
         {
+            if (VieleckAktiv)
+            {
+                VieleckMausBewegt(e.GetPosition(Buehne));
+                return;
+            }
+
             if (zugStart == null || zugRechteck == null)
                 return;
 

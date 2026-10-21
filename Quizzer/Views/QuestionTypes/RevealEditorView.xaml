@@ -2,7 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:base="clr-namespace:Quizzer.Base"
-        Title="Aufdeckfrage einrichten" Height="800" Width="1150">
+        Title="Aufdeckfrage einrichten" Height="800" Width="1150"
+        PreviewKeyDown="RevealEditorView_PreviewKeyDown">
     <Grid Margin="12">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -24,6 +25,7 @@
                       MouseLeftButtonDown="Buehne_MouseLeftButtonDown"
                       MouseMove="Buehne_MouseMove"
                       MouseLeftButtonUp="Buehne_MouseLeftButtonUp"
+                      MouseRightButtonDown="Buehne_MouseRightButtonDown"
                       SizeChanged="Buehne_SizeChanged"
                       Background="Transparent">
                     <Image x:Name="Bild" Stretch="Uniform" />
@@ -93,8 +95,12 @@
                     <TextBlock Text="Form" FontSize="12" Opacity="0.8" Margin="2,4,0,2" />
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                         <RadioButton x:Name="FormRechteck" GroupName="Form" Content="Rechteck"
-                                     IsChecked="True" Margin="0,0,12,0" />
-                        <RadioButton x:Name="FormDreieck" GroupName="Form" Content="Dreieck" />
+                                     IsChecked="True" Margin="0,0,12,0" Checked="Form_Changed" />
+                        <RadioButton x:Name="FormDreieck" GroupName="Form" Content="Dreieck"
+                                     Margin="0,0,12,0" Checked="Form_Changed" />
+                        <RadioButton x:Name="FormVieleck" GroupName="Form" Content="Vieleck"
+                                     Checked="Form_Changed"
+                                     ToolTip="Punkte nacheinander anklicken. Klick auf den ersten Punkt oder Doppelklick schließt die Fläche; rechte Maustaste nimmt den letzten Punkt zurück, Esc verwirft." />
                     </StackPanel>
 
                     <TextBlock Text="Ausgewählte Fläche drehen" FontSize="12" Opacity="0.8"

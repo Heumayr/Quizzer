@@ -160,10 +160,88 @@ namespace Quizzer.DataModels.Questions
         }
 
         /// <summary>
+        /// Wie nah ein Klick am ersten Punkt liegen muss, um das Vieleck zu schließen - in Punkten
+        /// der Anzeige, nicht relativ: der Finger bzw. die Maus trifft gleich ungenau, egal wie
+        /// groß das Bild gerade dargestellt wird.
+        /// </summary>
+        public const double Fangradius = 12;
+
+        /// <summary>
+        /// Ob ein Klick das Vieleck schließt: es hat mindestens drei Punkte, und der Klick liegt
+        /// im <see cref="Fangradius"/> um den ersten.
+        /// </summary>
+        public static bool SchliesstVieleck(
+            IReadOnlyList<(double X, double Y)> punkte, (double X, double Y) klick, double fangradius = Fangradius)
+        {
+            ArgumentNullException.ThrowIfNull(punkte);
+
+            if (punkte.Count < 3)
+                return false;
+
+            var dx = klick.X - punkte[0].X;
+            var dy = klick.Y - punkte[0].Y;
+
+            return dx * dx + dy * dy <= fangradius * fangradius;
+        }
+
+        /// <summary>
+        /// Ein Vieleck aus frei gesetzten Punkten (Nutzerwunsch 2026-10-21: „ein freihandtool wo
+        /// man punkte setzen kann die sich zu polygonen verbinden").
+        /// <para>
+        /// <b>Jeder Punkt wird aufs Bild geklemmt</b>, wie beim Rechteck: ein Punkt neben dem
+        /// Bild ergäbe eine Hülle über 1, und die Fläche wäre dort nicht mehr anklickbar.
+        /// </para>
+        /// </summary>
+        /// <returns><c>null</c>, wenn nach dem Klemmen keine Fläche übrig bleibt (weniger als drei
+        /// verschiedene Punkte oder alle auf einer Linie).</returns>
+        public static RevealArea? Vieleck(
+            IReadOnlyList<(double X, double Y)> anzeigePunkte, Bildlage lage, int schritt)
+        {
+            ArgumentNullException.ThrowIfNull(anzeigePunkte);
+
+            if (lage.Breite <= 0 || lage.Hoehe <= 0)
+                return null;
+
+            var geklemmt = anzeigePunkte
+                .Select(p => (
+                    X: Math.Clamp(p.X, lage.Links, lage.Links + lage.Breite),
+                    Y: Math.Clamp(p.Y, lage.Oben, lage.Oben + lage.Hoehe)))
+                .ToList();
+
+            // Doppelte Folgepunkte (Doppelklick) fallen weg - sie machen aus einem Dreieck kein Viereck.
+            var punkte = new List<(double X, double Y)>();
+
+            foreach (var p in geklemmt)
+            {
+                if (punkte.Count == 0 || Math.Abs(punkte[^1].X - p.X) > 0.5 || Math.Abs(punkte[^1].Y - p.Y) > 0.5)
+                    punkte.Add(p);
+            }
+
+            if (punkte.Count > 1 && Math.Abs(punkte[0].X - punkte[^1].X) <= 0.5 && Math.Abs(punkte[0].Y - punkte[^1].Y) <= 0.5)
+                punkte.RemoveAt(punkte.Count - 1);
+
+            if (punkte.Count < 3 || Math.Abs(Flaeche(punkte)) < 1)
+                return null;
+
+            return AusEckenAnzeige(punkte, lage, schritt);
+        }
+
+        /// <summary>Doppelte Fläche nach der Gaußschen Trapezformel - nur fürs Vorzeichen und „nicht null".</summary>
+        private static double Flaeche(IReadOnlyList<(double X, double Y)> p)
+        {
+            var summe = 0.0;
+
+            for (int i = 0, j = p.Count - 1; i < p.Count; j = i++)
+                summe += (p[j].X + p[i].X) * (p[j].Y - p[i].Y);
+
+            return summe / 2;
+        }
+
+        /// <summary>
         /// Ein Dreieck über der aufgezogenen Fläche: Spitze oben Mitte, Grundlinie unten.
         /// <para>
-        /// <b>Aus derselben Ziehgeste wie das Rechteck.</b> Eckpunkte einzeln zu klicken wäre
-        /// Grafikarbeit; hier werden abends vor einem Quiz Fragen angelegt.
+        /// <b>Aus derselben Ziehgeste wie das Rechteck.</b> Wer die Ecken selbst setzen will,
+        /// nimmt das Vieleck (<see cref="Vieleck"/>, Nutzerwunsch 2026-10-21).
         /// </para>
         /// </summary>
         public static RevealArea Dreieck(double x, double y, double w, double h, int schritt)

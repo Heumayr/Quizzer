@@ -48,6 +48,9 @@ namespace Quizzer.Views.QuestionTypes
                 return;
 
             ZeichneFlaechen();
+
+            // Zeichne() hat den Canvas geleert - ein angefangenes Vieleck gehoert wieder darauf.
+            ZeichneVieleckEntwurf();
         }
 
         /// <summary>
@@ -104,7 +107,11 @@ namespace Quizzer.Views.QuestionTypes
                 return gewaehlt >= 0 && gewaehlt < flaechen.Count
                     ? kopf + $" Gewählt: Fläche {gewaehlt + 1} aus Schritt "
                         + $"{(flaechen[gewaehlt].Step ?? 0) + 1}."
-                    : kopf + " Ein Klick ohne Ziehen wählt eine Fläche aus.";
+                    : FormVieleck.IsChecked == true
+                        ? kopf + (vieleck.Count == 0
+                            ? " Vieleck: Punkte nacheinander anklicken."
+                            : $" Vieleck: {vieleck.Count} Punkt(e) - Klick auf den ersten Punkt oder Doppelklick schließt, rechte Maustaste nimmt den letzten zurück, Esc verwirft.")
+                        : kopf + " Ein Klick ohne Ziehen wählt eine Fläche aus.";
             }
 
             return "So sieht das Bild im ersten Schritt aus.";

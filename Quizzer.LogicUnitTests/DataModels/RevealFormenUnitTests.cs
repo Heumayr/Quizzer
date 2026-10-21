@@ -144,5 +144,81 @@ namespace Quizzer.LogicUnitTests.DataModels
             Assert.IsTrue(RevealFormen.Trifft(kaputt, Breit.Links + 400, Breit.Oben + 100, Breit),
                 "Die Rueckfallflaeche trifft in ihrer eigenen Mitte nicht.");
         }
+
+        // --- Vieleck (Nutzerwunsch 2026-10-21: Punkte setzen, die sich zu Polygonen verbinden) ---
+
+        /// <summary>Ein Fünfeck: was geklickt wurde, ist auf dem Beamer genau das.</summary>
+        [TestMethod]
+        public void APolygonKeepsEveryClickedPoint()
+        {
+            (double X, double Y)[] klicks =
+            [
+                (Breit.Links + 100, Breit.Oben + 20), (Breit.Links + 300, Breit.Oben + 10),
+                (Breit.Links + 400, Breit.Oben + 120), (Breit.Links + 250, Breit.Oben + 190),
+                (Breit.Links + 80, Breit.Oben + 150),
+            ];
+
+            var flaeche = RevealFormen.Vieleck(klicks, Breit, schritt: 2)!;
+
+            var ecken = RevealFormen.EckenAnzeige(flaeche, Breit);
+
+            Assert.AreEqual(5, ecken.Length);
+
+            for (var i = 0; i < 5; i++)
+            {
+                Assert.AreEqual(klicks[i].X, ecken[i].X, 1e-9);
+                Assert.AreEqual(klicks[i].Y, ecken[i].Y, 1e-9);
+            }
+
+            Assert.AreEqual(2, flaeche.Step);
+            Assert.IsTrue(RevealFormen.Trifft(flaeche, Breit.Links + 250, Breit.Oben + 100, Breit),
+                "Die Mitte des Fuenfecks gilt nicht als getroffen.");
+
+            // Die Huelle umschliesst alle Ecken - der Notnagel fuer Staende ohne Ecken.
+            Assert.AreEqual(80 / 800.0, flaeche.X, 1e-9);
+            Assert.AreEqual(10 / 200.0, flaeche.Y, 1e-9);
+            Assert.AreEqual(320 / 800.0, flaeche.W, 1e-9);
+            Assert.AreEqual(180 / 200.0, flaeche.H, 1e-9);
+        }
+
+        /// <summary>Ein Punkt neben dem Bild wird an den Rand geklemmt - die Fläche bleibt im Bild.</summary>
+        [TestMethod]
+        public void PointsBesideTheImageAreClamped()
+        {
+            var flaeche = RevealFormen.Vieleck(
+                [(Breit.Links - 50, Breit.Oben - 50), (Breit.Links + 200, Breit.Oben), (Breit.Links + 100, Breit.Oben + 500)],
+                Breit, 0)!;
+
+            Assert.IsTrue(flaeche.Corners!.All(v => v is >= 0 and <= 1),
+                "Eine Ecke liegt ausserhalb des Bildes: " + string.Join(", ", flaeche.Corners!));
+            Assert.IsTrue(flaeche.X + flaeche.W <= 1 && flaeche.Y + flaeche.H <= 1);
+        }
+
+        /// <summary>Doppelklick-Doppelpunkte und Punkte auf einer Linie ergeben keine Fläche.</summary>
+        [TestMethod]
+        public void DegeneratePolygonsAreRefused()
+        {
+            Assert.IsNull(RevealFormen.Vieleck(
+                [(200, 100), (300, 100), (300, 100)], Breit, 0), "Zwei Punkte sind kein Vieleck.");
+
+            Assert.IsNull(RevealFormen.Vieleck(
+                [(200, 100), (300, 100), (400, 100)], Breit, 0), "Drei Punkte auf einer Linie sind keine Flaeche.");
+
+            var dreieck = RevealFormen.Vieleck(
+                [(200, 60), (300, 60), (300, 60), (250, 150), (250, 150)], Breit, 0)!;
+
+            Assert.AreEqual(6, dreieck.Corners!.Count, "Doppelte Folgepunkte wurden nicht entfernt.");
+        }
+
+        [TestMethod]
+        public void AClickNearTheFirstPointCloses()
+        {
+            (double X, double Y)[] drei = [(200, 60), (300, 60), (250, 150)];
+
+            Assert.IsTrue(RevealFormen.SchliesstVieleck(drei, (205, 65)));
+            Assert.IsFalse(RevealFormen.SchliesstVieleck(drei, (230, 90)), "Ein Klick mitten ins Bild schliesst.");
+            Assert.IsFalse(RevealFormen.SchliesstVieleck(drei[..2], (200, 60)),
+                "Mit zwei Punkten laesst sich schon schliessen.");
+        }
     }
 }
