@@ -137,6 +137,11 @@
                                Text="Im Servermodus arbeitet das Programm auf einer eigenen lokalen Datenbank je Konto. Die oben eingetragene Datenbank bleibt unverändert und gilt wieder, wenn der Haken fehlt." />
                 </StackPanel>
 
+                <TextBlock Style="{StaticResource SectionHeader}" Margin="0,20,0,4" Text="Darstellung" />
+                <CheckBox IsChecked="{Binding Animationen}"
+                          Content="Abläufe dezent animieren"
+                          ToolTip="Kurze Ein- und Überblendungen beim Öffnen einer Frage, bei neuen Hinweisen und Antworten, beim Abschließen einer Zelle und bei den Punkten. Gilt sofort. Sind Animationen in Windows abgeschaltet, bleibt es hier ebenfalls ruhig." />
+
                 <TextBlock Style="{StaticResource SectionHeader}" Margin="0,20,0,4" Text="Abgelegt unter" />
                 <TextBlock Text="{Binding Ablageort}" FontSize="12" Opacity="0.8" TextWrapping="Wrap" />
                 <TextBlock FontSize="12" Opacity="0.8" Margin="0,4,0,0" TextWrapping="Wrap"

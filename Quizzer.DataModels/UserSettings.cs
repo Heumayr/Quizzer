@@ -35,7 +35,8 @@ namespace Quizzer.DataModels
             string? ServerUrl = null,
             string? ServerCertificateSha256 = null,
             string? LastUserName = null,
-            bool ScoresLeft = false);
+            bool ScoresLeft = false,
+            bool Animationen = true);
 
         private static string? folderOverride;
 
@@ -120,6 +121,18 @@ namespace Quizzer.DataModels
                 JsonSerializer.Serialize(werte, new JsonSerializerOptions { WriteIndented = true }));
 
             Apply();
+        }
+
+        /// <summary>Merkt sich, ob Abläufe animiert werden (2026-10-21). Alles andere bleibt unberührt.</summary>
+        public static void SaveAnimationen(bool an)
+        {
+            Directory.CreateDirectory(Folder);
+
+            var werte = Load() with { Animationen = an };
+
+            File.WriteAllText(
+                FilePath,
+                JsonSerializer.Serialize(werte, new JsonSerializerOptions { WriteIndented = true }));
         }
 
         /// <summary>

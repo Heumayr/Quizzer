@@ -384,6 +384,10 @@ namespace Quizzer.Views.GameViews
                         DataContext = statsVm
                     };
 
+                    // Wer gebuzzert hat, springt kurz heran - der Moment, auf den alle schauen.
+                    Quizzer.Base.Bewegung.SetStil(content, Quizzer.Base.BewegungsStil.Zoomen);
+                    Quizzer.Base.Bewegung.SetEinblenden(content, true);
+
                     var popup = new Window
                     {
                         Owner = owner,

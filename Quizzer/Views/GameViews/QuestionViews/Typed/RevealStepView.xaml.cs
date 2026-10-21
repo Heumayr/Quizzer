@@ -246,6 +246,47 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
 
                 Flaechen.Children.Add(vieleck);
             }
+
+            BlendeGefalleneAus(alle, aufgedeckt, bild);
+        }
+
+        private int? zuletztAufgedeckt;
+
+        /// <summary>
+        /// Die Flächen, die mit DIESEM Schritt fallen, blenden kurz aus, statt schlagartig zu
+        /// verschwinden - so sieht jeder, wo gerade aufgedeckt wurde (2026-10-21).
+        /// <para>
+        /// <b>Nur beim Schritt nach vorn</b>, nicht bei jedem Neuzeichnen: <c>ZeichneFlaechen</c>
+        /// läuft auch bei jeder Größenänderung, und dann darf nichts noch einmal ausblenden.
+        /// </para>
+        /// </summary>
+        private void BlendeGefalleneAus(IReadOnlyList<RevealArea> alle, int aufgedeckt, Bildlage bild)
+        {
+            var vorher = zuletztAufgedeckt;
+            zuletztAufgedeckt = aufgedeckt;
+
+            if (vorher != aufgedeckt - 1 || !Quizzer.Base.Bewegung.Aktiv)
+                return;
+
+            for (var i = 0; i < alle.Count; i++)
+            {
+                if (RevealAreas.SchrittVon(alle[i], i) != aufgedeckt - 1)
+                    continue;
+
+                var fallend = new System.Windows.Shapes.Polygon { Fill = Brushes.Black, IsHitTestVisible = false };
+
+                foreach (var (x, y) in RevealFormen.EckenAnzeige(alle[i], bild))
+                    fallend.Points.Add(new Point(x, y));
+
+                Flaechen.Children.Add(fallend);
+
+                var ausblenden = new System.Windows.Media.Animation.DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(450))
+                {
+                    EasingFunction = new System.Windows.Media.Animation.QuadraticEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseIn },
+                };
+
+                fallend.BeginAnimation(OpacityProperty, ausblenden);
+            }
         }
     }
 }

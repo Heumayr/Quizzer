@@ -32,7 +32,9 @@
         </Style>
     </UserControl.Resources>
 
-    <Border Style="{StaticResource CellBorderStyle}">
+    <!-- Gerade abgeschlossen: ein kurzer Puls, damit der Blick die Zelle findet - beim Laden eines
+         Spiels pulsiert nichts (nur der Wechsel offen -> erledigt) -->
+    <Border Style="{StaticResource CellBorderStyle}" base:Bewegung.Puls="{Binding IsDone}">
         <Border.InputBindings>
             <MouseBinding MouseAction="LeftClick"
                           Command="{Binding ElementName=root, Path=Command}"

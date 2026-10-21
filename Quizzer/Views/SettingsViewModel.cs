@@ -201,6 +201,29 @@ namespace Quizzer.Views
 
         public Visibility ServerDetailsVisibility => UseServer ? Visibility.Visible : Visibility.Collapsed;
 
+        /// <summary>
+        /// Ob Abläufe animiert werden (2026-10-21). Gilt sofort und wird sofort gemerkt - das ist
+        /// eine Vorliebe, keine Verbindung, und "Speichern" soll sie nicht aufhalten.
+        /// </summary>
+        public bool Animationen
+        {
+            get => DataModels.UserSettings.Load().Animationen;
+            set
+            {
+                try
+                {
+                    DataModels.UserSettings.SaveAnimationen(value);
+                }
+                catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException)
+                {
+                    // Nicht merken koennen haelt die Umstellung fuer diese Sitzung nicht auf.
+                }
+
+                Quizzer.Base.Bewegung.Aktiv = value && SystemParameters.ClientAreaAnimation;
+                OnPropertyChanged();
+            }
+        }
+
         public string ServerUrl
         {
             get => serverUrl;

@@ -57,7 +57,9 @@
 
         <!-- MAIN AREA -->
         <Grid Grid.Row="0" Grid.Column="1" Visibility="{Binding ShowMainContent}">
+            <!-- Zurueck zum Raster: ruhig einblenden, kein Schwung - der Blick sucht die naechste Zelle -->
             <Viewbox Visibility="{Binding ShowGameGridView}" Margin="5"
+                 base:Bewegung.Einblenden="True" base:Bewegung.Stil="Blenden"
                  Stretch="Uniform"
                  HorizontalAlignment="Stretch"
                  VerticalAlignment="Stretch">
@@ -157,7 +159,8 @@
 
             <!-- Die Frageanzeige liegt in QuestionScreenView, damit die Vorschau im
                  Frageneditor dieselbe benutzt und nicht daneben etwas Eigenes zeichnet. -->
-            <local:QuestionScreenView Visibility="{Binding ShowQuestionView}" />
+            <local:QuestionScreenView Visibility="{Binding ShowQuestionView}"
+                                      base:Bewegung.Einblenden="True" base:Bewegung.Stil="Zoomen" />
         </Grid>
 
         <!-- BOTTOM STATS -->

@@ -107,6 +107,14 @@ namespace Quizzer.Views.GameViews.Sub
 
         private void StarteZaehlen()
         {
+            // Animationen aus: gleich der neue Stand, die Plakette mit "+200" bleibt trotzdem -
+            // sie ist Auskunft, keine Zier.
+            if (!Quizzer.Base.Bewegung.Aktiv)
+            {
+                AnzeigePunkte = zaehlBis;
+                return;
+            }
+
             zaehler ??= new DispatcherTimer(TimeSpan.FromMilliseconds(30), DispatcherPriority.Render, (_, _) => Zaehle(), Dispatcher.CurrentDispatcher);
             zaehler.Start();
             Zaehle();

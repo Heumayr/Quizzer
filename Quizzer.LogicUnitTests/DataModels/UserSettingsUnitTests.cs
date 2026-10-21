@@ -144,6 +144,23 @@ namespace Quizzer.LogicUnitTests.DataModels
         }
 
         /// <summary>
+        /// Eine Datei von vor dem 2026-10-21 kennt den Schalter nicht - dann gilt "an", nicht der
+        /// Vorgabewert von bool.
+        /// </summary>
+        [TestMethod]
+        public void AnOlderFileKeepsAnimationsOn()
+        {
+            Directory.CreateDirectory(UserSettings.Folder);
+            File.WriteAllText(UserSettings.FilePath, "{\"FilePathQuizzer\":null,\"MsSqlConString\":null}");
+
+            Assert.IsTrue(UserSettings.Load().Animationen);
+
+            UserSettings.SaveAnimationen(false);
+
+            Assert.IsFalse(UserSettings.Load().Animationen, "Das Abschalten wurde nicht gemerkt.");
+        }
+
+        /// <summary>
         /// Die Platzierung des Punktestands (2026-10-21) wird gemerkt - und das Merken laesst
         /// Ordner, Datenbank und Serverangaben stehen.
         /// </summary>

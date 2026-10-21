@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Quizzer.Views.GameViews.QuestionViews.Typed"
+             xmlns:base="clr-namespace:Quizzer.Base"
              xmlns:qv="clr-namespace:Quizzer.DataModels.Enumerations;assembly=Quizzer.DataModels"
              mc:Ignorable="d"
              d:DesignHeight="450"
@@ -28,7 +29,8 @@
             dieselbe Schriftgroesse, solange der Text passt, und keine schneidet ab.
         -->
         <DataTemplate x:Key="StepItemTemplate">
-            <Border Margin="8"
+            <Border base:Bewegung.EinblendenWenn="{Binding IstNeu}" base:Bewegung.Stil="Zoomen"
+                    Margin="8"
                     Padding="14"
                     CornerRadius="12"
                     Background="{Binding GridBackground}"

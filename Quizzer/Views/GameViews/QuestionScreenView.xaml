@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:typed="clr-namespace:Quizzer.Views.GameViews.QuestionViews.Typed"
-             xmlns:questions="clr-namespace:Quizzer.Views.GameViews.QuestionViews">
+             xmlns:questions="clr-namespace:Quizzer.Views.GameViews.QuestionViews"
+             xmlns:base="clr-namespace:Quizzer.Base">
     <!--
         Die Frageanzeige des Beamers - Fragenart, Frage, Schrittinhalt.
 
@@ -47,7 +48,8 @@
                  einem Bildschirm ist unschoen. Collapsed statt Hidden: sonst bliebe die
                  Zeile als leerer Streifen stehen. -->
             <Grid Grid.Row="0" Background="Black" MaxHeight="100"
-                  Visibility="{Binding ShowQuestionTop}">
+                  Visibility="{Binding ShowQuestionTop}"
+                  base:Bewegung.Einblenden="True" base:Bewegung.Stil="Blenden">
                 <Viewbox Margin="5" Stretch="Uniform">
                     <TextBlock Text="{Binding QuestionText}"
                            Foreground="WhiteSmoke"
@@ -61,8 +63,11 @@
             </Grid>
 
             <Grid Grid.Row="1">
+                <!-- Jeder neue Schritt blendet kurz auf (Bewegung.BeiWechsel) - die neue Kachel
+                     selbst gleitet dazu herein (StepDisplayItem.IstNeu). -->
                 <ContentControl Content="{Binding QuestionStepViewContext}"
-                            ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}" />
+                            ContentTemplateSelector="{StaticResource QuestionStepTemplateSelector}"
+                            base:Bewegung.BeiWechsel="{Binding QuestionStepViewContext.Step}" />
 
                 <!-- Bildschirm 1: nur die Fragenart, gross und mittig. KEIN Fragetext -
                      der Spielleiter liest die Frage vor, und wer buzzert, bevor sie zu Ende
@@ -74,7 +79,8 @@
                      ohne dass es jemandem auffiele. -->
                 <Border Visibility="{Binding ShowQuestionTypeCentered}"
                         Background="Black"
-                        Padding="40">
+                        Padding="40"
+                        base:Bewegung.Einblenden="True" base:Bewegung.Stil="Zoomen">
                     <!--
                         Deutlich kleiner als der Fragetext darunter: der Name einer Fragenart
                         ist EIN Wort, und eine Viewbox zieht ein Wort auf die volle Hoehe auf.
@@ -97,7 +103,8 @@
                      Spielleiter sie freigibt. Ab dem naechsten Bildschirm steht sie oben. -->
                 <Border Visibility="{Binding ShowQuestionCentered}"
                         Background="Black"
-                        Padding="40">
+                        Padding="40"
+                        base:Bewegung.Einblenden="True" base:Bewegung.Stil="Gleiten">
                     <Viewbox Stretch="Uniform" MaxHeight="620">
                         <TextBlock Text="{Binding QuestionText}"
                                    Foreground="WhiteSmoke"

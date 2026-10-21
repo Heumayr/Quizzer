@@ -538,3 +538,51 @@ body {
     font-size: 18px;
     padding: 0 14px;
 }
+
+/* ===== Bewegung (2026-10-21: "Animation ... passend ohne den Spielfluss zu stoeren") =====
+   Kurz, nur bei echten Wechseln, nie blockierend. Eine neue Runde (neues Layout) blendet ein;
+   ein Tipp gibt sofort spuerbar nach; die Auswahl wechselt die Farbe weich. */
+@keyframes layout-einblenden {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+}
+
+.layout {
+    animation: layout-einblenden 0.22s ease-out;
+}
+
+.key-btn {
+    transition: background-color 0.15s ease, transform 0.08s ease;
+}
+
+    .key-btn:active:not(:disabled) {
+        transform: scale(0.97);
+    }
+
+@keyframes platz-auftritt {
+    from { transform: scale(0.9); }
+    to   { transform: none; }
+}
+
+/* Reihenfolge/Zuordnung: die gerade gewaehlte Taste bekommt ihren Platz mit einem kleinen Ruck */
+.key-btn.selected {
+    animation: platz-auftritt 0.16s ease-out;
+}
+
+/* Wer am Telefon "Bewegung reduzieren" eingestellt hat, bekommt keine. */
+@media (prefers-reduced-motion: reduce) {
+    .layout,
+    .key-btn.selected {
+        animation: none;
+    }
+
+    .key-btn,
+    .toast,
+    .layout-buzzer .buzz-btn {
+        transition: none;
+    }
+
+    .key-btn:active:not(:disabled) {
+        transform: none;
+    }
+}

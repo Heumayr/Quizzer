@@ -24,6 +24,13 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
 
         public bool IsVisibleSlot { get; }
 
+        /// <summary>
+        /// Ob diese Kachel mit dem aktuellen Schritt dazugekommen ist - nur sie gleitet herein.
+        /// Die Kacheln werden je Schritt neu gebaut; bewegten sich alle, zuckte bei jedem Hinweis
+        /// der ganze Bildschirm.
+        /// </summary>
+        public bool IstNeu => IsVisibleSlot && owner.Step != null && Step.SequenceNumber == owner.Step.SequenceNumber;
+
         public Visibility SlotVisibility => Visibility.Visible;
         public double SlotOpacity => IsVisibleSlot ? 1.0 : 0.0;
         public bool SlotHitTestVisible => IsVisibleSlot;
