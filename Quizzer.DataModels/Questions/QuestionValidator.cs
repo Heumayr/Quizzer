@@ -338,7 +338,8 @@ namespace Quizzer.DataModels.Questions
 
             // Die Reihenfolge bringt ihre Aufloesung ebenfalls selbst mit: bei IsFinish zeigt der
             // Beamer zu jedem Element seinen Platz (StepDisplayItem.SolutionBadge).
-            if (question.Typ is QuestionType.Ordering or QuestionType.Matching)
+            // Wahr oder falsch: die Aufloesung ist die Markierung der Aussagen selbst.
+            if (question.Typ is QuestionType.Ordering or QuestionType.Matching or QuestionType.TrueFalse)
                 return;
 
             var steps = question.Steps ?? new List<QuestionStepResource>();

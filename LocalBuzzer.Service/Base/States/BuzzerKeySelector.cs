@@ -37,6 +37,13 @@ namespace LocalBuzzer.Service.Base.States
             /// zu welchem Begriff gerade gewählt wird. Leer bei allen anderen Typen.
             /// </summary>
             public List<string> Prompts { get; set; } = new();
+
+            /// <summary>
+            /// Wahr oder falsch (M12): jede Taste ist eine Aussage, das Telefon zeigt je Aussage
+            /// „wahr" und „falsch". Abgegeben werden die Tasten der als wahr beurteilten - auch
+            /// keine.
+            /// </summary>
+            public bool TrueFalse { get; set; }
         }
 
         public sealed class SelectionResult
@@ -63,7 +70,8 @@ namespace LocalBuzzer.Service.Base.States
             MaxAllowedSelections = Infos.MaxAllowedSelections,
             QuestionId = Infos.QuestionId,
             Ordered = Infos.Ordered,
-            Prompts = Infos.Prompts
+            Prompts = Infos.Prompts,
+            TrueFalse = Infos.TrueFalse
         };
 
         public void SetSelectedKeys(SelectionResult results)
@@ -108,6 +116,12 @@ namespace LocalBuzzer.Service.Base.States
         /// </summary>
         public bool IsCompleteOrder(IReadOnlyCollection<string> keys)
         {
+            // Wahr oder falsch: jede Taste hoechstens einmal und nur bekannte - sonst zaehlte eine
+            // doppelt geschickte Aussage zweimal.
+            if (Infos.TrueFalse)
+                return keys.Distinct(StringComparer.Ordinal).Count() == keys.Count
+                    && keys.All(k => k != null && Infos.KeysAndDesignations.ContainsKey(k));
+
             if (!Infos.Ordered)
                 return true;
 
@@ -129,6 +143,7 @@ namespace LocalBuzzer.Service.Base.States
             Infos.ShowDesignations = true;
             Infos.Ordered = false;
             Infos.Prompts = new();
+            Infos.TrueFalse = false;
             Locked = true;
         }
 

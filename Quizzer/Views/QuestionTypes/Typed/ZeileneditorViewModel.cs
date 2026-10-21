@@ -109,6 +109,9 @@ namespace Quizzer.Views.QuestionTypes.Typed
         public virtual bool ZeigtRichtig
             => QuestionTypeProfiles.For(composer.Typ).ShowIsResultPerStep;
 
+        /// <summary>Was neben dem Haken steht - bei Wahr oder falsch heißt er „wahr".</summary>
+        public virtual string RichtigBeschriftung => "richtig";
+
         public Visibility RichtigVisibility
             => ZeigtRichtig ? Visibility.Visible : Visibility.Collapsed;
 

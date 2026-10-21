@@ -239,6 +239,40 @@ namespace Quizzer.Logic.Demo
                     "Ordne jeder Erfindung ihren Erfinder zu.",
                     [("Telefon", "Bell"), ("Glühbirne", "Edison"), ("Buchdruck", "Gutenberg")]);
             }
+
+            // --- Wahr oder falsch ---
+            yield return WahrFalsch(kat, "Typenschau: Blitzrunde Natur", "WF-1", 100, Difficulty.Level1,
+                "Wahr oder falsch?",
+                [("Wale sind Säugetiere.", true), ("Spinnen sind Insekten.", false),
+                 ("Bambus ist ein Gras.", true), ("Die Sonne ist ein Planet.", false)]);
+
+            yield return WahrFalsch(kat, "Typenschau: Alles falsch?", "WF-2", 200, Difficulty.Level2,
+                "Wahr oder falsch? (Vorsicht: hier ist keine Aussage wahr.)",
+                [("Der Mount Everest steht in den Alpen.", false), ("Gold ist magnetisch.", false),
+                 ("Ein Oktopus hat zehn Arme.", false)]);
+        }
+
+        /// <summary>Wahr oder falsch: je Aussage ein Schritt, der Haken heißt „wahr".</summary>
+        private static QuestionBase WahrFalsch(
+            Guid kategorieId, string bezeichnung, string kurz, int punkte, Difficulty stufe,
+            string frageText, (string Aussage, bool Wahr)[] aussagen)
+        {
+            var frage = new TrueFalseQuestion();
+            Grunddaten(frage, kategorieId, bezeichnung, kurz, punkte, stufe);
+            frage.MinusPoints = 0;
+            frage.QuestionText = frageText;
+            frage.ShowTextOnKeySelect = true;
+
+            for (var i = 0; i < aussagen.Length; i++)
+            {
+                var schritt = Schritt(frage.Id, (i + 1) * 10, aussagen[i].Aussage, istLoesung: aussagen[i].Wahr);
+                schritt.Designation = aussagen[i].Aussage;
+                frage.Steps.Add(schritt);
+            }
+
+            frage.BuzzerMaxAllowedKeySelect = aussagen.Length;
+
+            return frage;
         }
 
         /// <summary>Zuordnung: je Paar ein Schritt - links der Begriff, rechts das Gegenstück.</summary>

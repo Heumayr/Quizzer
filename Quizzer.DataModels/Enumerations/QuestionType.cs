@@ -45,5 +45,11 @@ namespace Quizzer.DataModels.Enumerations
         /// Gegenstück angetippt - technisch eine Reihenfolge, gewertet je richtigem Paar.
         /// </summary>
         Matching = 6,
+
+        /// <summary>
+        /// Wahr oder falsch (M12, 2026-10-21): mehrere Aussagen, alle Spieler beurteilen jede
+        /// gleichzeitig am Telefon. Jede richtig beurteilte Aussage bringt ihren Anteil.
+        /// </summary>
+        TrueFalse = 7,
     }
 }

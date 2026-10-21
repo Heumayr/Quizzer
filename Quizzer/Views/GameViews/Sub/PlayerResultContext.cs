@@ -96,6 +96,15 @@ namespace Quizzer.Views.GameViews.Sub
             var keyViews = new List<KeyView>();
             var question = PlayersResultViewModel?.Coordinate?.QuestionBase;
 
+            // Wahr oder falsch: eine leere Abgabe heisst "alles falsch" und wird gewertet - der
+            // Abbruch unten bei null Tasten gilt dort nicht.
+            if (selectedKeys != null
+                && question?.Typ == DataModels.Enumerations.QuestionType.TrueFalse)
+            {
+                WerteWahrFalsch(question, selectedKeys);
+                return;
+            }
+
             if (selectedKeys == null || question == null || selectedKeys.Count == 0)
             {
                 KeyViews = keyViews;

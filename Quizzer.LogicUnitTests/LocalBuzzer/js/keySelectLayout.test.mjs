@@ -176,6 +176,53 @@ pruefe(knopf().disabled === false,
         "Gesendet wird nicht B, C, A: " + JSON.stringify(gesendet?.selectedKeys));
 }
 
+// --- Wahr oder falsch (M12): je Aussage zwei Knoepfe, abgegeben wird erst komplett ---
+{
+    const wurzel4 = baueDom().wurzel;
+    let gesendet = null;
+
+    const tf = new KeySelectLayout({ submitSelection: async p => { gesendet = p; } });
+
+    tf.render(wurzel4, {
+        playerId: "11111111-1111-1111-1111-111111111111",
+        resetCount: 1,
+        currentLayoutLocked: false,
+        allLocked: false,
+        layoutInfo: {
+            questionId: "55555555-5555-5555-5555-555555555555",
+            keysAndDesignations: { A: "Wale sind Fische.", B: "Wien liegt an der Donau.", C: "2 + 2 = 4" },
+            showDesignations: true,
+            maxAllowedSelections: 3,
+            trueFalse: true
+        }
+    });
+
+    const k = () => wurzel4.querySelector(".commit-btn");
+    const wahr = key => wurzel4.querySelectorAll(".tf-true").find(b => b.dataset.key === key);
+    const falsch = key => wurzel4.querySelectorAll(".tf-false").find(b => b.dataset.key === key);
+
+    pruefe(wurzel4.querySelectorAll(".tf-row").length === 3, "Es steht nicht je Aussage eine Zeile da.");
+    pruefe(k().textContent === "Urteile abgeben", "Der Knopf heisst nicht 'Urteile abgeben': " + k().textContent);
+
+    falsch("A").click();
+    wahr("B").click();
+
+    pruefe(k().disabled === true, "Mit zwei von drei Urteilen laesst sich schon abgeben.");
+
+    wahr("C").click();
+    wahr("A").click();   // umentschieden
+    falsch("A").click(); // und zurueck
+
+    pruefe(k().disabled === false, "Mit allen drei Urteilen laesst sich nicht abgeben.");
+    pruefe(falsch("A").classList.contains("selected") && !wahr("A").classList.contains("selected"),
+        "Nach dem Umentscheiden sind beide Knoepfe einer Aussage gewaehlt.");
+
+    await tf.handleCommitClick();
+
+    pruefe(gesendet && gesendet.selectedKeys.join("") === "BC",
+        "Gesendet werden nicht die als wahr beurteilten B und C: " + JSON.stringify(gesendet?.selectedKeys));
+}
+
 if (fehler > 0) {
     console.error(`${fehler} Zusicherung(en) rot.`);
     process.exit(1);

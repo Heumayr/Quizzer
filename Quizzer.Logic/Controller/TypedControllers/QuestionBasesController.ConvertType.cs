@@ -224,6 +224,10 @@ namespace Quizzer.Logic.Controller.TypedControllers
                 effects.Add("Jeder Schritt wird zu einem Gegenstück - der Begriff links dazu muss "
                           + "danach in der Maske eingetragen werden.");
 
+            if (to == QuestionType.TrueFalse)
+                effects.Add("Jeder Schritt wird zu einer Aussage; der Haken „richtig“ heißt "
+                          + "danach „wahr“.");
+
             if (from == QuestionType.Matching)
                 effects.Add("Die Begriffe links der Zuordnung bleiben gespeichert, werden aber "
                           + "nicht mehr gezeigt.");

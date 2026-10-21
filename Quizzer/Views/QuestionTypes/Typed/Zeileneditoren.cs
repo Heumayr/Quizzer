@@ -28,6 +28,7 @@ namespace Quizzer.Views.QuestionTypes.Typed
                 QuestionType.Reveal => new AufdeckViewModel(composer, frage, melde),
                 QuestionType.Ordering => new ReihenfolgeViewModel(composer, frage, melde),
                 QuestionType.Matching => new ZuordnungViewModel(composer, frage, melde),
+                QuestionType.TrueFalse => new WahrFalschViewModel(composer, frage, melde),
                 _ => new HinweisleiterViewModel(composer, frage, melde),
             };
     }

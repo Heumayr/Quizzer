@@ -205,7 +205,7 @@ namespace Quizzer.Views.BuzzerViews
         /// Stellt die Tastenwahl auf die Frage ein. <paramref name="showDesignations"/> wurde bis
         /// 2026-09-05 durch ein festes <c>true</c> ersetzt - der Schalter des Editors blieb wirkungslos.
         /// </summary>
-        public async Task SetKeySelectorDictionary(Dictionary<string, string>? keySelectorDic, int maxAllowedSelections = 1, bool showDesignations = true, Guid? questionId = null, bool ordered = false, List<string>? prompts = null)
+        public async Task SetKeySelectorDictionary(Dictionary<string, string>? keySelectorDic, int maxAllowedSelections = 1, bool showDesignations = true, Guid? questionId = null, bool ordered = false, List<string>? prompts = null, bool trueFalse = false)
         {
             var info = new BuzzerKeySelectorInfo()
             {
@@ -214,7 +214,8 @@ namespace Quizzer.Views.BuzzerViews
                 ShowDesignations = showDesignations,
                 QuestionId = questionId,
                 Ordered = ordered,
-                Prompts = prompts ?? new()
+                Prompts = prompts ?? new(),
+                TrueFalse = trueFalse
             };
 
             BuzzerController?.StateManager.BuzzerKeySelector.Infos = info;

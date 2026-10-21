@@ -48,7 +48,8 @@
                                  UND Wort statt nur 13 Bildpunkte, und "richtig" beantwortet die
                                  Frage, die eine leere Box offenlaesst - richtig was? -->
                             <CheckBox Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0"
-                                      Content="richtig" Padding="4,0,0,0"
+                                      Content="{Binding DataContext.RichtigBeschriftung,
+                                                RelativeSource={RelativeSource AncestorType=UserControl}}" Padding="4,0,0,0"
                                       IsChecked="{Binding IstRichtig, UpdateSourceTrigger=PropertyChanged}"
                                       Visibility="{Binding DataContext.RichtigVisibility,
                                                    RelativeSource={RelativeSource AncestorType=UserControl}}"

@@ -11,6 +11,9 @@
         this.maxSelections = 1;
         this.prompts = [];
         this.promptLine = null;
+        this.trueFalse = false;
+        this.urteile = new Map();
+        this.tfCount = 0;
         this.locked = true;
         this.submitted = false;
 
@@ -64,6 +67,7 @@
         const questionId = info.questionId ?? "";
         const ordered = info.ordered === true;
         const prompts = info.prompts ?? [];
+        const trueFalse = info.trueFalse === true;
 
         // Der Ruecksetzstand gehoert dazu: ohne ihn bleibt die Kennung beim Zuruecksetzen
         // gleich, das Layout wird nicht neu gebaut, und wer schon abgegeben hatte, blieb fuer
@@ -77,6 +81,7 @@
             questionId,
             ordered,
             prompts,
+            trueFalse,
             resetCount
         });
     }
@@ -96,6 +101,8 @@
         this.ordered = info.ordered === true;
         this.maxSelections = maxSelections;
         this.prompts = Array.isArray(info.prompts) ? info.prompts : [];
+        this.trueFalse = info.trueFalse === true;
+        this.urteile = new Map();
 
         const canReselect =
             !!questionId &&
@@ -121,6 +128,14 @@
         // Neue Runde: die Abgabe der letzten gilt nicht mehr.
         this.submitted = false;
         this.commitBtn.textContent = this.commitLabel();
+
+        if (this.trueFalse) {
+            this.keysWrap.style.setProperty("--grid-size", 1);
+            this.buildTrueFalse(entries, showDesignations);
+            this.updateCommitState();
+            this.setLocked(context.currentLayoutLocked || context.allLocked);
+            return;
+        }
 
         for (const [key, designation] of entries) {
             const btn = document.createElement("button");
@@ -179,7 +194,54 @@
         btn.setAttribute("aria-pressed", String(selected));
     }
 
+    // Wahr oder falsch (M12): je Aussage eine Zeile mit zwei Knoepfen. Abgegeben werden die
+    // Tasten der als wahr beurteilten Aussagen - erst wenn jede beurteilt ist, damit eine leere
+    // Abgabe "alles falsch" heisst und nicht "nichts getippt".
+    buildTrueFalse(entries, showDesignations) {
+        this.tfCount = entries.length;
+
+        for (const [key, designation] of entries) {
+            const row = document.createElement("div");
+            row.className = "tf-row";
+
+            const label = document.createElement("div");
+            label.className = "tf-label";
+            label.textContent = showDesignations ? `${key}: ${designation}` : key;
+            row.appendChild(label);
+
+            const buttons = [];
+
+            for (const [wert, text] of [[true, "wahr"], [false, "falsch"]]) {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = wert ? "key-btn tf-btn tf-true" : "key-btn tf-btn tf-false";
+                btn.dataset.key = key;
+                btn.dataset.label = text;
+                btn.textContent = text;
+                btn.setAttribute("aria-pressed", "false");
+                btn.setAttribute("aria-label", `${key} ${text}`);
+
+                btn.addEventListener("click", () => {
+                    if (this.locked) return;
+
+                    this.urteile.set(key, wert);
+
+                    for (const b of buttons)
+                        this.markSelected(b, b === btn);
+
+                    this.updateCommitState();
+                });
+
+                buttons.push(btn);
+                row.appendChild(btn);
+            }
+
+            this.keysWrap.appendChild(row);
+        }
+    }
+
     commitLabel() {
+        if (this.trueFalse) return "Urteile abgeben";
         if (this.prompts.length > 0) return "Zuordnung bestätigen";
         return this.ordered ? "Reihenfolge bestätigen" : "Auswahl bestätigen";
     }
@@ -246,6 +308,11 @@
             return;
         }
 
+        if (this.trueFalse) {
+            this.commitBtn.disabled = this.locked || this.urteile.size !== this.tfCount;
+            return;
+        }
+
         const incomplete = this.ordered && this.selectedKeys.size !== this.maxSelections;
 
         this.commitBtn.disabled = this.locked || this.selectedKeys.size === 0 || incomplete;
@@ -254,12 +321,20 @@
     async handleCommitClick() {
         if (this.locked) return;
         if (!this.lastContext) return;
-        if (this.selectedKeys.size === 0) return;
-        if (this.ordered && this.selectedKeys.size !== this.maxSelections) return;
+        if (this.trueFalse) {
+            if (this.urteile.size !== this.tfCount) return;
+        } else {
+            if (this.selectedKeys.size === 0) return;
+            if (this.ordered && this.selectedKeys.size !== this.maxSelections) return;
+        }
+
+        const keys = this.trueFalse
+            ? [...this.urteile.entries()].filter(([, wahr]) => wahr).map(([key]) => key).sort()
+            : [...this.selectedKeys];
 
         const payload = {
             playerId: this.lastContext.playerId,
-            selectedKeys: [...this.selectedKeys],
+            selectedKeys: keys,
             committedResult: true
         };
 
@@ -284,7 +359,9 @@
         this.updateCommitState();
 
         if (typeof window.show_toast === "function") {
-            window.show_toast("info", this.prompts.length > 0
+            window.show_toast("info", this.trueFalse
+                ? "Urteile übermittelt"
+                : this.prompts.length > 0
                 ? "Zuordnung übermittelt"
                 : this.ordered ? "Reihenfolge übermittelt" : "Auswahl übermittelt");
         }

@@ -74,6 +74,7 @@ namespace Quizzer.Views.GameViews
                 case BuzzerControlsLayout.KeySelect:
                     var tasten = Question?.Steps.GetKeyDictionary();
                     var reihenfolge = Question is OrderingQuestion or MatchingQuestion;
+                    var wahrFalsch = Question is TrueFalseQuestion;
 
                     // Zuordnung: das Telefon zeigt, zu welchem Begriff gerade gewaehlt wird.
                     var begriffe = Question is MatchingQuestion
@@ -89,11 +90,12 @@ namespace Quizzer.Views.GameViews
                     // umgewandelten Frage zuruecksein kann.
                     await BuzzerControlsViewModel.SetKeySelectorDictionary(
                         tasten,
-                        reihenfolge ? Math.Max(tasten?.Count ?? 1, 1) : Question?.BuzzerMaxAllowedKeySelect ?? 1,
+                        reihenfolge || wahrFalsch ? Math.Max(tasten?.Count ?? 1, 1) : Question?.BuzzerMaxAllowedKeySelect ?? 1,
                         Question?.ShowTextOnKeySelect ?? true,
                         Question?.Id,
                         reihenfolge,
-                        begriffe);
+                        begriffe,
+                        wahrFalsch);
 
                     BuzzerControlsViewModel.PlayerSelectedKeys = OnPlayerSelectedKeys;
                     BuzzerControlsViewModel.AllPlayersSelectedKeys = OnAllPlayersSelectedKeys;

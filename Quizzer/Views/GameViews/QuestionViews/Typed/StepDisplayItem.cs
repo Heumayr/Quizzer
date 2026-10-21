@@ -105,6 +105,10 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
         /// </summary>
         public string SolutionBadge =>
             IsVisibleSlot
+            && owner.Question?.Typ == QuestionType.TrueFalse
+            && (owner.IsMasterView || owner.Step?.IsFinish == true)
+                ? (Step.IsResult ? "wahr" : "falsch")
+            : IsVisibleSlot
             && owner.Question?.Typ is QuestionType.Ordering or QuestionType.Matching
             && Step.SolutionNumber > 0
             && (owner.IsMasterView || owner.Step?.IsFinish == true)

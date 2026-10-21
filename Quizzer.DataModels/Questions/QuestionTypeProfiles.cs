@@ -155,9 +155,31 @@ namespace Quizzer.DataModels.Questions
             AllowsMultipleResultSteps = true,
         };
 
+        private static readonly QuestionTypeProfile TrueFalse = new()
+        {
+            Typ = QuestionType.TrueFalse,
+            DisplayName = "Wahr oder falsch",
+            HelpText = "Mehrere Aussagen; alle Spieler beurteilen am Telefon jede als wahr oder "
+                     + "falsch. Der Haken markiert die wahren Aussagen. Jede richtig beurteilte "
+                     + "Aussage bringt ihren Anteil der Punkte.",
+            TableName = nameof(TrueFalseQuestion),
+            BuzzerControlsLayout = BuzzerControlsLayout.KeySelect,
+            StepDisplayLayoutMode = StepDisplayLayoutMode.Grid,
+            QuestionViewKeyType = QuestionViewKeyType.Alphabetical,
+            UseRandomSequenceOnNoneFinishSteps = true,
+            UseProportionalScoreReductionOnStep = false,
+            ShowShowTextOnKeySelect = true,
+            ShowIsResultPerStep = true,
+            MinNormalSteps = 2,
+
+            // Alle Aussagen duerfen falsch sein - auch das ist eine Runde.
+            RequiresResultStep = false,
+            AllowsMultipleResultSteps = true,
+        };
+
         /// <summary>Alle Profile in der Reihenfolge, in der sie angeboten werden.</summary>
         public static IReadOnlyList<QuestionTypeProfile> All { get; } =
-            [Default, MultipleChoice, Properties, Appreciate, Reveal, Ordering, Matching];
+            [Default, MultipleChoice, Properties, Appreciate, Reveal, Ordering, Matching, TrueFalse];
 
         /// <summary>Liefert das Profil zu einem Fragetyp.</summary>
         /// <exception cref="ArgumentOutOfRangeException">Bei einem unbekannten Typ.</exception>

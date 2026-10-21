@@ -698,6 +698,13 @@ namespace Quizzer.Logic.Migrations
                     b.ToTable("RevealQuestion", "question");
                 });
 
+            modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.TrueFalseQuestion", b =>
+                {
+                    b.HasBaseType("Quizzer.DataModels.Models.QuestionBase");
+
+                    b.ToTable("TrueFalseQuestion", "question");
+                });
+
             modelBuilder.Entity("Quizzer.DataModels.Models.Auth.Account", b =>
                 {
                     b.HasOne("Quizzer.DataModels.Models.Base.Player", "Player")
@@ -901,6 +908,15 @@ namespace Quizzer.Logic.Migrations
                     b.HasOne("Quizzer.DataModels.Models.QuestionBase", null)
                         .WithOne()
                         .HasForeignKey("Quizzer.DataModels.Models.QuestionTypes.RevealQuestion", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.TrueFalseQuestion", b =>
+                {
+                    b.HasOne("Quizzer.DataModels.Models.QuestionBase", null)
+                        .WithOne()
+                        .HasForeignKey("Quizzer.DataModels.Models.QuestionTypes.TrueFalseQuestion", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

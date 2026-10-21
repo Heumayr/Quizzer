@@ -15,7 +15,7 @@ namespace Quizzer.Views.GameViews.Sub
 
         /// <summary>Was unter den Tasten steht, etwa „2 von 4 Plätzen richtig".</summary>
         public string ReihenfolgeText => Reihenfolge == null
-            ? string.Empty
+            ? ReihenfolgeTextUeberschrieben ?? string.Empty
             : istZuordnung
                 ? $"{Reihenfolge.RichtigePlaetze} von {Reihenfolge.Gesamt} Paaren richtig"
                 : $"{Reihenfolge.RichtigePlaetze} von {Reihenfolge.Gesamt} Plätzen richtig";
@@ -23,7 +23,55 @@ namespace Quizzer.Views.GameViews.Sub
         private bool istZuordnung;
 
         public Visibility ReihenfolgeVisibility
-            => Reihenfolge == null ? Visibility.Collapsed : Visibility.Visible;
+            => string.IsNullOrEmpty(ReihenfolgeText) ? Visibility.Collapsed : Visibility.Visible;
+
+        /// <summary>
+        /// Wahr oder falsch (M12): je Aussage, ob der Spieler richtig lag; der Vorschlag wie bei
+        /// der Reihenfolge - alles richtig „richtig", ein Teil ein eigener Wert, nichts „offen".
+        /// </summary>
+        private void WerteWahrFalsch(QuestionBase question, List<string> wahrGetippt)
+        {
+            var ergebnis = WahrFalschEvaluator.Werte(question, wahrGetippt, GetCurrentPoints());
+
+            istZuordnung = false;
+            Reihenfolge = null;
+            OnPropertyChanged(nameof(Reihenfolge));
+
+            ReihenfolgeTextUeberschrieben = $"{ergebnis.Richtige} von {ergebnis.Gesamt} Aussagen richtig beurteilt";
+            OnPropertyChanged(nameof(ReihenfolgeText));
+            OnPropertyChanged(nameof(ReihenfolgeVisibility));
+
+            KeyViews = ergebnis.Urteile
+                .Select(u => new KeyView
+                {
+                    Key = $"{u.Taste}: {(u.GetipptWahr ? "wahr" : "falsch")}",
+                    Designation = u.Text,
+                    IsCorrect = u.Richtig,
+                    ShowDesignation = true,
+                })
+                .ToList();
+
+            if (ergebnis.AllesRichtig)
+            {
+                Suggestion = ScoreSuggestion.Right;
+            }
+            else if (ergebnis.Richtige > 0)
+            {
+                Suggestion = ScoreSuggestion.Correction;
+                CurrentScoreManipulation = ergebnis.Punkte;
+            }
+            else
+            {
+                Suggestion = ScoreSuggestion.None;
+            }
+
+            ShowKeySelections = Visibility.Visible;
+            OnPropertyChanged(nameof(KeyViews));
+            OnPropertyChanged(nameof(ShowKeySelections));
+        }
+
+        /// <summary>Der Satz unter den Tasten bei „Wahr oder falsch".</summary>
+        private string? ReihenfolgeTextUeberschrieben;
 
         /// <summary>
         /// Wertet die Abgabe aus und setzt den Vorschlag.
@@ -44,6 +92,7 @@ namespace Quizzer.Views.GameViews.Sub
             var ergebnis = ReihenfolgeEvaluator.Werte(question, selectedKeys, GetCurrentPoints());
 
             istZuordnung = question.Typ == DataModels.Enumerations.QuestionType.Matching;
+            ReihenfolgeTextUeberschrieben = null;
             Reihenfolge = ergebnis;
             OnPropertyChanged(nameof(Reihenfolge));
             OnPropertyChanged(nameof(ReihenfolgeText));

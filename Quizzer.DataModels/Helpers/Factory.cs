@@ -31,6 +31,7 @@ namespace Quizzer.DataModels.Helpers
                 QuestionType.Reveal => new RevealQuestion(),
                 QuestionType.Ordering => new OrderingQuestion(),
                 QuestionType.Matching => new MatchingQuestion(),
+                QuestionType.TrueFalse => new TrueFalseQuestion(),
                 _ => new DefaultQuestion()
             };
         }
