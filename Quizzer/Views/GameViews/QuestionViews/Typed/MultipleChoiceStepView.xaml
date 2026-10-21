@@ -140,16 +140,50 @@
         </DataTemplate>
 
         <DataTemplate x:Key="GridOnlyLayoutTemplate">
-            <ItemsControl ItemsSource="{Binding DisplaySteps}"
-                          ItemTemplate="{StaticResource StepItemTemplate}"
-                          ItemContainerStyle="{StaticResource StretchItemContainerStyle}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <UniformGrid Rows="{Binding DisplayGridRows}"
-                                     Columns="{Binding DisplayGridColumns}" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-            </ItemsControl>
+            <DockPanel LastChildFill="True">
+
+                <!-- Zuordnung: die festen Begriffe links, nummeriert; das Raster rechts traegt
+                     die gemischten Gegenstuecke. Bei allen anderen Typen zusammengeklappt. -->
+                <Border DockPanel.Dock="Left"
+                        Visibility="{Binding ZuordnungVisibility}"
+                        Width="460"
+                        Margin="8"
+                        Padding="16"
+                        CornerRadius="12"
+                        Background="#D9101010">
+                    <ItemsControl ItemsSource="{Binding ZuordnungBegriffe}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="1" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Viewbox Stretch="Uniform" StretchDirection="DownOnly"
+                                         HorizontalAlignment="Left" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding}"
+                                               Width="420"
+                                               FontSize="40"
+                                               FontWeight="SemiBold"
+                                               Foreground="WhiteSmoke"
+                                               TextWrapping="Wrap" />
+                                </Viewbox>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+
+                <ItemsControl ItemsSource="{Binding DisplaySteps}"
+                              ItemTemplate="{StaticResource StepItemTemplate}"
+                              ItemContainerStyle="{StaticResource StretchItemContainerStyle}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Rows="{Binding DisplayGridRows}"
+                                         Columns="{Binding DisplayGridColumns}" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+            </DockPanel>
         </DataTemplate>
 
         <DataTemplate x:Key="NotSupportedTemplate">

@@ -186,6 +186,9 @@ namespace Quizzer.DataModels.Transfer
             /// </summary>
             public int? SolutionNumber { get; set; }
 
+            /// <summary>Der feste Begriff links einer Zuordnungsfrage. <c>null</c> bei allen anderen.</summary>
+            public string? PartnerText { get; set; }
+
             public string Designation { get; set; } = string.Empty;
             public string StepText { get; set; } = string.Empty;
 

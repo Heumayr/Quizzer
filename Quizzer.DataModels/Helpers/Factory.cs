@@ -30,6 +30,7 @@ namespace Quizzer.DataModels.Helpers
                 QuestionType.Appreciate => new AppreciateQestion(),
                 QuestionType.Reveal => new RevealQuestion(),
                 QuestionType.Ordering => new OrderingQuestion(),
+                QuestionType.Matching => new MatchingQuestion(),
                 _ => new DefaultQuestion()
             };
         }

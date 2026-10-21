@@ -220,6 +220,14 @@ namespace Quizzer.Logic.Controller.TypedControllers
             if (from == QuestionType.Ordering)
                 effects.Add("Die hinterlegte richtige Reihenfolge wird nicht mehr gewertet.");
 
+            if (to == QuestionType.Matching)
+                effects.Add("Jeder Schritt wird zu einem Gegenstück - der Begriff links dazu muss "
+                          + "danach in der Maske eingetragen werden.");
+
+            if (from == QuestionType.Matching)
+                effects.Add("Die Begriffe links der Zuordnung bleiben gespeichert, werden aber "
+                          + "nicht mehr gezeigt.");
+
             if (!target.AllowsMultipleResultSteps)
                 effects.Add($"{target.DisplayName} verträgt nur eine Lösungsmarkierung - "
                           + "weitere werden entfernt.");

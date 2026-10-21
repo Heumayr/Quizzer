@@ -85,6 +85,11 @@ namespace Quizzer.Views.QuestionTypes.Typed
         public Visibility AbschlussVisibility
             => Abschluss == null ? Visibility.Collapsed : Visibility.Visible;
 
+        /// <summary>
+        /// Ob je Zeile ein zweites Feld für den Begriff links steht - nur bei der Zuordnung.
+        /// </summary>
+        public virtual Visibility PartnerVisibility => Visibility.Collapsed;
+
         /// <summary>Ob die Zeilen von Hand umsortiert werden dürfen.</summary>
         public virtual bool DarfSortieren => true;
 
@@ -205,7 +210,7 @@ namespace Quizzer.Views.QuestionTypes.Typed
         private void Beobachte(StepZeile zeile)
             => zeile.PropertyChanged += (_, e) =>
             {
-                if (e.PropertyName is nameof(StepZeile.Text) or nameof(StepZeile.IstRichtig))
+                if (e.PropertyName is nameof(StepZeile.Text) or nameof(StepZeile.IstRichtig) or nameof(StepZeile.Partner))
                     Geaendert();
             };
 

@@ -24,7 +24,8 @@ namespace Quizzer.Logic.Demo
         /// <para>
         /// Was darin steckt: Bild in einer Standardfrage, Multiple Choice mit Bildantworten und
         /// mit zwei richtigen langen Antworten, Schätzfrage mit Zahl und mit Datum, Aufdeckfrage
-        /// mit Flächen und mit Unschärfe, Reihenfolge mit vier Elementen.
+        /// mit Flächen und mit Unschärfe, Reihenfolge mit vier Elementen, Zuordnung mit Text und
+        /// mit Flaggen als Gegenstück.
         /// </para>
         /// <para>
         /// <b>Neue Typen gehören hier hinein</b> - <c>DemoDataSeederUnitTests</c> prüft, dass
@@ -208,6 +209,60 @@ namespace Quizzer.Logic.Demo
             yield return Reihenfolge(kat, "Typenschau: Erfindungen ordnen", "REI-2", 200, Difficulty.Level2,
                 "Ordne die Erfindungen nach ihrem Jahr - die älteste zuerst.",
                 ["Telefon (1876)", "Glühbirne (1879)", "Automobil (1886)", "Motorflugzeug (1903)"]);
+
+            // --- Zuordnung ---
+            yield return Zuordnung(kat, "Typenschau: Hauptstädte zuordnen", "ZUO-1", 100, Difficulty.Level1,
+                "Ordne jedem Land seine Hauptstadt zu.",
+                [("Österreich", "Wien"), ("Schweiz", "Bern"), ("Deutschland", "Berlin"), ("Frankreich", "Paris")]);
+
+            if (mitBildern)
+            {
+                var flaggen = Zuordnung(kat, "Typenschau: Flaggen zuordnen", "ZUO-2", 200, Difficulty.Level2,
+                    "Ordne jedem Land seine Flagge zu.",
+                    [("Italien", "italien"), ("Irland", "irland"), ("Belgien", "belgien"), ("Japan", "japan")]);
+
+                // Gegenstueck nur als Bild - der Text waere die Loesung.
+                flaggen.ShowTextOnKeySelect = false;
+
+                foreach (var paar in flaggen.Steps)
+                {
+                    MitBild(paar, paar.StepText);
+                    paar.StepText = string.Empty;
+                    paar.Designation = string.Empty;
+                }
+
+                yield return flaggen;
+            }
+            else
+            {
+                yield return Zuordnung(kat, "Typenschau: Erfinder zuordnen", "ZUO-2", 200, Difficulty.Level2,
+                    "Ordne jeder Erfindung ihren Erfinder zu.",
+                    [("Telefon", "Bell"), ("Glühbirne", "Edison"), ("Buchdruck", "Gutenberg")]);
+            }
+        }
+
+        /// <summary>Zuordnung: je Paar ein Schritt - links der Begriff, rechts das Gegenstück.</summary>
+        private static QuestionBase Zuordnung(
+            Guid kategorieId, string bezeichnung, string kurz, int punkte, Difficulty stufe,
+            string frageText, (string Links, string Rechts)[] paare)
+        {
+            var frage = new MatchingQuestion();
+            Grunddaten(frage, kategorieId, bezeichnung, kurz, punkte, stufe);
+            frage.MinusPoints = 0;
+            frage.QuestionText = frageText;
+            frage.ShowTextOnKeySelect = true;
+
+            for (var i = 0; i < paare.Length; i++)
+            {
+                var schritt = Schritt(frage.Id, (i + 1) * 10, paare[i].Rechts);
+                schritt.PartnerText = paare[i].Links;
+                schritt.SolutionNumber = i + 1;
+                frage.Steps.Add(schritt);
+            }
+
+            frage.BuzzerMaxAllowedKeySelect = paare.Length;
+
+            return frage;
         }
 
         private static void MitBild(QuestionStepResource schritt, string flagge)

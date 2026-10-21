@@ -16,7 +16,11 @@ namespace Quizzer.Views.GameViews.Sub
         /// <summary>Was unter den Tasten steht, etwa „2 von 4 Plätzen richtig".</summary>
         public string ReihenfolgeText => Reihenfolge == null
             ? string.Empty
-            : $"{Reihenfolge.RichtigePlaetze} von {Reihenfolge.Gesamt} Plätzen richtig";
+            : istZuordnung
+                ? $"{Reihenfolge.RichtigePlaetze} von {Reihenfolge.Gesamt} Paaren richtig"
+                : $"{Reihenfolge.RichtigePlaetze} von {Reihenfolge.Gesamt} Plätzen richtig";
+
+        private bool istZuordnung;
 
         public Visibility ReihenfolgeVisibility
             => Reihenfolge == null ? Visibility.Collapsed : Visibility.Visible;
@@ -39,6 +43,7 @@ namespace Quizzer.Views.GameViews.Sub
         {
             var ergebnis = ReihenfolgeEvaluator.Werte(question, selectedKeys, GetCurrentPoints());
 
+            istZuordnung = question.Typ == DataModels.Enumerations.QuestionType.Matching;
             Reihenfolge = ergebnis;
             OnPropertyChanged(nameof(Reihenfolge));
             OnPropertyChanged(nameof(ReihenfolgeText));
@@ -47,10 +52,16 @@ namespace Quizzer.Views.GameViews.Sub
             if (ergebnis == null)
                 return false;
 
+            // Bei der Zuordnung steht der Begriff mit dabei - "1 → B" allein sagt dem Spielleiter
+            // nicht, welches Paar falsch ist.
+            var begriffe = ReihenfolgeEvaluator.Loesung(question)!.Select(s => s.PartnerText).ToList();
+
             KeyViews = ergebnis.Plaetze
                 .Select(p => new KeyView
                 {
-                    Key = $"{p.Nummer}. {(p.Taste.Length == 0 ? "–" : p.Taste)}",
+                    Key = istZuordnung
+                        ? $"{p.Nummer} {begriffe[p.Nummer - 1]} → {(p.Taste.Length == 0 ? "–" : p.Taste)}"
+                        : $"{p.Nummer}. {(p.Taste.Length == 0 ? "–" : p.Taste)}",
                     Designation = p.Text,
                     IsCorrect = p.Richtig,
                     ShowDesignation = true,

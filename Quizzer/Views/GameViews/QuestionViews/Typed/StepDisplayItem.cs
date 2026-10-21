@@ -96,7 +96,7 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
         // traegt sie aber noch, und dann leuchteten zufaellige Felder als "richtig".
         private bool ZeigtRichtig =>
             Step.IsResult
-            && owner.Question?.Typ != QuestionType.Ordering
+            && owner.Question?.Typ is not (QuestionType.Ordering or QuestionType.Matching)
             && (owner.IsMasterView || owner.Step?.IsFinish == true);
 
         /// <summary>
@@ -105,10 +105,12 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
         /// </summary>
         public string SolutionBadge =>
             IsVisibleSlot
-            && owner.Question?.Typ == QuestionType.Ordering
+            && owner.Question?.Typ is QuestionType.Ordering or QuestionType.Matching
             && Step.SolutionNumber > 0
             && (owner.IsMasterView || owner.Step?.IsFinish == true)
-                ? $"Platz {Step.SolutionNumber}"
+                ? owner.Question?.Typ == QuestionType.Matching
+                    ? $"zu {Step.SolutionNumber}"
+                    : $"Platz {Step.SolutionNumber}"
                 : string.Empty;
 
         public Visibility SolutionBadgeVisibility =>

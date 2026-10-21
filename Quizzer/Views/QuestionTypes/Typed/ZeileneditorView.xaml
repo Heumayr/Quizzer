@@ -59,7 +59,18 @@
                                        ToolTip="{Binding DataContext.Tastenerklaerung,
                                                  RelativeSource={RelativeSource AncestorType=UserControl}}" />
 
-                            <TextBox Grid.Column="2" VerticalContentAlignment="Center"
+                            <!-- Zuordnung: links der feste Begriff, dann das Gegenstueck. Bei allen
+                                 anderen Typen ist der Begriff zusammengeklappt und nimmt keinen Platz. -->
+                            <DockPanel Grid.Column="2" LastChildFill="True">
+                            <TextBox DockPanel.Dock="Left" Width="220" VerticalContentAlignment="Center"
+                                     Text="{Binding Partner, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Der feste Begriff links - er steht auf dem Beamer mit seiner Nummer."
+                                     Visibility="{Binding DataContext.PartnerVisibility,
+                                                  RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            <TextBlock DockPanel.Dock="Left" Text="↔" Margin="6,0" VerticalAlignment="Center"
+                                       Visibility="{Binding DataContext.PartnerVisibility,
+                                                    RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            <TextBox VerticalContentAlignment="Center"
                                      Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}">
                                 <TextBox.InputBindings>
                                     <!-- Enter haengt an, statt zu speichern: in einer Maske
@@ -71,6 +82,7 @@
                                                           RelativeSource={RelativeSource AncestorType=UserControl}}" />
                                 </TextBox.InputBindings>
                             </TextBox>
+                            </DockPanel>
 
                             <TextBlock Grid.Column="3" Text="{Binding Zusatz}" Opacity="0.7"
                                        VerticalAlignment="Center" Margin="8,0,0,0" />

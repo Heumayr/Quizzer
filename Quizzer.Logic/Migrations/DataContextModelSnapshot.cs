@@ -495,6 +495,10 @@ namespace Quizzer.Logic.Migrations
                     b.Property<bool>("IsStart")
                         .HasColumnType("bit");
 
+                    b.Property<string>("PartnerText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("QuestionBaseId")
                         .HasColumnType("uniqueidentifier");
 
@@ -643,6 +647,13 @@ namespace Quizzer.Logic.Migrations
                     b.HasBaseType("Quizzer.DataModels.Models.QuestionBase");
 
                     b.ToTable("DefaultQuestion", "question");
+                });
+
+            modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.MatchingQuestion", b =>
+                {
+                    b.HasBaseType("Quizzer.DataModels.Models.QuestionBase");
+
+                    b.ToTable("MatchingQuestion", "question");
                 });
 
             modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.MultipleChoiceQuestion", b =>
@@ -845,6 +856,15 @@ namespace Quizzer.Logic.Migrations
                     b.HasOne("Quizzer.DataModels.Models.QuestionBase", null)
                         .WithOne()
                         .HasForeignKey("Quizzer.DataModels.Models.QuestionTypes.DefaultQuestion", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.MatchingQuestion", b =>
+                {
+                    b.HasOne("Quizzer.DataModels.Models.QuestionBase", null)
+                        .WithOne()
+                        .HasForeignKey("Quizzer.DataModels.Models.QuestionTypes.MatchingQuestion", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

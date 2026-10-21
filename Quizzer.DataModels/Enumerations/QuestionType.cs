@@ -38,5 +38,12 @@ namespace Quizzer.DataModels.Enumerations
         /// richtigen Reihenfolge an. Jedes Element am richtigen Platz bringt seinen Anteil.
         /// </summary>
         Ordering = 5,
+
+        /// <summary>
+        /// Zuordnungsfrage (M12, 2026-10-21): links feste, nummerierte Begriffe, rechts gemischte
+        /// Gegenstücke mit Tasten. Am Telefon wird zu 1, 2, 3 … der Reihe nach das passende
+        /// Gegenstück angetippt - technisch eine Reihenfolge, gewertet je richtigem Paar.
+        /// </summary>
+        Matching = 6,
     }
 }

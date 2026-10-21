@@ -43,6 +43,8 @@ namespace Quizzer.DataModels.Questions
         public const string FinishTextMissing = "finish-text-missing";
         public const string KeySelectWillBeAdjusted = "key-select-will-be-adjusted";
         public const string OrderingSolutionIncomplete = "ordering-solution-incomplete";
+        public const string MatchingPartnerMissing = "matching-partner-missing";
+        public const string MatchingCounterpartMissing = "matching-counterpart-missing";
 
         /// <summary>Prueft die Frage und liefert alle Beanstandungen.</summary>
         public static IReadOnlyList<ValidationIssue> Validate(QuestionBase question)
@@ -194,8 +196,28 @@ namespace Quizzer.DataModels.Questions
         /// </summary>
         private static void ValidateOrdering(QuestionBase question, List<ValidationIssue> issues)
         {
-            if (question.Typ != QuestionType.Ordering)
+            if (question.Typ is not (QuestionType.Ordering or QuestionType.Matching))
                 return;
+
+            if (question.Typ == QuestionType.Matching)
+            {
+                // Beide Seiten eines Paares muessen etwas tragen - ein Paar ohne linken Begriff
+                // laesst sich nicht zuordnen, eines ohne Gegenstueck nicht antippen.
+                foreach (var paar in (question.Steps ?? []).Where(s => !s.IsStart && !s.IsFinish))
+                {
+                    if (string.IsNullOrWhiteSpace(paar.PartnerText))
+                        issues.Add(new(MatchingPartnerMissing, ValidationSeverity.Error,
+                            $"Zum Gegenstück „{Describe(paar)}“ fehlt der Begriff links.",
+                            nameof(paar.PartnerText)));
+
+                    if (string.IsNullOrWhiteSpace(paar.StepText)
+                        && string.IsNullOrWhiteSpace(paar.Designation)
+                        && string.IsNullOrWhiteSpace(paar.ResourceFileName))
+                        issues.Add(new(MatchingCounterpartMissing, ValidationSeverity.Error,
+                            $"Zum Begriff „{paar.PartnerText}“ fehlt das Gegenstück rechts.",
+                            nameof(paar.StepText)));
+                }
+            }
 
             if (ReihenfolgeEvaluator.Loesung(question) == null)
                 issues.Add(new(OrderingSolutionIncomplete, ValidationSeverity.Warning,
@@ -316,7 +338,7 @@ namespace Quizzer.DataModels.Questions
 
             // Die Reihenfolge bringt ihre Aufloesung ebenfalls selbst mit: bei IsFinish zeigt der
             // Beamer zu jedem Element seinen Platz (StepDisplayItem.SolutionBadge).
-            if (question.Typ == QuestionType.Ordering)
+            if (question.Typ is QuestionType.Ordering or QuestionType.Matching)
                 return;
 
             var steps = question.Steps ?? new List<QuestionStepResource>();

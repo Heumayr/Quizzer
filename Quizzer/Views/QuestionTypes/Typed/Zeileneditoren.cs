@@ -27,6 +27,7 @@ namespace Quizzer.Views.QuestionTypes.Typed
                 QuestionType.Appreciate => new SollwertViewModel(composer, frage, melde),
                 QuestionType.Reveal => new AufdeckViewModel(composer, frage, melde),
                 QuestionType.Ordering => new ReihenfolgeViewModel(composer, frage, melde),
+                QuestionType.Matching => new ZuordnungViewModel(composer, frage, melde),
                 _ => new HinweisleiterViewModel(composer, frage, melde),
             };
     }

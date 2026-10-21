@@ -31,6 +31,12 @@ namespace LocalBuzzer.Service.Base.States
             /// auf jeder gewählten Taste statt eines Hakens.
             /// </summary>
             public bool Ordered { get; set; }
+
+            /// <summary>
+            /// Zuordnung (M12): die festen Begriffe in ihrer Folge. Das Telefon zeigt damit an,
+            /// zu welchem Begriff gerade gewählt wird. Leer bei allen anderen Typen.
+            /// </summary>
+            public List<string> Prompts { get; set; } = new();
         }
 
         public sealed class SelectionResult
@@ -56,7 +62,8 @@ namespace LocalBuzzer.Service.Base.States
             KeysAndDesignations = Infos.KeysAndDesignations,
             MaxAllowedSelections = Infos.MaxAllowedSelections,
             QuestionId = Infos.QuestionId,
-            Ordered = Infos.Ordered
+            Ordered = Infos.Ordered,
+            Prompts = Infos.Prompts
         };
 
         public void SetSelectedKeys(SelectionResult results)
@@ -121,6 +128,7 @@ namespace LocalBuzzer.Service.Base.States
             KeyResultsForPlayer.Clear();
             Infos.ShowDesignations = true;
             Infos.Ordered = false;
+            Infos.Prompts = new();
             Locked = true;
         }
 

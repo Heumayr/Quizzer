@@ -124,6 +124,8 @@ namespace Quizzer.Logic.Context
 
         public DbSet<OrderingQuestion> OrderingQuestions { get; set; }
 
+        public DbSet<MatchingQuestion> MatchingQuestions { get; set; }
+
         public DbSet<Account> Accounts { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
 

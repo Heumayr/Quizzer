@@ -225,6 +225,15 @@ body {
     box-sizing: border-box;
 }
 
+/* Zuordnung: zu welchem Begriff gerade gewaehlt wird (M12) */
+.prompt-line {
+    padding: var(--space-md);
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
 .key-btn {
     display: flex;
     align-items: center;

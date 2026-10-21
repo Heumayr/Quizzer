@@ -9,6 +9,8 @@
         this.selectedKeys = new Set();
         this.ordered = false;
         this.maxSelections = 1;
+        this.prompts = [];
+        this.promptLine = null;
         this.locked = true;
         this.submitted = false;
 
@@ -23,6 +25,7 @@
         const root = document.createElement("div");
         root.className = "layout layout-keyselect";
         root.innerHTML = `
+            <div class="prompt-line" hidden></div>
             <div class="keys-wrap"></div>
             <button type="button" class="commit-btn">Auswahl bestätigen</button>
         `;
@@ -31,6 +34,7 @@
 
         this.root = root;
         this.keysWrap = root.querySelector(".keys-wrap");
+        this.promptLine = root.querySelector(".prompt-line");
         this.commitBtn = root.querySelector(".commit-btn");
         this.lastContext = context;
 
@@ -59,6 +63,7 @@
         const maxSelections = info.maxAllowedSelections ?? 1;
         const questionId = info.questionId ?? "";
         const ordered = info.ordered === true;
+        const prompts = info.prompts ?? [];
 
         // Der Ruecksetzstand gehoert dazu: ohne ihn bleibt die Kennung beim Zuruecksetzen
         // gleich, das Layout wird nicht neu gebaut, und wer schon abgegeben hatte, blieb fuer
@@ -71,6 +76,7 @@
             maxSelections,
             questionId,
             ordered,
+            prompts,
             resetCount
         });
     }
@@ -89,6 +95,7 @@
         // geht an den Server.
         this.ordered = info.ordered === true;
         this.maxSelections = maxSelections;
+        this.prompts = Array.isArray(info.prompts) ? info.prompts : [];
 
         const canReselect =
             !!questionId &&
@@ -173,13 +180,35 @@
     }
 
     commitLabel() {
+        if (this.prompts.length > 0) return "Zuordnung bestätigen";
         return this.ordered ? "Reihenfolge bestätigen" : "Auswahl bestätigen";
+    }
+
+    // Zuordnung: zu welchem Begriff gerade gewaehlt wird. Ohne diese Zeile muesste der Spieler
+    // zum Beamer schauen, um zu wissen, wofuer sein naechster Tipp zaehlt.
+    updatePrompt() {
+        if (!this.promptLine) return;
+
+        if (this.prompts.length === 0) {
+            this.promptLine.hidden = true;
+            this.promptLine.textContent = "";
+            return;
+        }
+
+        const next = this.selectedKeys.size;
+
+        this.promptLine.hidden = false;
+        this.promptLine.textContent = next < this.prompts.length
+            ? `Zu ${next + 1} · ${this.prompts[next]} passt …`
+            : "Alles zugeordnet - bitte bestätigen.";
     }
 
     // Bei der Reihenfolge steht der Platz vorn auf der Taste ("2. B: Text") - ein Haken
     // allein sagte nicht, an welcher Stelle das Element liegt.
     updatePositions() {
         if (!this.root) return;
+
+        this.updatePrompt();
 
         const order = [...this.selectedKeys];
 
@@ -255,7 +284,9 @@
         this.updateCommitState();
 
         if (typeof window.show_toast === "function") {
-            window.show_toast("info", this.ordered ? "Reihenfolge übermittelt" : "Auswahl übermittelt");
+            window.show_toast("info", this.prompts.length > 0
+                ? "Zuordnung übermittelt"
+                : this.ordered ? "Reihenfolge übermittelt" : "Auswahl übermittelt");
         }
     }
 

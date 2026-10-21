@@ -259,6 +259,8 @@ namespace Quizzer.Views.GameViews.QuestionViews
                 displaySteps = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DisplayStepCount));
+                OnPropertyChanged(nameof(ZuordnungBegriffe));
+                OnPropertyChanged(nameof(ZuordnungVisibility));
             }
         }
 

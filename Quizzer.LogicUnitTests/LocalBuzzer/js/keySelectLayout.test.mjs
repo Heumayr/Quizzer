@@ -129,6 +129,53 @@ pruefe(knopf().disabled === false,
         "Gesendet wird nicht die Klickfolge C, A, B: " + JSON.stringify(gesendet?.selectedKeys));
 }
 
+// --- Zuordnung (M12): das Telefon sagt, zu welchem Begriff gerade gewaehlt wird ---
+{
+    const wurzel3 = baueDom().wurzel;
+    let gesendet = null;
+
+    const paare = new KeySelectLayout({ submitSelection: async p => { gesendet = p; } });
+
+    paare.render(wurzel3, {
+        playerId: "11111111-1111-1111-1111-111111111111",
+        resetCount: 1,
+        currentLayoutLocked: false,
+        allLocked: false,
+        layoutInfo: {
+            questionId: "44444444-4444-4444-4444-444444444444",
+            keysAndDesignations: { A: "Bern", B: "Wien", C: "Berlin" },
+            showDesignations: true,
+            maxAllowedSelections: 3,
+            ordered: true,
+            prompts: ["Österreich", "Deutschland", "Schweiz"]
+        }
+    });
+
+    const t = () => wurzel3.querySelectorAll(".key-btn");
+    const zeile = () => wurzel3.querySelector(".prompt-line");
+
+    pruefe(wurzel3.querySelector(".commit-btn").textContent === "Zuordnung bestätigen",
+        "Bei der Zuordnung steht nicht 'Zuordnung bestaetigen' auf dem Knopf.");
+    pruefe(zeile() && !zeile().hidden && zeile().textContent.includes("1 · Österreich"),
+        "Die Telefonseite sagt nicht, dass zuerst zu 'Oesterreich' gewaehlt wird: " + zeile()?.textContent);
+
+    t()[1].click(); // Wien zu 1
+
+    pruefe(zeile().textContent.includes("2 · Deutschland"),
+        "Nach dem ersten Tipp springt die Ansage nicht auf Begriff 2: " + zeile().textContent);
+
+    t()[2].click(); // Berlin zu 2
+    t()[0].click(); // Bern zu 3
+
+    pruefe(zeile().textContent.includes("bestätigen"),
+        "Nach dem letzten Tipp fordert die Seite nicht zum Bestaetigen auf: " + zeile().textContent);
+
+    await paare.handleCommitClick();
+
+    pruefe(gesendet && gesendet.selectedKeys.join("") === "BCA",
+        "Gesendet wird nicht B, C, A: " + JSON.stringify(gesendet?.selectedKeys));
+}
+
 if (fehler > 0) {
     console.error(`${fehler} Zusicherung(en) rot.`);
     process.exit(1);

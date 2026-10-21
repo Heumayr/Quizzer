@@ -32,6 +32,7 @@ namespace Quizzer.Logic.Sync
             new(typeof(AppreciateQestion), 2, typeof(QuestionBase)),
             new(typeof(RevealQuestion), 2, typeof(QuestionBase)),
             new(typeof(OrderingQuestion), 2, typeof(QuestionBase)),
+            new(typeof(MatchingQuestion), 2, typeof(QuestionBase)),
             new(typeof(QuestionStepResource), 3, typeof(QuestionStepResource)),
             new(typeof(Game), 4, typeof(Game)),
             new(typeof(Header), 5, typeof(Header)),

@@ -73,7 +73,16 @@ namespace Quizzer.Views.GameViews
 
                 case BuzzerControlsLayout.KeySelect:
                     var tasten = Question?.Steps.GetKeyDictionary();
-                    var reihenfolge = Question is OrderingQuestion;
+                    var reihenfolge = Question is OrderingQuestion or MatchingQuestion;
+
+                    // Zuordnung: das Telefon zeigt, zu welchem Begriff gerade gewaehlt wird.
+                    var begriffe = Question is MatchingQuestion
+                        ? Question.Steps
+                            .Where(s => !s.IsStart && !s.IsFinish && s.SolutionNumber > 0)
+                            .OrderBy(s => s.SolutionNumber)
+                            .Select(s => s.PartnerText)
+                            .ToList()
+                        : null;
 
                     // Bei der Reihenfolge muessen alle Tasten gewaehlt werden - die Zahl kommt
                     // aus den Tasten selbst, nicht aus dem gespeicherten Wert, der hinter einer
@@ -83,7 +92,8 @@ namespace Quizzer.Views.GameViews
                         reihenfolge ? Math.Max(tasten?.Count ?? 1, 1) : Question?.BuzzerMaxAllowedKeySelect ?? 1,
                         Question?.ShowTextOnKeySelect ?? true,
                         Question?.Id,
-                        reihenfolge);
+                        reihenfolge,
+                        begriffe);
 
                     BuzzerControlsViewModel.PlayerSelectedKeys = OnPlayerSelectedKeys;
                     BuzzerControlsViewModel.AllPlayersSelectedKeys = OnAllPlayersSelectedKeys;

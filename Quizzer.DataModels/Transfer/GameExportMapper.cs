@@ -174,6 +174,7 @@ namespace Quizzer.DataModels.Transfer
                 {
                     SequenceNumber = schritt.SequenceNumber,
                     SolutionNumber = schritt.SolutionNumber == 0 ? null : schritt.SolutionNumber,
+                    PartnerText = string.IsNullOrEmpty(schritt.PartnerText) ? null : schritt.PartnerText,
                     Designation = schritt.Designation,
                     StepText = schritt.StepText,
                     IsStart = schritt.IsStart,
@@ -337,6 +338,7 @@ namespace Quizzer.DataModels.Transfer
                 {
                     SequenceNumber = schritt.SequenceNumber,
                     SolutionNumber = schritt.SolutionNumber ?? 0,
+                    PartnerText = schritt.PartnerText ?? string.Empty,
                     Designation = schritt.Designation,
                     StepText = schritt.StepText,
                     IsStart = schritt.IsStart,

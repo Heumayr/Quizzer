@@ -79,6 +79,29 @@ namespace Quizzer.DataModels.Questions.Schrittbau
             }
         }
 
+        /// <summary>
+        /// Zuordnung: der feste Begriff links, zu dem diese Zeile das Gegenstück ist. Bei allen
+        /// anderen Typen ohne Feld in der Maske und immer leer.
+        /// </summary>
+        public string Partner
+        {
+            get => Schritt.PartnerText;
+            set
+            {
+                var neu = value ?? string.Empty;
+
+                if (neu == Schritt.PartnerText)
+                    return;
+
+                Schritt.PartnerText = neu;
+                Beruehrt = true;
+
+                Melde();
+                Melde(nameof(Beruehrt));
+                Melde(nameof(IstLeer));
+            }
+        }
+
         /// <summary>Ob diese Zeile die richtige Antwort ist.</summary>
         public bool IstRichtig
         {
@@ -221,10 +244,15 @@ namespace Quizzer.DataModels.Questions.Schrittbau
             _ => "Medium …",
         };
 
-        /// <summary>Ob die Zeile Text und Medium leer lässt - dann wird sie nicht geschrieben.</summary>
+        /// <summary>
+        /// Ob die Zeile Text, Medium und Partner leer lässt - dann wird sie nicht geschrieben.
+        /// Der Partner zählt mit: sonst verschwände bei der Zuordnung eine Zeile, in der erst der
+        /// linke Begriff steht, beim Speichern ohne Meldung.
+        /// </summary>
         public bool IstLeer
             => string.IsNullOrWhiteSpace(Schritt.StepText)
                 && string.IsNullOrWhiteSpace(Schritt.Designation)
+                && string.IsNullOrWhiteSpace(Schritt.PartnerText)
                 && Schritt.ResourceTyp == ResourceType.None;
 
         /// <summary>
@@ -274,6 +302,7 @@ namespace Quizzer.DataModels.Questions.Schrittbau
             Melde(nameof(Mediumtext));
             Melde(nameof(Medienzeile));
             Melde(nameof(Kurzform));
+            Melde(nameof(Partner));
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

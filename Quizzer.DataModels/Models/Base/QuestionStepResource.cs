@@ -47,6 +47,17 @@ namespace Quizzer.DataModels.Models.Base
         /// </summary>
         public int SolutionNumber { get; set; }
 
+        /// <summary>
+        /// Zuordnungsfrage: der feste linke Begriff, zu dem dieser Schritt das Gegenstück ist.
+        /// Bei allen anderen Typen leer.
+        /// <para>
+        /// <b>Am Schritt und nicht als Liste an der Frage:</b> ein Paar ist dann ein Schritt, und
+        /// Maske, Export und Abgleich müssen nichts über Listenpositionen wissen, die beim
+        /// Löschen einer Zeile verrutschen.
+        /// </para>
+        /// </summary>
+        public string PartnerText { get; set; } = string.Empty;
+
         /// <summary>Anzeigetext des Schritts (Frage, Hinweis oder Antwort-Option).</summary>
         public string StepText { get; set; } = string.Empty;
 
@@ -128,6 +139,7 @@ namespace Quizzer.DataModels.Models.Base
                 IsFinish = IsFinish,
                 SequenceNumber = SequenceNumber,
                 SolutionNumber = SolutionNumber,
+                PartnerText = PartnerText,
                 StepText = StepText,
                 ResourceFileName = ResourceFileName,
                 ResourceTyp = ResourceTyp,

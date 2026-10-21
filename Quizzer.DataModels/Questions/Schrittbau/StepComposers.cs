@@ -20,6 +20,7 @@ namespace Quizzer.DataModels.Questions.Schrittbau
             new AppreciateComposer(),
             new RevealComposer(),
             new ReihenfolgeComposer(),
+            new ZuordnungComposer(),
         ];
 
         /// <summary>Liefert den Übersetzer zu einem Fragetyp.</summary>

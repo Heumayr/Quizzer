@@ -132,9 +132,32 @@ namespace Quizzer.DataModels.Questions
             AllowsMultipleResultSteps = true,
         };
 
+        private static readonly QuestionTypeProfile Matching = new()
+        {
+            Typ = QuestionType.Matching,
+            DisplayName = "Zuordnung",
+            HelpText = "Links stehen feste Begriffe, rechts gemischt ihre Gegenstücke. Die Spieler "
+                     + "tippen am Telefon zu jedem Begriff der Reihe nach das passende Gegenstück "
+                     + "an; jedes richtige Paar bringt seinen Anteil der Punkte.",
+            TableName = nameof(MatchingQuestion),
+
+            // Dieselbe Mechanik wie die Reihenfolge: Platz i der Abgabe ist das Gegenstueck zu
+            // Begriff i. Wertung und Telefon teilen sich deshalb den Weg (ReihenfolgeEvaluator).
+            BuzzerControlsLayout = BuzzerControlsLayout.KeySelect,
+            StepDisplayLayoutMode = StepDisplayLayoutMode.Grid,
+            QuestionViewKeyType = QuestionViewKeyType.Alphabetical,
+            UseRandomSequenceOnNoneFinishSteps = true,
+            UseProportionalScoreReductionOnStep = false,
+            ShowShowTextOnKeySelect = true,
+            ShowIsResultPerStep = false,
+            MinNormalSteps = 3,
+            RequiresResultStep = false,
+            AllowsMultipleResultSteps = true,
+        };
+
         /// <summary>Alle Profile in der Reihenfolge, in der sie angeboten werden.</summary>
         public static IReadOnlyList<QuestionTypeProfile> All { get; } =
-            [Default, MultipleChoice, Properties, Appreciate, Reveal, Ordering];
+            [Default, MultipleChoice, Properties, Appreciate, Reveal, Ordering, Matching];
 
         /// <summary>Liefert das Profil zu einem Fragetyp.</summary>
         /// <exception cref="ArgumentOutOfRangeException">Bei einem unbekannten Typ.</exception>

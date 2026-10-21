@@ -13,7 +13,7 @@ namespace Quizzer.DataModels.Questions.Schrittbau
     /// schreibt das Spiel beim Mischen neu.
     /// </para>
     /// </summary>
-    public sealed class ReihenfolgeComposer : StepComposerBase
+    public class ReihenfolgeComposer : StepComposerBase
     {
         /// <summary>So viele Zeilen stehen von Anfang an da.</summary>
         public const int Vorgabezeilen = 4;
@@ -69,5 +69,17 @@ namespace Quizzer.DataModels.Questions.Schrittbau
             // Gewaehlt werden muessen alle - die Zahl folgt aus den Zeilen.
             frage.BuzzerMaxAllowedKeySelect = Math.Max(platz, 1);
         }
+    }
+
+    /// <summary>
+    /// Zuordnung: jede Zeile ist ein Paar - links der feste Begriff (<c>PartnerText</c>), rechts
+    /// das Gegenstück. Die Zeilenfolge ist die Folge der Begriffe auf dem Beamer; gestempelt und
+    /// gelesen wird genau wie bei der Reihenfolge.
+    /// </summary>
+    public sealed class ZuordnungComposer : ReihenfolgeComposer
+    {
+        public override QuestionType Typ => QuestionType.Matching;
+
+        public override string ZeilenTitel => "Paare: Begriff links ↔ Gegenstück rechts";
     }
 }

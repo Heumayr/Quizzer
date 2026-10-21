@@ -105,7 +105,8 @@ namespace Quizzer.Views.GameViews.Sub
                 return;
             }
 
-            if (question.Typ == DataModels.Enumerations.QuestionType.Ordering
+            if (question.Typ is DataModels.Enumerations.QuestionType.Ordering
+                    or DataModels.Enumerations.QuestionType.Matching
                 && WerteReihenfolge(question, selectedKeys))
                 return;
 
