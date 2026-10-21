@@ -237,6 +237,11 @@ body {
     text-align: center;
     font-size: 20px;
     font-weight: 800;
+    /* Lange Antworten brechen um statt aus der Taste zu laufen (2026-10-21) - auch ein
+       einzelnes langes Wort. */
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    hyphens: auto;
     background: var(--secondary);
     word-break: break-word;
 }

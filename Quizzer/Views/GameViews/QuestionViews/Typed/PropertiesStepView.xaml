@@ -36,22 +36,21 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- Key -->
-                    <Grid Grid.Column="0">
-                        <Viewbox Width="72"
-                                 Height="72"
-                                 Stretch="Uniform"
-                                 StretchDirection="DownOnly"
-                                 HorizontalAlignment="Center"
-                                 VerticalAlignment="Center">
-                            <TextBlock Text="{Binding QuestionViewKeyTyped}"
-                                       FontSize="56"
-                                       FontWeight="Bold"
-                                       Foreground="Wheat"
-                                       TextAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Center" />
-                        </Viewbox>
+                    <!-- Hinweisnummer als Plakette: dunkler Grund, weisse Schrift (2026-10-21) -->
+                    <Grid Grid.Column="0" VerticalAlignment="Center">
+                        <Border Width="72"
+                                Height="72"
+                                CornerRadius="36"
+                                Background="#D9101010"
+                                BorderBrush="WhiteSmoke"
+                                BorderThickness="3">
+                            <Viewbox Margin="10" Stretch="Uniform">
+                                <TextBlock Text="{Binding QuestionViewKey}"
+                                           FontWeight="Bold"
+                                           Foreground="White"
+                                           TextAlignment="Center" />
+                            </Viewbox>
+                        </Border>
                     </Grid>
 
                     <!-- Text / Media -->
@@ -65,15 +64,20 @@
                                 <ColumnDefinition Width="220" />
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Column="0"
-                                       Text="{Binding DisplayText}"
-                                       FontSize="38"
-                                       FontWeight="SemiBold"
-                                       Foreground="WhiteSmoke"
-                                       TextWrapping="Wrap"
-                                       TextAlignment="Left"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Stretch" />
+                            <!-- Umbruch bei fester Breite, nur verkleinern: nie abgeschnitten -->
+                            <Viewbox Grid.Column="0"
+                                     Stretch="Uniform"
+                                     StretchDirection="DownOnly"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Center">
+                                <TextBlock Text="{Binding DisplayText}"
+                                           Width="900"
+                                           FontSize="38"
+                                           FontWeight="SemiBold"
+                                           Foreground="WhiteSmoke"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Left" />
+                            </Viewbox>
 
                             <Border Grid.Column="2"
                                     Width="220"
@@ -92,14 +96,18 @@
 
                         <!-- nur Text -->
                         <Grid Visibility="{Binding TextOnlyVisibility}">
-                            <TextBlock Text="{Binding DisplayText}"
-                                       FontSize="44"
-                                       FontWeight="SemiBold"
-                                       Foreground="WhiteSmoke"
-                                       TextWrapping="Wrap"
-                                       TextAlignment="Left"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Stretch" />
+                            <Viewbox Stretch="Uniform"
+                                     StretchDirection="DownOnly"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Center">
+                                <TextBlock Text="{Binding DisplayText}"
+                                           Width="1200"
+                                           FontSize="44"
+                                           FontWeight="SemiBold"
+                                           Foreground="WhiteSmoke"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Left" />
+                            </Viewbox>
                         </Grid>
 
                         <!-- nur Media -->

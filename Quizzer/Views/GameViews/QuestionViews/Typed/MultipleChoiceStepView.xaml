@@ -16,10 +16,21 @@
             <Setter Property="VerticalAlignment" Value="Stretch" />
         </Style>
 
+        <!--
+            Die Kachel einer Antwort (M11-Nachtrag 2026-10-21: "text immer gut lesbar und nicht
+            abgeschnitten ... bilder passender platziert ... text in den plaketten ... auswahl
+            buchstaben gut lesbar").
+
+            Bis hierher lag der Text in einer Viewbox mit einer *-Spalte: in einer Viewbox ist die
+            Breite unendlich, der Text brach nie um und wurde als eine Zeile winzig gerechnet;
+            kurzer Text dagegen wurde riesig. Jetzt bricht er bei einer FESTEN Entwurfsbreite um
+            und wird nur verkleinert (StretchDirection=DownOnly) - damit tragen alle Kacheln
+            dieselbe Schriftgroesse, solange der Text passt, und keine schneidet ab.
+        -->
         <DataTemplate x:Key="StepItemTemplate">
             <Border Margin="8"
-                    Padding="24,16"
-                    CornerRadius="3"
+                    Padding="14"
+                    CornerRadius="12"
                     Background="{Binding GridBackground}"
                     Visibility="{Binding SlotVisibility}"
                     Opacity="{Binding SlotOpacity}"
@@ -34,110 +45,95 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- Key -->
-                    <Grid Grid.Column="0">
-                        <Viewbox Width="72"
-                                 Height="72"
-                                 Stretch="Uniform"
-                                 StretchDirection="DownOnly"
-                                 HorizontalAlignment="Center"
-                                 VerticalAlignment="Center">
-                            <TextBlock Text="{Binding QuestionViewKey}"
-                                       FontSize="56"
-                                       FontWeight="Bold"
-                                       Foreground="Wheat"
-                                       TextAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Center" />
-                        </Viewbox>
+                    <!-- Taste als Plakette: dunkler Grund, weisse Schrift - lesbar auf jedem Design -->
+                    <StackPanel Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Margin="0,0,14,0">
+                        <Border Width="84"
+                                Height="84"
+                                CornerRadius="42"
+                                Background="#D9101010"
+                                BorderBrush="WhiteSmoke"
+                                BorderThickness="3"
+                                HorizontalAlignment="Center">
+                            <Viewbox Margin="12" Stretch="Uniform">
+                                <TextBlock Text="{Binding QuestionViewKey}"
+                                           FontWeight="Bold"
+                                           Foreground="White"
+                                           TextAlignment="Center" />
+                            </Viewbox>
+                        </Border>
 
                         <!-- Reihenfolgefrage: der richtige Platz, unter der Taste -->
                         <Border Visibility="{Binding SolutionBadgeVisibility}"
-                                Background="{Binding GridBackgroundResultBrush}"
-                                CornerRadius="3"
-                                Padding="6,2"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Bottom"
-                                Margin="0,0,0,-12">
+                                Background="#D9101010"
+                                CornerRadius="6"
+                                Padding="8,2"
+                                Margin="0,8,0,0"
+                                HorizontalAlignment="Center">
                             <TextBlock Text="{Binding SolutionBadge}"
-                                       FontSize="18"
+                                       FontSize="22"
                                        FontWeight="Bold"
-                                       Foreground="WhiteSmoke" />
+                                       Foreground="White" />
                         </Border>
-                    </Grid>
+                    </StackPanel>
 
-                    <!-- Content -->
-                    <Grid Grid.Column="1" Margin="16,0,0,0">
+                    <Grid Grid.Column="1">
 
-                        <!-- text + media -->
-                        <Viewbox Visibility="{Binding TextAndMediaVisibility}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="16" />
-                                    <ColumnDefinition Width="220" />
-                                </Grid.ColumnDefinitions>
+                        <!-- Bild und Text: Bild oben, so gross es geht; Text darunter -->
+                        <Grid Visibility="{Binding TextAndMediaVisibility}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" MinHeight="60" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Column="0"
-                                   Text="{Binding DisplayText}"
-                                   FontSize="38"
-                                   FontWeight="SemiBold"
-                                   Foreground="WhiteSmoke"
-                                   TextWrapping="Wrap"
-                                   TextAlignment="Center"
-                                   VerticalAlignment="Center"
-                                   HorizontalAlignment="Center" />
+                            <local:ResourceViewerControl Grid.Row="0"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                DataContext="{Binding Step}"
+                                RootFolder="{Binding DataContext.ResourceRootFolder, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
+                                IsMasterView="{Binding DataContext.IsMasterView, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
+                                AudioPlaceholderFile="{Binding DataContext.AudioPlaceholderFile, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}" />
 
-                                <Border Grid.Column="2"
-                                    Width="220"
-                                    Height="220"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center">
-                                    <local:ResourceViewerControl
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Stretch"
-                                    DataContext="{Binding Step}"
-                                    RootFolder="{Binding DataContext.ResourceRootFolder, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
-                                    IsMasterView="{Binding DataContext.IsMasterView, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
-                                    AudioPlaceholderFile="{Binding DataContext.AudioPlaceholderFile, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}" />
-                                </Border>
-                            </Grid>
-                        </Viewbox>
-
-                        <!-- text only -->
-                        <Viewbox Visibility="{Binding TextOnlyVisibility}">
-                            <Grid>
+                            <Viewbox Grid.Row="1"
+                                     Margin="0,8,0,0"
+                                     MaxHeight="140"
+                                     Stretch="Uniform"
+                                     StretchDirection="DownOnly">
                                 <TextBlock Text="{Binding DisplayText}"
-                                   Margin="10, 10, 20, 10"
-                                   FontSize="44"
-                                   FontWeight="SemiBold"
-                                   Foreground="WhiteSmoke"
-                                   TextWrapping="Wrap"
-                                   TextAlignment="Left"
-                                   VerticalAlignment="Center"
-                                   HorizontalAlignment="Center"
-                                   MaxWidth="900" />
-                            </Grid>
+                                           Width="760"
+                                           FontSize="40"
+                                           FontWeight="SemiBold"
+                                           Foreground="WhiteSmoke"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center" />
+                            </Viewbox>
+                        </Grid>
+
+                        <!-- Nur Text -->
+                        <Viewbox Visibility="{Binding TextOnlyVisibility}"
+                                 Stretch="Uniform"
+                                 StretchDirection="DownOnly"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Center">
+                            <TextBlock Text="{Binding DisplayText}"
+                                       Width="760"
+                                       FontSize="46"
+                                       FontWeight="SemiBold"
+                                       Foreground="WhiteSmoke"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Left"
+                                       LineHeight="54" />
                         </Viewbox>
 
-                        <!-- media only -->
-                        <Viewbox Visibility="{Binding MediaOnlyVisibility}">
-                            <Grid>
-                                <Border Margin="0,15,0,0"
-                                    Width="700"
-                                    Height="300"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center">
-                                    <local:ResourceViewerControl
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Stretch"
-                                    DataContext="{Binding Step}"
-                                    RootFolder="{Binding DataContext.ResourceRootFolder, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
-                                    IsMasterView="{Binding DataContext.IsMasterView, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
-                                    AudioPlaceholderFile="{Binding DataContext.AudioPlaceholderFile, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}" />
-                                </Border>
-                            </Grid>
-                        </Viewbox>
+                        <!-- Nur Bild: fuellt die Kachel, Seitenverhaeltnis bleibt -->
+                        <local:ResourceViewerControl Visibility="{Binding MediaOnlyVisibility}"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            DataContext="{Binding Step}"
+                            RootFolder="{Binding DataContext.ResourceRootFolder, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
+                            IsMasterView="{Binding DataContext.IsMasterView, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}"
+                            AudioPlaceholderFile="{Binding DataContext.AudioPlaceholderFile, RelativeSource={RelativeSource AncestorType={x:Type local:UserControlStepViewBase}}}" />
                     </Grid>
                 </Grid>
             </Border>
