@@ -112,7 +112,71 @@ namespace Quizzer.Server.Media
             return full != null && File.Exists(full) ? full : null;
         }
 
-        public enum UploadResult { Created, Unchanged, Invalid, TooLarge, Exists }
+        public enum UploadResult { Created, Unchanged, Invalid, TooLarge, Exists, Forbidden, Full }
+
+        /// <summary>
+        /// Ob das Konto diese Datei ablegen darf (Sicherheitspruefung 2026-10-21). Vorher durfte
+        /// jedes Konto jeden gueltigen, noch freien Pfad belegen - unbegrenzt viele Dateien bis
+        /// 200 MB, die jeder Client herunterlud, und die Grundtexturen fuer alle.
+        /// <list type="bullet">
+        /// <item><c>Resources/x</c>: nur, wenn ein Schritt oder eine Aufdeckfrage einer Frage, die
+        /// das Konto schreiben darf, die Datei verwendet - die Zeilen gehen deshalb vor den
+        /// Medien hinaus (<c>ClientSyncService</c>).</item>
+        /// <item><c>x</c> (Wurzel): ein Spielerbild eines Mitspielers, den das Konto schreiben
+        /// darf; die Grundtexturen nur der Admin.</item>
+        /// <item><c>Themes/o/x</c>: nur die bekannten Texturnamen eines bestehenden Designs - je
+        /// Ordner also hoechstens dreizehn Dateien.</item>
+        /// </list>
+        /// </summary>
+        public async Task<bool> UploadAllowedAsync(CurrentAccount account, string normalized, CancellationToken ct)
+        {
+            if (account.IsAdmin)
+                return true;
+
+            await using var context = new DataContext();
+            var segments = normalized.Split('/');
+            var me = account.PlayerId;
+
+            switch (segments.Length)
+            {
+                case 2:
+                    {
+                        var name = segments[1];
+
+                        var schritt = await context.QuestionStepResources.AnyAsync(s => s.ResourceFileName == name
+                            && context.QuestionBases.Any(q => q.Id == s.QuestionBaseId && (q.OwnerPlayerId == null || q.OwnerPlayerId == me)), ct);
+
+                        return schritt || await context.RevealQuestions.AnyAsync(q => q.ImageFileName == name
+                            && (q.OwnerPlayerId == null || q.OwnerPlayerId == me), ct);
+                    }
+
+                case 1:
+                    {
+                        if (SkinFiles.Contains(segments[0]))
+                            return false;
+
+                        var name = segments[0];
+
+                        return await context.Players.AnyAsync(p => p.UserPictureFileName == name
+                            && (p.Id == me || !context.Accounts.Any(a => a.PlayerId == p.Id)), ct);
+                    }
+
+                case 3:
+                    {
+                        var ordner = segments[1];
+                        var datei = segments[2];
+
+                        return DataModels.Themes.ThemeAssets.Texturen.Any(t => string.Equals(t.Dateiname, datei, StringComparison.OrdinalIgnoreCase))
+                            && await context.GameThemes.AnyAsync(t => t.FolderName == ordner, ct);
+                    }
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>Wie viel die Ablage insgesamt fassen darf - schuetzt die Platte des Servers.</summary>
+        public long MaxTotalBytes => settings.MaxMediaTotalBytes;
 
         /// <summary>
         /// Nimmt eine Datei an. <b>Ueberschrieben wird nie</b>: liegt unter dem Namen schon eine
@@ -128,7 +192,22 @@ namespace Quizzer.Server.Media
             if (full == null)
                 return UploadResult.Invalid;
 
-            Directory.CreateDirectory(Path.GetDirectoryName(full)!);
+            var ordner = Path.GetDirectoryName(full)!;
+
+            // Gross-/Kleinschreibung: das Volume unterscheidet sie, die Windows-Clients nicht.
+            // "background.PNG" neben "Background.png" landete sonst unter dem echten Namen auf
+            // einem Client, der die Datei noch nicht hat.
+            if (Directory.Exists(ordner)
+                && Directory.EnumerateFiles(ordner).Any(f =>
+                    string.Equals(Path.GetFileName(f), Path.GetFileName(full), StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(Path.GetFileName(f), Path.GetFileName(full), StringComparison.Ordinal)))
+                return UploadResult.Exists;
+
+            if (Directory.Exists(Root)
+                && Directory.EnumerateFiles(Root, "*", SearchOption.AllDirectories).Sum(f => new FileInfo(f).Length) >= MaxTotalBytes)
+                return UploadResult.Full;
+
+            Directory.CreateDirectory(ordner);
             var temp = full + "." + Guid.NewGuid().ToString("N") + ".upload";
 
             try

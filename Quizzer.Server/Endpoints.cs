@@ -106,8 +106,16 @@ namespace Quizzer.Server
                     ? Results.File(full, "application/octet-stream")
                     : Results.NotFound());
 
-            media.MapPut("/content", async (string path, HttpRequest request, MediaService service, CancellationToken ct) =>
+            media.MapPut("/content", async (string path, HttpRequest request, HttpContext http, MediaService service, CancellationToken ct) =>
             {
+                // Erst das Recht, dann der Koerper: wer die Datei nicht verwenden darf, schickt
+                // gar nicht erst 200 MB herein (Sicherheitspruefung 2026-10-21).
+                if (!MediaPaths.TryNormalize(path, out var normalized))
+                    return Results.BadRequest(new ApiError("Dieser Pfad oder Dateityp wird nicht angenommen."));
+
+                if (!await service.UploadAllowedAsync(CurrentAccount.From(http.User), normalized, ct))
+                    return Results.Json(new ApiError("Diese Datei verwendet keine Zeile, die dieses Konto ändern darf."), statusCode: StatusCodes.Status403Forbidden);
+
                 // Kestrel nimmt von sich aus hoechstens 30 MB an; die eigene Grenze steht in
                 // ServerOptions.MaxMediaBytes. Ohne das scheiterte jedes groessere Video - und mit
                 // ihm jeder folgende Abgleich (Durchsicht 2026-10-21, Fund 3).
@@ -120,6 +128,7 @@ namespace Quizzer.Server
                     MediaService.UploadResult.Unchanged => Results.NoContent(),
                     MediaService.UploadResult.TooLarge => Results.StatusCode(StatusCodes.Status413PayloadTooLarge),
                     MediaService.UploadResult.Exists => Results.Json(new ApiError("Unter diesem Namen liegt schon eine andere Datei."), statusCode: StatusCodes.Status409Conflict),
+                    MediaService.UploadResult.Full => Results.Json(new ApiError("Die Medienablage des Servers ist voll."), statusCode: StatusCodes.Status507InsufficientStorage),
                     _ => Results.BadRequest(new ApiError("Dieser Pfad oder Dateityp wird nicht angenommen.")),
                 };
             });

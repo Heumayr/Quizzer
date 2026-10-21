@@ -163,8 +163,6 @@ namespace Quizzer.Client
                     + "Bitte das Programm neu starten; besteht es weiter, „Vom Server neu laden\".");
             }
 
-            var (uploaded, mediaProblems) = await UploadMediaAsync(request.Upserts.Select(u => u.Row), ct);
-
             SyncPushResponse response;
             try
             {
@@ -178,6 +176,14 @@ namespace Quizzer.Client
                 // das Abholen bliebe blockiert (Durchsicht 2026-10-21, Fund 4).
                 response = await PushOneByOneAsync(request, ex.Message, ct);
             }
+
+            // Erst die Zeilen, dann ihre Medien - und nur die der angenommenen Zeilen. Der Server
+            // nimmt eine Datei nur noch an, wenn eine Zeile sie verwendet, die das Konto schreiben
+            // darf (Sicherheitspruefung 2026-10-21); vorher konnte jedes Konto beliebig viele
+            // Dateien ablegen, die dann jeder Client herunterlud.
+            var angenommen = response.Accepted.Select(a => new SyncKey(a.Type, a.Id)).ToHashSet();
+            var (uploaded, mediaProblems) = await UploadMediaAsync(
+                request.Upserts.Select(u => u.Row).Where(r => angenommen.Contains(r.Key)), ct);
 
             foreach (var accepted in response.Accepted)
             {

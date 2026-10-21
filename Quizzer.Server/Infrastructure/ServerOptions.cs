@@ -25,6 +25,9 @@ namespace Quizzer.Server.Infrastructure
         /// <summary>Groesste Mediendatei, die angenommen wird.</summary>
         public long MaxMediaBytes { get; set; } = 200L * 1024 * 1024;
 
+        /// <summary>Wie viel die Medienablage insgesamt fassen darf (Vorgabe 20 GB).</summary>
+        public long MaxMediaTotalBytes { get; set; } = 20L * 1024 * 1024 * 1024;
+
         /// <summary>Erstes Admin-Konto - wird nur angelegt, solange es gar kein Konto gibt.</summary>
         public BootstrapOptions Bootstrap { get; set; } = new();
 
