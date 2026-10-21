@@ -24,9 +24,9 @@ COPY --from=build /app .
 RUN mkdir -p /data/media && chown -R app:app /data
 USER app
 
-ENV ASPNETCORE_URLS=https://+:8443 \
+ENV ASPNETCORE_URLS=http://+:8080 \
     Quizzer__MediaRoot=/data/media \
     DOTNET_gcServer=0
 
-EXPOSE 8443
+EXPOSE 8080
 ENTRYPOINT ["dotnet", "Quizzer.Server.dll"]

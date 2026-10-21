@@ -30,6 +30,18 @@ namespace Quizzer.Server.Infrastructure
 
         /// <summary>Die SQL-Anmeldung, die <c>migrate</c> fuer den Betrieb anlegt.</summary>
         public AppLoginOptions AppLogin { get; set; } = new();
+
+        /// <summary>
+        /// Netze, aus denen ein vorgeschalteter Proxy (Caddy) <c>X-Forwarded-For</c> und
+        /// <c>X-Forwarded-Proto</c> setzen darf - etwa <c>172.30.77.0/24</c>, mehrere mit Komma.
+        /// <para>
+        /// <b>Leer heisst: keinem Kopf wird geglaubt.</b> Hinter Caddy ist das falsch - dann kaeme
+        /// jede Anfrage von Caddys Adresse, und die Anmeldebremse je Adresse traefe alle
+        /// gemeinsam. Ohne Proxy ist es richtig: dann koennte jeder Aufrufer sich per Kopf eine
+        /// fremde Adresse geben und die Bremse umgehen.
+        /// </para>
+        /// </summary>
+        public string? TrustedProxyNetworks { get; set; }
     }
 
     public sealed class JwtOptions

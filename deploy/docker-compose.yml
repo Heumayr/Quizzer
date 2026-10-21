@@ -1,4 +1,4 @@
-# Quizzer-Server: SQL Server, einmalige Migration, REST-API.
+# Quizzer-Server: SQL Server, einmalige Migration, REST-API, davor Caddy (TLS).
 #
 #   cd deploy
 #   ./new-secrets.ps1            (einmal: legt .env mit Zufallsgeheimnissen an)
@@ -56,28 +56,57 @@ services:
       Quizzer__Jwt__SigningKey: ${QUIZZER_JWT_KEY:?QUIZZER_JWT_KEY fehlt in .env}
       Quizzer__Bootstrap__AdminUser: ${QUIZZER_ADMIN_USER:-admin}
       Quizzer__Bootstrap__AdminPassword: ${QUIZZER_ADMIN_PASSWORD:?QUIZZER_ADMIN_PASSWORD fehlt in .env}
-      ASPNETCORE_URLS: https://+:8443
-      Kestrel__Certificates__Default__Path: /certs/server.crt
-      Kestrel__Certificates__Default__KeyPath: /certs/server.key
+      # Nur http und nur im internen Netz - TLS macht Caddy. Kein "ports:": von aussen ist die
+      # API nicht erreichbar, nur ueber Caddy.
+      ASPNETCORE_URLS: http://+:8080
+      # Nur aus dem Netz "edge" (dort steht ausser der API nur Caddy) wird X-Forwarded-For
+      # geglaubt - sonst traefe die Anmeldebremse je Adresse alle gemeinsam.
+      Quizzer__TrustedProxyNetworks: 172.30.77.0/24
     volumes:
       - quizzer-media:/data/media
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    networks: [backend, edge]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2.10.0-alpine
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./certs:/certs:ro
+      - caddy-data:/data
     ports:
       # Auf welcher Adresse des Rechners der Port erreichbar ist, steht in .env - mit Tailscale
       # die Tailscale-Adresse, damit er im Heimnetz gar nicht erst offen ist.
       - "${QUIZZER_BIND_ADDRESS:-127.0.0.1}:${QUIZZER_PORT:-8443}:8443"
     depends_on:
-      migrator:
-        condition: service_completed_successfully
-    networks: [backend]
+      - api
+    networks: [edge]
     read_only: true
-    tmpfs: [/tmp]
+    tmpfs: [/tmp, /config]
+    # Alles weg ausser der einen Faehigkeit, die das Caddy-Programm als Datei-Capability
+    # traegt - ohne sie verweigert der Kern schon den Start ("exec: operation not permitted").
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
     security_opt: ["no-new-privileges:true"]
     restart: unless-stopped
 
 volumes:
   quizzer-sql:
   quizzer-media:
+  caddy-data:
 
 networks:
+  # SQL Server, Migrator, API. Ohne veroeffentlichten Port von aussen nicht erreichbar.
+  # Bewusst NICHT "internal: true": in der Pruefumgebung loeste der eingebaute DNS dann
+  # keine Containernamen mehr auf (Migrator: SocketException 11), gemessen 2026-10-21.
   backend:
+  # Caddy und API. Feste Adressen, damit die API weiss, wem sie X-Forwarded-For glaubt.
+  edge:
+    ipam:
+      config:
+        - subnet: 172.30.77.0/24

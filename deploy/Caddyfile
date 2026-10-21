@@ -1,0 +1,46 @@
+# Caddy vor dem Quizzer-Server: TLS, Groessengrenze, Sicherheitskoepfe.
+#
+# Das Zertifikat kommt aus certs/ - dieselben Dateien, die bisher Kestrel las (tailscale cert
+# oder selbst erzeugt, siehe README.md). Damit bleibt der Fingerabdruck im WPF gueltig.
+# Caddy holt bewusst kein eigenes: der Rechner ist aus dem Internet nicht erreichbar, und ein
+# alle 12 Stunden erneuertes internes Zertifikat liesse sich im WPF nicht anheften.
+
+{
+	# Keine Verwaltungsschnittstelle, kein Port 80, keine Zertifikatsbeschaffung.
+	admin off
+	auto_https off
+
+	# Kein HTTP/3: es liefe ueber UDP, und compose veroeffentlicht nur TCP - die Clients
+	# versuchten es sonst vergeblich (alt-svc).
+	servers {
+		protocols h1 h2
+	}
+}
+
+:8443 {
+	tls /certs/server.crt /certs/server.key {
+		protocols tls1.2 tls1.3
+	}
+
+	# Etwas ueber Quizzer:MaxMediaBytes (200 MB) - die genaue Grenze prueft die API selbst.
+	request_body {
+		max_size 210MB
+	}
+
+	header {
+		Strict-Transport-Security "max-age=15552000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+		-Via
+	}
+
+	# Caddy ersetzt X-Forwarded-For durch die echte Gegenstelle (ohne trusted_proxies wird ein
+	# mitgeschickter Kopf nicht weitergereicht). Die API glaubt ihm nur aus dem Netz "edge".
+	reverse_proxy api:8080
+
+	log {
+		output stdout
+		format console
+	}
+}

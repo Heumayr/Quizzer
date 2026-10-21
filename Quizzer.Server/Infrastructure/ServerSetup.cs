@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using Quizzer.Server.Auth;
@@ -76,10 +77,56 @@ namespace Quizzer.Server.Infrastructure
                 o.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             });
             services.AddHsts(o => o.MaxAge = TimeSpan.FromDays(180));
+
+            var proxyNetworks = ParseProxyNetworks(
+                builder.Configuration.GetValue<string>($"{ServerOptions.Section}:{nameof(ServerOptions.TrustedProxyNetworks)}"));
+
+            services.Configure<ForwardedHeadersOptions>(o =>
+            {
+                o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+                // Nur die ausdruecklich genannten Netze, nicht die Vorgabe "Loopback" - und nur
+                // ein Sprung: Caddy ersetzt den Kopf, statt fremde Eintraege durchzureichen.
+                o.KnownIPNetworks.Clear();
+                o.KnownProxies.Clear();
+                o.ForwardLimit = 1;
+
+                foreach (var network in proxyNetworks)
+                    o.KnownIPNetworks.Add(network);
+            });
+        }
+
+        /// <summary>
+        /// Liest die vertrauten Proxy-Netze. Ein unlesbarer Eintrag bricht den Start ab - ein
+        /// still uebergangener Tippfehler liesse die Anmeldebremse unbemerkt fuer alle gemeinsam
+        /// greifen.
+        /// </summary>
+        internal static IReadOnlyList<System.Net.IPNetwork> ParseProxyNetworks(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return [];
+
+            var result = new List<System.Net.IPNetwork>();
+
+            foreach (var part in value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (!System.Net.IPNetwork.TryParse(part, out var network))
+                    throw new InvalidOperationException(
+                        $"Quizzer:TrustedProxyNetworks: '{part}' ist kein Netz in CIDR-Schreibweise (etwa 172.30.77.0/24).");
+
+                result.Add(network);
+            }
+
+            return result;
         }
 
         public static void ConfigurePipeline(WebApplication app)
         {
+            // Zuerst: Bremse, HSTS und Protokoll sollen die Adresse des Telefons bzw. Rechners
+            // sehen, nicht die des Proxys. Ohne vertraute Netze bleibt die Liste leer und nichts
+            // wird uebernommen.
+            app.UseForwardedHeaders();
+
             if (!app.Environment.IsDevelopment())
                 app.UseHsts();
 

@@ -1,6 +1,6 @@
 # Quizzer-Server betreiben
 
-SQL Server, Migration und REST-API laufen als drei Container. Daten und Medien liegen in zwei
+SQL Server, Migration, REST-API und davor **Caddy** (TLS) laufen als vier Container. Daten und Medien liegen in zwei
 Docker-Volumes (`quizzer-sql`, `quizzer-media`) und überleben jeden Neustart und Neubau.
 Plan und Begründung: `.harness/docs/server-trennung.md`.
 
@@ -18,21 +18,27 @@ cd deploy
 .\new-secrets.ps1          # legt .env mit Zufallsgeheimnissen an (nie committen)
 ```
 
-**Zertifikat**: die API spricht nur HTTPS. Mit Tailscale:
+**Zertifikat**: von außen gibt es nur HTTPS, und das macht Caddy mit den Dateien aus `certs\`.
+Mit Tailscale:
 
 ```powershell
 tailscale cert --cert-file certs\server.crt --key-file certs\server.key <rechnername>.<tailnet>.ts.net
 ```
 
 Das Zertifikat gilt 90 Tage und erneuert sich **nicht von selbst** — den Befehl in die
-Aufgabenplanung legen (monatlich), danach `docker compose restart api`.
+Aufgabenplanung legen (monatlich), danach `docker compose restart caddy`.
+
+Caddy holt bewusst **kein** eigenes Zertifikat: der Rechner ist aus dem Internet nicht
+erreichbar, und Caddys internes Zertifikat wechselt alle 12 Stunden - im WPF ließe es sich nicht
+anheften. Ein `tailscale cert`-Zertifikat ist öffentlich vertrauenswürdig, das WPF braucht dafür
+keinen Fingerabdruck.
 
 **Adresse**: in `.env` `QUIZZER_BIND_ADDRESS` auf die Tailscale-Adresse setzen
 (`tailscale ip -4`). Dann lauscht der Port nur im Tailnet und nicht im Heimnetz.
 
 ```powershell
 docker compose up -d --build
-docker compose ps            # sql: healthy, migrator: exited (0), api: running
+docker compose ps            # sql: healthy, migrator: exited (0), api + caddy: running
 ```
 
 **Erste Anmeldung**: Benutzer `admin` (oder `QUIZZER_ADMIN_USER`), Kennwort aus `.env`
@@ -46,13 +52,28 @@ Konten für die Freunde anlegen.
 |---|---|---|
 | `sql` | SQL Server 2022 Express | **kein Port nach außen**, nur im internen Netz |
 | `migrator` | bringt das Schema auf Stand, legt die Anmeldung `quizzer_app` an, endet dann | kennt als einziger das `sa`-Kennwort |
-| `api` | REST-API auf 8443, nur HTTPS | meldet sich als `quizzer_app` an: nur lesen und schreiben, kein Schema |
+| `api` | REST-API, intern http auf 8080, **kein Port nach außen** | meldet sich als `quizzer_app` an: nur lesen und schreiben, kein Schema; Dateisystem nur lesbar |
+| `caddy` | TLS auf 8443, Größengrenze, Sicherheitsköpfe, leitet an `api` weiter | Dateisystem nur lesbar, alle Linux-Fähigkeiten entzogen bis auf `NET_BIND_SERVICE` |
+
+**Gebaut wird aus diesem Repo**: `docker compose up -d --build` baut das Server-Abbild aus dem
+ausgecheckten Stand (`context: ..`, `Quizzer.Server/Dockerfile`). Die Submodule braucht der
+Bau nicht. SQL Server und Caddy kommen als fertige Abbilder (`mssql/server:2022-latest`,
+`caddy:2.10.0-alpine`).
+
+**Absenderadresse hinter Caddy:** die Anmeldebremse zählt je Adresse. Die API glaubt
+`X-Forwarded-For` nur aus dem Netz `edge` (`172.30.77.0/24`, dort stehen nur Caddy und API) -
+`Quizzer__TrustedProxyNetworks`. Wer das Netz in `docker-compose.yml` ändert, muss beide Stellen
+ändern. **Grenze:** Docker Desktop reicht veröffentlichte Ports unter Windows meist mit einer
+einzigen internen Absenderadresse durch; dann teilen sich alle Freunde eine Bremse
+(10 Anmeldeversuche je Minute). Die Kontosperre nach 5 Fehlversuchen wirkt davon unabhängig je
+Konto.
 
 Die API startet nicht, solange Migrationen offen sind.
 
 **Bewusste Ausnahme:** zwischen API und SQL Server ist die Verbindung verschlüsselt, das
 Zertifikat des SQL Servers wird aber nicht geprüft (`TrustServerCertificate=True`) — es ist
-selbst erzeugt, und die Strecke verlässt das interne Docker-Netz nicht.
+selbst erzeugt, und die Strecke verlässt das interne Docker-Netz nicht. Dasselbe gilt für
+Caddy → API (http im Netz `edge`).
 
 ## Sichern und zurückspielen
 
