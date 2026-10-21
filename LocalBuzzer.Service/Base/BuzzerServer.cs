@@ -25,6 +25,14 @@ namespace LocalBuzzer.Service
 
         public Func<Game?>? GetGame { get; set; }
 
+        /// <summary>
+        /// M10: wer sich am Telefon zum Spiel melden kann. Ohne Angabe die Mitspieler des Spiels.
+        /// </summary>
+        public Func<IReadOnlyList<JoinCandidate>>? GetJoinCandidates { get; set; }
+
+        /// <summary>Die Beitrittsanfragen - eine Liste je Serverlauf.</summary>
+        public JoinRequestRegistry JoinRequests { get; private set; } = new();
+
         private readonly SemaphoreSlim _gate = new(1, 1);
 
         public ServerState ServerState { get; private set; } = ServerState.None;
@@ -72,6 +80,9 @@ namespace LocalBuzzer.Service
                     app.UseStaticFiles(new StaticFileOptions { FileProvider = fp });
 
                     app.MapHub<BuzzerHub>("/hub");
+
+                    JoinRequests = new JoinRequestRegistry();
+                    JoinEndpoints.Map(app, JoinRequests, CurrentCandidates);
 
                     var eventBus = app.Services.GetRequiredService<BuzzerEventBus>();
                     var buzzerHubContext = app.Services.GetRequiredService<IHubContext<BuzzerHub>>();
@@ -134,6 +145,16 @@ namespace LocalBuzzer.Service
             {
                 _gate.Release();
             }
+        }
+
+        private IReadOnlyList<JoinCandidate> CurrentCandidates()
+        {
+            if (GetJoinCandidates != null)
+                return GetJoinCandidates();
+
+            return GetGame?.Invoke()?.Players
+                .Select(p => new JoinCandidate(p.Id, p.CalculatedDisplayName))
+                .ToList() ?? [];
         }
 
         public ValueTask DisposeAsync() => new(StopAsync());

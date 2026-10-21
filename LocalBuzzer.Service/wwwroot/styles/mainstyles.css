@@ -436,3 +436,71 @@ body {
         border-color: var(--toast-error-border);
         color: var(--toast-error-text);
     }
+
+/* M10: selbst anmelden - Name waehlen oder als Gast. Grosse Flaechen, weil am Tisch getippt wird. */
+.layout-join {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    padding: var(--space-xl);
+    border-radius: var(--radius-xl);
+    background: var(--panel);
+    overflow-y: auto;
+    max-height: 100%;
+    box-sizing: border-box;
+}
+
+.join-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.join-message,
+.join-waiting,
+.join-guest-label {
+    margin: 0;
+    text-align: center;
+    color: var(--text-soft);
+    font-size: 17px;
+    line-height: 1.4;
+}
+
+.join-waiting {
+    color: var(--text);
+    font-size: 20px;
+}
+
+.join-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md, 10px);
+}
+
+.join-candidate,
+.join-guest {
+    border: 0;
+    color: var(--text);
+    cursor: pointer;
+    touch-action: manipulation;
+    min-height: var(--input-height);
+    border-radius: var(--radius-lg);
+    font-size: 20px;
+    font-weight: 700;
+    background: var(--secondary);
+}
+
+.join-guest {
+    background: var(--primary);
+}
+
+.join-guest-name {
+    min-height: var(--input-height);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-input);
+    background: var(--input-bg);
+    color: var(--text);
+    font-size: 18px;
+    padding: 0 14px;
+}

@@ -301,6 +301,10 @@ namespace Quizzer.Views.BuzzerViews
                 BuzzerControlsViewModel = new();
                 BuzzerControlsViewModel.SetBuzzerVerverViewModel(this);
 
+                PendingJoins.Clear();
+                OnPropertyChanged(nameof(PendingJoinsVisibility));
+                await EnableJoiningAsync();
+
                 RecalcServerState();
                 RefreshFirewallHint();
             }

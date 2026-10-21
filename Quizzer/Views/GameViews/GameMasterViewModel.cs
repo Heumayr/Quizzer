@@ -83,6 +83,8 @@ namespace Quizzer.Views.GameViews
 
                 buzzerServerView?.Close();
 
+                StaticManager.BuzzerServerViewModel.PlayerJoined -= OnPlayerJoined;
+
                 if (StaticManager.BuzzerServerViewModel != null && StaticManager.BuzzerServerViewModel.IsBuzzerServerRunning)
                 {
                     StaticManager.BuzzerServerViewModel.StopServerCommand.Execute(null);
@@ -210,6 +212,10 @@ namespace Quizzer.Views.GameViews
 
             Game = dbGame;
             StaticManager.BuzzerServerViewModel.Game = Game;
+
+            // M10: wer sich am Telefon anmeldet und bestaetigt wird, gehoert ab sofort zur Wertung.
+            StaticManager.BuzzerServerViewModel.PlayerJoined -= OnPlayerJoined;
+            StaticManager.BuzzerServerViewModel.PlayerJoined += OnPlayerJoined;
 
             // Ab hier zeichnen Spielfeld und Beamer mit dem Design dieses Abends. Ohne
             // gewaehltes Design bleibt es beim Auslieferungsstand.
@@ -349,6 +355,15 @@ namespace Quizzer.Views.GameViews
         /// </summary>
         public bool IsGameFinished =>
             Game != null && Game.SpielbareZellen.Any() && Game.SpielbareZellen.All(c => c.IsDone);
+
+        private void OnPlayerJoined(object? sender, Player player)
+        {
+            if (Game == null)
+                return;
+
+            InitStatContext(Game);
+            OnPropertyChanged(nameof(Players));
+        }
 
         private void InitStatContext(Game game)
         {

@@ -1,5 +1,6 @@
 ﻿import { Layouts } from "./constants.js";
-import { dom, resolvePlayerId, showError, getErrMsg, toast, nextRetryDelay, setConnectionIndicator } from "./helpers.js";
+import { dom, resolvePlayerId, clearPlayerCookie, showError, getErrMsg, toast, nextRetryDelay, setConnectionIndicator } from "./helpers.js";
+import { JoinFlow } from "./join.js";
 import { LayoutManager } from "./layoutManager.js";
 import { BuzzerLayout } from "./layouts/buzzerLayout.js";
 import { KeySelectLayout } from "./layouts/keySelectLayout.js";
@@ -111,17 +112,34 @@ function registerLayouts() {
     }));
 }
 
+// Gehoert die gespeicherte Kennung nicht (mehr) zum Spiel, hilft Neuladen nicht - dann mit Namen neu anmelden.
+function isUnknownPlayer(reason) {
+    return /gehört nicht zum laufenden Spiel|Spieler-Kennung/.test(reason ?? "");
+}
+
 // Endzustand ohne Verbindung: Grund zeigen, Toast ohne Ablauf, grosser Knopf zum Neuladen.
 function showDisconnected(reason) {
     setConnectionIndicator("disconnected");
     showError(reason);
     dom.status.textContent = "Nicht verbunden";
     toast("error", reason, { timeout: 0 });
+
+    const unknown = isUnknownPlayer(reason);
     layoutManager.showNotice(dom.host, {
         text: reason,
-        buttonLabel: "Neu verbinden",
-        onButton: () => location.reload()
+        buttonLabel: unknown ? "Mit Namen anmelden" : "Neu verbinden",
+        onButton: unknown ? () => location.replace("/?join=1") : () => location.reload()
     });
+}
+
+async function startJoin() {
+    setConnectionIndicator("disconnected");
+    dom.name.textContent = "Anmelden";
+    showError("");
+    await new JoinFlow({
+        host: dom.host,
+        setStatus: (text) => { dom.status.textContent = text; }
+    }).start();
 }
 
 // Eine neuere Verbindung desselben Spielers hat diese abgeloest: bewusst beenden, nicht neu verbinden.
@@ -186,13 +204,13 @@ function registerConnectionEvents(conn) {
 async function start() {
     dom.status.textContent = "Verbinde…";
 
+    if (new URLSearchParams(location.search).get("join") === "1") {
+        clearPlayerCookie();
+    }
+
     state.playerId = resolvePlayerId();
     if (!state.playerId) {
-        const m = "Nicht verbunden: keine gültige Player-ID.";
-        dom.name.textContent = "—";
-        dom.status.textContent = m;
-        showError(m);
-        toast("error", m);
+        await startJoin();
         return;
     }
 

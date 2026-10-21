@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics;
 
 namespace Quizzer.LogicUnitTests.LocalBuzzer
@@ -110,5 +110,12 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// </summary>
         [TestMethod]
         public void TheLayoutManagerSwitchesCleanly() => LaufeMit("layoutManager.test.mjs");
+
+        /// <summary>
+        /// M10: am Telefon selbst anmelden - Name waehlen oder Gast, warten, bis der
+        /// Spielleiter bestaetigt, dann verbinden. Ein Kennwort geht dabei nie mit.
+        /// </summary>
+        [TestMethod]
+        public void TheJoinFlowWaitsForTheGameMaster() => LaufeMit("join.test.mjs");
     }
 }

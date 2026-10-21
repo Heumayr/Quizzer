@@ -54,15 +54,12 @@ export function resolvePlayerId() {
         return cookieId;
     }
 
-    const input = prompt("Player-ID (GUID) fehlt. Bitte einfügen:", "");
-    const typed = input?.trim() ?? "";
-
-    if (typed && isGuid(typed)) {
-        setCookie(COOKIE_NAME, typed, COOKIE_DAYS);
-        return typed;
-    }
-
+    // M10: ohne Kennung meldet man sich mit Namen an (join.js) - statt eine GUID einzutippen.
     return null;
+}
+
+export function clearPlayerCookie() {
+    document.cookie = `${encodeURIComponent(COOKIE_NAME)}=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; SameSite=Lax`;
 }
 
 export function showError(msg) {
