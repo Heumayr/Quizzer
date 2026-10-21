@@ -64,6 +64,13 @@ namespace Quizzer.DataModels.Models
         /// </summary>
         public Guid? OwnerPlayerId { get; set; }
 
+        /// <summary>
+        /// Ob andere Konten die Frage sehen duerfen, obwohl sie ihnen nicht gehoert (M9, 2026-10-21:
+        /// „eigene + geteilte"). Wirkt nur am Server; ohne Besitzer ist eine Frage ohnehin fuer alle
+        /// sichtbar. Aendern darf sie trotzdem nur der Besitzer.
+        /// </summary>
+        public bool IsShared { get; set; }
+
         /// <summary>Interne Notizen des Spielleiters zur Frage (nicht für Spieler sichtbar).</summary>
         public string Notes { get; set; } = string.Empty;
 
@@ -369,6 +376,7 @@ namespace Quizzer.DataModels.Models
             // Ohne diese Zeile wuerde der Besitzer beim Speichern still verlorengehen -
             // CloneCompletenessUnitTests faengt genau das ab.
             target.OwnerPlayerId = OwnerPlayerId;
+            target.IsShared = IsShared;
 
             target.Steps = new List<QuestionStepResource>();
             target.Category = null;

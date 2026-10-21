@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Quizzer.DataModels;
 using Quizzer.DataModels.Exceptions;
 using Quizzer.DataModels.Models;
+using Quizzer.DataModels.Models.Auth;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.QuestionTypes;
 
@@ -68,6 +69,20 @@ namespace Quizzer.Logic.Context
                 .HasForeignKey(q => q.OwnerPlayerId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // M9: ein Konto haengt an genau einem Mitspieler. Restrict statt Cascade - ein
+            // Mitspieler mit Konto laesst sich nicht nebenbei loeschen, erst das Konto.
+            modelBuilder.Entity<Account>()
+                .HasOne(a => a.Player)
+                .WithMany()
+                .HasForeignKey(a => a.PlayerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasOne(t => t.Account)
+                .WithMany()
+                .HasForeignKey(t => t.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             base.OnModelCreating(modelBuilder);
         }
 
@@ -89,6 +104,9 @@ namespace Quizzer.Logic.Context
         public DbSet<AppreciateQestion> AppreciateQestions { get; set; }
 
         public DbSet<RevealQuestion> RevealQuestions { get; set; }
+
+        public DbSet<Account> Accounts { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         /// <summary>
         /// Get the data set according to the entity type.
