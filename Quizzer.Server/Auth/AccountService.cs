@@ -104,6 +104,22 @@ namespace Quizzer.Server.Auth
             if (stored.ExpiresAt <= now || stored.Account.IsDisabled)
                 return null;
 
+            // Verbrauchen in EINEM Schritt: nur wer die Zeile noch unverbraucht vorfindet, bekommt
+            // einen Nachfolger. Pruefen und Schreiben lagen bis zur Sicherheitspruefung 2026-10-21
+            // auseinander - zwei gleichzeitige Anfragen mit demselben (gestohlenen) Schluessel
+            // bekamen beide einen, und der Diebstahl fiel nie auf.
+            var verbraucht = await context.RefreshTokens
+                .Where(t => t.Id == stored.Id && t.RevokedAt == null && t.ReplacedById == null)
+                .ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedAt, now), ct);
+
+            if (verbraucht == 0)
+            {
+                await RevokeFamilyAsync(context, stored.FamilyId, now, ct);
+                await context.SaveChangesAsync(ct);
+                log.LogWarning("Gleichzeitig wiederverwendeter Erneuerungsschlüssel - Familie widerrufen: Konto {AccountId}", stored.AccountId);
+                return null;
+            }
+
             var response = await IssueAsync(context, stored.Account, stored.FamilyId, now, ct);
             var successor = context.RefreshTokens.Local.Single(t => t.TokenHash == TokenService.HashRefreshToken(response.RefreshToken));
 

@@ -48,6 +48,11 @@ namespace Quizzer.Server.Sync
                         continue;
                     }
 
+                    // Den Hash rechnet der Server selbst. Mit dem mitgeschickten konnte ein Client den
+                    // aktuellen Server-Hash angeben und so ohne Konflikt ueberschreiben
+                    // (Sicherheitspruefung 2026-10-21).
+                    row.Hash = SyncRowConverter.ComputeHash(row);
+
                     var serverEntity = await store.FindEntityAsync(row.Key, ct);
                     var serverHash = serverEntity == null ? null : store.ToRow(serverEntity).Hash;
 

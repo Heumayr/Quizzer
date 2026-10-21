@@ -59,9 +59,12 @@ services:
       # Nur http und nur im internen Netz - TLS macht Caddy. Kein "ports:": von aussen ist die
       # API nicht erreichbar, nur ueber Caddy.
       ASPNETCORE_URLS: http://+:8080
-      # Nur aus dem Netz "edge" (dort steht ausser der API nur Caddy) wird X-Forwarded-For
-      # geglaubt - sonst traefe die Anmeldebremse je Adresse alle gemeinsam.
-      Quizzer__TrustedProxyNetworks: 172.30.77.0/24
+      # Nur von Caddy wird X-Forwarded-For geglaubt - sonst traefe die Anmeldebremse je Adresse
+      # alle gemeinsam.
+      # Genau Caddys Adresse, nicht das ganze Netz: im Netz liegt auch das Gateway des Hosts,
+      # ueber das sonst jeder auf dem Rechner X-Forwarded-For faelschen koennte
+      # (Sicherheitspruefung 2026-10-21).
+      Quizzer__TrustedProxyNetworks: 172.30.77.10/32
     volumes:
       - quizzer-media:/data/media
     depends_on:
@@ -70,6 +73,7 @@ services:
     networks: [backend, edge]
     read_only: true
     tmpfs: [/tmp]
+    cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
     restart: unless-stopped
 
@@ -85,7 +89,9 @@ services:
       - "${QUIZZER_BIND_ADDRESS:-127.0.0.1}:${QUIZZER_PORT:-8443}:8443"
     depends_on:
       - api
-    networks: [edge]
+    networks:
+      edge:
+        ipv4_address: 172.30.77.10
     read_only: true
     tmpfs: [/tmp, /config]
     # Alles weg ausser der einen Faehigkeit, die das Caddy-Programm als Datei-Capability

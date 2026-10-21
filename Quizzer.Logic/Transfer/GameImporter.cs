@@ -135,16 +135,32 @@ namespace Quizzer.Logic.Transfer
                 // Speicher, dann lesen.
                 using var puffer = new MemoryStream();
 
-                offen.CopyTo(puffer);
+                KopiereBegrenzt(offen, puffer, MaxDokumentBytes, "Die Spielbeschreibung");
                 puffer.Position = 0;
 
                 dokument = GameExportSerializer.Read(puffer);
             }
 
+            if (dokument.Spiel.Height is < 0 or > MaxRasterSeite
+                || dokument.Spiel.Width is < 0 or > MaxRasterSeite
+                || dokument.Spiel.Depth is < 0 or > MaxRasterSeite)
+                throw new InvalidDataException(
+                    $"Das Spielfeld im Bündel ist größer als {MaxRasterSeite} × {MaxRasterSeite} - so baut niemand einen Quizabend.");
+
             var dateien = new Dictionary<string, byte[]>(StringComparer.Ordinal);
+            var gelesen = new Dictionary<string, byte[]>(StringComparer.Ordinal);
+            long gesamt = 0;
 
             foreach (var medium in dokument.Medien)
             {
+                // Derselbe Eintrag wird nur einmal entpackt - sonst blaehte ein Buendel, das ihn
+                // tausendmal nennt, den Speicher tausendfach auf.
+                if (gelesen.TryGetValue(medium.DateiImBuendel, out var schon))
+                {
+                    dateien[medium.Schluessel] = schon;
+                    continue;
+                }
+
                 var eintrag = buendel.GetEntry(medium.DateiImBuendel);
 
                 if (eintrag == null)
@@ -153,12 +169,38 @@ namespace Quizzer.Logic.Transfer
                 using var offen = eintrag.Open();
                 using var puffer = new MemoryStream();
 
-                offen.CopyTo(puffer);
+                gesamt += KopiereBegrenzt(offen, puffer, Math.Min(MaxMediumBytes, MaxGesamtBytes - gesamt), $"Das Medium '{medium.DateiImBuendel}'");
 
-                dateien[medium.Schluessel] = puffer.ToArray();
+                gelesen[medium.DateiImBuendel] = dateien[medium.Schluessel] = puffer.ToArray();
             }
 
             return (dokument, dateien);
+        }
+
+        // Grenzen gegen eine Entpackbombe (Sicherheitspruefung 2026-10-21): gezaehlt wird, was
+        // WIRKLICH entpackt wird, nicht die Angabe im Zip-Verzeichnis - die luegt im Zweifel.
+        private const long MaxDokumentBytes = 20L * 1024 * 1024;
+        private const long MaxMediumBytes = 200L * 1024 * 1024;
+        private const long MaxGesamtBytes = 1024L * 1024 * 1024;
+        private const int MaxRasterSeite = 50;
+
+        private static long KopiereBegrenzt(Stream quelle, Stream ziel, long grenze, string was)
+        {
+            var puffer = new byte[81920];
+            long summe = 0;
+            int n;
+
+            while ((n = quelle.Read(puffer, 0, puffer.Length)) > 0)
+            {
+                summe += n;
+
+                if (summe > grenze)
+                    throw new InvalidDataException($"{was} im Bündel ist zu groß - der Import wurde abgebrochen.");
+
+                ziel.Write(puffer, 0, n);
+            }
+
+            return summe;
         }
 
         private static async Task<Ergebnis> SchreibeAsync(
@@ -217,7 +259,14 @@ namespace Quizzer.Logic.Transfer
                 else
                 {
                     bausatz.Design.Id = Guid.NewGuid();
-                    bausatz.Design.FolderName = OrdnerName(bausatz.Design.Designation);
+
+                    // Ein freier Ordner - nie einer, den es schon gibt. "Standard " oder "Standard."
+                    // landet unter Windows im selben Ordner wie "Standard", und die Texturen des
+                    // Buendels ueberschrieben dann die eines fremden Designs (Sicherheitspruefung
+                    // 2026-10-21).
+                    bausatz.Design.FolderName = FreierOrdnerName(
+                        OrdnerName(bausatz.Design.Designation),
+                        (await ctrlDesign.GetAllAsync()).Select(d => d.FolderName));
 
                     await ctrlDesign.InsertAsync(bausatz.Design);
 
@@ -303,7 +352,35 @@ namespace Quizzer.Logic.Transfer
             foreach (var c in Path.GetInvalidFileNameChars())
                 name = name.Replace(c, '_');
 
-            return string.IsNullOrWhiteSpace(name) ? "Import" : name.Trim();
+            // Punkte und Leerzeichen am Ende schneidet Windows ab - also gleich hier.
+            name = name.Trim().TrimEnd('.', ' ');
+
+            return string.IsNullOrWhiteSpace(name) ? "Import" : name;
+        }
+
+        /// <summary>
+        /// Haengt " (2)", " (3)" … an, bis weder ein Design diesen Ordner traegt noch er auf der
+        /// Platte liegt - ohne Ruecksicht auf Gross-/Kleinschreibung, wie Windows.
+        /// </summary>
+        internal static string FreierOrdnerName(string wunsch, IEnumerable<string> belegt)
+        {
+            var vergeben = belegt.Where(b => !string.IsNullOrWhiteSpace(b))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            var themes = Path.Combine(DataModels.Settings.FilePathQuizzer, "Themes");
+
+            bool frei(string n) => !vergeben.Contains(n) && !Directory.Exists(Path.Combine(themes, n));
+
+            if (frei(wunsch))
+                return wunsch;
+
+            for (var i = 2; ; i++)
+            {
+                var versuch = $"{wunsch} ({i})";
+
+                if (frei(versuch))
+                    return versuch;
+            }
         }
     }
 }

@@ -70,6 +70,23 @@ namespace Quizzer.Server.Tests
             Assert.AreEqual(HttpStatusCode.Unauthorized, successor.StatusCode);
         }
 
+        /// <summary>
+        /// Sicherheitspruefung 2026-10-21: derselbe Erneuerungsschluessel gleichzeitig mehrfach
+        /// eingeloest - hoechstens einer bekommt einen Nachfolger.
+        /// </summary>
+        [TestMethod]
+        public async Task AParallelRefreshYieldsAtMostOneSuccessor()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var first = await ServerTestHost.LoginAsync(factory.CreateClient(), ServerTestHost.AdminUser, ServerTestHost.AdminPassword);
+
+            var antworten = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ =>
+                factory.CreateClient().PostAsJsonAsync("/api/v1/auth/refresh", new RefreshRequest(first.RefreshToken))));
+
+            Assert.IsTrue(antworten.Count(a => a.StatusCode == HttpStatusCode.OK) <= 1,
+                $"{antworten.Count(a => a.StatusCode == HttpStatusCode.OK)} Nachfolger aus einem Schluessel.");
+        }
+
         [TestMethod]
         public async Task ATamperedTokenIsRejected()
         {

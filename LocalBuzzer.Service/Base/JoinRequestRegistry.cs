@@ -91,7 +91,11 @@ namespace LocalBuzzer.Service.Base
             else
             {
                 displayName = (guestName ?? string.Empty).Trim();
-                if (displayName.Length == 0 || displayName.Length > MaxGuestNameLength || displayName.Any(char.IsControl))
+                // Auch unsichtbare Formatzeichen (Unicode Cf, etwa U+202E "rechts nach links") -
+                // mit ihnen laesst sich ein Name bauen, der am Laptop wie ein anderer aussieht
+                // (Sicherheitspruefung 2026-10-21).
+                if (displayName.Length == 0 || displayName.Length > MaxGuestNameLength
+                    || displayName.Any(c => char.IsControl(c) || char.GetUnicodeCategory(c) == System.Globalization.UnicodeCategory.Format))
                     return (CreateResult.Invalid, null);
 
                 guestName = displayName;

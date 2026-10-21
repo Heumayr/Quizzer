@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Sichert Datenbank und Medien nach deploy/backups/<Zeitstempel>/. Laeuft gegen den laufenden Stapel.
 set -euo pipefail
+
+# Sicherungen enthalten die ganze Datenbank samt Kennwort-Hashes: nur fuer den Besitzer lesbar
+# (Sicherheitspruefung 2026-10-21).
+umask 077
 cd "$(dirname "$0")"
 source .env
 stamp=$(date +%Y%m%d-%H%M%S)

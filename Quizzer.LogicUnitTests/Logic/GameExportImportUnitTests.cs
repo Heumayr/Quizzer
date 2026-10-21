@@ -352,6 +352,43 @@ namespace Quizzer.LogicUnitTests.Logic
         /// <summary>
         /// Ein Bündel, das gar keines ist, wird abgewiesen - mit einem Satz, der sagt warum.
         /// </summary>
+        /// <summary>
+        /// Sicherheitspruefung 2026-10-21: ein Design aus dem Buendel bekommt nie einen Ordner, den
+        /// es schon gibt - "Standard " landet unter Windows sonst in "Standard".
+        /// </summary>
+        [TestMethod]
+        public void AnImportedThemeNeverReusesAnExistingFolder()
+        {
+            Assert.AreEqual("Standard (2)", GameImporter.FreierOrdnerName("Standard", ["standard"]));
+            Assert.AreEqual("Standard (3)", GameImporter.FreierOrdnerName("Standard", ["Standard", "Standard (2)"]));
+            Assert.AreEqual("Abend", GameImporter.FreierOrdnerName("Abend", ["Standard"]));
+        }
+
+        /// <summary>Eine Entpackbombe bricht den Import ab, statt den Speicher zu fuellen.</summary>
+        [TestMethod]
+        public async Task AnOversizedBundleEntryIsRefused()
+        {
+            var datei = Path.Combine(arbeitsordner, "bombe" + GameExporter.Extension);
+
+            using (var zip = System.IO.Compression.ZipFile.Open(datei, System.IO.Compression.ZipArchiveMode.Create))
+            {
+                var eintrag = zip.CreateEntry(Quizzer.DataModels.Transfer.GameExportSerializer.DocumentEntryName, System.IO.Compression.CompressionLevel.SmallestSize);
+
+                await using var s = eintrag.Open();
+                var nullen = new byte[1024 * 1024];
+
+                // 25 MB Nullen - gepackt winzig, entpackt ueber der Grenze von 20 MB.
+                for (var i = 0; i < 25; i++)
+                    await s.WriteAsync(nullen);
+            }
+
+            Assert.IsTrue(new FileInfo(datei).Length < 1024 * 1024, "Die Probe ist keine Bombe.");
+
+            await Assert.ThrowsExactlyAsync<InvalidDataException>(
+                () => GameImporter.ImportAsync(datei, tresor, null, []),
+                "Das uebergrosse Dokument wurde entpackt.");
+        }
+
         [TestMethod]
         public async Task AFileThatIsNoBundleIsRejected()
         {

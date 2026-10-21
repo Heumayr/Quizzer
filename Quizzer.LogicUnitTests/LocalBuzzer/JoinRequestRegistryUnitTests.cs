@@ -48,6 +48,10 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             Assert.AreEqual(JoinRequestRegistry.CreateResult.Invalid, registry.Create(null, "   ", Kandidaten, "a").Result);
             Assert.AreEqual(JoinRequestRegistry.CreateResult.Invalid, registry.Create(null, new string('x', 41), Kandidaten, "a").Result);
             Assert.AreEqual(JoinRequestRegistry.CreateResult.Invalid, registry.Create(null, "Bo\u0007b", Kandidaten, "a").Result);
+
+            // Unsichtbare Formatzeichen (Sicherheitspruefung 2026-10-21): "\u202Eanna" sieht aus wie ein anderer Name.
+            Assert.AreEqual(JoinRequestRegistry.CreateResult.Invalid, registry.Create(null, "\u202Eannasoeb", Kandidaten, "a").Result);
+            Assert.AreEqual(JoinRequestRegistry.CreateResult.Invalid, registry.Create(null, "An\u200Bna", Kandidaten, "a").Result);
             Assert.AreEqual(JoinRequestRegistry.CreateResult.Created, registry.Create(null, " Carla ", Kandidaten, "a").Result);
             Assert.AreEqual("Carla", registry.Pending()[0].DisplayName);
         }

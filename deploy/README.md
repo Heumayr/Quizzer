@@ -41,6 +41,9 @@ docker compose up -d --build
 docker compose ps            # sql: healthy, migrator: exited (0), api + caddy: running
 ```
 
+Unter Linux den Schlüssel nur für den Besitzer lesbar machen: `chmod 600 certs/server.key`
+(unter Windows liegt er im Benutzerprofil bzw. dem Ordner mit dessen Rechten).
+
 **Erste Anmeldung**: Benutzer `admin` (oder `QUIZZER_ADMIN_USER`), Kennwort aus `.env`
 (`QUIZZER_ADMIN_PASSWORD`). In der WPF-App unter *Einstellungen → Server* die Adresse
 `https://<rechnername>.<tailnet>.ts.net:8443` eintragen. Danach das Kennwort ändern und
@@ -61,9 +64,9 @@ Bau nicht. SQL Server und Caddy kommen als fertige Abbilder (`mssql/server:2022-
 `caddy:2.10.0-alpine`).
 
 **Absenderadresse hinter Caddy:** die Anmeldebremse zählt je Adresse. Die API glaubt
-`X-Forwarded-For` nur aus dem Netz `edge` (`172.30.77.0/24`, dort stehen nur Caddy und API) -
-`Quizzer__TrustedProxyNetworks`. Wer das Netz in `docker-compose.yml` ändert, muss beide Stellen
-ändern. **Grenze:** Docker Desktop reicht veröffentlichte Ports unter Windows meist mit einer
+`X-Forwarded-For` nur von Caddys fester Adresse `172.30.77.10` (`Quizzer__TrustedProxyNetworks`,
+`/32` - nicht das ganze Netz `edge`, in dem auch das Gateway des Hosts liegt). Wer das Netz in
+`docker-compose.yml` ändert, muss beide Stellen ändern. **Grenze:** Docker Desktop reicht veröffentlichte Ports unter Windows meist mit einer
 einzigen internen Absenderadresse durch; dann teilen sich alle Freunde eine Bremse
 (10 Anmeldeversuche je Minute). Die Kontosperre nach 5 Fehlversuchen wirkt davon unabhängig je
 Konto.
