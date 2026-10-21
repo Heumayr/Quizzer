@@ -1,0 +1,31 @@
+# Legt deploy\.env mit Zufallsgeheimnissen an. Ueberschreibt nie eine bestehende .env.
+$ErrorActionPreference = 'Stop'
+Set-Location $PSScriptRoot
+if (Test-Path .env) { Write-Host ".env gibt es schon - nichts geaendert."; exit 0 }
+
+function New-Secret([int]$bytes) {
+    $buffer = [byte[]]::new($bytes)
+    [System.Security.Cryptography.RandomNumberGenerator]::Fill($buffer)
+    return $buffer
+}
+function New-Password { 'Q' + (([Convert]::ToBase64String((New-Secret 33)) -replace '[/+=]', '').Substring(0, 30)) + 'a1!' }
+
+$text = Get-Content .env.example -Raw
+$text = $text -replace '(?m)^QUIZZER_SA_PASSWORD=.*$', "QUIZZER_SA_PASSWORD=$(New-Password)"
+$text = $text -replace '(?m)^QUIZZER_APP_PASSWORD=.*$', "QUIZZER_APP_PASSWORD=$(New-Password)"
+$text = $text -replace '(?m)^QUIZZER_JWT_KEY=.*$', "QUIZZER_JWT_KEY=$([Convert]::ToBase64String((New-Secret 48)))"
+$text = $text -replace '(?m)^QUIZZER_ADMIN_PASSWORD=.*$', "QUIZZER_ADMIN_PASSWORD=$(New-Password)"
+Set-Content .env $text -NoNewline -Encoding utf8
+
+# Nur der eigene Benutzer darf die Datei lesen.
+if ($IsWindows -or $PSVersionTable.PSEdition -eq 'Desktop') {
+    $acl = Get-Acl .env
+    $acl.SetAccessRuleProtection($true, $false)
+    $acl.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new($env:USERNAME, 'FullControl', 'Allow'))
+    Set-Acl .env $acl
+}
+else {
+    chmod 600 .env
+}
+
+Write-Host ".env angelegt. Admin-Kennwort steht darin (QUIZZER_ADMIN_PASSWORD) - nach der ersten Anmeldung aendern."

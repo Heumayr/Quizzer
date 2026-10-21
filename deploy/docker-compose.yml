@@ -1,0 +1,83 @@
+# Quizzer-Server: SQL Server, einmalige Migration, REST-API.
+#
+#   cd deploy
+#   ./new-secrets.ps1            (einmal: legt .env mit Zufallsgeheimnissen an)
+#   Zertifikat nach certs/server.crt und certs/server.key legen (siehe README.md)
+#   docker compose up -d --build
+#
+# Daten liegen in zwei benannten Volumes (quizzer-sql, quizzer-media) - sie ueberleben
+# "docker compose down" und jeden Neubau. Nur "docker compose down -v" loescht sie.
+
+name: quizzer
+
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${QUIZZER_SA_PASSWORD:?QUIZZER_SA_PASSWORD fehlt in .env}
+      MSSQL_PID: Express
+    volumes:
+      - quizzer-sql:/var/opt/mssql
+    # Kein "ports:" - der SQL Server ist nur im internen Netz erreichbar, nie von aussen.
+    networks: [backend]
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' -b -o /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+
+  migrator:
+    build:
+      context: ..
+      dockerfile: Quizzer.Server/Dockerfile
+    image: quizzer-server:local
+    command: ["migrate"]
+    environment:
+      # Nur der Migrator kennt das sa-Kennwort; er legt die Betriebsanmeldung an.
+      ConnectionStrings__QuizzerMigrator: "Server=sql;Database=Quizzer;User Id=sa;Password=${QUIZZER_SA_PASSWORD};Encrypt=True;TrustServerCertificate=True"
+      Quizzer__AppLogin__Name: quizzer_app
+      Quizzer__AppLogin__Password: ${QUIZZER_APP_PASSWORD:?QUIZZER_APP_PASSWORD fehlt in .env}
+    depends_on:
+      sql:
+        condition: service_healthy
+    networks: [backend]
+    restart: "no"
+
+  api:
+    image: quizzer-server:local
+    environment:
+      # TrustServerCertificate: der SQL Server im Container hat ein selbst erzeugtes
+      # Zertifikat. Verschluesselt ist die Strecke trotzdem, und sie verlaesst das interne
+      # Netz nicht - bewusste Ausnahme, siehe docs/server-trennung.md.
+      ConnectionStrings__Quizzer: "Server=sql;Database=Quizzer;User Id=quizzer_app;Password=${QUIZZER_APP_PASSWORD};Encrypt=True;TrustServerCertificate=True"
+      Quizzer__Jwt__SigningKey: ${QUIZZER_JWT_KEY:?QUIZZER_JWT_KEY fehlt in .env}
+      Quizzer__Bootstrap__AdminUser: ${QUIZZER_ADMIN_USER:-admin}
+      Quizzer__Bootstrap__AdminPassword: ${QUIZZER_ADMIN_PASSWORD:?QUIZZER_ADMIN_PASSWORD fehlt in .env}
+      ASPNETCORE_URLS: https://+:8443
+      Kestrel__Certificates__Default__Path: /certs/server.crt
+      Kestrel__Certificates__Default__KeyPath: /certs/server.key
+    volumes:
+      - quizzer-media:/data/media
+      - ./certs:/certs:ro
+    ports:
+      # Auf welcher Adresse des Rechners der Port erreichbar ist, steht in .env - mit Tailscale
+      # die Tailscale-Adresse, damit er im Heimnetz gar nicht erst offen ist.
+      - "${QUIZZER_BIND_ADDRESS:-127.0.0.1}:${QUIZZER_PORT:-8443}:8443"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    networks: [backend]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+
+volumes:
+  quizzer-sql:
+  quizzer-media:
+
+networks:
+  backend:

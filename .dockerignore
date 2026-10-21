@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/.vs/
+**/*.user
+.git/
+.harness/
+.harness-core/
+deploy/.env
+deploy/certs/
+**/appsettings.json
