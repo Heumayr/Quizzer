@@ -47,9 +47,34 @@
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
+                        <!-- Siegerehrung: die Sieger fahren aus der Tiefe herein und federn nach -->
                         <Border Margin="20,0,20,0"
                                 Width="{Binding CardWidth}"
-                                Height="{Binding CardHeight}">
+                                Height="{Binding CardHeight}"
+                                Opacity="0"
+                                RenderTransformOrigin="0.5,1">
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleX="0.4" ScaleY="0.4" />
+                            </Border.RenderTransform>
+                            <Border.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard BeginTime="0:0:0.6">
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.4" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.9">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <ElasticEase EasingMode="EaseOut" Oscillations="2" Springiness="6" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.9">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <ElasticEase EasingMode="EaseOut" Oscillations="2" Springiness="6" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Border.Triggers>
                             <Viewbox Stretch="Uniform">
                                 <local:UcPlayerStatsView Width="220" Height="340" />
                             </Viewbox>
@@ -70,9 +95,28 @@
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
+                        <!-- Die uebrigen gleiten danach von unten ein -->
                         <Border Margin="12,0,12,0"
                                 Width="{Binding CardWidth}"
-                                Height="{Binding CardHeight}">
+                                Height="{Binding CardHeight}"
+                                Opacity="0">
+                            <Border.RenderTransform>
+                                <TranslateTransform Y="60" />
+                            </Border.RenderTransform>
+                            <Border.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard BeginTime="0:0:0.2">
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.5" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.Y" To="0" Duration="0:0:0.6">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Border.Triggers>
                             <Viewbox Stretch="Uniform">
                                 <local:UcPlayerStatsView Width="220" Height="340" />
                             </Viewbox>

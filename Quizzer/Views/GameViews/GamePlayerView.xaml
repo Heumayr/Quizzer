@@ -206,6 +206,73 @@
             </Viewbox>
         </Grid>
 
+        <!-- PUNKTE DIESER FRAGE: nur wenn die Leiste ausgeblendet ist (2026-10-21). Faehrt
+             vergroessert ein, steht einige Sekunden und blendet aus. -->
+        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
+                DataContext="{Binding StatsContext}"
+                Visibility="{Binding AenderungenVisibility}"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                MinWidth="520" Padding="36,24" CornerRadius="18"
+                Background="#E6101010" BorderBrush="WhiteSmoke" BorderThickness="2"
+                IsHitTestVisible="False" Panel.ZIndex="900"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform ScaleX="1" ScaleY="1" />
+            </Border.RenderTransform>
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Style.Triggers>
+                        <Trigger Property="Visibility" Value="Visible">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.35" />
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" From="0.8" To="1" Duration="0:0:0.45">
+                                            <DoubleAnimation.EasingFunction>
+                                                <BackEase EasingMode="EaseOut" Amplitude="0.4" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" From="0.8" To="1" Duration="0:0:0.45">
+                                            <DoubleAnimation.EasingFunction>
+                                                <BackEase EasingMode="EaseOut" Amplitude="0.4" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <StackPanel>
+                <TextBlock Text="Punkte dieser Frage" FontSize="34" FontWeight="Bold"
+                           Foreground="Wheat" HorizontalAlignment="Center" Margin="0,0,0,16" />
+                <ItemsControl ItemsSource="{Binding Aenderungen}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding PlayerName}" FontSize="38" FontWeight="SemiBold"
+                                           Foreground="WhiteSmoke" Margin="0,0,32,0" VerticalAlignment="Center" />
+                                <Border Grid.Column="1" Background="{Binding WechselBrush}" CornerRadius="12"
+                                        Padding="14,2" Margin="0,0,24,0">
+                                    <TextBlock Text="{Binding WechselText}" FontSize="38" FontWeight="ExtraBold"
+                                               Foreground="White" />
+                                </Border>
+                                <TextBlock Grid.Column="2" Text="{Binding AnzeigePunkte}" FontSize="38"
+                                           FontWeight="ExtraBold" Foreground="WhiteSmoke" VerticalAlignment="Center"
+                                           MinWidth="110" TextAlignment="Right" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
         <!-- CURRENT BUZZER PLAYER OVERLAY -->
         <!--<Grid Grid.RowSpan="2"
               Panel.ZIndex="999"

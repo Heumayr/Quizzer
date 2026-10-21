@@ -41,6 +41,40 @@ namespace Quizzer.Views.GameViews.Sub
         public int Columns => PlayerStatsContextList.Count();
 
         /// <summary>
+        /// Ob die Punkteleiste auf dem Beamer steht. Ist sie ausgeblendet, zeigt der Beamer die
+        /// Änderungen einer Frage stattdessen als Karte in der Mitte - sonst sähe sie niemand.
+        /// </summary>
+        public bool PunkteleisteSichtbar
+        {
+            get => punkteleisteSichtbar;
+            set
+            {
+                punkteleisteSichtbar = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(AenderungenVisibility));
+            }
+        }
+
+        private bool punkteleisteSichtbar = true;
+
+        /// <summary>Die Kacheln mit einer gerade eingeblendeten Änderung, Gewinner zuerst.</summary>
+        public List<PlayerStatsContext> Aenderungen =>
+            PlayerStatsContextList.Where(p => p.WechselAktiv).OrderByDescending(p => p.Wechsel).ToList();
+
+        /// <summary>Die Karte in der Mitte - nur bei ausgeblendeter Leiste und nur mit Änderungen.</summary>
+        public Visibility AenderungenVisibility =>
+            !PunkteleisteSichtbar && !IsGameFinished && PlayerStatsContextList.Any(p => p.WechselAktiv)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
+        /// <summary>Eine Kachel hat eine Änderung ein- oder ausgeblendet.</summary>
+        internal void AenderungenGeaendert()
+        {
+            OnPropertyChanged(nameof(Aenderungen));
+            OnPropertyChanged(nameof(AenderungenVisibility));
+        }
+
+        /// <summary>
         /// Wie viele Kacheln nebeneinander in die Punkteleiste passen, ohne dass die Punktzahl
         /// unlesbar wird. Ab sechs Spielern bricht die Leiste in zwei Reihen um - gemessen am
         /// 2026-09-06: bei acht Kacheln in einer Reihe kam der groesste Text mit 16,6

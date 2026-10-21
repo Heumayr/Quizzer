@@ -271,6 +271,7 @@ namespace Quizzer.Views.GameViews
         public void SetShowPlayerStats(bool show)
         {
             ShowPlayerStats = show ? Visibility.Visible : Visibility.Collapsed;
+            StatsContext.PunkteleisteSichtbar = show;
 
             RefreshFinishState();
         }

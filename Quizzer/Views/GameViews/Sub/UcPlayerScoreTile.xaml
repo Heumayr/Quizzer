@@ -13,12 +13,46 @@
 
          Einfarbiger dunkler Grund statt des Kartenbilds - nur so ist der Kontrast unabhaengig
          vom Bildmotiv. Der Platz des Fuehrenden steht als Zahl da, nicht nur als Farbe. -->
+    <!-- Die Punkteaenderung einer Frage (2026-10-21): die Zahl zaehlt zum neuen Stand
+         (AnzeigePunkte), die Kachel leuchtet kurz in Gruen oder Rot auf, und oben rechts schwebt
+         "+200" bzw. "-100" ein, steht und blendet aus. Alles haengt an WechselAktiv. -->
+    <Grid>
     <Border Background="#CC111111"
             BorderBrush="{Binding DesignationBrush}"
             BorderThickness="2"
             CornerRadius="8"
             Margin="4"
             Padding="8">
+        <Border.Effect>
+            <DropShadowEffect x:Name="Leuchten" ShadowDepth="0" BlurRadius="0" Opacity="0"
+                              Color="{Binding WechselBrush.Color}" />
+        </Border.Effect>
+        <Border.Style>
+            <Style TargetType="Border">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding WechselAktiv}" Value="True">
+                        <DataTrigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Effect.BlurRadius">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.35" Value="28" />
+                                        <EasingDoubleKeyFrame KeyTime="0:0:1.6" Value="10" />
+                                        <EasingDoubleKeyFrame KeyTime="0:0:5" Value="0" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Effect.Opacity">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.35" Value="1" />
+                                        <EasingDoubleKeyFrame KeyTime="0:0:4.4" Value="0.8" />
+                                        <EasingDoubleKeyFrame KeyTime="0:0:5" Value="0" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </DataTrigger.EnterActions>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -61,7 +95,7 @@
                 <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Left"
                          VerticalAlignment="Center">
                     <TextBlock Visibility="{Binding NotAlternativTextVisibility}"
-                               Text="{Binding ActualScore}"
+                               Text="{Binding AnzeigePunkte}"
                                Foreground="WhiteSmoke"
                                FontWeight="ExtraBold" />
                 </Viewbox>
@@ -76,4 +110,70 @@
             </Grid>
         </Grid>
     </Border>
+
+    <!-- "+200" / "-100": schwebt von unten ein, steht, steigt beim Ausblenden weiter -->
+    <Border HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Margin="0,-6,8,0"
+            Padding="12,2"
+            CornerRadius="12"
+            Background="{Binding WechselBrush}"
+            BorderBrush="White"
+            BorderThickness="2"
+            IsHitTestVisible="False"
+            Opacity="0"
+            RenderTransformOrigin="0.5,0.5">
+        <Border.RenderTransform>
+            <TransformGroup>
+                <ScaleTransform ScaleX="1" ScaleY="1" />
+                <TranslateTransform Y="0" />
+            </TransformGroup>
+        </Border.RenderTransform>
+        <Border.Style>
+            <Style TargetType="Border">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding WechselAktiv}" Value="True">
+                        <DataTrigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="1" />
+                                        <EasingDoubleKeyFrame KeyTime="0:0:4.4" Value="1" />
+                                        <EasingDoubleKeyFrame KeyTime="0:0:5" Value="0" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="RenderTransform.Children[1].Y">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0" Value="24" />
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.45" Value="0">
+                                            <EasingDoubleKeyFrame.EasingFunction>
+                                                <BackEase EasingMode="EaseOut" Amplitude="0.5" />
+                                            </EasingDoubleKeyFrame.EasingFunction>
+                                        </EasingDoubleKeyFrame>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:4.4" Value="0" />
+                                        <EasingDoubleKeyFrame KeyTime="0:0:5" Value="-16" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="RenderTransform.Children[0].ScaleX">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0" Value="0.6" />
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.45" Value="1.15" />
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.7" Value="1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="RenderTransform.Children[0].ScaleY">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0" Value="0.6" />
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.45" Value="1.15" />
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.7" Value="1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </DataTrigger.EnterActions>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+        <Viewbox Height="34" Stretch="Uniform">
+            <TextBlock Text="{Binding WechselText}"
+                       FontWeight="ExtraBold"
+                       Foreground="White" />
+        </Viewbox>
+    </Border>
+    </Grid>
 </UserControl>

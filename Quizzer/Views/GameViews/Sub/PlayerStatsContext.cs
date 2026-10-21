@@ -13,7 +13,7 @@ using static Quizzer.Views.GameViews.Sub.PlayerResultContext;
 
 namespace Quizzer.Views.GameViews.Sub
 {
-    public class PlayerStatsContext : UcViewModelBase
+    public partial class PlayerStatsContext : UcViewModelBase
     {
         private Player player = null!;
         private Game game = null!;
@@ -153,6 +153,8 @@ namespace Quizzer.Views.GameViews.Sub
         {
             OnPropertyChanged(nameof(ActualScore));
             OnPropertyChanged(nameof(BackgroundBrush));
+
+            ZeigeWechsel(ActualScore);
         }
     }
 }
