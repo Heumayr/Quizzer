@@ -47,6 +47,12 @@ namespace Quizzer.UnitTests.Views
             typeof(Quizzer.Views.ImportPlayersView),
             typeof(Quizzer.Views.QuestionTypes.QuestionPreviewView),
             typeof(Quizzer.Views.QuestionTypes.RevealEditorView),
+            typeof(Quizzer.Views.GameViews.GamePlayersView),
+            typeof(Quizzer.Server.AccountsView),
+            typeof(Quizzer.Server.ChangePasswordView),
+            typeof(Quizzer.Server.ServerLoginView),
+            typeof(Quizzer.Server.StatisticsView),
+            typeof(Quizzer.Server.SyncRejectionsView),
         ];
 
         /// <summary>

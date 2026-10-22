@@ -243,6 +243,12 @@ namespace LocalBuzzer.Service
             return NetworkAddressPicker.Pick(adapter, includeLoopback);
         }
 
+        /// <summary>
+        /// Die LAN-Adressen, die dieser Rechner Telefonen anbieten kann - leer auf einem Rechner
+        /// mit nur virtuellen Adaptern (etwa einem CI-Runner in einer Hyper-V-Maschine).
+        /// </summary>
+        public static IReadOnlyList<string> LanAdressenDiesesRechners() => GetLocalIPs(includeLoopback: false, includeIPv6: false).ToList();
+
         public string? GetBestListeningIpPort()
         {
             return GetListeningIpPorts()

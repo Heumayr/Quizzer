@@ -58,6 +58,12 @@ namespace Quizzer.UnitTests.Views
             typeof(Quizzer.Views.ImportPlayersView),
             typeof(Quizzer.Views.QuestionTypes.QuestionPreviewView),
             typeof(Quizzer.Views.QuestionTypes.RevealEditorView),
+            typeof(Quizzer.Views.GameViews.GamePlayersView),
+            typeof(Quizzer.Server.AccountsView),
+            typeof(Quizzer.Server.ChangePasswordView),
+            typeof(Quizzer.Server.ServerLoginView),
+            typeof(Quizzer.Server.StatisticsView),
+            typeof(Quizzer.Server.SyncRejectionsView),
         ];
 
         private static IEnumerable<DependencyObject> Alle(DependencyObject wurzel)
@@ -95,6 +101,32 @@ namespace Quizzer.UnitTests.Views
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Ob der Text ganz oder teilweise ausserhalb des sichtbaren Bereichs eines
+        /// <c>ScrollViewer</c> liegt.
+        /// <para>
+        /// <b>Gemessen 2026-10-22 in der ersten CI:</b> die M12-Masken wurden laenger, und der
+        /// letzte Hinweis im Frage-Editor („Steht am Ende der Frage auf dem Beamer.") rutschte
+        /// unter den Rand. Abgeschnitten misst sich wie unsichtbar (1,2:1) - dabei scrollt man
+        /// einfach hin. Unsichtbarer Text <i>im</i> Sichtbereich faellt weiter auf.
+        /// </para>
+        /// </summary>
+        private static bool Herausgescrollt(FrameworkElement t)
+        {
+            for (var k = VisualTreeHelper.GetParent(t); k != null; k = VisualTreeHelper.GetParent(k))
+            {
+                if (k is not ScrollContentPresenter sicht)
+                    continue;
+
+                var box = t.TransformToAncestor(sicht).TransformBounds(new Rect(0, 0, t.ActualWidth, t.ActualHeight));
+
+                if (!new Rect(0, 0, sicht.ActualWidth, sicht.ActualHeight).Contains(box))
+                    return true;
+            }
+
+            return false;
         }
 
         private static double Helligkeit(byte r, byte g, byte b)
@@ -252,7 +284,7 @@ namespace Quizzer.UnitTests.Views
                         if (knoten is not TextBlock t || string.IsNullOrWhiteSpace(t.Text))
                             continue;
 
-                        if (t.ActualWidth < 1 || t.ActualHeight < 1 || !Sichtbar(t))
+                        if (t.ActualWidth < 1 || t.ActualHeight < 1 || !Sichtbar(t) || Herausgescrollt(t))
                             continue;
 
                         var oben = t.TransformToAncestor(inhalt).Transform(new Point(0, 0));

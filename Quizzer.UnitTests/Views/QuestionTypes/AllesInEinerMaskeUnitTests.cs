@@ -39,6 +39,8 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
             [nameof(QuestionStepResource.ResourceFileName)] = ["MediaCommand", "RemoveMediaCommand"],
             [nameof(QuestionStepResource.IsStart)] = ["Start.Text"],
             [nameof(ModelBase.Designation)] = ["Kurzform"],
+            // M12 Zuordnung: das Gegenstück steht in derselben Zeile wie der Begriff.
+            [nameof(QuestionStepResource.PartnerText)] = ["Partner"],
         };
 
         /// <summary>
@@ -58,6 +60,9 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
                 "vergibt VergibTasten bzw. CalculateOrderdSteps",
             [nameof(QuestionStepResource.IsQuestionOnly)] =
                 "NotMapped, nur auf einem vom Modell erfundenen Schritt gesetzt",
+            [nameof(QuestionStepResource.SolutionNumber)] =
+                "M12: die Reihenfolge der Zeilen ist die Loesung - ReihenfolgeComposer stempelt "
+                + "sie beim Speichern; eine getippte Zahl wuerde der Zeilenfolge widersprechen",
             [nameof(QuestionStepResource.QuestionBaseId)] = "Persistenz",
             [nameof(ModelBase.Id)] = "Persistenz",
             [nameof(ModelBase.RowVersion)] = "Persistenz",

@@ -154,6 +154,12 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
         [TestMethod]
         public async Task StartingTheServer_PutsItOnTheLan()
         {
+            // Ein Rechner ohne echten Netzadapter kann nichts anbieten - der GitHub-Runner etwa
+            // laeuft in einer Hyper-V-Maschine, und virtuelle Adapter schliesst der Picker
+            // absichtlich aus (AdressauswahlUnitTests). Dann sagt diese Probe nichts.
+            if (global::LocalBuzzer.Service.BuzzerServer.LanAdressenDiesesRechners().Count == 0)
+                Assert.Inconclusive("Dieser Rechner hat keinen echten Netzadapter - nur virtuelle.");
+
             await StartServerAsync(QuestionType.Default);
 
             Assert.IsTrue(serverVm!.IsBuzzerServerRunning, "Der Server ist nicht hochgekommen.");
