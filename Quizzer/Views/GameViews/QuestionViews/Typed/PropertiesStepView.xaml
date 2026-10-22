@@ -179,14 +179,16 @@
 
                     <!-- nur Text: die Auflösung so groß, wie die Spalte es hergibt (2026-10-22 - auf
                          dem ersten Bildschirmfoto stand „Der Elefant" in 44 Punkt mitten in einer
-                         leeren halben Beamerfläche). Feste Entwurfsbreite, damit langer Text
-                         umbricht statt zu einer winzigen Zeile zu schrumpfen. -->
+                         leeren halben Beamerfläche). Höchstbreite statt fester Breite: kurzer Text
+                         misst nur seine eigene Breite und wird groß, langer bricht bei 560 um,
+                         statt zu einer winzigen Zeile zu schrumpfen. Mit fester Breite blieb
+                         „Der Elefant" auf dem zweiten Foto so klein wie vorher. -->
                     <Viewbox Visibility="{Binding TextOnlyVisibility}"
                              Stretch="Uniform"
                              MaxHeight="420"
                              VerticalAlignment="Center">
                         <TextBlock Text="{Binding DisplayText}"
-                                   Width="560"
+                                   MaxWidth="560"
                                    FontSize="44"
                                    FontWeight="SemiBold"
                                    Padding="5,0,5,10"
