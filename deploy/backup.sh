@@ -16,4 +16,22 @@ docker compose cp sql:/var/opt/mssql/backup/quizzer.bak "$target/quizzer.bak"
 docker run --rm -v quizzer_quizzer-media:/data:ro -v "$PWD/$target":/out mcr.microsoft.com/dotnet/runtime-deps:10.0 tar czf /out/medien.tar.gz -C /data .
 
 echo "Gesichert nach $target"
+
+# Eine Kopie auf ein zweites Ziel - eine Sicherung nur auf demselben Rechner ist keine.
+if [ -n "${QUIZZER_BACKUP_COPY_TO:-}" ]; then
+  mkdir -p "$QUIZZER_BACKUP_COPY_TO/$stamp"
+  cp "$target"/* "$QUIZZER_BACKUP_COPY_TO/$stamp/"
+  echo "Kopiert nach $QUIZZER_BACKUP_COPY_TO/$stamp"
+else
+  echo "WARNUNG: QUIZZER_BACKUP_COPY_TO ist leer - die Sicherung liegt nur auf diesem Rechner." >&2
+fi
+
+# Aufbewahrung: nur die neuesten behalten (Ordnernamen sind Zeitstempel, also sortierbar).
+keep="${QUIZZER_BACKUP_KEEP:-14}"
+for ort in backups "${QUIZZER_BACKUP_COPY_TO:-}"; do
+  [ -n "$ort" ] && [ -d "$ort" ] || continue
+  ls -1d "$ort"/*/ 2>/dev/null | grep -E '/[0-9]{8}-[0-9]{6}/$' | sort -r | tail -n +"$((keep + 1))" | while read -r alt; do
+    rm -rf "$alt"; echo "Alte Sicherung entfernt: $alt"
+  done
+done
 echo "Diese Sicherung ist NICHT verschluesselt - auf einen verschluesselten Datentraeger oder zweiten Rechner legen."

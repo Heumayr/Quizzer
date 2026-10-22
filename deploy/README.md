@@ -21,12 +21,15 @@ cd deploy
 **Zertifikat**: von außen gibt es nur HTTPS, und das macht Caddy mit den Dateien aus `certs\`.
 Mit Tailscale:
 
+in `.env` `QUIZZER_TS_HOSTNAME=<rechnername>.<tailnet>.ts.net` eintragen, dann
+
 ```powershell
-tailscale cert --cert-file certs\server.crt --key-file certs\server.key <rechnername>.<tailnet>.ts.net
+.\zertifikat-erneuern.ps1     # tailscale cert + Caddy neu starten, wenn es sich geaendert hat
 ```
 
-Das Zertifikat gilt 90 Tage und erneuert sich **nicht von selbst** — den Befehl in die
-Aufgabenplanung legen (monatlich), danach `docker compose restart caddy`.
+Das Zertifikat gilt 90 Tage und erneuert sich **nicht von selbst** — `aufgaben-einrichten.ps1`
+(siehe *Sichern*) plant das Skript wöchentlich ein. Es endet mit Fehler, wenn das Zertifikat in
+weniger als 14 Tagen abläuft; das steht dann in `logs\zertifikat-erneuern.log`.
 
 Caddy holt bewusst **kein** eigenes Zertifikat: der Rechner ist aus dem Internet nicht
 erreichbar, und Caddys internes Zertifikat wechselt alle 12 Stunden - im WPF ließe es sich nicht
@@ -44,8 +47,10 @@ docker compose ps            # sql: healthy, migrator: exited (0), api + caddy: 
 Unter Linux den Schlüssel nur für den Besitzer lesbar machen: `chmod 600 certs/server.key`
 (unter Windows liegt er im Benutzerprofil bzw. dem Ordner mit dessen Rechten).
 
-**Erste Anmeldung**: Benutzer `admin` (oder `QUIZZER_ADMIN_USER`), Kennwort aus `.env`
-(`QUIZZER_ADMIN_PASSWORD`). In der WPF-App unter *Einstellungen → Server* die Adresse
+**Erste Anmeldung**: Benutzer und Kennwort aus `.env` (`QUIZZER_ADMIN_USER`, von
+`new-secrets` als `leitung-<zufall>` erzeugt, und `QUIZZER_ADMIN_PASSWORD`). Bewusst nicht
+`admin`: der erste Name, den jemand rät. Ohne `QUIZZER_ADMIN_USER` startet der Stapel nicht -
+ältere `.env` um die Zeile ergänzen. In der WPF-App unter *Einstellungen → Server* die Adresse
 `https://<rechnername>.<tailnet>.ts.net:8443` eintragen. Danach das Kennwort ändern und
 Konten für die Freunde anlegen.
 
@@ -86,6 +91,7 @@ Server laufen lassen, auf dem die Freunde ihre Spiele haben.
 
 ```powershell
 $env:QUIZZER_E2E_URL      = "https://<rechnername>.<tailnet>.ts.net:8443"
+$env:QUIZZER_E2E_USER     = "<QUIZZER_ADMIN_USER aus .env>"
 $env:QUIZZER_E2E_PASSWORD = "<Admin-Kennwort>"
 # nur bei selbst erzeugtem Zertifikat: $env:QUIZZER_E2E_PIN = "<SHA-256 des Zertifikats>"
 dotnet test Quizzer.Server.Tests --filter StackSmoke
@@ -104,6 +110,24 @@ Beides ist am 2026-10-21 gegen den laufenden Stapel durchgespielt worden (ein na
 angelegtes Konto war nach dem Zurückspielen wieder weg). **Die Sicherungen sind nicht
 verschlüsselt** — auf ein BitLocker-Laufwerk oder einen zweiten Rechner legen.
 
+Aus `.env`:
+
+- `QUIZZER_BACKUP_COPY_TO` - zweites Ziel (USB-Platte, Netzlaufwerk `\\nas\quizzer`); jede
+  Sicherung wird dorthin kopiert. Leer: nur eine Warnung - eine Sicherung auf demselben Rechner
+  übersteht dessen Plattenschaden nicht.
+- `QUIZZER_BACKUP_KEEP` (Vorgabe 14) - so viele der neuesten Sicherungen bleiben, hier und am
+  zweiten Ziel. Gelöscht werden nur Ordner mit Zeitstempel-Namen.
+
+**Einplanen** (einmal, als der Benutzer, unter dem Docker Desktop läuft; braucht PowerShell 7):
+
+```powershell
+.\aufgaben-einrichten.ps1    # Sicherung taeglich 03:12, Zertifikat sonntags 04:17
+```
+
+Docker Desktop läuft in der Benutzersitzung - die Aufgaben laufen nur, wenn er angemeldet ist
+(sperren genügt). Protokolle in `logs\`. Nach dem Einrichten einmal in der Aufgabenplanung
+*Ausführen* und das Protokoll ansehen.
+
 ## Aktualisieren
 
 ```powershell
@@ -113,7 +137,14 @@ docker compose up -d --build    # der Migrator bringt das Schema mit
 
 ## Unter Linux
 
-Statt der `.ps1`-Skripte `new-secrets.sh`, `backup.sh`, `restore.sh`. Für ein Testzertifikat ohne
+Statt der `.ps1`-Skripte `new-secrets.sh`, `backup.sh`, `restore.sh`, `zertifikat-erneuern.sh`.
+Einplanen per `crontab -e` (die Variablen aus `.env` liest `backup.sh` selbst):
+
+```
+12 3 * * *  cd /pfad/zu/Quizzer/deploy && mkdir -p logs && ./backup.sh >> logs/backup.log 2>&1
+17 4 * * 0  cd /pfad/zu/Quizzer/deploy && mkdir -p logs && ./zertifikat-erneuern.sh >> logs/zertifikat.log 2>&1
+```
+ Für ein Testzertifikat ohne
 Tailscale:
 
 ```bash

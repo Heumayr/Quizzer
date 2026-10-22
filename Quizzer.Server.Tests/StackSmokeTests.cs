@@ -15,7 +15,7 @@ namespace Quizzer.Server.Tests
     /// Server im Prozess: „am PC vorbereiten, am Laptop spielen" über die echte Leitung.
     /// <para>
     /// Läuft nur, wenn <c>QUIZZER_E2E_URL</c> gesetzt ist, sonst „nicht schlüssig". Dazu
-    /// <c>QUIZZER_E2E_USER</c> (Vorgabe <c>admin</c>), <c>QUIZZER_E2E_PASSWORD</c> und - bei
+    /// <c>QUIZZER_E2E_USER</c> (der Admin aus <c>.env</c>), <c>QUIZZER_E2E_PASSWORD</c> und - bei
     /// selbst erzeugtem Zertifikat - <c>QUIZZER_E2E_PIN</c> (SHA-256 des Zertifikats). Die
     /// beiden Client-Datenbanken legt er auf dem SQL Server aus <c>QUIZZER_SERVER_TEST_SQL</c> an.
     /// </para>
@@ -35,7 +35,8 @@ namespace Quizzer.Server.Tests
             if (string.IsNullOrWhiteSpace(url))
                 Assert.Inconclusive("QUIZZER_E2E_URL ist nicht gesetzt - kein laufender Stapel angegeben.");
 
-            var user = Environment.GetEnvironmentVariable("QUIZZER_E2E_USER") ?? "admin";
+            var user = Environment.GetEnvironmentVariable("QUIZZER_E2E_USER")
+                ?? throw new InvalidOperationException("QUIZZER_E2E_USER fehlt (QUIZZER_ADMIN_USER aus deploy/.env).");
             var password = Environment.GetEnvironmentVariable("QUIZZER_E2E_PASSWORD")
                 ?? throw new InvalidOperationException("QUIZZER_E2E_PASSWORD fehlt.");
             var pin = Environment.GetEnvironmentVariable("QUIZZER_E2E_PIN");

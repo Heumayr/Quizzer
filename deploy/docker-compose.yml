@@ -54,7 +54,7 @@ services:
       # Netz nicht - bewusste Ausnahme, siehe docs/server-trennung.md.
       ConnectionStrings__Quizzer: "Server=sql;Database=Quizzer;User Id=quizzer_app;Password=${QUIZZER_APP_PASSWORD};Encrypt=True;TrustServerCertificate=True"
       Quizzer__Jwt__SigningKey: ${QUIZZER_JWT_KEY:?QUIZZER_JWT_KEY fehlt in .env}
-      Quizzer__Bootstrap__AdminUser: ${QUIZZER_ADMIN_USER:-admin}
+      Quizzer__Bootstrap__AdminUser: ${QUIZZER_ADMIN_USER:?QUIZZER_ADMIN_USER fehlt in .env - kein "admin", siehe .env.example}
       Quizzer__Bootstrap__AdminPassword: ${QUIZZER_ADMIN_PASSWORD:?QUIZZER_ADMIN_PASSWORD fehlt in .env}
       # Nur http und nur im internen Netz - TLS macht Caddy. Kein "ports:": von aussen ist die
       # API nicht erreichbar, nur ueber Caddy.

@@ -26,7 +26,7 @@ gehört ins `.harness`-Submodul (dort committen und pushen), nirgendwo sonst —
 - `dotnet test Quizzer.Server.Tests` — Server und Abgleich Ende zu Ende; Datenbank aus
   `QUIZZER_SERVER_TEST_SQL`, sonst LocalDB `Quizzer_Server_Tests` (`.harness/memory/quizzer-server.md`)
 - Optional, schreibt in den Stapel: `dotnet test Quizzer.Server.Tests --filter StackSmoke` mit
-  `QUIZZER_E2E_URL`/`QUIZZER_E2E_PASSWORD` - Rundlauf PC → Caddy → Laptop (`deploy/README.md`)
+  `QUIZZER_E2E_URL`/`QUIZZER_E2E_USER`/`QUIZZER_E2E_PASSWORD` - Rundlauf PC → Caddy → Laptop (`deploy/README.md`)
 - **CI seit 2026-10-22** (`.github/workflows/ci.yml`): Windows baut alles und fährt alle drei
   Testprojekte gegen LocalDB, Linux Logik- und Servertests gegen SQL Server im Container. Rot in
   der CI ist rot - lokal grün ersetzt sie nicht. Lokal ohne LocalDB: `QUIZZER_LOGIC_TEST_SQL`

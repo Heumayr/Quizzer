@@ -15,6 +15,9 @@ $text = $text -replace '(?m)^QUIZZER_SA_PASSWORD=.*$', "QUIZZER_SA_PASSWORD=$(Ne
 $text = $text -replace '(?m)^QUIZZER_APP_PASSWORD=.*$', "QUIZZER_APP_PASSWORD=$(New-Password)"
 $text = $text -replace '(?m)^QUIZZER_JWT_KEY=.*$', "QUIZZER_JWT_KEY=$([Convert]::ToBase64String((New-Secret 48)))"
 $text = $text -replace '(?m)^QUIZZER_ADMIN_PASSWORD=.*$', "QUIZZER_ADMIN_PASSWORD=$(New-Password)"
+# Ein zufaelliger Admin-Name statt "admin" - den bekannten Namen koennte jeder sperren.
+$adminName = 'leitung-' + [Convert]::ToHexString((New-Secret 3)).ToLowerInvariant()
+$text = $text -replace '(?m)^QUIZZER_ADMIN_USER=.*$', "QUIZZER_ADMIN_USER=$adminName"
 Set-Content .env $text -NoNewline -Encoding utf8
 
 # Nur der eigene Benutzer darf die Datei lesen.
@@ -28,4 +31,4 @@ else {
     chmod 600 .env
 }
 
-Write-Host ".env angelegt. Admin-Kennwort steht darin (QUIZZER_ADMIN_PASSWORD) - nach der ersten Anmeldung aendern."
+Write-Host ".env angelegt. Erste Anmeldung: Benutzer $adminName, Kennwort in QUIZZER_ADMIN_PASSWORD - danach aendern."
