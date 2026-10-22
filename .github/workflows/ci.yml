@@ -59,10 +59,28 @@ jobs:
         run: dotnet test Quizzer.LogicUnitTests -c Release --no-build --logger "trx;LogFileName=logik.trx" --results-directory testergebnisse
 
       - name: WPF-Tests
-        run: dotnet test Quizzer.UnitTests -c Release --no-build --logger "trx;LogFileName=wpf.trx" --results-directory testergebnisse
+        run: dotnet test Quizzer.UnitTests -c Release --no-build --filter "TestCategory!=Bildschirmfotos" --logger "trx;LogFileName=wpf.trx" --results-directory testergebnisse
 
       - name: Servertests
         run: dotnet test Quizzer.Server.Tests -c Release --no-build --logger "trx;LogFileName=server.trx" --results-directory testergebnisse
+
+      # W1: Beamer, Fragefenster und Ergebnisfenster je Fragetyp und Schritt, dazu jedes Fenster.
+      # Eigener Schritt, weil er die Demodaten in die Testdatenbank schreibt - und auch dann,
+      # wenn vorher etwas rot war: gerade dann will man sehen, wie es aussieht.
+      - name: Bildschirmfotos
+        if: success() || failure()
+        env:
+          QUIZZER_BILDSCHIRMFOTOS: ${{ github.workspace }}/bildschirmfotos
+        run: dotnet test Quizzer.UnitTests -c Release --no-build --filter "TestCategory=Bildschirmfotos" --logger "trx;LogFileName=fotos.trx" --results-directory testergebnisse
+
+      - name: Bildschirmfotos aufheben
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bildschirmfotos
+          path: bildschirmfotos
+          if-no-files-found: warn
+          retention-days: 30
 
       - name: Testergebnisse aufheben
         if: always()

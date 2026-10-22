@@ -24,7 +24,7 @@ namespace Quizzer.UnitTests.Views
     [TestClass]
     public class AllWindowsBuildUnitTests
     {
-        private static readonly Type[] Fenster =
+        internal static readonly Type[] Fenster =
         [
             typeof(Quizzer.MainWindow),
             typeof(Quizzer.Views.CategoriesView),
