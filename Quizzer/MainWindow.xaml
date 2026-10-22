@@ -87,6 +87,9 @@
                     <TextBlock Text="{Binding SyncStatusText}" TextWrapping="Wrap" FontSize="12"
                                Opacity="0.75" Margin="0,0,0,6" />
 
+                    <Button Content="Jetzt verbinden" Command="{Binding ReconnectCommand}"
+                            Visibility="{Binding ReconnectVisibility}" Height="32" Margin="0,0,0,4" FontWeight="Bold"
+                            ToolTip="Versucht sofort, den Server zu erreichen, und überträgt dann alles, was offline gespeichert wurde. Das geschieht im Hintergrund ohnehin von selbst." />
                     <Button Content="Warum nicht übertragen?" Command="{Binding RejectionsCommand}"
                             Visibility="{Binding RejectionsVisibility}" Height="32" Margin="0,0,0,4" FontWeight="Bold"
                             ToolTip="Zeigt, welche Änderungen der Server abgewiesen hat, warum, und was dagegen hilft." />

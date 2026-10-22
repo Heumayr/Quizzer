@@ -163,7 +163,8 @@ namespace Quizzer.Server
                     SignedIn = true;
                     UserPrompt.Inform(
                         "Du arbeitest ohne Server mit dem Stand deiner letzten Anmeldung. "
-                        + "Alles wird lokal gespeichert und beim nächsten Anmelden übertragen.",
+                        + "Alles wird lokal gespeichert. Sobald der Server wieder erreichbar ist, "
+                        + "wird von selbst übertragen.",
                         "Offline");
                     Window?.Close();
                     return;

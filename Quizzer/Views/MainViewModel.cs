@@ -35,12 +35,57 @@ namespace Quizzer.Views
         public MainViewModel()
         {
             if (Server.ServerSession.Background is { } background)
-                background.StatusChanged += (_, _) => RunOnUi(() =>
-                {
-                    OnPropertyChanged(nameof(SyncStatusText));
-                    OnPropertyChanged(nameof(RejectionsVisibility));
-                });
+                Beobachte(background);
+
+            // Offline gestartet: kommt der Server zurueck, entsteht ein neuer Hintergrund-Abgleich.
+            Server.ServerSession.BackgroundStarted += (_, _) =>
+            {
+                if (Server.ServerSession.Background is { } neu)
+                    Beobachte(neu);
+
+                RunOnUi(ServerStandGeaendert);
+            };
+            Server.ServerSession.Wiederverbunden += (_, _) => RunOnUi(ServerStandGeaendert);
         }
+
+        private void Beobachte(Client.BackgroundSync background)
+            => background.StatusChanged += (_, _) => RunOnUi(() =>
+            {
+                OnPropertyChanged(nameof(SyncStatusText));
+                OnPropertyChanged(nameof(RejectionsVisibility));
+            });
+
+        private void ServerStandGeaendert()
+        {
+            OnPropertyChanged(nameof(SyncStatusText));
+            OnPropertyChanged(nameof(RejectionsVisibility));
+            OnPropertyChanged(nameof(ReconnectVisibility));
+            OnPropertyChanged(nameof(AdminVisibility));
+            System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+        }
+
+        /// <summary>Offline: „Jetzt verbinden" - der Wächter versucht es ohnehin, das hier sofort.</summary>
+        public System.Windows.Visibility ReconnectVisibility =>
+            Server.ServerSession.IsOffline ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+
+        private AsyncRelayCommand? reconnectCommand;
+
+        public ICommand ReconnectCommand => reconnectCommand ??= new AsyncRelayCommand(async _ =>
+        {
+            var ergebnis = await Task.Run(() => Server.ServerSession.TryReconnectAsync());
+
+            if (ergebnis == Client.WiederverbindungsErgebnis.NichtErreichbar)
+                UserPrompt.Inform("Der Server ist noch nicht erreichbar. Es wird im Hintergrund weiter versucht; lokal geht nichts verloren.", "Verbinden");
+            else if (ergebnis == Client.WiederverbindungsErgebnis.AnmeldungNoetig)
+                UserPrompt.Inform(AnmeldungNoetigText, "Verbinden");
+
+            ServerStandGeaendert();
+        }, _ => Server.ServerSession.IsOffline);
+
+        private const string AnmeldungNoetigText =
+            "Der Server ist da, aber die gespeicherte Anmeldung gilt nicht mehr (sie läuft nach 14 Tagen "
+            + "ab). Lokal ist alles gespeichert. Nach dem Spiel das Programm neu starten und anmelden - "
+            + "dann wird übertragen.";
 
         /// <summary>M9: im Servermodus der Abschnitt „Server" im Startfenster.</summary>
         public System.Windows.Visibility ServerVisibility =>
@@ -61,7 +106,9 @@ namespace Quizzer.Views
                     return string.Empty;
 
                 if (Server.ServerSession.IsOffline)
-                    return "Offline - alles wird lokal gespeichert und beim nächsten Anmelden übertragen.";
+                    return Server.ServerSession.LetzteWiederverbindung == Client.WiederverbindungsErgebnis.AnmeldungNoetig
+                        ? "Offline - der Server ist wieder da, aber die Anmeldung ist abgelaufen. Alles bleibt lokal gespeichert; nach dem Spiel neu starten und anmelden."
+                        : "Offline - alles wird lokal gespeichert. Sobald der Server erreichbar ist, wird von selbst übertragen.";
 
                 var status = Server.ServerSession.Background?.Status;
                 if (status == null)

@@ -196,6 +196,52 @@ namespace Quizzer.Server.Tests
             Assert.AreEqual(0, (await laptop.Sync.GetRejectionsAsync()).Count);
         }
 
+        /// <summary>
+        /// 2026-10-22: offline gespielt, dann ist der Server wieder da. Mit dem gespeicherten
+        /// Erneuerungsschlüssel geht es ohne Kennwort weiter, und der Abgleich schickt, was
+        /// offline gespeichert wurde - aus dem Zustand von vor dem Ausfall.
+        /// </summary>
+        [TestMethod]
+        public async Task WhatWasSavedOfflineGoesOutOnceTheServerIsBack()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var (pc, laptop, me) = await SignedInPairAsync(factory);
+            await using var _ = pc;
+            await using var __ = laptop;
+
+            var set = await PrepareGameLocallyAsync(pc, me);
+            await pc.Sync.PushAsync();
+
+            // „Offline": nur lokal gespeichert, nichts geht hinaus.
+            await RenameGameAsync(pc, set.Game.Id, "Offline gespielt");
+
+            var (fortgesetzt, sync) = await pc.ReconnectAsync(factory);
+            Assert.IsTrue(fortgesetzt, "Ohne Kennwort ging es nicht weiter.");
+            Assert.AreEqual(1, await sync.CountPendingAsync(), "Die offline gespeicherte Aenderung ist nicht mehr offen.");
+
+            var push = await sync.PushAsync();
+            Assert.AreEqual(0, push.Rejected.Count, string.Join("; ", push.Rejected.Select(r => r.Message)));
+
+            await laptop.Sync.PullAsync();
+            await using var local = laptop.Local();
+            Assert.AreEqual("Offline gespielt", (await local.Games.SingleAsync(g => g.Id == set.Game.Id)).Designation);
+        }
+
+        /// <summary>Ist der Erneuerungsschlüssel weg, gibt es keinen stillen Neuanfang - dann braucht es das Kennwort.</summary>
+        [TestMethod]
+        public async Task WithoutAValidRefreshTokenReconnectingNeedsTheUser()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var (pc, laptop, _) = await SignedInPairAsync(factory);
+            await using var __ = pc;
+            await using var ___ = laptop;
+
+            pc.Tokens.Clear();
+
+            var (fortgesetzt, _) = await pc.ReconnectAsync(factory);
+            Assert.IsFalse(fortgesetzt);
+        }
+
         /// <summary>Erneut senden bringt durch, was inzwischen geht.</summary>
         [TestMethod]
         public async Task ResendingGetsThroughOnceTheCauseIsGone()

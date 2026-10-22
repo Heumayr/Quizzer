@@ -122,9 +122,108 @@ namespace Quizzer.Server
             return true;
         }
 
+        private static Wiederverbindung? wiederverbindung;
+
+        /// <summary>Nach dem Ende der Wiederverbindung (verbunden oder Anmeldung noetig) - auf einem Hintergrund-Thread.</summary>
+        public static event EventHandler<WiederverbindungsErgebnis>? Wiederverbunden;
+
+        /// <summary>Das letzte Ergebnis der Wiederverbindung - fuer die Statuszeile.</summary>
+        public static WiederverbindungsErgebnis? LetzteWiederverbindung { get; private set; }
+
+        /// <summary>
+        /// Offline gestartet: im Hintergrund auf den Server warten und dann von selbst uebertragen
+        /// (2026-10-22). Ohne Offline-Sitzung geschieht nichts.
+        /// </summary>
+        public static void StartReconnectWatch()
+        {
+            if (!IsOffline || wiederverbindung != null)
+                return;
+
+            wiederverbindung = new Wiederverbindung(TryReconnectAsync);
+            wiederverbindung.Beendet += (_, ergebnis) =>
+            {
+                LetzteWiederverbindung = ergebnis;
+                Wiederverbunden?.Invoke(null, ergebnis);
+            };
+            wiederverbindung.Start();
+        }
+
+        /// <summary>
+        /// Ein Versuch: mit dem gespeicherten Erneuerungsschluessel anmelden und, wenn es dasselbe
+        /// Konto ist, den Hintergrund-Abgleich starten. Auch von „Jetzt verbinden" gerufen.
+        /// <para>
+        /// <b>Nur zurueckschicken, nicht abholen.</b> Laeuft gerade ein Spiel, haelt das Fenster
+        /// seinen Stand im Speicher; ein Abholen schriebe darunter in die Datenbank. Was der Server
+        /// wegen eines Konflikts abweist, zeigt „Warum nicht übertragen?" (V4).
+        /// </para>
+        /// <para>
+        /// <b>Nur dasselbe Konto.</b> Ein anderes hiesse eine andere Zwischendatenbank - die darf
+        /// nicht unter offenen Fenstern wechseln. Dann bleibt es bei „Anmeldung noetig".
+        /// </para>
+        /// </summary>
+        public static async Task<WiederverbindungsErgebnis> TryReconnectAsync(CancellationToken ct = default)
+        {
+            // Wächter und Knopf können gleichzeitig kommen - einer genügt.
+            await reconnectGate.WaitAsync(ct);
+            try
+            {
+                return await TryReconnectCoreAsync(ct);
+            }
+            finally
+            {
+                reconnectGate.Release();
+            }
+        }
+
+        private static readonly SemaphoreSlim reconnectGate = new(1, 1);
+
+        private static async Task<WiederverbindungsErgebnis> TryReconnectCoreAsync(CancellationToken ct)
+        {
+            if (!IsOffline)
+                return WiederverbindungsErgebnis.Verbunden;
+
+            if (Account is not { } offline || CacheConnectionString is not { } cache)
+                return WiederverbindungsErgebnis.AnmeldungNoetig;
+
+            QuizzerApiClient api;
+            try
+            {
+                api = CreateApi();
+            }
+            catch (ArgumentException)
+            {
+                return WiederverbindungsErgebnis.AnmeldungNoetig;
+            }
+
+            try
+            {
+                if (!await api.TryResumeAsync(ct))
+                    return WiederverbindungsErgebnis.AnmeldungNoetig;
+            }
+            catch (Exception ex) when (ex is ServerUnreachableException or IOException or System.Net.Http.HttpRequestException or TaskCanceledException && !ct.IsCancellationRequested)
+            {
+                return WiederverbindungsErgebnis.NichtErreichbar;
+            }
+
+            if (api.Account is not { } account || account.AccountId != offline.AccountId)
+                return WiederverbindungsErgebnis.AnmeldungNoetig;
+
+            Sync = new ClientSyncService(api, () => new SyncStore(cache), new FileSyncStateStore(StatePath(api.BaseAddress, account.AccountId)), Settings.FilePathQuizzer);
+            Account = account;
+            RememberAccount(api.BaseAddress, account);
+            IsOffline = false;
+
+            // Der Hintergrund-Abgleich schickt beim Start von selbst, was offline gespeichert wurde.
+            StartBackground();
+            return WiederverbindungsErgebnis.Verbunden;
+        }
+
         /// <summary>Ob es fuer diesen Server einen Stand gibt, mit dem man offline weiterarbeiten kann.</summary>
         public static bool CanWorkOffline(Uri server)
             => LoadRememberedAccount(server) != null && new DpapiTokenStore(server).Load() != null;
+
+        /// <summary>Ein neuer Hintergrund-Abgleich - etwa nach der Wiederverbindung. Fuer die Statuszeile.</summary>
+        public static event EventHandler? BackgroundStarted;
 
         /// <summary>Startet den Hintergrund-Abgleich. Ohne Server (offline) geschieht nichts.</summary>
         public static void StartBackground()
@@ -135,11 +234,14 @@ namespace Quizzer.Server
             Background?.Dispose();
             Background = new BackgroundSync(Sync);
             Background.Start();
+            BackgroundStarted?.Invoke(null, EventArgs.Empty);
         }
 
         /// <summary>Vor dem Beenden: noch Offenes schicken, aber nicht ewig warten.</summary>
         public static void Shutdown()
         {
+            wiederverbindung?.Dispose();
+
             try
             {
                 // Auf dem Threadpool: auf dem UI-Thread warteten die Fortsetzungen auf genau den

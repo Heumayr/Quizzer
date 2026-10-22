@@ -43,6 +43,7 @@ namespace Quizzer
                 }
 
                 Server.ServerSession.StartBackground();
+                Server.ServerSession.StartReconnectWatch();
             }
             else
             {

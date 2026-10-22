@@ -13,12 +13,29 @@ namespace Quizzer.Server.Tests
     /// </summary>
     internal sealed class ClientHarness : IAsyncDisposable
     {
-        private ClientHarness(string connectionString, string mediaRoot, QuizzerApiClient api)
+        private ClientHarness(string connectionString, string mediaRoot, QuizzerApiClient api, MemoryTokenStore tokens)
         {
             ConnectionString = connectionString;
             MediaRoot = mediaRoot;
             Api = api;
-            Sync = new ClientSyncService(api, () => new SyncStore(connectionString), new MemorySyncStateStore(), mediaRoot);
+            Tokens = tokens;
+            Sync = new ClientSyncService(api, () => new SyncStore(connectionString), State, mediaRoot);
+        }
+
+        /// <summary>Was ein Neustart des Programms überlebt: Erneuerungsschlüssel und Abgleichszustand.</summary>
+        public MemoryTokenStore Tokens { get; }
+
+        public MemorySyncStateStore State { get; } = new();
+
+        /// <summary>
+        /// Wie <c>ServerSession.TryReconnectAsync</c>: ein neuer API-Client mit dem gespeicherten
+        /// Erneuerungsschlüssel, ein neuer Abgleich auf demselben Zustand.
+        /// </summary>
+        public async Task<(bool Fortgesetzt, ClientSyncService Sync)> ReconnectAsync(WebApplicationFactory<Program> factory)
+        {
+            var api = new QuizzerApiClient(new Uri("https://localhost/api/v1/"), Tokens, handler: factory.Server.CreateHandler());
+            var fortgesetzt = await api.TryResumeAsync();
+            return (fortgesetzt, new ClientSyncService(api, () => new SyncStore(ConnectionString), State, MediaRoot));
         }
 
         public string ConnectionString { get; }
@@ -45,8 +62,9 @@ namespace Quizzer.Server.Tests
             var media = Path.Combine(ServerTestHost.MediaRoot, "..", Path.GetFileName(ServerTestHost.MediaRoot) + "-client-" + name);
             Directory.CreateDirectory(media);
 
-            var api = new QuizzerApiClient(new Uri("https://localhost/api/v1/"), new MemoryTokenStore(), handler: factory.Server.CreateHandler());
-            return new ClientHarness(builder.ConnectionString, Path.GetFullPath(media), api);
+            var tokens = new MemoryTokenStore();
+            var api = new QuizzerApiClient(new Uri("https://localhost/api/v1/"), tokens, handler: factory.Server.CreateHandler());
+            return new ClientHarness(builder.ConnectionString, Path.GetFullPath(media), api, tokens);
         }
 
         /// <summary>Ein Kontext auf die lokale Datenbank - so, wie die Controller im WPF schreiben.</summary>
