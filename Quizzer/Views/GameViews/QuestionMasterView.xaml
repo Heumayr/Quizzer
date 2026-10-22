@@ -231,6 +231,21 @@
                             Command="{Binding BuzzerControlsViewModel.ResetRoundCommand}"
                             CommandParameter="{Binding CurrentBuzzerLayout}"
                             ToolTip="Schickt die laufende Runde neu auf die Telefone." />
+
+                    <!-- V5: Countdown auf dem Beamer. Ein Buzzer haelt ihn an. -->
+                    <Separator Margin="4,18,4,2" />
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Countdown" Margin="4,0,4,4" />
+                    <TextBlock Text="{Binding Countdown.MasterText}" FontSize="12" Opacity="0.8" Margin="4,0,4,6" />
+                    <UniformGrid Columns="3" Margin="4,0,4,0">
+                        <Button Content="10 s" Command="{Binding StartCountdownCommand}" CommandParameter="10" Margin="0,0,2,0"
+                                ToolTip="Zeigt auf dem Beamer einen Countdown über 10 Sekunden. Wer buzzert, hält ihn an." />
+                        <Button Content="30 s" Command="{Binding StartCountdownCommand}" CommandParameter="30" Margin="2,0,2,0"
+                                ToolTip="Countdown über 30 Sekunden. Wer buzzert, hält ihn an." />
+                        <Button Content="60 s" Command="{Binding StartCountdownCommand}" CommandParameter="60" Margin="2,0,0,0"
+                                ToolTip="Countdown über eine Minute. Wer buzzert, hält ihn an." />
+                    </UniformGrid>
+                    <Button Content="Countdown anhalten" Command="{Binding StopCountdownCommand}" Margin="4,6,4,0"
+                            ToolTip="Nimmt den Countdown vom Beamer." />
                 </StackPanel>
             </Grid>
         </Border>

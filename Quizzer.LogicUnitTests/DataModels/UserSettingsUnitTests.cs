@@ -160,6 +160,23 @@ namespace Quizzer.LogicUnitTests.DataModels
             Assert.IsFalse(UserSettings.Load().Animationen, "Das Abschalten wurde nicht gemerkt.");
         }
 
+        /// <summary>V5: Töne sind in einer älteren Datei an, und das Abschalten lässt den Rest stehen.</summary>
+        [TestMethod]
+        public void TonesAreOnInAnOlderFileAndSwitchOffAlone()
+        {
+            Directory.CreateDirectory(UserSettings.Folder);
+            File.WriteAllText(UserSettings.FilePath, "{\"FilePathQuizzer\":\"D:\\\\Quiz\",\"MsSqlConString\":null,\"Animationen\":false}");
+
+            Assert.IsTrue(UserSettings.Load().Toene);
+
+            UserSettings.SaveToene(false);
+
+            var werte = UserSettings.Load();
+            Assert.IsFalse(werte.Toene, "Das Abschalten wurde nicht gemerkt.");
+            Assert.IsFalse(werte.Animationen, "Das Merken der Töne hat die Animationen umgestellt.");
+            Assert.AreEqual(@"D:\Quiz", werte.FilePathQuizzer);
+        }
+
         /// <summary>
         /// Die Platzierung des Punktestands (2026-10-21) wird gemerkt - und das Merken laesst
         /// Ordner, Datenbank und Serverangaben stehen.

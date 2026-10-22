@@ -35,6 +35,9 @@ namespace Quizzer.Views.GameViews
 
         public GamePlayerViewModel GamePlayerViewModel { get; private set; } = new();
 
+        /// <summary>V5: der Countdown - einer je Spiel, Fragefenster und Beamer teilen ihn.</summary>
+        public CountdownViewModel Countdown { get; } = new();
+
         public StatsContext StatsContext { get; private set; } = new();
 
         private BuzzerServerView? buzzerServerView = null;

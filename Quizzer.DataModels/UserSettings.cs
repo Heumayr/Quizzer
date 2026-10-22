@@ -36,7 +36,8 @@ namespace Quizzer.DataModels
             string? ServerCertificateSha256 = null,
             string? LastUserName = null,
             bool ScoresLeft = false,
-            bool Animationen = true);
+            bool Animationen = true,
+            bool Toene = true);
 
         private static string? folderOverride;
 
@@ -129,6 +130,18 @@ namespace Quizzer.DataModels
             Directory.CreateDirectory(Folder);
 
             var werte = Load() with { Animationen = an };
+
+            File.WriteAllText(
+                FilePath,
+                JsonSerializer.Serialize(werte, new JsonSerializerOptions { WriteIndented = true }));
+        }
+
+        /// <summary>Merkt sich, ob der Beamer-Rechner Töne spielt (Buzzer, Countdown - V5, 2026-10-22).</summary>
+        public static void SaveToene(bool an)
+        {
+            Directory.CreateDirectory(Folder);
+
+            var werte = Load() with { Toene = an };
 
             File.WriteAllText(
                 FilePath,

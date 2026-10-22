@@ -209,6 +209,40 @@
             </Viewbox>
         </Grid>
 
+        <!-- V5: COUNTDOWN oben rechts, ueber Raster und Frage. Rot in den letzten Sekunden. -->
+        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
+                DataContext="{Binding Countdown}"
+                Visibility="{Binding Visibility, FallbackValue=Collapsed}"
+                HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,24,24,0"
+                MinWidth="220" Padding="28,10,28,14" CornerRadius="18"
+                BorderThickness="3" IsHitTestVisible="False" Panel.ZIndex="950"
+                base:Bewegung.Einblenden="True" base:Bewegung.Stil="Zoomen">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="#E6101010" />
+                    <Setter Property="BorderBrush" Value="WhiteSmoke" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Knapp}" Value="True">
+                            <Setter Property="Background" Value="#E6801010" />
+                            <Setter Property="BorderBrush" Value="#FFFF8A80" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <StackPanel>
+                <TextBlock Text="{Binding Text}" FontSize="96" FontWeight="Bold" Foreground="WhiteSmoke"
+                           HorizontalAlignment="Center" FontFamily="Segoe UI" />
+                <!-- Der Balken schrumpft von rechts nach links; nur Skalierung, kein Layout. -->
+                <Border Height="10" CornerRadius="5" Background="#33FFFFFF" Margin="0,4,0,0">
+                    <Border CornerRadius="5" Background="WhiteSmoke" HorizontalAlignment="Stretch" RenderTransformOrigin="0,0.5">
+                        <Border.RenderTransform>
+                            <ScaleTransform ScaleX="{Binding Anteil}" />
+                        </Border.RenderTransform>
+                    </Border>
+                </Border>
+            </StackPanel>
+        </Border>
+
         <!-- PUNKTE DIESER FRAGE: nur wenn die Leiste ausgeblendet ist (2026-10-21). Faehrt
              vergroessert ein, steht einige Sekunden und blendet aus. -->
         <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"

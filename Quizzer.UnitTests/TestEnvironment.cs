@@ -41,6 +41,10 @@ namespace Quizzer.UnitTests
 
             ViewCommonBase.UiInvokerOverride = () => new InlineUiInvoker();
 
+            // Kein Buzzer-Ton und kein Gong aus dem Testlauf - und keine Abhaengigkeit von der
+            // settings.json des Rechners, auf dem er laeuft.
+            Klang.Aktiv = false;
+
             // Der Rueckfallwert fuer Rueckfragen wirft, statt ein Fenster zu oeffnen. Warum das
             // sein muss, steht in ThrowingUserPrompt - kurz: ein modales Fenster im Testprozess
             // haelt den Lauf an, ohne rot zu werden und ohne einen Namen zu nennen.

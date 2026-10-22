@@ -36,6 +36,8 @@ namespace Quizzer.Views.GameViews
 
         public StatsContext StatsContext => GameMasterViewModel?.StatsContext ?? new();
 
+        public CountdownViewModel? Countdown => GameMasterViewModel?.Countdown;
+
         public bool IsGameFinished => GameMasterViewModel?.IsGameFinished ?? false;
 
         public Visibility ShowPlayerStats
@@ -345,7 +347,12 @@ namespace Quizzer.Views.GameViews
                 OnPropertyChanged();
 
                 if (currentBuzzerWinner != null)
+                {
+                    // V5: hörbar, wer dran ist - und die Zeit steht, sobald jemand buzzert.
+                    Quizzer.Base.Klang.Buzzer();
+                    Countdown?.Stoppe();
                     ShowCurrentBuzzerWinnerWindows(currentBuzzerWinner);
+                }
                 else
                     CloseCurrentBuzzerWinnerWindows();
 

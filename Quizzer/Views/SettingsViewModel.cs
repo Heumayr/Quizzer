@@ -224,6 +224,28 @@ namespace Quizzer.Views
             }
         }
 
+        /// <summary>V5: Töne auf dem Beamer-Rechner. Wie <see cref="Animationen"/> sofort gemerkt.</summary>
+        public bool Toene
+        {
+            get => DataModels.UserSettings.Load().Toene;
+            set
+            {
+                try
+                {
+                    DataModels.UserSettings.SaveToene(value);
+                }
+                catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException)
+                {
+                }
+
+                Quizzer.Base.Klang.Aktiv = value;
+                OnPropertyChanged();
+
+                if (value)
+                    Quizzer.Base.Klang.Buzzer();
+            }
+        }
+
         public string ServerUrl
         {
             get => serverUrl;

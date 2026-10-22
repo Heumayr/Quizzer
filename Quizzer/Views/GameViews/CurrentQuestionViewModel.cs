@@ -135,8 +135,26 @@ namespace Quizzer.Views.GameViews
             RaisePointsNow();
         }
 
+        /// <summary>V5: der Countdown gehört dem Spiel, nicht dem Fenster - gestartet wird er hier.</summary>
+        public Sub.CountdownViewModel? Countdown => GameMasterViewModel?.Countdown;
+
+        private RelayCommand? startCountdownCommand;
+
+        public ICommand StartCountdownCommand => startCountdownCommand ??= new RelayCommand(p =>
+        {
+            if (int.TryParse(p?.ToString(), out var sekunden) && sekunden > 0)
+                Countdown?.Starte(sekunden);
+        });
+
+        private RelayCommand? stopCountdownCommand;
+
+        public ICommand StopCountdownCommand => stopCountdownCommand ??= new RelayCommand(_ => Countdown?.Stoppe());
+
         protected override async Task OnClosed()
         {
+            // Ein Countdown überlebt die Frage nicht - sonst liefe er über dem Raster weiter.
+            Countdown?.Stoppe();
+
             GamePlayerViewModel?.SetView(null);
 
             // Das Ergebnisfenster geht mit. Blieb es stehen, landeten spaeter gespeicherte
