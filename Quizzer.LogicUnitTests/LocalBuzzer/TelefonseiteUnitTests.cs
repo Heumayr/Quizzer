@@ -117,5 +117,12 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// </summary>
         [TestMethod]
         public void TheJoinFlowWaitsForTheGameMaster() => LaufeMit("join.test.mjs");
+
+        /// <summary>
+        /// V5: der Bildschirm bleibt wach - im http-WLAN über ein stummes Video, unter https über
+        /// Wake Lock, und nach dem Zurückkommen aus dem Hintergrund neu.
+        /// </summary>
+        [TestMethod]
+        public void ThePhoneScreenStaysAwake() => LaufeMit("wachbleiben.test.mjs");
     }
 }

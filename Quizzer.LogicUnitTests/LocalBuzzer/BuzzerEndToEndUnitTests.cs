@@ -118,6 +118,24 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             }
         }
 
+        /// <summary>
+        /// V5: das Video, das den Telefonbildschirm wach hält, muss mit dem richtigen Typ kommen -
+        /// sonst spielt Safari es nicht ab, und der Bildschirm geht wieder aus.
+        /// </summary>
+        [TestMethod]
+        [DataRow("/media/wach.mp4", "video/mp4")]
+        [DataRow("/media/wach.webm", "video/webm")]
+        [DataRow("/JS/wachbleiben.js", "text/javascript")]
+        public async Task TheKeepAwakeFilesAreServed(string pfad, string typ)
+        {
+            using var http = new HttpClient();
+            using var antwort = await http.GetAsync($"http://127.0.0.1:{TestPort}{pfad}");
+
+            Assert.AreEqual(System.Net.HttpStatusCode.OK, antwort.StatusCode, pfad);
+            Assert.AreEqual(typ, antwort.Content.Headers.ContentType?.MediaType, pfad);
+            Assert.IsTrue((await antwort.Content.ReadAsByteArrayAsync()).Length > 500, pfad + " ist leer.");
+        }
+
         [TestMethod]
         public async Task TheBuzzerLayoutReachesThePhone()
         {

@@ -5,6 +5,7 @@ import { LayoutManager } from "./layoutManager.js";
 import { BuzzerLayout } from "./layouts/buzzerLayout.js";
 import { KeySelectLayout } from "./layouts/keySelectLayout.js";
 import { InputLayout } from "./layouts/inputLayout.js";
+import { wachHalten } from "./wachbleiben.js";
 
 const WAITING_FOR_HOST = "Verbunden – warte auf den Spielleiter";
 
@@ -232,5 +233,8 @@ async function start() {
         showDisconnected(getErrMsg(e));
     }
 }
+
+// Ab dem ersten Tipp bleibt der Bildschirm an - auch schon waehrend des Anmeldens.
+wachHalten();
 
 start();

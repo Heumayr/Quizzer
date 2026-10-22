@@ -586,3 +586,15 @@ body {
         transform: none;
     }
 }
+
+/* V5: das stumme Video, das den Bildschirm wach haelt (wachbleiben.js). Unsichtbar, aber nicht
+   display:none - ein verstecktes Video spielen manche Browser nicht ab. */
+.wach-video {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0.01;
+    pointer-events: none;
+}
