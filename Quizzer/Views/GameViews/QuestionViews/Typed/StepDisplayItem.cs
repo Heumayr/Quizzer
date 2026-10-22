@@ -115,6 +115,8 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
             && owner.Question?.Typ == QuestionType.TrueFalse
             && (owner.IsMasterView || owner.Step?.IsFinish == true)
                 ? (Step.IsResult ? "wahr" : "falsch")
+            : IsVisibleSlot && ZeigtRichtig && owner.Question?.Typ != QuestionType.TrueFalse
+                ? "richtig"
             : IsVisibleSlot
             && owner.Question?.Typ is QuestionType.Ordering or QuestionType.Matching
             && Step.SolutionNumber > 0
@@ -126,6 +128,22 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
 
         public Visibility SolutionBadgeVisibility =>
             string.IsNullOrEmpty(SolutionBadge) ? Visibility.Collapsed : Visibility.Visible;
+
+        /// <summary>
+        /// Ein Rahmen um die richtige Antwort - unabhängig vom Design. Der grüne Grund allein kam
+        /// aus einem Bild und fiel ohne es auf dieselbe Farbe wie alle anderen (2026-10-22).
+        /// </summary>
+        public Brush RichtigRahmen => IsVisibleSlot && ZeigtRichtig ? RichtigGruen : Brushes.Transparent;
+
+        public Thickness RichtigRahmenDicke => IsVisibleSlot && ZeigtRichtig ? new Thickness(6) : new Thickness(0);
+
+        private static readonly Brush RichtigGruen = Gefroren(new SolidColorBrush(Color.FromRgb(0x4C, 0xD9, 0x64)));
+
+        private static Brush Gefroren(Brush pinsel)
+        {
+            pinsel.Freeze();
+            return pinsel;
+        }
 
         public Brush VerticalBackground =>
            IsVisibleSlot && ZeigtRichtig

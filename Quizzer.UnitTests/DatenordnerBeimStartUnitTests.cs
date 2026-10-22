@@ -60,7 +60,7 @@ namespace Quizzer.UnitTests
             StringAssert.Contains(prompt.Confirms[0].Message, fehlend,
                 "Die Meldung nennt den Pfad nicht, um den es geht: " + prompt.Confirms[0].Message);
 
-            StringAssert.Contains(prompt.Confirms[0].Message, "schwarz",
+            StringAssert.Contains(prompt.Confirms[0].Message, "Ersatzfarben",
                 "Die Meldung nennt die Folge nicht: " + prompt.Confirms[0].Message);
 
             Assert.IsFalse(Directory.Exists(fehlend),

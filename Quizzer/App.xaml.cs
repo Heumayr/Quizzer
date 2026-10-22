@@ -229,7 +229,7 @@ namespace Quizzer
                 + Environment.NewLine + Environment.NewLine
                 + "Ordner: " + (string.IsNullOrWhiteSpace(ordner) ? "(nicht eingetragen)" : ordner)
                 + Environment.NewLine + Environment.NewLine
-                + "Ohne ihn bleiben Hintergründe, Zellbilder und Spielerbilder schwarz, und "
+                + "Ohne ihn stehen statt der Hintergrund-, Zell- und Spielerbilder schlichte Ersatzfarben, und "
                 + "Medien lassen sich nicht ablegen. Gespielt werden kann trotzdem."
                 + Environment.NewLine + Environment.NewLine
                 + "Sollen die Einstellungen jetzt geöffnet werden?",

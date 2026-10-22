@@ -55,38 +55,67 @@ namespace Quizzer.Views.StaticRessources
             }
         }
 
+        /// <summary>
+        /// Ersatzfarben, wo ein Hintergrundbild fehlt (2026-10-22, gesehen auf den ersten
+        /// Bildschirmfotos der CI). Bis hierher fiel <b>jedes</b> fehlende Bild auf Schwarz - auf
+        /// einem frischen Rechner war damit das Feld der richtigen Antwort so schwarz wie alle
+        /// anderen, die Auflösung einer Multiple-Choice-Frage zeigte nichts, die Zellen des
+        /// Spielfelds verschwanden im Hintergrund, und der schwarze Streifen der belgischen Flagge
+        /// mit ihnen. Gedeckte Farben, die auf dem Beamer ruhig bleiben, aber unterscheidbar sind.
+        /// </summary>
+        internal static class Ersatz
+        {
+            public static readonly Brush Zelle = Farbe(0x1B, 0x2B, 0x44);
+            public static readonly Brush ZelleHover = Farbe(0x26, 0x41, 0x6A);
+            public static readonly Brush ZelleGespielt = Farbe(0x1A, 0x1A, 0x1A);
+            public static readonly Brush Kopf = Farbe(0x2E, 0x2E, 0x2E);
+            public static readonly Brush Auswahlfeld = Farbe(0x1C, 0x26, 0x33);
+            public static readonly Brush AuswahlfeldRichtig = Farbe(0x1F, 0x5C, 0x2E);
+            public static readonly Brush Schrittleiste = Farbe(0x1C, 0x1C, 0x1C);
+            public static readonly Brush Platzhalter = Farbe(0x33, 0x33, 0x33);
+            public static readonly Brush Spielerkarte = Farbe(0x1E, 0x1E, 0x1E);
+            public static readonly Brush SpielerkarteSieger = Farbe(0x5A, 0x46, 0x10);
+
+            private static Brush Farbe(byte r, byte g, byte b)
+            {
+                var pinsel = new SolidColorBrush(Color.FromRgb(r, g, b));
+                pinsel.Freeze();
+                return pinsel;
+            }
+        }
+
         public static readonly Brush CellImageBrush =
-            CreateImageBrushOrBlack(Settings.CellBackgroundImagePath);
+            CreateImageBrushOrFallback(Settings.CellBackgroundImagePath, Stretch.Fill, Ersatz.Zelle);
 
         public static readonly Brush CellHoverImageBrush =
-            CreateImageBrushOrBlack(Settings.CellBackgroundHoverImagePath);
+            CreateImageBrushOrFallback(Settings.CellBackgroundHoverImagePath, Stretch.Fill, Ersatz.ZelleHover);
 
         public static readonly Brush CellImageBrushIsDone =
-            CreateImageBrushOrBlack(Settings.CellBackgroundIsDoneImagePath);
+            CreateImageBrushOrFallback(Settings.CellBackgroundIsDoneImagePath, Stretch.Fill, Ersatz.ZelleGespielt);
 
         public static readonly Brush HeaderColumnImageBrush =
-            CreateImageBrushOrBlack(Settings.HeaderColumnBackgroundImagePath);
+            CreateImageBrushOrFallback(Settings.HeaderColumnBackgroundImagePath, Stretch.Fill, Ersatz.Kopf);
 
         public static readonly Brush HeaderRowImageBrush =
-            CreateImageBrushOrBlack(Settings.HeaderRowBackgroundImagePath);
+            CreateImageBrushOrFallback(Settings.HeaderRowBackgroundImagePath, Stretch.Fill, Ersatz.Kopf);
 
         public static readonly Brush ChoiceBackgroundImageBrush =
-            CreateImageBrushOrBlack(Settings.GridBackgroundImagePath, Stretch.Fill);
+            CreateImageBrushOrFallback(Settings.GridBackgroundImagePath, Stretch.Fill, Ersatz.Auswahlfeld);
 
         public static readonly Brush ChoiceBackgroundResultImageBrush =
-            CreateImageBrushOrBlack(Settings.GridBackgroundResultImagePath, Stretch.Fill);
+            CreateImageBrushOrFallback(Settings.GridBackgroundResultImagePath, Stretch.Fill, Ersatz.AuswahlfeldRichtig);
 
         public static readonly Brush HorizontalBackgroundImageBrush =
-            CreateImageBrushOrBlack(Settings.HorizontalBackgroundImagePath, Stretch.Fill);
+            CreateImageBrushOrFallback(Settings.HorizontalBackgroundImagePath, Stretch.Fill, Ersatz.Schrittleiste);
 
         public static readonly Brush PlayerPlaceHolderImageBrush =
-            CreateImageBrushOrBlack(Settings.PlaceholderPlayerImagePath);
+            CreateImageBrushOrFallback(Settings.PlaceholderPlayerImagePath, Stretch.Fill, Ersatz.Platzhalter);
 
         public static readonly Brush PlayerCardImageBrush =
-            CreateImageBrushOrBlack(Settings.PlayerCardBackgroundImagePath);
+            CreateImageBrushOrFallback(Settings.PlayerCardBackgroundImagePath, Stretch.Fill, Ersatz.Spielerkarte);
 
         public static readonly Brush PlayerCardWinnerImageBrush =
-            CreateImageBrushOrBlack(Settings.PlayerCardBackgroundWinnerImagePath);
+            CreateImageBrushOrFallback(Settings.PlayerCardBackgroundWinnerImagePath, Stretch.Fill, Ersatz.SpielerkarteSieger);
 
         public static readonly Brush PlayGroundBackGround =
             CreateImageBrushOrBlack(Settings.BackgroundImagePath, Stretch.UniformToFill);

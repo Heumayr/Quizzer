@@ -177,19 +177,23 @@
                              HorizontalAlignment="Stretch" />
                     </Grid>
 
-                    <!-- nur Text -->
-                    <Grid Visibility="{Binding TextOnlyVisibility}">
+                    <!-- nur Text: die Auflösung so groß, wie die Spalte es hergibt (2026-10-22 - auf
+                         dem ersten Bildschirmfoto stand „Der Elefant" in 44 Punkt mitten in einer
+                         leeren halben Beamerfläche). Feste Entwurfsbreite, damit langer Text
+                         umbricht statt zu einer winzigen Zeile zu schrumpfen. -->
+                    <Viewbox Visibility="{Binding TextOnlyVisibility}"
+                             Stretch="Uniform"
+                             MaxHeight="420"
+                             VerticalAlignment="Center">
                         <TextBlock Text="{Binding DisplayText}"
+                                   Width="560"
                                    FontSize="44"
                                    FontWeight="SemiBold"
                                    Padding="5,0,5,10"
-                                   Background="Black"
                                    Foreground="Wheat"
                                    TextWrapping="Wrap"
-                                   TextAlignment="Center"
-                                   VerticalAlignment="Center"
-                                   HorizontalAlignment="Stretch" />
-                    </Grid>
+                                   TextAlignment="Center" />
+                    </Viewbox>
 
                     <!-- nur Media -->
                     <Grid Visibility="{Binding MediaOnlyVisibility}">

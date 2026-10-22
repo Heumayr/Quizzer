@@ -43,6 +43,8 @@ namespace Quizzer.UnitTests.Bildschirmfotos
         private string ziel = null!;
         private int nummer;
         private readonly List<string> leer = new();
+        private readonly List<string> ohneRichtigRahmen = new();
+        private string vorsilbe = "spiel";
 
         [TestInitialize]
         public void SetUp()
@@ -54,6 +56,13 @@ namespace Quizzer.UnitTests.Bildschirmfotos
 
             ziel = ordner!;
             Directory.CreateDirectory(ziel);
+
+            // Der Runner laeuft auf Englisch; das Programm nimmt die Windows-Sprache. Damit die Fotos
+            // zeigen, was ein deutsches Windows zeigt (sonst „11/9/1989" statt „09.11.1989").
+            var deutsch = System.Globalization.CultureInfo.GetCultureInfo("de-AT");
+            System.Globalization.CultureInfo.DefaultThreadCurrentCulture = deutsch;
+            System.Globalization.CultureInfo.CurrentCulture = deutsch;
+            UiTestHost.Run(() => System.Globalization.CultureInfo.CurrentCulture = deutsch);
 
             // Ein Auftritt startet bei Deckkraft 0 - fotografiert sähe alles blass aus.
             Bewegung.Aktiv = false;
@@ -110,12 +119,16 @@ namespace Quizzer.UnitTests.Bildschirmfotos
 
             Assert.IsTrue(nummer >= zellen.Count * 3, $"Nur {nummer} Bilder fuer {zellen.Count} Fragen.");
             Assert.AreEqual(0, leer.Count, "Diese Bilder sind einfarbig - dort ist nichts zu sehen: " + string.Join(", ", leer));
+            Assert.AreEqual(0, ohneRichtigRahmen.Count,
+                "Bei dieser Multiple-Choice-Aufloesung ist die richtige Antwort nicht gruen umrahmt: " + string.Join(", ", ohneRichtigRahmen));
         }
 
         /// <summary>Jedes Fenster der Anwendung, so wie es ohne Daten aufgeht.</summary>
         [TestMethod]
         public void EveryWindowIsPhotographed()
         {
+            vorsilbe = "fenster";
+
             UiTestHost.Run(() =>
             {
                 foreach (var typ in Views.AllWindowsBuildUnitTests.Fenster)
@@ -131,7 +144,15 @@ namespace Quizzer.UnitTests.Bildschirmfotos
             // Der Getter schiebt den Schritt auf den Beamer - wie die Bindung im Fragefenster.
             _ = vm.CurrentStepContext;
 
-            UiTestHost.Run(() => Fotografiere<GamePlayerView>(beamer, $"{frage}-{schritt:00}", "beamer", BeamerBreite, BeamerHoehe));
+            UiTestHost.Run(() =>
+            {
+                var bild = Fotografiere<GamePlayerView>(beamer, $"{frage}-{schritt:00}", "beamer", BeamerBreite, BeamerHoehe);
+
+                // Die Gegenprobe zum ersten Fotolauf (2026-10-22): dort war die Aufloesung von
+                // der Frage davor nicht zu unterscheiden.
+                if (vm.Question?.Typ == QuestionType.MultipleChoice && vm.CurrentStep?.IsFinish == true && !HatRichtigGruen(bild))
+                    ohneRichtigRahmen.Add($"{frage}-{schritt:00}");
+            });
         }
 
         private static GameGridVMs Raster(Game spiel)
@@ -144,14 +165,14 @@ namespace Quizzer.UnitTests.Bildschirmfotos
             return raster;
         }
 
-        private void Fotografiere<TFenster>(object dataContext, string name, string wer, double breite, double hoehe)
+        private BitmapSource Fotografiere<TFenster>(object dataContext, string name, string wer, double breite, double hoehe)
             where TFenster : Window, new()
         {
             var fenster = new TFenster { DataContext = dataContext };
 
             try
             {
-                Speichere(fenster, $"{name}-{wer}", breite, hoehe, pruefeLeer: true);
+                return Speichere(fenster, $"{name}-{wer}", breite, hoehe, pruefeLeer: true);
             }
             finally
             {
@@ -159,7 +180,7 @@ namespace Quizzer.UnitTests.Bildschirmfotos
             }
         }
 
-        private void Speichere(Window fenster, string name, double breite, double hoehe, bool pruefeLeer)
+        private BitmapSource Speichere(Window fenster, string name, double breite, double hoehe, bool pruefeLeer)
         {
             var inhalt = (FrameworkElement)fenster.Content;
 
@@ -184,7 +205,7 @@ namespace Quizzer.UnitTests.Bildschirmfotos
             bild.Render(grund);
             bild.Render(inhalt);
 
-            var datei = Path.Combine(ziel, $"{++nummer:000}-{Bereinige(name)}.png");
+            var datei = Path.Combine(ziel, $"{vorsilbe}-{++nummer:000}-{Bereinige(name)}.png");
 
             var png = new PngBitmapEncoder();
             png.Frames.Add(BitmapFrame.Create(bild));
@@ -194,6 +215,27 @@ namespace Quizzer.UnitTests.Bildschirmfotos
 
             if (pruefeLeer && Einfarbig(bild))
                 leer.Add(Path.GetFileName(datei));
+
+            return bild;
+        }
+
+        /// <summary>Ob irgendwo der Rahmen der richtigen Antwort (#4CD964) zu sehen ist.</summary>
+        private static bool HatRichtigGruen(BitmapSource bild)
+        {
+            var schritt = bild.PixelWidth * 4;
+            var punkte = new byte[schritt * bild.PixelHeight];
+            bild.CopyPixels(punkte, schritt, 0);
+
+            var treffer = 0;
+
+            for (var i = 0; i < punkte.Length; i += 4)
+            {
+                // Pbgra32: Blau, Gruen, Rot, Deckkraft.
+                if (Math.Abs(punkte[i] - 0x64) < 12 && Math.Abs(punkte[i + 1] - 0xD9) < 12 && Math.Abs(punkte[i + 2] - 0x4C) < 12 && ++treffer > 200)
+                    return true;
+            }
+
+            return false;
         }
 
         private static bool Einfarbig(BitmapSource bild)

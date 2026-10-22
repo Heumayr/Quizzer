@@ -34,6 +34,8 @@
                     Padding="14"
                     CornerRadius="12"
                     Background="{Binding GridBackground}"
+                    BorderBrush="{Binding RichtigRahmen}"
+                    BorderThickness="{Binding RichtigRahmenDicke}"
                     Visibility="{Binding SlotVisibility}"
                     Opacity="{Binding SlotOpacity}"
                     IsHitTestVisible="{Binding SlotHitTestVisible}"
