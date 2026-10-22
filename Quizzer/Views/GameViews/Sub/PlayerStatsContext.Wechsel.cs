@@ -47,6 +47,9 @@ namespace Quizzer.Views.GameViews.Sub
         /// <summary>Die Änderung als Zahl, für die Übersicht.</summary>
         public int Wechsel { get; private set; }
 
+        /// <summary>Ob animiert wird - sonst steht die Plakette ohne Bewegung (Schalter in den Einstellungen).</summary>
+        public bool Animiert => Quizzer.Base.Bewegung.Aktiv;
+
         /// <summary>Ob gerade eine Änderung eingeblendet ist - daran hängen die Animationen.</summary>
         public bool WechselAktiv { get; private set; }
 

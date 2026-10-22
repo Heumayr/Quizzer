@@ -228,6 +228,22 @@ namespace Quizzer.LogicUnitTests.DataModels.Questions
         [TestMethod]
         public void TheDistanceIsReportedInTheQuestionsOwnUnit()
         {
+            // Die Anzeige folgt der Sprache des Rechners - der Test legt sie fest, statt von der
+            // Umgebung abzuhaengen (auf einem englischen System stand "0.1" da).
+            var vorher = System.Globalization.CultureInfo.CurrentCulture;
+            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("de-DE");
+            try
+            {
+                PruefeAbstandInKilometern();
+            }
+            finally
+            {
+                System.Globalization.CultureInfo.CurrentCulture = vorher;
+            }
+        }
+
+        private static void PruefeAbstandInKilometern()
+        {
             var question = Question(AppreciateValueKind.Length, AppreciateUnit.Kilometer, 2);
             var player = Guid.NewGuid();
 

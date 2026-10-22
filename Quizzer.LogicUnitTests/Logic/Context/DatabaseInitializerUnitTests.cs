@@ -64,6 +64,36 @@ namespace Quizzer.LogicUnitTests.Logic.Context
             StringAssert.Contains(ex.Message, "LocalDB");
         }
 
+        /// <summary>
+        /// Die Freigabe ueber QUIZZER_LOGIC_TEST_SQL laesst genau den genannten Server zu - keinen
+        /// anderen, und auch dort nur Testdatenbanken (2026-10-22).
+        /// </summary>
+        [TestMethod]
+        public void GuardIsTestDatabase_AcceptsOnlyTheExplicitlyNamedTestServer()
+        {
+            var vorher = Environment.GetEnvironmentVariable(DatabaseInitializer.TestServerVariable);
+
+            try
+            {
+                Environment.SetEnvironmentVariable(DatabaseInitializer.TestServerVariable,
+                    "Server=sqlci,1433;Database=Quizzer_Logic_Tests;User Id=sa;Password=x");
+
+                DatabaseInitializer.GuardIsTestDatabase("Server=sqlci,1433;Database=Quizzer_Logic_Tests;User Id=sa;Password=x");
+
+                Assert.ThrowsExactly<InvalidOperationException>(() =>
+                    DatabaseInitializer.GuardIsTestDatabase("Data Source=sql01.firma.local;Database=Quizzer_Tests;Integrated Security=True"),
+                    "Ein anderer Server wurde zugelassen.");
+
+                Assert.ThrowsExactly<InvalidOperationException>(() =>
+                    DatabaseInitializer.GuardIsTestDatabase("Server=sqlci,1433;Database=Quizzer;User Id=sa;Password=x"),
+                    "Auf dem freigegebenen Server wurde eine Nicht-Testdatenbank zugelassen.");
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable(DatabaseInitializer.TestServerVariable, vorher);
+            }
+        }
+
         [TestMethod]
         public void GuardIsTestDatabase_RejectsMissingDatabaseName()
         {

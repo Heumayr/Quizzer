@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels;
 using Quizzer.Logic.Context;
 using Quizzer.Logic.Controller;
@@ -26,9 +26,14 @@ namespace Quizzer.LogicUnitTests
         /// gemeinsamen Datenbank loescht dann der eine, waehrend der andere die Migrationssperre
         /// haelt.
         /// </para>
+        /// <para>
+        /// <b>Ohne LocalDB</b> (Linux, Container, CI) nennt <c>QUIZZER_LOGIC_TEST_SQL</c> einen
+        /// anderen Server; der Waechter in <c>DatabaseInitializer</c> laesst dann genau diesen zu.
+        /// </para>
         /// </summary>
-        public const string ConnectionString =
-            @"Data Source=(localdb)\MSSQLLocalDB;Database=Quizzer_Logic_Tests;Integrated Security=True";
+        public static readonly string ConnectionString =
+            Environment.GetEnvironmentVariable(Quizzer.Logic.Context.DatabaseInitializer.TestServerVariable)
+            ?? @"Data Source=(localdb)\MSSQLLocalDB;Database=Quizzer_Logic_Tests;Integrated Security=True";
 
         /// <summary>Controller, die mit ungespeicherten Aenderungen entsorgt wurden.</summary>
         public static List<string> DiscardedChanges { get; } = new();

@@ -205,9 +205,44 @@ namespace Quizzer.Logic.Context
                 throw new InvalidOperationException(
                     $"'{database}' endet nicht auf '{TestDatabaseSuffix}'. Das Loeschen wurde abgebrochen.");
 
-            if (!builder.DataSource.Contains("(localdb)", StringComparison.OrdinalIgnoreCase))
+            if (!builder.DataSource.Contains("(localdb)", StringComparison.OrdinalIgnoreCase)
+                && !IstAusdruecklichErlaubterTestServer(builder.DataSource))
                 throw new InvalidOperationException(
                     $"'{builder.DataSource}' ist keine oertliche LocalDB. Das Loeschen wurde abgebrochen.");
+        }
+
+        /// <summary>Die Umgebungsvariable, die einen Test-SQL-Server ausserhalb von LocalDB freigibt.</summary>
+        public const string TestServerVariable = "QUIZZER_LOGIC_TEST_SQL";
+
+        /// <summary>
+        /// Ob <paramref name="dataSource"/> genau der Server ist, den
+        /// <see cref="TestServerVariable"/> nennt (2026-10-22).
+        /// <para>
+        /// <b>Ausdruecklich und eng:</b> erlaubt wird nur dieser eine Server, und nur fuer
+        /// Datenbanken, die alle uebrigen Pruefungen bestehen (Name endet auf <c>_Tests</c>, nicht
+        /// die Produktivdatenbank). Bis hierher wurde der Waechter fuer Laeufe gegen einen
+        /// SQL-Server-Container von Hand umgebogen - genau so etwas darf nie versehentlich mit
+        /// eingecheckt werden. Die CI braucht denselben Weg.
+        /// </para>
+        /// </summary>
+        internal static bool IstAusdruecklichErlaubterTestServer(string dataSource)
+        {
+            var freigabe = Environment.GetEnvironmentVariable(TestServerVariable);
+
+            if (string.IsNullOrWhiteSpace(freigabe))
+                return false;
+
+            try
+            {
+                var erlaubt = new SqlConnectionStringBuilder(freigabe).DataSource;
+
+                return !string.IsNullOrWhiteSpace(erlaubt)
+                    && string.Equals(erlaubt.Trim(), dataSource.Trim(), StringComparison.OrdinalIgnoreCase);
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
         }
     }
 }
