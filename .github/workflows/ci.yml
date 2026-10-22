@@ -69,9 +69,10 @@ jobs:
       # wenn vorher etwas rot war: gerade dann will man sehen, wie es aussieht.
       - name: Bildschirmfotos
         if: success() || failure()
+        timeout-minutes: 12
         env:
           QUIZZER_BILDSCHIRMFOTOS: ${{ github.workspace }}/bildschirmfotos
-        run: dotnet test Quizzer.UnitTests -c Release --no-build --filter "TestCategory=Bildschirmfotos" --logger "trx;LogFileName=fotos.trx" --results-directory testergebnisse
+        run: dotnet test Quizzer.UnitTests -c Release --no-build --filter "TestCategory=Bildschirmfotos" --blame-hang-timeout 6m --blame-hang-dump-type none --logger "trx;LogFileName=fotos.trx" --results-directory testergebnisse
 
       - name: Bildschirmfotos aufheben
         if: always()

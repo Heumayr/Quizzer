@@ -169,8 +169,10 @@ namespace Quizzer.UnitTests.Bildschirmfotos
                 inhalt.Arrange(new Rect(0, 0, breite, hoehe));
                 inhalt.UpdateLayout();
 
-                // Vorlagen und Bindungen, die erst nach dem Auslegen kommen, abarbeiten lassen.
-                Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ContextIdle);
+                // Bindungen, die erst nach dem Auslegen kommen, abarbeiten lassen. DataBind und nicht
+                // ContextIdle: eine Daueranimation haelt den Thread nie leer, und der erste Lauf
+                // hing genau hier eine halbe Stunde.
+                Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.DataBind);
             }
 
             var bild = new RenderTargetBitmap((int)breite, (int)hoehe, 96, 96, PixelFormats.Pbgra32);
