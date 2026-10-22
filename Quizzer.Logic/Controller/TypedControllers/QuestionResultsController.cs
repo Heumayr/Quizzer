@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Quizzer.DataModels.Anzeige;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using System;
@@ -30,6 +31,30 @@ namespace Quizzer.Logic.Controller.TypedControllers
         protected override Task<QuestionResult> AfterActionAsync(QuestionResult entity, Actions action)
         {
             return base.AfterActionAsync(entity, action);
+        }
+
+        /// <summary>
+        /// V5: je Frage, wie sie in abgeschlossenen Zellen gelaufen ist (<see cref="FragenStatistik"/>).
+        /// Eine Abfrage für alle, gerechnet in der Datenbank.
+        /// </summary>
+        public async Task<Dictionary<Guid, FragenStatistik>> StatistikJeFrageAsync()
+        {
+            var zeilen = await (
+                    from r in EntitySet.AsNoTracking()
+                    join c in CurrentContext.GameGridCoordinates on r.GameGridCoordinateId equals c.Id
+                    where c.IsDone
+                    group r by r.QuestionBaseId into g
+                    select new
+                    {
+                        Frage = g.Key,
+                        Gespielt = g.Select(x => x.GameGridCoordinateId).Distinct().Count(),
+                        Antworten = g.Count(),
+                        Richtig = g.Count(x => x.CorrectAnswered),
+                        Punkte = g.Sum(x => x.Score + x.Correction - x.MinusScore),
+                    })
+                .ToListAsync();
+
+            return zeilen.ToDictionary(z => z.Frage, z => new FragenStatistik(z.Gespielt, z.Antworten, z.Richtig, z.Punkte));
         }
 
         public async Task<int> DeleteByGameIdAsync(Guid gameId)

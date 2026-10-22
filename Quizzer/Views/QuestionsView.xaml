@@ -40,6 +40,17 @@
                 <DataGridTextColumn Header="Schwierigkeit" Binding="{Binding Difficulty}" Width="*" />
                 <DataGridTextColumn Header="Punkte" Binding="{Binding Points}" Width="0.7*" />
                 <DataGridTextColumn Header="Minuspunkte" Binding="{Binding MinusPoints}" Width="0.7*" />
+                <!-- V5: wie die Frage in abgeschlossenen Zellen gelaufen ist. -->
+                <DataGridTextColumn Header="Gespielt" Binding="{Binding Statistik.GespieltText}" Width="0.6*"
+                                    SortMemberPath="Statistik.Gespielt" />
+                <DataGridTextColumn Binding="{Binding Statistik.QuoteText}" Width="0.9*"
+                                    SortMemberPath="Statistik.Sortierwert">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="Richtig"
+                                   ToolTip="Anteil der Mitspieler, die richtig lagen - über alle abgeschlossenen Zellen mit dieser Frage." />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="" Binding="{Binding Statistik.Einschaetzung}" Width="0.5*" />
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

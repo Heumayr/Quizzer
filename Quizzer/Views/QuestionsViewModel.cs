@@ -62,6 +62,15 @@ namespace Quizzer.Views
             using var ctrl = new QuestionBasesController();
             var questions = await ctrl.GetAllAsync();
 
+            // V5: wie jede Frage bisher gelaufen ist - eine Abfrage für alle.
+            using (var ctrlErgebnisse = new QuestionResultsController())
+            {
+                var statistik = await ctrlErgebnisse.StatistikJeFrageAsync();
+
+                foreach (var frage in questions)
+                    frage.Statistik = statistik.GetValueOrDefault(frage.Id, DataModels.Anzeige.FragenStatistik.Nie);
+            }
+
             Questions = new ObservableCollection<QuestionBase>(QuestionOwnership.VisibleTo(questions));
         }
 

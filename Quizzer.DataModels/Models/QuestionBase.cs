@@ -145,6 +145,10 @@ namespace Quizzer.DataModels.Models
         [NotMapped]
         public string TypDisplayName => Questions.QuestionTypeProfiles.For(Typ).DisplayName;
 
+        /// <summary>V5: wie die Frage gelaufen ist - von der Fragenliste gesetzt, nicht gespeichert.</summary>
+        [NotMapped]
+        public Anzeige.FragenStatistik Statistik { get; set; } = Anzeige.FragenStatistik.Nie;
+
         /// <summary>
         /// Gibt den nächsten Schritt nach <paramref name="currentStep"/> zurück.
         /// Gibt den ersten Schritt zurück, wenn <paramref name="currentStep"/> <c>null</c> ist.
