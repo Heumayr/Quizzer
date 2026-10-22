@@ -46,10 +46,10 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Content="{Binding WinnerRightText}" Command="{Binding WinnerRightCommand}"
                             Background="DarkGreen" FontSize="18" FontWeight="Bold" Padding="18,6" Margin="0,0,8,0"
-                            ToolTip="Setzt für den Buzzer-Gewinner „richtig“. Gespeichert wird erst mit Speichern (Strg+S) oder Abschließen (Strg+Enter)." />
+                            ToolTip="Setzt für den Buzzer-Gewinner „richtig“. Gespeichert wird mit Speichern (Strg+S), Abschließen (Strg+Enter) - oder spätestens beim Schließen des Fensters." />
                     <Button Content="{Binding WinnerWrongText}" Command="{Binding WinnerWrongCommand}"
                             Background="DarkRed" FontSize="18" FontWeight="Bold" Padding="18,6"
-                            ToolTip="Setzt für den Buzzer-Gewinner „falsch“ mit den Minuspunkten der Zelle. Gespeichert wird erst mit Speichern." />
+                            ToolTip="Setzt für den Buzzer-Gewinner „falsch“ mit den Minuspunkten der Zelle. Gespeichert wird mit Speichern oder spätestens beim Schließen." />
                 </StackPanel>
             </DockPanel>
         </Border>

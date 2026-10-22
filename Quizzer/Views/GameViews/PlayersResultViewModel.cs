@@ -269,6 +269,33 @@ namespace Quizzer.Views.GameViews
                 Window?.Close();
         }
 
+        /// <summary>
+        /// Ob eine Bewertung gesetzt, aber noch nicht geschrieben ist. Ein „eigener Wert" von 0
+        /// zählt nicht - er änderte nichts außer dem Korrekturzähler.
+        /// </summary>
+        public bool HatOffeneBewertungen => PlayerResultContextList.Any(c =>
+            c.Suggestion is PlayerResultContext.ScoreSuggestion.Right or PlayerResultContext.ScoreSuggestion.Wrong
+            || (c.Suggestion == PlayerResultContext.ScoreSuggestion.Correction && c.CurrentScoreManipulation != 0));
+
+        /// <summary>
+        /// Schreibt beim Schließen, was gesetzt, aber nicht gespeichert ist (2026-10-22, Nutzerwunsch
+        /// „live speichern des spielstandes").
+        /// <para>
+        /// Bis hierher galt eine Bewertung erst mit „Speichern". Wer das Ergebnisfenster schloss -
+        /// oder das Fragefenster, das es mitnimmt -, verlor sie still. <b>Sofort bei jedem Klick</b>
+        /// zu schreiben ginge nicht: die Bewertung wird beim Speichern <i>aufaddiert</i>
+        /// (<c>SetManipulationToResult</c>), und „richtig", dann „doch falsch" ergäbe beides.
+        /// Beim Schließen steht fest, was gemeint war.
+        /// </para>
+        /// </summary>
+        protected override async Task OnClosed()
+        {
+            if (HatOffeneBewertungen)
+                await TrySaveAsync();
+
+            await base.OnClosed();
+        }
+
         public bool IsDoneAndShowFinishState { get; private set; }
 
         private AsyncRelayCommand? saveIsDoneFinishStateCommand;
