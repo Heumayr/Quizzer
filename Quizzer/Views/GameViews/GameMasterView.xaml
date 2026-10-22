@@ -41,6 +41,9 @@
                     <TextBlock Style="{StaticResource SectionHeader}" Text="Spielstand" />
                     <TextBlock FontSize="20" FontWeight="Bold" Text="{Binding ProgressHeadline}" />
                     <TextBlock Opacity="0.75" Text="{Binding OpenCellsText}" Margin="0,2,0,0" />
+                    <!-- V5: verklickt? Eine Stufe zurück, mit Rückfrage. -->
+                    <Button Content="Letzte Wertung zurücknehmen" Command="{Binding UndoCommand}" Margin="0,8,0,0"
+                            ToolTip="{Binding UndoToolTip}" ToolTipService.ShowOnDisabled="True" />
 
                     <!-- Wer waehlt aus -->
                     <TextBlock Style="{StaticResource SectionHeader}" Text="Wer wählt aus" Margin="0,18,0,4" />

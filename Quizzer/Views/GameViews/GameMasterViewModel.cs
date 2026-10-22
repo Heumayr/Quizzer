@@ -23,6 +23,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using static Quizzer.Views.HelperViewModels.GridBuilder;
 
+using Quizzer.Logic.Spielablauf;
+
 namespace Quizzer.Views.GameViews
 {
     public partial class GameMasterViewModel : ViewModelBase
@@ -448,7 +450,14 @@ namespace Quizzer.Views.GameViews
                 DataContext = context
             };
 
+            var merk = LetzteWertung.Merke(Game, cell.Coordinate);
+
             qMaster.ShowDialog();
+
+            // Nur ein echter Zug ersetzt den gemerkten - ansehen und schliessen nimmt die
+            // Rücknahme der vorigen Frage nicht weg.
+            if (merk.HatSichGeaendert(Game))
+                LetzteWertungMerken(merk);
 
             cell.RefreshFromModel();
 
@@ -464,6 +473,52 @@ namespace Quizzer.Views.GameViews
             // War das die letzte Zelle, wechselt der Spielerbildschirm auf die Siegerehrung.
             // Bis 2026-09-06 geschah das nur, wenn der Spielleiter den Punktestand danach von
             // Hand umschaltete - sonst blieb das leere Raster stehen.
+            GamePlayerViewModel?.RefreshFinishState();
+        }
+
+        private LetzteWertung? letzteWertung;
+
+        private void LetzteWertungMerken(LetzteWertung? merk)
+        {
+            letzteWertung = merk;
+            OnPropertyChanged(nameof(UndoToolTip));
+            CommandManager.InvalidateRequerySuggested();
+        }
+
+        public string UndoToolTip => letzteWertung?.Zelle.QuestionBase?.Designation is { Length: > 0 } frage
+            ? $"Nimmt die Wertung für „{frage}“ zurück - Punkte, erledigt, wer auswählt. Eine Stufe."
+            : "Nimmt die Wertung der zuletzt gespielten Frage zurück. Noch nichts gewertet.";
+
+        private AsyncRelayCommand? undoCommand;
+
+        /// <summary>V5: die letzte Wertung zurücknehmen - mit Rückfrage, die sagt, wer was verliert.</summary>
+        public ICommand UndoCommand => undoCommand ??= new AsyncRelayCommand(UndoAsync, _ => letzteWertung != null);
+
+        private async Task UndoAsync(object? _)
+        {
+            if (Game == null || letzteWertung is not { } merk)
+                return;
+
+            if (!UserPrompt.Confirm(merk.Beschreibung(Game), "Wertung zurücknehmen"))
+                return;
+
+            try
+            {
+                await merk.NimmZurueckAsync(Game);
+                await VMSaveAsync();
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+                return;
+            }
+
+            LetzteWertungMerken(null);
+
+            GameGridVMs.CellVMs.FirstOrDefault(c => c.Coordinate == merk.Zelle)?.RefreshFromModel();
+            StatsContext.UpdateScores(IsGameFinished);
+            OnPropertyChanged(nameof(ChoosingPlayer));
+            await UpdateGameStateAsync();
             GamePlayerViewModel?.RefreshFinishState();
         }
 
