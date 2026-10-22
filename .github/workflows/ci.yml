@@ -1,0 +1,116 @@
+# Die maschinelle Pruefung des Quizzers (2026-10-22). Bis hierher gab es keine - "Keine CI" stand
+# in der CLAUDE.md, und die WPF-Tests (net10.0-windows) waren auf Linux nie gelaufen.
+#
+#   windows : ganze Loesung samt WPF, alle drei Testprojekte gegen LocalDB
+#   linux   : Logik- und Servertests gegen SQL Server im Dienstcontainer (QUIZZER_LOGIC_TEST_SQL)
+#
+# Je Testprojekt eine eigene Datenbank: DoNotParallelize wirkt nur innerhalb einer Assembly, die
+# Projekte laufen deshalb nacheinander und nicht als ein "dotnet test" ueber die Loesung.
+
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: LocalDB bereitstellen
+        shell: pwsh
+        run: |
+          if (-not (Get-Command sqllocaldb -ErrorAction SilentlyContinue)) {
+            choco install sqllocaldb -y --no-progress
+            $env:Path += ";C:\Program Files\Microsoft SQL Server\160\Tools\Binn"
+            "C:\Program Files\Microsoft SQL Server\160\Tools\Binn" | Out-File -Append $env:GITHUB_PATH
+          }
+          sqllocaldb create MSSQLLocalDB -s 2>$null
+          sqllocaldb start MSSQLLocalDB
+          sqllocaldb info MSSQLLocalDB
+
+      - name: Bauen
+        run: dotnet build Quizzer.slnx -c Release
+
+      - name: Logiktests
+        run: dotnet test Quizzer.LogicUnitTests -c Release --no-build --logger "trx;LogFileName=logik.trx" --results-directory testergebnisse
+
+      - name: WPF-Tests
+        run: dotnet test Quizzer.UnitTests -c Release --no-build --logger "trx;LogFileName=wpf.trx" --results-directory testergebnisse
+
+      - name: Servertests
+        run: dotnet test Quizzer.Server.Tests -c Release --no-build --logger "trx;LogFileName=server.trx" --results-directory testergebnisse
+
+      - name: Testergebnisse aufheben
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testergebnisse-windows
+          path: testergebnisse
+          if-no-files-found: ignore
+
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      sql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          # Nur fuer diesen Wegwerf-Container im Lauf; er ist von aussen nicht erreichbar.
+          MSSQL_SA_PASSWORD: Ci-Nur-Hier-1!
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P 'Ci-Nur-Hier-1!' -Q 'SELECT 1' -b -o /dev/null"
+          --health-interval 10s --health-timeout 5s --health-retries 20 --health-start-period 20s
+    env:
+      QUIZZER_LOGIC_TEST_SQL: "Server=127.0.0.1,1433;Database=Quizzer_Logic_Tests;User Id=sa;Password=Ci-Nur-Hier-1!;TrustServerCertificate=True"
+      QUIZZER_SERVER_TEST_SQL: "Server=127.0.0.1,1433;Database=Quizzer_Server_Tests;User Id=sa;Password=Ci-Nur-Hier-1!;TrustServerCertificate=True"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Logiktests
+        run: dotnet test Quizzer.LogicUnitTests -p:EnableWindowsTargeting=true --logger "trx;LogFileName=logik.trx" --results-directory testergebnisse
+
+      - name: Servertests
+        run: dotnet test Quizzer.Server.Tests --logger "trx;LogFileName=server.trx" --results-directory testergebnisse
+
+      - name: Testergebnisse aufheben
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testergebnisse-linux
+          path: testergebnisse
+          if-no-files-found: ignore

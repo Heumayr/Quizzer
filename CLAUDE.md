@@ -27,7 +27,9 @@ gehört ins `.harness`-Submodul (dort committen und pushen), nirgendwo sonst —
   `QUIZZER_SERVER_TEST_SQL`, sonst LocalDB `Quizzer_Server_Tests` (`.harness/memory/quizzer-server.md`)
 - Optional, schreibt in den Stapel: `dotnet test Quizzer.Server.Tests --filter StackSmoke` mit
   `QUIZZER_E2E_URL`/`QUIZZER_E2E_PASSWORD` - Rundlauf PC → Caddy → Laptop (`deploy/README.md`)
-- **Keine CI** — der Bau und die Tests auf diesem Rechner sind die einzige maschinelle Prüfung
+- **CI seit 2026-10-22** (`.github/workflows/ci.yml`): Windows baut alles und fährt alle drei
+  Testprojekte gegen LocalDB, Linux Logik- und Servertests gegen SQL Server im Container. Rot in
+  der CI ist rot - lokal grün ersetzt sie nicht. Lokal ohne LocalDB: `QUIZZER_LOGIC_TEST_SQL`
 - Fehlt der Ordner aus `AppSettings.FilePathQuizzer` (`Quizzer.DataModels/appsettings.json`,
   standardmäßig `E:\QuizzerData`), **startet die Anwendung trotzdem** — sie sagt es seit
   2026-09-07 beim Start und bleibt sonst schwarz (`StaticResources` fällt je Bild auf Schwarz
