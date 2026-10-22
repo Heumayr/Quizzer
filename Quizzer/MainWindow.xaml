@@ -87,6 +87,9 @@
                     <TextBlock Text="{Binding SyncStatusText}" TextWrapping="Wrap" FontSize="12"
                                Opacity="0.75" Margin="0,0,0,6" />
 
+                    <Button Content="Warum nicht übertragen?" Command="{Binding RejectionsCommand}"
+                            Visibility="{Binding RejectionsVisibility}" Height="32" Margin="0,0,0,4" FontWeight="Bold"
+                            ToolTip="Zeigt, welche Änderungen der Server abgewiesen hat, warum, und was dagegen hilft." />
                     <Button Content="Meine Statistik" Command="{Binding StatisticsCommand}" Height="32" Margin="0,0,0,4"
                             ToolTip="Deine Spiele mit Platz und Punkten - als Mitspieler und als Gamemaster." />
                     <Button Content="Jetzt abgleichen" Command="{Binding SyncNowCommand}" Height="32" Margin="0,0,0,4"

@@ -1,0 +1,44 @@
+<base:WindowBase x:Class="Quizzer.Server.SyncRejectionsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:base="clr-namespace:Quizzer.Base"
+        xmlns:local="clr-namespace:Quizzer.Server"
+        Title="Nicht übertragen - warum?" Height="520" Width="980"
+        WindowStartupLocation="CenterOwner">
+    <base:WindowBase.DataContext>
+        <local:SyncRejectionsViewModel />
+    </base:WindowBase.DataContext>
+
+    <Grid Background="{StaticResource AppBgBrush}" Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="{Binding Summary}" FontSize="15" TextWrapping="Wrap" Margin="0,0,0,12" />
+
+        <DataGrid Grid.Row="1" ItemsSource="{Binding Rows}" AutoGenerateColumns="False"
+                  CanUserAddRows="False" IsReadOnly="True" HeadersVisibility="Column">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Art" Binding="{Binding Art}" Width="Auto" />
+                <DataGridTextColumn Header="Eintrag" Binding="{Binding Eintrag}" Width="1.4*" />
+                <DataGridTextColumn Header="Grund" Binding="{Binding Grund}" Width="*" />
+                <DataGridTemplateColumn Header="Was hilft" Width="2*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Hilfe}" TextWrapping="Wrap" ToolTip="{Binding Meldung}" Margin="4,2" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="Erneut senden" Command="{Binding ResendCommand}" MinWidth="160" Height="34" Margin="0,0,8,0"
+                    ToolTip="Schickt die abgewiesenen Änderungen noch einmal - hilft, wenn der Grund inzwischen weg ist." />
+            <Button Content="Serverstand übernehmen" Command="{Binding TakeServerCommand}" MinWidth="200" Height="34"
+                    ToolTip="Ersetzt die abgewiesenen Änderungen auf diesem Rechner durch den Stand des Servers." />
+        </StackPanel>
+    </Grid>
+</base:WindowBase>

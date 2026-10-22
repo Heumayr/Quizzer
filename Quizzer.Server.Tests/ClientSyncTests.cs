@@ -149,6 +149,82 @@ namespace Quizzer.Server.Tests
             Assert.AreEqual("Vom PC", (await local.Games.SingleAsync(g => g.Id == set.Game.Id)).Designation);
         }
 
+        /// <summary>
+        /// V4: eine Ablehnung bleibt mit Grund sichtbar, bis sie aufgeloest ist - vorher meldete der
+        /// naechste Push „Abgeglichen", und die Aenderung lag still liegen.
+        /// </summary>
+        [TestMethod]
+        public async Task ARejectionStaysVisibleWithItsReasonUntilItIsResolved()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var (pc, laptop, me) = await SignedInPairAsync(factory);
+            await using var _ = pc;
+            await using var __ = laptop;
+
+            var set = await PrepareGameLocallyAsync(pc, me);
+            await pc.Sync.PushAsync();
+            await laptop.Sync.PullAsync();
+
+            await RenameGameAsync(pc, set.Game.Id, "Vom PC");
+            await RenameGameAsync(laptop, set.Game.Id, "Vom Laptop");
+            await pc.Sync.PushAsync();
+            await laptop.Sync.PushAsync();
+
+            var offen = await laptop.Sync.GetRejectionsAsync();
+            Assert.AreEqual(1, offen.Count);
+            Assert.AreEqual(SyncRejectReason.Conflict, offen[0].Reason);
+            Assert.AreEqual("Vom Laptop", offen[0].Bezeichnung);
+            Assert.IsFalse(offen[0].Loeschung);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(offen[0].Message));
+
+            // Ein spaeterer Durchlauf ohne neue Ablehnung meldet sie weiter.
+            using (var background = new BackgroundSync(laptop.Sync))
+            {
+                await background.FlushAsync();
+                Assert.AreEqual(SyncStatus.Rejected, background.Status.Status, background.Status.Message);
+                Assert.AreEqual(1, background.Status.Offen);
+            }
+
+            // Erneut senden: der Konflikt besteht noch, also wieder abgewiesen - und wieder sichtbar.
+            var erneut = await laptop.Sync.ResendRejectedAsync();
+            Assert.AreEqual(1, erneut.Rejected.Count);
+            Assert.AreEqual(1, laptop.Sync.CountRejections());
+
+            // Serverstand uebernehmen raeumt auf.
+            await laptop.Sync.PullAsync();
+            Assert.AreEqual(0, laptop.Sync.CountRejections());
+            Assert.AreEqual(0, (await laptop.Sync.GetRejectionsAsync()).Count);
+        }
+
+        /// <summary>Erneut senden bringt durch, was inzwischen geht.</summary>
+        [TestMethod]
+        public async Task ResendingGetsThroughOnceTheCauseIsGone()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var (pc, laptop, me) = await SignedInPairAsync(factory);
+            await using var _ = pc;
+            await using var __ = laptop;
+
+            var set = await PrepareGameLocallyAsync(pc, me);
+            await pc.Sync.PushAsync();
+            await laptop.Sync.PullAsync();
+
+            await RenameGameAsync(pc, set.Game.Id, "Vom PC");
+            await RenameGameAsync(laptop, set.Game.Id, "Vom Laptop");
+            await pc.Sync.PushAsync();
+            await laptop.Sync.PushAsync();
+            Assert.AreEqual(1, laptop.Sync.CountRejections());
+
+            // Der PC nimmt seine Aenderung zurueck auf genau den Stand, den der Laptop zuletzt
+            // kannte - dann passt dessen Hash wieder, und der Laptop kommt durch.
+            await RenameGameAsync(pc, set.Game.Id, set.Game.Designation);
+            await pc.Sync.PushAsync();
+
+            var erneut = await laptop.Sync.ResendRejectedAsync();
+            Assert.AreEqual(0, erneut.Rejected.Count, string.Join("; ", erneut.Rejected.Select(r => r.Message)));
+            Assert.AreEqual(0, laptop.Sync.CountRejections());
+        }
+
         [TestMethod]
         public async Task ADeletedCellDisappearsOnTheOtherMachine()
         {

@@ -17,6 +17,11 @@ namespace Quizzer.Client
         public bool HadChanges => Accepted + Deleted + Rejected.Count > 0;
     }
 
+    /// <summary>Eine Aenderung, die der Server abgewiesen hat und die deshalb lokal liegen bleibt.</summary>
+    /// <param name="Bezeichnung">Wie der Eintrag lokal heisst - leer, wenn er lokal geloescht ist.</param>
+    /// <param name="Loeschung">Die abgewiesene Aenderung war das Loeschen.</param>
+    public sealed record OpenRejection(string Type, Guid Id, SyncRejectReason? Reason, string Message, string Bezeichnung, bool Loeschung);
+
     /// <summary>
     /// Der Abgleich auf Seite des WPF (M9: „vorerst sollen alle daten zu beginn geladen werden
     /// damit es ganz lokal laufen kann und nur sicherungen spielstaende zurueckgeschickt werden").
@@ -82,6 +87,7 @@ namespace Quizzer.Client
 
                 state.Manifest = snapshot.Rows.ToDictionary(r => r.Key, r => r.Hash);
                 state.Suppressed.Clear();
+                state.Rejections.Clear();
                 state.LastPullAt = DateTimeOffset.UtcNow;
                 stateStore.Save(state);
 
@@ -107,6 +113,77 @@ namespace Quizzer.Client
             {
                 gate.Release();
             }
+        }
+
+        /// <summary>
+        /// Wie viele abgewiesene Aenderungen lokal liegen. 0 auch, wenn niemand angemeldet ist -
+        /// das fragt die Statuszeile, und die soll dabei nicht werfen.
+        /// </summary>
+        public int CountRejections()
+            => api.Account == null ? 0 : LoadState().Suppressed.Count;
+
+        /// <summary>
+        /// Die abgewiesenen Aenderungen mit Grund und lokaler Bezeichnung - fuer „Warum?".
+        /// </summary>
+        public async Task<IReadOnlyList<OpenRejection>> GetRejectionsAsync(CancellationToken ct = default)
+        {
+            var state = LoadState();
+
+            if (state.Suppressed.Count == 0)
+                return [];
+
+            Dictionary<SyncKey, SyncRow> local;
+            await using (var store = openStore())
+                local = (await store.ReadAllAsync(ct)).ToDictionary(r => r.Key);
+
+            return state.Suppressed
+                .Select(s =>
+                {
+                    state.Rejections.TryGetValue(s.Key, out var warum);
+                    local.TryGetValue(s.Key, out var row);
+
+                    return new OpenRejection(
+                        s.Key.Type, s.Key.Id, warum?.Reason,
+                        warum?.Message ?? "Der Grund wurde nicht gespeichert (Ablehnung von vor 2026-10-22).",
+                        row == null ? string.Empty : Bezeichnung(row),
+                        s.Value == DeletedMarker);
+                })
+                .OrderBy(r => r.Type).ThenBy(r => r.Bezeichnung)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Schickt die abgewiesenen Aenderungen noch einmal - etwa wenn ein Verweis inzwischen
+        /// am Server angekommen ist oder der Admin ein Recht vergeben hat. Was wieder abgewiesen
+        /// wird, liegt danach wieder hier.
+        /// </summary>
+        public async Task<PushResult> ResendRejectedAsync(CancellationToken ct = default)
+        {
+            await gate.WaitAsync(ct);
+            try
+            {
+                var state = LoadState();
+                state.Suppressed.Clear();
+                state.Rejections.Clear();
+                return await PushCoreAsync(state, ct);
+            }
+            finally
+            {
+                gate.Release();
+            }
+        }
+
+        private static readonly string[] BezeichnungsFelder = ["Designation", "StepText", "Name", "UserName", "Text"];
+
+        private static string Bezeichnung(SyncRow row)
+        {
+            foreach (var feld in BezeichnungsFelder)
+            {
+                if (GetString(row, feld) is { Length: > 0 } text)
+                    return text.Length > 80 ? text[..79] + "…" : text;
+            }
+
+            return string.Empty;
         }
 
         /// <summary>Ob es lokal etwas gibt, das der Server noch nicht hat.</summary>
@@ -195,12 +272,14 @@ namespace Quizzer.Client
 
                 state.Manifest[key] = accepted.Hash;
                 state.Suppressed.Remove(key);
+                state.Rejections.Remove(key);
             }
 
             foreach (var deleted in response.Deleted)
             {
                 state.Manifest.Remove(deleted);
                 state.Suppressed.Remove(deleted);
+                state.Rejections.Remove(deleted);
             }
 
             foreach (var rejected in response.Rejected)
@@ -208,6 +287,7 @@ namespace Quizzer.Client
                 var key = new SyncKey(rejected.Type, rejected.Id);
                 var upsert = request.Upserts.FirstOrDefault(u => u.Row.Key == key);
                 state.Suppressed[key] = upsert?.Row.Hash ?? DeletedMarker;
+                state.Rejections[key] = rejected;
             }
 
             state.LastPushAt = DateTimeOffset.UtcNow;

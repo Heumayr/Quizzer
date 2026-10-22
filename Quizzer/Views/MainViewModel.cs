@@ -35,7 +35,11 @@ namespace Quizzer.Views
         public MainViewModel()
         {
             if (Server.ServerSession.Background is { } background)
-                background.StatusChanged += (_, _) => RunOnUi(() => OnPropertyChanged(nameof(SyncStatusText)));
+                background.StatusChanged += (_, _) => RunOnUi(() =>
+                {
+                    OnPropertyChanged(nameof(SyncStatusText));
+                    OnPropertyChanged(nameof(RejectionsVisibility));
+                });
         }
 
         /// <summary>M9: im Servermodus der Abschnitt „Server" im Startfenster.</summary>
@@ -67,6 +71,21 @@ namespace Quizzer.Views
                 return status.Message + zuletzt;
             }
         }
+
+        /// <summary>V4: „Warum?" nur, wenn der Server etwas abgewiesen hat.</summary>
+        public System.Windows.Visibility RejectionsVisibility =>
+            Server.ServerSession.IsActive && Server.ServerSession.Background?.Status.Offen > 0
+                ? System.Windows.Visibility.Visible
+                : System.Windows.Visibility.Collapsed;
+
+        private RelayCommand? rejectionsCommand;
+
+        public ICommand RejectionsCommand => rejectionsCommand ??= new RelayCommand(_ =>
+        {
+            new Server.SyncRejectionsView().ShowDialog();
+            OnPropertyChanged(nameof(SyncStatusText));
+            OnPropertyChanged(nameof(RejectionsVisibility));
+        });
 
         private RelayCommand? statisticsCommand;
 
@@ -118,6 +137,7 @@ namespace Quizzer.Views
             try
             {
                 var result = await sync.PullAsync();
+                Server.ServerSession.Background?.Refresh();
                 UserPrompt.Inform($"Geladen: {result.Changed} geänderte, {result.Deleted} entfernte Einträge, {result.MediaDownloaded} neue Medien.", "Vom Server laden");
             }
             catch (Exception ex) when (ex is Client.ServerUnreachableException or Client.ApiException)

@@ -24,7 +24,11 @@ namespace Quizzer.Client
         Rejected,
     }
 
-    public sealed record SyncStatusInfo(SyncStatus Status, DateTimeOffset? LastSuccess, string Message, IReadOnlyList<SyncRejected> Rejected);
+    /// <param name="Offen">
+    /// Wie viele abgewiesene Aenderungen insgesamt lokal liegen - nicht nur die dieses Pushs. Ein
+    /// spaeterer Push ohne Ablehnung meldete sonst „Abgeglichen", obwohl sie still liegen blieben.
+    /// </param>
+    public sealed record SyncStatusInfo(SyncStatus Status, DateTimeOffset? LastSuccess, string Message, IReadOnlyList<SyncRejected> Rejected, int Offen = 0);
 
     /// <summary>
     /// Schickt Aenderungen nebenher zum Server (M9: „speicherungen werden nebenbei immer an den
@@ -131,12 +135,11 @@ namespace Quizzer.Client
                 var result = await sync.PushAsync(stop.Token);
                 retryDelay = MinRetry;
 
-                if (result.Rejected.Count > 0)
+                var offen = sync.CountRejections();
+
+                if (offen > 0)
                 {
-                    SetStatus(SyncStatus.Rejected,
-                        $"{result.Rejected.Count} Änderung(en) hat der Server abgewiesen: "
-                        + string.Join("; ", result.Rejected.Take(3).Select(r => r.Message)),
-                        result.Rejected, success: true);
+                    SetStatus(SyncStatus.Rejected, NichtUebertragen(offen), result.Rejected, success: true, offen: offen);
                 }
                 else
                 {
@@ -176,15 +179,36 @@ namespace Quizzer.Client
             }
         }
 
+        /// <summary>Die Statuszeile bei liegengebliebenen Ablehnungen.</summary>
+        public static string NichtUebertragen(int offen)
+            => offen == 1
+                ? "1 Änderung nicht übertragen - der Server hat sie abgewiesen."
+                : $"{offen} Änderungen nicht übertragen - der Server hat sie abgewiesen.";
+
+        /// <summary>
+        /// Nach „Erneut senden" oder „Serverstand übernehmen" die Statuszeile neu setzen - beides
+        /// laeuft am Hintergrund vorbei direkt ueber den <see cref="ClientSyncService"/>.
+        /// </summary>
+        public void Refresh()
+        {
+            var offen = sync.CountRejections();
+
+            if (offen > 0)
+                SetStatus(SyncStatus.Rejected, NichtUebertragen(offen), offen: offen, success: true);
+            else
+                SetStatus(SyncStatus.UpToDate, "Abgeglichen.", success: true);
+        }
+
         private void ScheduleRetry()
         {
             Schedule(retryDelay);
             retryDelay = TimeSpan.FromTicks(Math.Min(retryDelay.Ticks * 2, MaxRetry.Ticks));
         }
 
-        private void SetStatus(SyncStatus status, string message, IReadOnlyList<SyncRejected>? rejected = null, bool success = false)
+        private void SetStatus(SyncStatus status, string message, IReadOnlyList<SyncRejected>? rejected = null, bool success = false, int? offen = null)
         {
-            Status = new SyncStatusInfo(status, success ? DateTimeOffset.Now : Status.LastSuccess, message, rejected ?? []);
+            // Ohne Angabe bleibt die Zahl stehen: "Wird übertragen …" laesst die Ablehnungen nicht verschwinden.
+            Status = new SyncStatusInfo(status, success ? DateTimeOffset.Now : Status.LastSuccess, message, rejected ?? [], offen ?? Status.Offen);
             StatusChanged?.Invoke(this, Status);
         }
 

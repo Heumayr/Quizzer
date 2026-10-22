@@ -20,6 +20,13 @@ namespace Quizzer.Client
         public Dictionary<SyncKey, string> Manifest { get; set; } = new();
 
         public Dictionary<SyncKey, string> Suppressed { get; set; } = new();
+
+        /// <summary>
+        /// Warum der Server eine Zeile aus <see cref="Suppressed"/> abgewiesen hat. Bisher stand der
+        /// Grund nur einmal in der Statuszeile und war beim naechsten Push weg - die Zeile blieb
+        /// still liegen (Verbesserung V4, 2026-10-22).
+        /// </summary>
+        public Dictionary<SyncKey, SyncRejected> Rejections { get; set; } = new();
     }
 
     public interface ISyncStateStore
@@ -43,7 +50,10 @@ namespace Quizzer.Client
     {
         private sealed record Entry(string Type, Guid Id, string Hash);
 
-        private sealed record Document(Guid AccountId, DateTimeOffset? LastPullAt, DateTimeOffset? LastPushAt, List<Entry> Manifest, List<Entry> Suppressed);
+        private sealed record Rejection(string Type, Guid Id, SyncRejectReason Reason, string Message);
+
+        // Rejections fehlt in Dateien von vor 2026-10-22 - dann eben ohne Grund.
+        private sealed record Document(Guid AccountId, DateTimeOffset? LastPullAt, DateTimeOffset? LastPushAt, List<Entry> Manifest, List<Entry> Suppressed, List<Rejection>? Rejections = null);
 
         public string Path { get; } = path;
 
@@ -74,7 +84,8 @@ namespace Quizzer.Client
         internal static string Serialize(SyncState state) => JsonSerializer.Serialize(new Document(
             state.AccountId, state.LastPullAt, state.LastPushAt,
             state.Manifest.Select(m => new Entry(m.Key.Type, m.Key.Id, m.Value)).ToList(),
-            state.Suppressed.Select(m => new Entry(m.Key.Type, m.Key.Id, m.Value)).ToList()));
+            state.Suppressed.Select(m => new Entry(m.Key.Type, m.Key.Id, m.Value)).ToList(),
+            state.Rejections.Select(r => new Rejection(r.Key.Type, r.Key.Id, r.Value.Reason, r.Value.Message)).ToList()));
 
         internal static SyncState Deserialize(string json)
         {
@@ -87,6 +98,9 @@ namespace Quizzer.Client
                 LastPushAt = document.LastPushAt,
                 Manifest = document.Manifest.ToDictionary(e => new SyncKey(e.Type, e.Id), e => e.Hash),
                 Suppressed = document.Suppressed.ToDictionary(e => new SyncKey(e.Type, e.Id), e => e.Hash),
+                Rejections = (document.Rejections ?? []).ToDictionary(
+                    r => new SyncKey(r.Type, r.Id),
+                    r => new SyncRejected { Type = r.Type, Id = r.Id, Reason = r.Reason, Message = r.Message }),
             };
         }
     }
