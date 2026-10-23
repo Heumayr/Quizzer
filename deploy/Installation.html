@@ -154,7 +154,7 @@
 <p class="untertitel">Docker Desktop trägt Datenbank, REST-API und Mediendateien — das WPF meldet sich dort an.</p>
 
 <div class="kopf">
-  <p><strong>Stand 23.10.2026</strong> (Meldung M24). Jeder Schritt ist an diesem Tag auf dem Entwicklungsrechner
+  <p><strong>Stand 23.10.2026</strong> (Meldungen M24–M29). Jeder Schritt ist an diesem Tag auf dem Entwicklungsrechner
   durchgespielt worden; was nicht gemessen ist, steht unter <a href="#gemessen">Was gemessen ist und was nicht</a>.</p>
   <p><strong>Am Ende läuft:</strong> ein Stapel aus vier Containern unter Docker Desktop, erreichbar nur auf diesem
   Rechner unter <code>https://localhost:8543</code>. Spiele, Fragen, Mitspieler, Ergebnisse und Designs liegen im
@@ -235,11 +235,11 @@
 
 <p><strong>Wie das WPF mit dem Docker arbeitet:</strong> Beim Anmelden holt es alles, was das Konto sehen darf, in eine
 eigene lokale Zwischendatenbank (<code>Quizzer_Server_</code> plus 12 Zeichen der Konto-Kennung, auf derselben LocalDB) und
-die Medien nach <strong><code>C:\ProgramData\Quizzer\Server\&lt;rechner&gt;_&lt;port&gt;</code></strong> — lokal also
-<code>C:\ProgramData\Quizzer\Server\localhost_8543</code> (seit Meldung M26; vorher landeten sie im Datenordner des
-Einzelbetriebs). Solange die Sitzung läuft, liest das Programm alle Bilder und Töne von dort. Danach laufen alle Masken
-unverändert lokal; jedes Speichern geht drei Sekunden später zum Server. Fällt die Verbindung weg, wird lokal
-weitergespielt und später nachgeschickt.</p>
+die Medien in den Datenordner <strong><code>C:\ProgramData\Quizzer\Daten</code></strong> — denselben, den auch der
+Einzelbetrieb benutzt (Meldung M28: „ein Ordner für alles“). Danach laufen alle Masken unverändert lokal; jedes
+Speichern geht drei Sekunden später zum Server. Fällt die Verbindung weg, wird lokal weitergespielt und später
+nachgeschickt. <strong>Angemeldet wird bei jedem Start</strong> (Kennwort eingeben); „Abmelden“ im Hauptfenster führt
+zurück ins Anmeldefenster, und „Daten von diesem Rechner entfernen“ in den Einstellungen räumt alles auf einmal weg.</p>
 
 <div class="tabellenhuelle">
 <table>
@@ -247,8 +247,8 @@ weitergespielt und später nachgeschickt.</p>
   <tbody>
     <tr><td>Spiele, Fragen, Mitspieler, Ergebnisse, Designs, Konten</td><td>Volume <code>quizzer_quizzer-sql</code>, Datenbank <code>Quizzer</code></td><td>Neustart, <code>docker compose down</code>, Neubau — nicht <code>down -v</code></td></tr>
     <tr><td>Bilder und Töne der Fragen, Spielerbilder, Design-Texturen, Grundtexturen</td><td>Volume <code>quizzer_quizzer-media</code>: <code>Resources/</code>, <code>Themes/&lt;Ordner&gt;/</code>, Spielerbilder und Grundtexturen oben</td><td>wie oben</td></tr>
-    <tr><td>Die Kopie des WPF</td><td>LocalDB <code>Quizzer_Server_…</code> und <code>C:\ProgramData\Quizzer\Server\localhost_8543</code></td><td>wird bei jeder Anmeldung abgeglichen</td></tr>
-    <tr><td>Der frühere Einzelbetrieb</td><td>LocalDB <code>Quizzer</code> und <code>E:\QuizzerData</code> — bleiben unverändert liegen</td><td>Rückfall, siehe <a href="#betrieb">Im Betrieb</a></td></tr>
+    <tr><td>Die Kopie des WPF</td><td>LocalDB <code>Quizzer_Server_…</code> und <code>C:\ProgramData\Quizzer\Daten</code></td><td>wird bei jeder Anmeldung abgeglichen; „Daten entfernen“ löscht beides</td></tr>
+    <tr><td>Der frühere Einzelbetrieb</td><td>LocalDB <code>Quizzer</code> — bleibt unverändert liegen. <code>E:\QuizzerData</code> ist am 23.10.2026 nach <code>C:\ProgramData\Quizzer\Daten</code> kopiert worden und liegt als Sicherung daneben</td><td>Rückfall, siehe <a href="#betrieb">Im Betrieb</a></td></tr>
   </tbody>
 </table>
 </div>
@@ -332,15 +332,18 @@ Wirkung              der Migrator legt damit die Anmeldung quizzer_app an (oder 
     <tr><td><code>deploy/certs/</code></td>
         <td><code>server.crt</code>, <code>server.key</code> (für Caddy), <code>server.sha256</code> (Fingerabdruck fürs WPF).</td>
         <td>der Betreiber; <strong>nie ins Repo</strong></td><td>wenn <code>caddy</code> neu angelegt wird</td></tr>
+    <tr><td>Vorgaben im Code (<code>Settings</code>)</td>
+        <td>Datenordner <code>%ProgramData%\Quizzer\Daten</code> und Verbindung zur LocalDB <code>Quizzer</code> — gelten, wenn nichts anderes eingetragen ist.</td>
+        <td>Entwicklung, versioniert</td><td>mit dem nächsten Bau des WPF</td></tr>
     <tr><td><code>Quizzer.DataModels/appsettings.json</code></td>
-        <td>Vorgaben des WPF: <code>AppSettings:FilePathQuizzer</code> (<code>E:\QuizzerData</code>) und <code>AppSettings:MsSqlConString</code> (LocalDB <code>Quizzer</code>). Wird in jedes Ausgabeverzeichnis kopiert.</td>
-        <td>Entwicklung, versioniert</td><td>beim nächsten Bau des WPF</td></tr>
+        <td>Optional, <strong>nicht im Repo</strong> (<code>.gitignore</code>): überschreibt <code>AppSettings:FilePathQuizzer</code> und <code>AppSettings:MsSqlConString</code> für alle Benutzer dieses Bauordners; Umgebungsvariablen wie <code>%ProgramData%</code> werden aufgelöst. Ein frischer Klon hat keine — dann gelten die Vorgaben.</td>
+        <td>wer aus dem Quelltext baut</td><td>beim nächsten Bau des WPF</td></tr>
     <tr><td><code>%APPDATA%\Quizzer\settings.json</code></td>
         <td>Eigene Werte des WPF über den Vorgaben, <strong>die Serverangaben</strong> und die Anzeigeschalter (<a href="#umgebung-wpf">Felder</a>).</td>
         <td>das WPF (Einstellungen) oder <code>deploy/wpf-verbinden.ps1</code></td><td>beim nächsten Start des WPF</td></tr>
-    <tr><td><code>C:\ProgramData\Quizzer\Server\&lt;rechner&gt;_&lt;port&gt;\</code></td>
-        <td>Die vom Server geholten Medien, je Server ein Ordner: <code>Resources\</code>, <code>Themes\&lt;Ordner&gt;\</code>, Spielerbilder und Grundtexturen oben. Keine Einstellung — der Ort ergibt sich aus <code>ServerUrl</code>.</td>
-        <td>das WPF selbst (Abgleich) und alles, was im Servermodus neu importiert wird</td><td>sofort; Löschen holt die nächste Anmeldung neu</td></tr>
+    <tr><td><code>C:\ProgramData\Quizzer\Daten\</code></td>
+        <td>Der Datenordner beider Betriebsarten: <code>Resources\</code>, <code>Themes\&lt;Ordner&gt;\</code>, Spielerbilder und Grundtexturen oben. Fehlt er, legt ihn der Start still an. „Daten von diesem Rechner entfernen“ leert alles unter <code>C:\ProgramData\Quizzer</code>.</td>
+        <td>das WPF (Abgleich, Importe, Editor)</td><td>sofort</td></tr>
     <tr><td><code>%LOCALAPPDATA%\Quizzer\server\</code></td>
         <td><code>session-*.bin</code> (Erneuerungsschlüssel, mit DPAPI an den Windows-Benutzer gebunden), <code>account-*.json</code> (zuletzt angemeldetes Konto), <code>sync-*.json</code> (Abgleichstand, abgewiesene Zeilen).</td>
         <td>das WPF selbst — <strong>nicht von Hand</strong></td><td>sofort</td></tr>
@@ -487,7 +490,7 @@ gelten still die Vorgaben.</p>
 <table class="variablen">
   <thead><tr><th>Feld</th><th>Bedeutung</th><th>Vorgabe</th><th>Gesetzt von</th></tr></thead>
   <tbody>
-    <tr><td><code>FilePathQuizzer</code></td><td>Datenordner für Bilder und Medien <strong>im Einzelbetrieb</strong>. Im Servermodus arbeitet das Programm stattdessen mit <code>C:\ProgramData\Quizzer\Server\&lt;rechner&gt;_&lt;port&gt;</code>; die Einstellungsmaske zeigt und speichert trotzdem diesen eigenen Ordner.</td><td><code>null</code> → <code>E:\QuizzerData</code></td><td>Einstellungen → Ordner</td></tr>
+    <tr><td><code>FilePathQuizzer</code></td><td>Datenordner für Bilder und Medien, in beiden Betriebsarten derselbe; im Servermodus landen die abgeholten Medien hier.</td><td><code>null</code> → <code>C:\ProgramData\Quizzer\Daten</code></td><td>Einstellungen → Ordner</td></tr>
     <tr><td><code>MsSqlConString</code></td><td>Die eigene lokale Datenbank. Im Servermodus entsteht daneben die Zwischendatenbank.</td><td><code>null</code> → LocalDB <code>Quizzer</code></td><td>Einstellungen</td></tr>
     <tr><td><code>UseServer</code></td><td>Servermodus ein.</td><td><code>false</code></td><td>„Mit Konto am Quizzer-Server arbeiten“ oder <code>wpf-verbinden.ps1</code></td></tr>
     <tr><td><code>ServerUrl</code></td><td>Adresse der Tür, <strong>ohne</strong> <code>/api/v1</code> — das hängt das WPF selbst an.</td><td><code>null</code></td><td>wie oben; lokal <code>https://localhost:8543</code></td></tr>
@@ -631,11 +634,12 @@ bei einem selbst erzeugten)“ aus <code>certs\server.sha256</code>, dann „Ser
 dotnet run --project Quizzer/Quizzer.csproj</pre>
 <p>Anmelden mit dem Namen aus <code>QUIZZER_ADMIN_USER</code> und dem Kennwort aus <code>QUIZZER_ADMIN_PASSWORD</code>:</p>
 <pre>Select-String '^QUIZZER_ADMIN_' deploy\.env</pre>
-<p>Das WPF legt dabei die Zwischendatenbank an und holt alles — die Medien nach
-<code>C:\ProgramData\Quizzer\Server\localhost_8543</code> (gemessen: 46 Dateien, davon 12 unter
-<code>Themes\Hausdesign</code>); <code>E:\QuizzerData</code> bleibt unberührt. Ab dem zweiten Start meldet es sich mit
-dem gemerkten Ausweis selbst an (14 Tage): das Anmeldefenster zeigt dann kurz nur „Sitzung wird fortgesetzt …“ ohne
-Eingabefelder.
+<p>Das WPF legt dabei die Zwischendatenbank an und holt alles — die Medien in den Datenordner
+<code>C:\ProgramData\Quizzer\Daten</code> (gemessen nach „Daten entfernen“: 46 Dateien, davon 12 unter
+<code>Themes\Hausdesign</code>). <strong>Angemeldet wird bei jedem Start</strong> (Meldung M28, „immer fragen“): der
+Name ist vorbelegt, der Cursor steht im Kennwortfeld. Ist der Server nicht erreichbar, steht sofort „Ohne Server mit dem
+letzten Stand weiterarbeiten“ da. <strong>„Abmelden“</strong> im Hauptfenster (Abschnitt „Spielleitung“) schickt
+Offenes, meldet am Server ab und startet neu ins Anmeldefenster — dort geht auch ein anderes Konto.
 Danach, in dieser Reihenfolge:</p>
 <ul>
   <li><strong>Kennwort ändern</strong> (Hauptfenster) — der Wert in der <code>.env</code> ist danach nur noch ein alter.</li>
@@ -655,7 +659,8 @@ Danach, in dieser Reihenfolge:</p>
 <code>Quizzer\bin\Debug\net10.0-windows\</code> (es gibt keine <code>launchSettings.json</code>). Beide lesen
 <code>%APPDATA%\Quizzer\settings.json</code> — nach <a href="#s7">Schritt 7</a> spricht also auch jeder Start aus der
 Entwicklungsumgebung mit dem Docker (Meldung M27; am 23.10.2026 mit dem Debug-Build nachgespielt: Anmeldefenster im
-Servermodus, Anmeldung, Medien unter ProgramData, zweiter Start meldet sich selbst an).</p>
+Servermodus mit Kennwortfeld, Anmeldung, Medien unter <code>C:\ProgramData\Quizzer\Daten</code>, Abmelden mit Neustart
+ins Anmeldefenster).</p>
 <ul>
   <li><strong>Die Tests bleiben davon unberührt:</strong> sie lenken die Einstellungsablage in einen Wegwerfordner um
   (<code>UserSettings.UseFolderForTests</code>) und lesen nie die echte <code>settings.json</code>.</li>
@@ -706,11 +711,18 @@ das stört die Sicherung nicht.</p>
   <li><strong>Zertifikat erneuern</strong> (gilt fünf Jahre): <code>.\zertifikat-lokal.ps1 -Neu</code>,
   <code>docker compose up -d --force-recreate caddy</code>, dann <code>.\wpf-verbinden.ps1</code>.</li>
   <li><strong>Zurück in den Einzelbetrieb:</strong> <code>.\wpf-verbinden.ps1 -Aus</code>. Das WPF arbeitet dann wieder auf
-  der LocalDB <code>Quizzer</code> und mit <code>E:\QuizzerData</code> — <strong>mit dem Stand vom Tag der
-  Übernahme</strong>. Was seitdem im Servermodus entstanden ist, liegt im Docker und unter ProgramData, nicht dort.</li>
-  <li><strong>Medienordner unter ProgramData leeren:</strong> darf man, solange das WPF nicht läuft — die nächste
-  Anmeldung holt alles wieder. Ausnahme: im Servermodus neu importierte Medien, die der Abgleich noch nicht
-  hinausgeschickt hat (Statuszeile).</li>
+  der LocalDB <code>Quizzer</code> — <strong>mit dem Stand vom Tag der Übernahme</strong>; was seitdem im Servermodus
+  entstanden ist, liegt im Docker. Der Datenordner bleibt derselbe (<code>C:\ProgramData\Quizzer\Daten</code>).</li>
+  <li><strong>Daten von diesem Rechner entfernen</strong> (Einstellungen, ganz unten): löscht alles unter
+  <code>C:\ProgramData\Quizzer</code>, die Zwischendatenbanken und gemerkten Anmeldungen, dann Neustart. Die LocalDB
+  <code>Quizzer</code> des Einzelbetriebs und die Einstellungen bleiben. Die Rückfrage sagt, was verloren geht: im
+  Servermodus nur, was noch nicht beim Server ist (die nächste Anmeldung holt den Rest wieder), <strong>im Einzelbetrieb
+  die einzige Kopie der Bilder und Töne</strong>. Gemessen am 23.10.2026: 54 Dateien, 3 Anmeldedateien und 1
+  Zwischendatenbank weg; die nächste Anmeldung brachte 46 Dateien zurück (die 8 übrigen waren ungenutzte Altstände aus
+  <code>E:\QuizzerData</code>).</li>
+  <li><strong>Meldungen und Fehler</strong> erscheinen seit M29 in einem eigenen Fenster im Design der App — Hinweis,
+  Frage (Ja/Nein; Eingabetaste = Ja, Escape = Nein) oder Fehler (mit „Einzelheiten zeigen“ und „In die Zwischenablage“
+  zum Weitergeben).</li>
 </ul>
 
 <h2 id="spaeter">Später: Laptop und Freunde</h2>
@@ -733,8 +745,8 @@ Ablauf: <code>deploy/README.md</code>, Abschnitt „Einrichten“.</p>
     <tr><td>„Der Server hat schon Spiele, Fragen oder mehr als das erste Konto. Nichts geändert.“</td><td>Der Riegel von <code>bestand-uebernehmen.ps1</code>.</td><td>Gewollt? <code>.\backup.ps1</code>, dann mit <code>-Ersetzen</code>.</td></tr>
     <tr><td><code>restore.ps1</code>: „Could not find the file /var/opt/mssql/backup“</td><td>Frischer Stapel, der Ordner fehlt noch.</td><td>Einmal <code>.\backup.ps1</code>, dann <code>restore.ps1</code> erneut. Die API startet das Skript in jedem Fall wieder.</td></tr>
     <tr><td><code>migrator</code> endet mit <code>Exited (1)</code></td><td>Meist die Verbindung zu <code>sql</code> (Kennwort, Start noch nicht fertig).</td><td><code>docker compose logs migrator</code>; dann <code>docker compose up -d</code>.</td></tr>
-    <tr><td>Das Anmeldefenster zeigt keine Eingabefelder, nur „Sitzung wird fortgesetzt …“</td><td>Richtig so: es meldet sich mit dem gemerkten Ausweis selbst an (bis 14 Tage nach der letzten Anmeldung).</td><td>Warten. Für ein anderes Konto gibt es noch keinen Abmelden-Knopf: das WPF schließen, unter
-    <code>%LOCALAPPDATA%\Quizzer\server\</code> die Datei <code>session-*.bin</code> löschen, neu starten.</td></tr>
+    <tr><td>Im Anmeldefenster steht gleich „… nicht erreichbar“</td><td>Der Stapel läuft nicht oder Docker Desktop ist noch nicht oben — das Fenster fragt beim Öffnen nach.</td><td><code>docker compose ps</code>; oder „Ohne Server mit dem letzten Stand weiterarbeiten“ (nur nach einer früheren Anmeldung auf diesem Rechner).</td></tr>
+    <tr><td>Ein anderes Konto soll an diesen Rechner</td><td>—</td><td>„Abmelden“ im Hauptfenster; das Programm startet neu ins Anmeldefenster.</td></tr>
     <tr><td><code>curl</code> auf <code>/version</code> antwortet 401</td><td>Falscher Pfad — alles liegt unter <code>/api/v1</code>.</td><td><code>/api/v1/version</code>.</td></tr>
     <tr><td><code>curl</code>: <code>SEC_E_UNTRUSTED_ROOT</code></td><td>Ohne <code>--cacert</code> vertraut Windows dem selbst erzeugten Zertifikat nicht — richtig so.</td><td><code>--cacert certs\server.crt</code> angeben.</td></tr>
   </tbody>
@@ -755,17 +767,22 @@ Ablauf: <code>deploy/README.md</code>, Abschnitt „Einrichten“.</p>
     Texturen byteweise gleich mit dem Datenordner; ein falscher Fingerabdruck abgewiesen.</li>
     <li><code>settings.json</code> aus <code>wpf-verbinden.ps1</code> von <code>UserSettings.Load()</code> so gelesen.</li>
     <li><code>backup.ps1</code> gegen den Stapel: <code>quizzer.bak</code> 6,5 MB, <code>medien.tar.gz</code> 75 MB.</li>
-    <li>Das WPF aus dem Debug-Build gestartet (wie Visual Studio): Anmeldefenster im Servermodus, Anmeldung als Admin,
-    Hauptfenster „Angemeldet als …“; 46 Mediendateien unter <code>C:\ProgramData\Quizzer\Server\localhost_8543</code>
-    (Resources 10, Hausdesign 12, Abendrot 6, oben 18), <code>E:\QuizzerData\Themes</code> unverändert; zweiter Start
-    meldet sich selbst an; Beenden mit Exitcode 0.</li>
+    <li>Das WPF aus dem Debug-Build gestartet (wie Visual Studio), per UI Automation: Anmeldefenster verlangt das
+    Kennwort (kein Selbst-Anmelden, Cursor im Kennwortfeld); die Anmeldung holt nach <code>C:\ProgramData\Quizzer\Daten</code>
+    (42 → 54 Dateien, Hausdesign dazu); „Abmelden“ fragt im neuen Meldungsfenster, „Nein“ lässt angemeldet, „Ja“ beendet,
+    löscht den gemerkten Ausweis und startet neu ins Anmeldefenster.</li>
+    <li>„Daten von diesem Rechner entfernen“ am echten Programm: ProgramData 54 → 0 Dateien, Anmeldedateien 3 → 0,
+    Zwischendatenbanken 1 → 0, Neustart; die nächste Anmeldung brachte 46 Dateien und die Zwischendatenbank zurück.</li>
+    <li>Gesamtlauf nach M28/M29: Logik, WPF und Server grün (Zahlen in der Meldungsdatei).</li>
   </ul>
 </div>
 <div class="hinweis">
   <p class="titel">Nicht gemessen</p>
   <ul>
     <li><strong>Die Masken hinter der Anmeldung gegen den Docker</strong> — Konten, Kennwort ändern, ein Spiel spielen
-    und speichern. Anmeldung, Abholen und Hauptfenster sind gemessen.</li>
+    und speichern. Anmeldung, Abholen, Abmelden, Daten entfernen und das Hauptfenster sind gemessen.</li>
+    <li>Der Fehler-Fall des neuen Meldungsfensters im laufenden Programm (im Test am echten Fenster gemessen, im
+    Programm nicht ausgelöst).</li>
     <li><code>restore.ps1</code> und <code>aufgaben-einrichten.ps1</code> auf diesem Rechner.</li>
     <li>Ein Neustart des Rechners mit laufendem Stapel.</li>
     <li>Dass SQL Server ein später geändertes <code>MSSQL_SA_PASSWORD</code> nicht übernimmt (Angabe von Microsoft).</li>
