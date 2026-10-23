@@ -10,7 +10,8 @@
 #   2. API anhalten, Sicherung im Container zurueckspielen, Medienablage ersetzen
 #   3. Migrator: Schema auf Stand, Betriebsanmeldung neu (sie lebt in master, nicht in der Sicherung)
 #   4. Design <Design> aus den Grundtexturen anlegen und jedem Spiel ohne Design zuweisen - die
-#      Wurzeltexturen gleicht der Client nie ab, nur Themes\<Ordner> (ClientSyncService)
+#      Wurzeltexturen laedt der Client nie hoch, nur Themes\<Ordner> (ClientSyncService). Dazu
+#      liegen sie oben in der Ablage; von dort gibt sie der Server heraus (MediaService.SkinFiles)
 #   5. API und Caddy starten; beim ersten Start entsteht das Admin-Konto aus .env neu
 #   6. Zaehlen: Server gegen lokal
 #
@@ -88,6 +89,16 @@ try {
         if (Test-Path $datei) { Copy-Item $datei $medien } else { Write-Warning "Spielerbild fehlt im Datenordner: $bild" }
     }
 
+    # Die Grundtexturen oben in der Ablage gibt der Server jedem Konto heraus - die Namen stehen in
+    # MediaService.SkinFiles, der Liste, nach der er ausliefert. So sieht auch ein Rechner, dessen
+    # Medienordner unter ProgramData leer beginnt (M26), die Fenster ausserhalb eines Spiels wie hier.
+    $skinBlock = [regex]::Match((Get-Content (Join-Path $PSScriptRoot '..\Quizzer.Server\Media\MediaService.cs') -Raw),
+        'SkinFiles\s*=\s*new[^{]*\{(?<namen>[^}]*)\}').Groups['namen'].Value
+    $grundtexturen = @([regex]::Matches($skinBlock, '"([^"]+\.png)"') | ForEach-Object { $_.Groups[1].Value })
+    if (-not $grundtexturen) { throw 'MediaService.SkinFiles nicht gefunden - das Skript passt nicht mehr zum Server.' }
+    $grundtexturen = @($grundtexturen | Where-Object { Test-Path (Join-Path $Datenordner $_) })
+    foreach ($datei in $grundtexturen) { Copy-Item (Join-Path $Datenordner $datei) $medien }
+
     $texturen = @()
     if ($Design) {
         $designOrdner = Join-Path $medien "Themes\$Design"
@@ -164,6 +175,7 @@ foreach ($name in $erwartet.Keys) {
     Write-Host ('{0,-13} {1,8} {2,7}{3}' -f $name, $erwartet[$name], $amServer[$name], $marke)
 }
 Write-Host ('{0,-13} {1,8} {2,7}' -f 'Mediendateien', $medienZahl, $imVolume)
+Write-Host "Grundtexturen oben in der Ablage: $($grundtexturen.Count)"
 if ($Design) { Write-Host "Design $Design mit $($texturen.Count) Texturen; Spiele ohne Design: $ohneDesign" }
 if ($abweichung -or $imVolume -ne $medienZahl -or ($Design -and $ohneDesign -gt 0)) { throw 'Die Zahlen stimmen nicht - siehe oben.' }
 Write-Host 'Uebernommen. Anmeldung im WPF mit QUIZZER_ADMIN_USER aus .env.'
