@@ -1,6 +1,7 @@
 using Quizzer.Base;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace Quizzer.Server
 {
@@ -9,6 +10,16 @@ namespace Quizzer.Server
         public ServerLoginView()
         {
             InitializeComponent();
+
+            // M28: angemeldet wird jedes Mal, und der Name ist meist vorbelegt - dann gleich ins
+            // Kennwortfeld. Mit Input-Vorrang: erst muss die Bindung den Namen eingetragen haben.
+            Loaded += (_, _) => Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
+            {
+                if (string.IsNullOrEmpty(Namensfeld.Text))
+                    Namensfeld.Focus();
+                else
+                    Kennwortfeld.Focus();
+            });
         }
 
         public bool SignedIn => (DataContext as ServerLoginViewModel)?.SignedIn == true;

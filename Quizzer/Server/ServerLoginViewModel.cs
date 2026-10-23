@@ -83,27 +83,24 @@ namespace Quizzer.Server
                 return;
             }
 
-            Busy = "Sitzung wird fortgesetzt …";
+            // M28 „immer fragen": kein Selbst-Anmelden mehr mit dem gemerkten Erneuerungsschluessel -
+            // der dient nur noch dem Offline-Start und der Wiederverbindung. Hier wird bloss
+            // nachgesehen, ob der Server da ist, damit „Ohne Server weiterarbeiten" am Spielort ohne
+            // Netz gleich dasteht und nicht erst nach einem vergeblichen Anmelden. Ohne Busy: das
+            // Formular bleibt bedienbar, auch wenn die Suche dauert.
+            serverUnreachable = false;
+            Error = string.Empty;
             try
             {
-                if (await api.TryResumeAsync())
-                {
-                    await CompleteAsync(api);
-                    return;
-                }
+                await api.GetVersionAsync();
             }
             catch (ServerUnreachableException ex)
             {
                 SetUnreachable(ex.Message);
             }
-            catch (Exception ex)
+            catch (ApiException ex)
             {
                 Error = ex.Message;
-            }
-            finally
-            {
-                if (!SignedIn)
-                    Busy = string.Empty;
             }
         }
 

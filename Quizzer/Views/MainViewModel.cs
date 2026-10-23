@@ -9,7 +9,7 @@ using System.Windows.Input;
 
 namespace Quizzer.Views
 {
-    public class MainViewModel : ViewModelBase
+    public partial class MainViewModel : ViewModelBase
     {
         public override async Task InitializeAsync()
         {

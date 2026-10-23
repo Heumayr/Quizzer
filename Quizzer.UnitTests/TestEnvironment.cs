@@ -55,6 +55,11 @@ namespace Quizzer.UnitTests
             // zu hinterlassen.
             FilePicker.UseAsDefaultForTests(new ThrowingFilePicker());
 
+            // Und fuer den Neustart nach Abmelden oder „Daten entfernen" (M28): der echte startete
+            // den Testprozess ein zweites Mal und beendete den laufenden.
+            AppRestart.UseAsDefaultForTests(() => throw new InvalidOperationException(
+                "Neustart im Testlauf - AppRestart.Current vorher gegen eine Attrappe tauschen."));
+
             ExceptionManager.Handler = ex =>
             {
                 lock (SwallowedExceptions)
@@ -85,6 +90,8 @@ namespace Quizzer.UnitTests
             // werfende Fassung stehen.
             UserPrompt.UseAsDefaultForTests(null);
             UserPrompt.Reset();
+
+            AppRestart.UseAsDefaultForTests(null);
 
             FilePicker.UseAsDefaultForTests(null);
             FilePicker.Reset();

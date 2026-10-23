@@ -80,6 +80,13 @@
                         Height="32"
                         ToolTip="Öffnet die Anmeldung erneut. Wer abbricht, bleibt angemeldet wie bisher." />
 
+                <!-- M28: Abmelden vom Server - danach Neustart ins Anmeldefenster. -->
+                <Button Content="Abmelden"
+                        Command="{Binding LogoutCommand}"
+                        Visibility="{Binding ServerVisibility}"
+                        Height="32"
+                        ToolTip="Schickt Offenes zum Server, meldet dieses Konto ab und startet neu ins Anmeldefenster - dort geht auch ein anderes Konto." />
+
                 <!-- M9: der Abschnitt gibt es nur im Servermodus. -->
                 <StackPanel Visibility="{Binding ServerVisibility}">
                     <TextBlock Text="Server" Style="{StaticResource SectionHeader}" Margin="0,20,0,4" />

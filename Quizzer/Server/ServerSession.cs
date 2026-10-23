@@ -237,6 +237,50 @@ namespace Quizzer.Server
             BackgroundStarted?.Invoke(null, EventArgs.Empty);
         }
 
+        /// <summary>
+        /// Schickt Offenes sofort und liefert, wie viele Zeilen danach noch liegen - vor dem
+        /// Abmelden (M28). Offline oder ohne Abgleich: 0, gesendet wird dann ohnehin nichts.
+        /// </summary>
+        public static async Task<int> FlushAsync()
+        {
+            if (Background is not { } background || IsOffline)
+                return 0;
+
+            await background.FlushAsync();
+            return background.Status.Offen;
+        }
+
+        /// <summary>
+        /// Abmelden (M28): der Abgleich endet, der Erneuerungsschluessel wird am Server widerrufen
+        /// und hier vergessen. Danach startet das Programm neu ins Anmeldefenster. Die
+        /// Zwischendatenbank bleibt - was noch nicht beim Server ist, geht bei der naechsten
+        /// Anmeldung desselben Kontos hinaus.
+        /// </summary>
+        public static async Task SignOutAsync()
+        {
+            wiederverbindung?.Dispose();
+            wiederverbindung = null;
+            Background?.Dispose();
+            Background = null;
+
+            if (Api is { } api)
+            {
+                try
+                {
+                    await api.LogoutAsync();
+                }
+                catch (Exception ex) when (ex is ServerUnreachableException or ApiException or IOException or System.Net.Http.HttpRequestException or TaskCanceledException)
+                {
+                    // Nicht erreichbar: am Server gilt der Schluessel bis zu seinem Ablauf weiter,
+                    // hier ist er trotzdem weg - LogoutAsync leert die Ablage in jedem Fall.
+                }
+            }
+
+            Account = null;
+            Sync = null;
+            IsOffline = false;
+        }
+
         /// <summary>Vor dem Beenden: noch Offenes schicken, aber nicht ewig warten.</summary>
         public static void Shutdown()
         {
