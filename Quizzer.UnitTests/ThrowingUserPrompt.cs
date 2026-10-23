@@ -7,7 +7,7 @@ namespace Quizzer.UnitTests
     /// <para>
     /// <b>Gemessen 2026-09-07.</b> Löste ein Test eine Meldung aus, ohne vorher
     /// <c>UserPrompt.Current</c> gegen <see cref="RecordingUserPrompt"/> zu tauschen, öffnete
-    /// <c>MessageBoxUserPrompt</c> ein echtes modales Fenster im Testprozess. Der Lauf blieb
+    /// <c>MessageBoxUserPrompt</c> (heute <c>WindowUserPrompt</c>) ein echtes modales Fenster im Testprozess. Der Lauf blieb
     /// stehen - bei Test 72 von rund 320, ohne rot zu werden und ohne einen Namen zu nennen. Er
     /// sah aus wie ein langsamer Lauf, kostete acht Minuten je Versuch und hinterließ als
     /// einzige Spur ein sichtbares Fenster mit dem Titel „Einstellungen".

@@ -25,7 +25,13 @@ namespace Quizzer.Base
         /// Der Weg auf den Oberflaechen-Thread. Wird erst beim ersten Zugriff aufgeloest - nicht
         /// im Konstruktor, sonst koennte kein ViewModel ohne laufende Anwendung entstehen.
         /// </summary>
-        protected IUiInvoker Ui => uiInvoker ??= UiInvokerOverride?.Invoke()
+        protected IUiInvoker Ui => uiInvoker ??= CreateUiInvoker();
+
+        /// <summary>
+        /// Derselbe Weg fuer Stellen ohne ViewModel - etwa das Meldungsfenster (M29). Der Dispatcher
+        /// steht damit weiter nur hier.
+        /// </summary>
+        internal static IUiInvoker CreateUiInvoker() => UiInvokerOverride?.Invoke()
             ?? new DispatcherUiInvoker(Application.Current.Dispatcher);
 
         protected void RunOnUi(Action action) => Ui.Run(action);

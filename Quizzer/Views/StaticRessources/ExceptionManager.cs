@@ -1,12 +1,5 @@
-﻿using Quizzer.Base;
-using Quizzer.Views.HelperViewModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Quizzer.Views.HelperViewModels;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Interop;
 
 namespace Quizzer.Views.StaticRessources
 {
@@ -51,57 +44,7 @@ namespace Quizzer.Views.StaticRessources
             dispatcher.InvokeAsync(() => Handler(ex));
         }
 
-        private static void ShowExceptionWindow(Exception ex)
-        {
-            var window = new WindowBase();
-
-            var contentPanel = new StackPanel();
-
-            _ = RenderException(contentPanel, ex);
-
-            var rtb = new RichTextBox();
-            rtb.IsReadOnly = true;
-
-            var binding = new Binding(nameof(ex.StackTrace))
-            {
-                Source = ex,                 // or a specific vm instance
-                Mode = BindingMode.OneWay,
-                UpdateSourceTrigger = UpdateSourceTrigger.Default
-            };
-
-            BindingOperations.SetBinding(rtb,
-                                         RichTextBoxBinder.PlainTextProperty,
-                                         binding);
-
-            contentPanel.Children.Add(rtb);
-
-            contentPanel.Children.Add(new Button()
-            {
-                Content = "OK",
-                Command = new RelayCommand((p) => window.Close())
-            });
-
-            var scrollViewer = new ScrollViewer();
-            scrollViewer.Content = contentPanel;
-
-            window.Content = scrollViewer;
-
-            window.Show();
-        }
-
-        private static object RenderException(StackPanel pnl, Exception ex)
-        {
-            var view = new ExceptionView();
-            view.Message.Content = ex.Message;
-            view.Source.Content = ex.Source;
-            pnl.Children.Add(view);
-
-            if (ex.InnerException != null)
-            {
-                return RenderException(pnl, ex.InnerException);
-            }
-
-            return ex;
-        }
+        /// <summary>Das Meldungsfenster der App in der Art „Fehler“ (M29), ohne den Ablauf anzuhalten.</summary>
+        private static void ShowExceptionWindow(Exception ex) => PromptView.ShowError(ex);
     }
 }

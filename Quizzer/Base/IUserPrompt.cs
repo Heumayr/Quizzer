@@ -1,9 +1,9 @@
-using System.Windows;
+using Quizzer.Views.HelperViewModels;
 
 namespace Quizzer.Base
 {
     /// <summary>
-    /// Rueckfragen an den Spielleiter. Kapselt <see cref="MessageBox"/>, damit der Spielablauf
+    /// Rueckfragen an den Spielleiter. Kapselt das Meldungsfenster, damit der Spielablauf
     /// auch ohne Bedienung durchlaufen kann - ein modales Fenster bliebe im Test stehen.
     /// </summary>
     public interface IUserPrompt
@@ -15,15 +15,24 @@ namespace Quizzer.Base
         void Inform(string message, string caption = "");
     }
 
-    /// <summary>Der Regelfall im laufenden Programm: echte Meldungsfenster.</summary>
-    public sealed class MessageBoxUserPrompt : IUserPrompt
+    /// <summary>
+    /// Der Regelfall im laufenden Programm: das Meldungsfenster der App (M29) - bis 2026-10-23 das
+    /// weiße Windows-Meldungsfenster. Von jedem Thread aus aufrufbar, wie es MessageBox war.
+    /// </summary>
+    public sealed class WindowUserPrompt : IUserPrompt
     {
         public bool Confirm(string message, string caption)
-            => MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question)
-               == MessageBoxResult.Yes;
+            => ShowOnUi(new PromptViewModel(PromptKind.Question, message, caption));
 
         public void Inform(string message, string caption = "")
-            => MessageBox.Show(message, caption);
+            => ShowOnUi(new PromptViewModel(PromptKind.Info, message, caption));
+
+        private static bool ShowOnUi(PromptViewModel inhalt)
+        {
+            var ergebnis = false;
+            ViewCommonBase.CreateUiInvoker().Run(() => ergebnis = PromptView.ShowModal(inhalt));
+            return ergebnis;
+        }
     }
 
     /// <summary>
@@ -32,7 +41,7 @@ namespace Quizzer.Base
     /// </summary>
     public static class UserPrompt
     {
-        private static IUserPrompt standard = new MessageBoxUserPrompt();
+        private static IUserPrompt standard = new WindowUserPrompt();
         private static IUserPrompt current = standard;
 
         public static IUserPrompt Current
@@ -59,7 +68,7 @@ namespace Quizzer.Base
         /// </summary>
         internal static void UseAsDefaultForTests(IUserPrompt? ersatz)
         {
-            standard = ersatz ?? new MessageBoxUserPrompt();
+            standard = ersatz ?? new WindowUserPrompt();
             current = standard;
         }
 

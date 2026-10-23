@@ -53,6 +53,7 @@ namespace Quizzer.UnitTests.Views
             typeof(Quizzer.Server.ServerLoginView),
             typeof(Quizzer.Server.StatisticsView),
             typeof(Quizzer.Server.SyncRejectionsView),
+            typeof(Quizzer.Views.HelperViewModels.PromptView),
         ];
 
         /// <summary>
