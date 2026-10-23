@@ -148,6 +148,7 @@
     <li><a class="tief" href="#entwicklung">Start aus der Entwicklungsumgebung</a></li>
     <li><a href="#pruefen">Prüfen, ob es läuft</a></li>
     <li><a href="#betrieb">Im Betrieb</a></li>
+    <li><a href="#ki">KI-Entwürfe für Fragen</a></li>
     <li><a href="#spaeter">Später: Laptop und Freunde</a></li>
     <li><a href="#fehler">Fehlerbilder</a></li>
     <li><a href="#gemessen">Was gemessen ist und was nicht</a></li>
@@ -482,6 +483,7 @@ Zeile nur in der <code>.env</code> erreicht den Container nicht.</p>
     <tr><td><code>Quizzer__Jwt__Issuer</code> / <code>__Audience</code></td><td>Aussteller und Empfänger im Ausweis</td><td><code>quizzer-server</code> / <code>quizzer-wpf</code></td></tr>
     <tr><td><code>Quizzer__Jwt__SigningKeyFile</code></td><td>Schlüssel aus einer Datei statt aus <code>SigningKey</code></td><td>leer</td></tr>
     <tr><td><code>Quizzer__Jwt__AccessTokenLifetime</code></td><td>Gültigkeit eines Zugriffsausweises</td><td><code>00:15:00</code></td></tr>
+    <tr><td><code>Quizzer__KiFolder</code></td><td>Wo Einstellungen und Tageszähler der KI-Entwürfe liegen</td><td>leer = <code>/data/media/.ki</code></td></tr>
     <tr><td><code>Quizzer__Jwt__RefreshTokenLifetime</code></td><td>Gültigkeit des Erneuerungsschlüssels — so lange meldet sich das WPF von selbst wieder an</td><td><code>14.00:00:00</code></td></tr>
   </tbody>
 </table>
@@ -729,6 +731,23 @@ das stört die Sicherung nicht.</p>
   <li><strong>Meldungen und Fehler</strong> erscheinen seit M29 in einem eigenen Fenster im Design der App — Hinweis,
   Frage (Ja/Nein; Eingabetaste = Ja, Escape = Nein) oder Fehler (mit „Einzelheiten zeigen“ und „In die Zwischenablage“
   zum Weitergeben).</li>
+</ul>
+
+<h2 id="ki">KI-Entwürfe für Fragen</h2>
+<p>Seit M31 (23.10.2026). Der Admin wählt im WPF unter <em>Server → KI einrichten</em> den Anbieter — Claude
+(API-Schlüssel, Modell <code>claude-opus-5-5</code>) oder eine OpenAI-kompatible Schnittstelle (OpenAI, Ollama,
+LM Studio, vLLM; Adresse bis einschließlich <code>/v1</code>) — und hakt an, wer sie benutzen darf. Im Frageneditor
+erscheint dann bei einer neuen Frage <em>Mit KI entwerfen …</em>.</p>
+<ul>
+  <li><strong>Lokal im Stapel:</strong> ein Dienst <code>ollama</code> im Netz <code>backend</code>, Adresse
+  <code>http://ollama:11434/v1</code> — Vorlage in <code>deploy/README.md</code>.</li>
+  <li><strong>Der API-Schlüssel</strong> liegt verschlüsselt in <code>/data/media/.ki</code>; der Schlüssel dazu kommt aus
+  <code>QUIZZER_JWT_KEY</code>. <strong>Nach einem Wechsel von <code>QUIZZER_JWT_KEY</code> den KI-Schlüssel neu
+  eingeben.</strong></li>
+  <li><strong>Datenschutz:</strong> bei einem externen Anbieter gehen Thema, Text, Linkinhalte und Bilder an ihn.</li>
+  <li><strong>Nicht gemessen:</strong> ein Aufruf gegen den echten Claude- oder OpenAI-Dienst und gegen Ollama — geprüft
+  ist der Server mit einer Attrappe, der OpenAI-Weg gegen eine nachgebaute Schnittstelle. Die Probe in
+  <em>KI einrichten</em> zeigt beim ersten Einrichten, ob es geht.</li>
 </ul>
 
 <h2 id="spaeter">Später: Laptop und Freunde</h2>

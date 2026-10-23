@@ -87,6 +87,43 @@ Zertifikat des SQL Servers wird aber nicht geprüft (`TrustServerCertificate=Tru
 selbst erzeugt, und die Strecke verlässt das interne Docker-Netz nicht. Dasselbe gilt für
 Caddy → API (http im Netz `edge`).
 
+## KI-Entwürfe für Fragen (M31)
+
+Der Admin richtet im WPF unter *Server → KI einrichten* ein, welche KI Fragen entwirft, und hakt
+dort an, wer sie benutzen darf (Admins immer). Im Frageneditor erscheint dann bei einer neuen
+Frage *Mit KI entwerfen …*: Thema, Links, Text oder Bilder hinein, Entwürfe heraus - sie öffnen
+**ungespeichert** im Editor.
+
+- **Anbieter:** Claude (API-Schlüssel aus der Claude Console, Modell `claude-opus-5-5`) oder
+  jede OpenAI-kompatible Schnittstelle - OpenAI (`https://api.openai.com/v1`), Ollama, LM Studio,
+  vLLM. Die Adresse geht bis einschließlich `/v1`.
+- **Eine lokale KI im selben Stapel** (alles bleibt im Haus), etwa als zusätzlicher Dienst in
+  `docker-compose.yml`:
+
+  ```yaml
+    ollama:
+      image: ollama/ollama:latest   # besser eine feste Version eintragen
+      volumes: [ollama:/root/.ollama]
+      networks: [backend]
+      restart: unless-stopped
+  # unter volumes: zusätzlich  ollama:
+  ```
+
+  danach `docker compose exec ollama ollama pull llama3.1` und im WPF die Adresse
+  `http://ollama:11434/v1` mit dem Modell `llama3.1`. Für Bilder ein Modell mit Bildverständnis
+  (etwa `llama3.2-vision`). Kleine Modelle halten das Antwortformat schlechter ein - der Server
+  fällt dann von `json_schema` auf `json_object` zurück.
+- **Ablage:** Einstellungen und der Tageszähler liegen als Dateien in `/data/media/.ki` im
+  Volume `quizzer-media` - also in derselben Sicherung. Der API-Schlüssel ist dort mit AES-GCM
+  verschlüsselt; der Schlüssel dazu wird aus `QUIZZER_JWT_KEY` abgeleitet, der **nicht** im Volume
+  liegt. **Wer `QUIZZER_JWT_KEY` wechselt, muss den KI-Schlüssel neu eingeben** (das WPF sagt es).
+- **Links:** der Server holt sie selbst ab - nur http/https, nie Adressen im eigenen Netz
+  (geprüft beim Verbinden, auch nach Weiterleitungen), höchstens 2 MB und 10 s je Seite. Abschaltbar.
+- **Datenschutz:** bei Claude oder OpenAI gehen Thema, Text, Linkinhalte und Bilder an den Anbieter.
+  Gespeichert wird am Server davon nichts.
+- **Kosten bremsen:** Tageslimit je Konto (Vorgabe 20 Aufrufe, je bis zu 5 Entwürfe). Gescheiterte
+  Aufrufe zählen nicht. Die Probe in *KI einrichten* zählt nicht.
+
 ## Rauchtest gegen den laufenden Stapel
 
 Ein Test schickt das Demospiel „Alle Fragetypen" von einem „PC" über Caddy zum Server und holt
