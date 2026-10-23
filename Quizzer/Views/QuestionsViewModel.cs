@@ -98,18 +98,11 @@ namespace Quizzer.Views
         }
 
         /// <summary>
-        /// Fragt den Fragetyp ab und liefert eine neue Frage dieses Typs - oder <c>null</c>,
-        /// wenn abgebrochen wurde. Gemeinsamer Einstieg beider Anlegen-Strecken.
+        /// Eine neue Frage mit dem Stand der zuletzt gespeicherten (E1, M31, 2026-10-23). Der Typ
+        /// wird seitdem im Editor gewählt - das eigene Fenster davor fällt weg. Nie <c>null</c>;
+        /// die Rückgabe bleibt nullbar, damit die Aufrufer unverändert bleiben.
         /// </summary>
-        private static QuestionBase? AskForNewQuestion()
-        {
-            var window = new NewQuestionView { Owner = Application.Current?.MainWindow };
-            window.ShowDialog();
-
-            var chosen = window.ViewModel?.ChosenType;
-
-            return chosen == null ? null : Factory.CreateNewQuestion(chosen.Value);
-        }
+        private static QuestionBase? AskForNewQuestion() => QuestionTypes.Vorbelegung.NeueFrage();
 
 
         private async Task EditQuestionAsync(QuestionBase questionBase)

@@ -115,6 +115,7 @@ namespace Quizzer.Views.QuestionTypes
             MeldeRevealGeaendert();
 
             BaueZeileneditor();
+            MeldeGrunddaten();
 
             //OnDatagridSourceChanged();
         }
@@ -185,6 +186,10 @@ namespace Quizzer.Views.QuestionTypes
             await ctrl.SaveWithStepsAsync(Question);
             await ctrl.SaveChangesAsync();
             ResultState = wasNew ? EditResultState.New : EditResultState.Updated;
+
+            // E1: die nächste neue Frage beginnt mit Typ, Kategorie und Punkten dieser.
+            if (wasNew)
+                Vorbelegung.Merke(Question);
         }
 
         private AsyncRelayCommand? saveAndCloseCommand;

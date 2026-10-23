@@ -111,6 +111,9 @@
                     <Button Content="Konten verwalten" Command="{Binding AccountsCommand}" Visibility="{Binding AdminVisibility}"
                             Height="32"
                             ToolTip="Nur für den Admin: Konten anlegen, Kennwörter zurücksetzen, sperren." />
+                    <Button Content="KI einrichten" Command="{Binding KiCommand}" Visibility="{Binding AdminVisibility}"
+                            Height="32" Margin="0,4,0,0"
+                            ToolTip="Nur für den Admin: welche KI Fragen entwirft (Claude, OpenAI oder lokal) und wer sie benutzen darf." />
                 </StackPanel>
             </StackPanel>
             </ScrollViewer>

@@ -178,6 +178,19 @@ namespace Quizzer.Views.QuestionTypes.Typed
         /// </summary>
         internal Func<StepZeile, bool>? MediumWaehlen { get; set; }
 
+        /// <summary>Wie eine gezogene oder eingefügte Datei übernommen wird (E1) - ebenfalls von der Schale.</summary>
+        internal Func<StepZeile, string, bool>? MediumUebernehmen { get; set; }
+
+        /// <summary>Hängt eine Datei an eine Zeile - aus Ziehen oder Zwischenablage.</summary>
+        internal void HaengeDateiAn(StepZeile zeile, string datei)
+        {
+            if (MediumUebernehmen?.Invoke(zeile, datei) != true)
+                return;
+
+            zeile.MeldeAlles();
+            Geaendert();
+        }
+
         private AsyncRelayCommand? mediaCommand;
 
         /// <summary>

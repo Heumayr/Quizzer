@@ -146,6 +146,13 @@ namespace Quizzer.Views
             _ => new Server.AccountsView().ShowDialog(),
             _ => Server.ServerSession.IsAdmin);
 
+        private RelayCommand? kiCommand;
+
+        /// <summary>M31: die KI für Fragenentwürfe - Anbieter, Schlüssel, Limit, Freigaben.</summary>
+        public ICommand KiCommand => kiCommand ??= new RelayCommand(
+            _ => new Server.KiEinstellungenView().ShowDialog(),
+            _ => Server.ServerSession.IsAdmin);
+
         private RelayCommand? changePasswordCommand;
 
         public ICommand ChangePasswordCommand => changePasswordCommand ??= new RelayCommand(

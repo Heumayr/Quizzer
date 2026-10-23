@@ -52,6 +52,7 @@ namespace Quizzer.Views.QuestionTypes
             var editor = Zeileneditoren.Fuer(composer, Question, Revalidate);
 
             editor.MediumWaehlen = HaengeMediumAn;
+            editor.MediumUebernehmen = HaengeDateiAn;
 
             Zeileneditor = editor;
         }
@@ -93,9 +94,12 @@ namespace Quizzer.Views.QuestionTypes
         {
             var quelle = FilePicker.AskForExistingFile("Medium wählen", Medienfilter);
 
-            if (quelle == null)
-                return false;
+            return quelle != null && HaengeDateiAn(zeile, quelle);
+        }
 
+        /// <summary>Derselbe Weg für eine gezogene oder eingefügte Datei (E1).</summary>
+        private static bool HaengeDateiAn(StepZeile zeile, string quelle)
+        {
             try
             {
                 var (dateiname, typ) = FileHelper.HandleSelectedResourceFile(

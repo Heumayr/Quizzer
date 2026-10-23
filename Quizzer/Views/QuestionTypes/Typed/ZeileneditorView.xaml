@@ -28,11 +28,12 @@
 
             <TextBlock Text="{Binding ZeilenTitel}" Style="{StaticResource SectionHeader}" />
 
-            <ItemsControl ItemsSource="{Binding Zeilen}" Margin="5,0,5,4">
+            <ItemsControl x:Name="ZeilenListe" ItemsSource="{Binding Zeilen}" Margin="5,0,5,4">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <StackPanel>
-                            <Grid Margin="0,2">
+                            <!-- E1: ein Bild auf die Zeile ziehen oder mit Strg+V einfuegen haengt es an. -->
+                            <Grid Margin="0,2" AllowDrop="True" DragOver="MediumDrueber" Drop="MediumGezogen" PreviewKeyDown="MediumEinfuegen">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -71,18 +72,11 @@
                             <TextBlock DockPanel.Dock="Left" Text="↔" Margin="6,0" VerticalAlignment="Center"
                                        Visibility="{Binding DataContext.PartnerVisibility,
                                                     RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                            <TextBox VerticalContentAlignment="Center"
-                                     Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}">
-                                <TextBox.InputBindings>
-                                    <!-- Enter haengt an, statt zu speichern: in einer Maske
-                                         voller einzeiliger Felder ist das die haeufigere
-                                         Absicht, und der Sprung in die neue Zeile spart den
-                                         Griff zur Maus. -->
-                                    <KeyBinding Key="Return"
-                                                Command="{Binding DataContext.AddRowCommand,
-                                                          RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                                </TextBox.InputBindings>
-                            </TextBox>
+                            <!-- Enter springt in die naechste Zeile, in der letzten haengt es eine an
+                                 (E1) - Code dahinter, weil der Fokus mitwandern muss. -->
+                            <TextBox x:Name="ZeilenText" VerticalContentAlignment="Center"
+                                     Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+                                     PreviewKeyDown="ZeileEnter" />
                             </DockPanel>
 
                             <TextBlock Grid.Column="3" Text="{Binding Zusatz}" Opacity="0.7"

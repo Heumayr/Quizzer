@@ -1,0 +1,162 @@
+<base:WindowBase x:Class="Quizzer.Views.QuestionTypes.KiEntwurfView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Quizzer.Views.QuestionTypes"
+        xmlns:base="clr-namespace:Quizzer.Base"
+        Title="Entwurf mit KI" Height="760" Width="1060" MinWidth="900" MinHeight="560"
+        WindowStartupLocation="CenterOwner">
+    <base:WindowBase.DataContext>
+        <local:KiEntwurfViewModel />
+    </base:WindowBase.DataContext>
+
+    <base:WindowBase.Resources>
+        <Style x:Key="Feld" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Opacity" Value="0.8" />
+            <Setter Property="Margin" Value="0,8,0,2" />
+        </Style>
+    </base:WindowBase.Resources>
+
+    <DockPanel Background="{StaticResource AppBgBrush}">
+
+        <Border DockPanel.Dock="Top" Background="{StaticResource PanelBgBrush}" BorderThickness="0,0,0,1" Padding="12,10">
+            <StackPanel>
+                <TextBlock Text="Fragen von der KI entwerfen lassen" FontSize="18" FontWeight="Bold" />
+                <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Opacity="0.8" Margin="0,4,0,0" />
+            </StackPanel>
+        </Border>
+
+        <Border DockPanel.Dock="Bottom" Background="{StaticResource PanelBgBrush}" BorderThickness="0,1,0,0" Padding="12,10">
+            <DockPanel LastChildFill="False">
+                <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" FontSize="12" Opacity="0.7" TextWrapping="Wrap" MaxWidth="520"
+                           Text="Bei einem externen Anbieter gehen Thema, Text, der Inhalt der Links und die Bilder an ihn. Gespeichert wird erst im Editor." />
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="Abbrechen" Command="{Binding AbbrechenCommand}" MinWidth="110" Margin="0,0,8,0"
+                            ToolTip="Bricht eine laufende Anfrage ab - oder schließt, ohne etwas zu übernehmen." />
+                    <Button Content="Entwürfe erzeugen" Command="{Binding ErzeugeCommand}" MinWidth="160" Margin="0,0,8,0" FontWeight="Bold"
+                            ToolTip="Fragt die KI des Servers. Zählt einen Aufruf des Tageslimits." />
+                    <Button Content="Übernehmen" Command="{Binding UebernehmeCommand}" MinWidth="130"
+                            ToolTip="Öffnet die angehakten Entwürfe im Editor - ungespeichert." />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Grid Margin="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="420" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,0,12,0">
+                <StackPanel>
+                    <TextBlock Text="Thema" Style="{StaticResource Feld}" Margin="0,0,0,2" />
+                    <TextBox x:Name="ThemaFeld" Text="{Binding Thema, UpdateSourceTrigger=PropertyChanged}" Height="30" VerticalContentAlignment="Center"
+                             ToolTip="Etwa „Die Alpen“ oder „Filmmusik der 80er“." />
+
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="80" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                            <TextBlock Text="Fragetyp" Style="{StaticResource Feld}" Margin="0,0,0,2" />
+                            <ComboBox ItemsSource="{Binding Typen}" SelectedItem="{Binding Typ}" DisplayMemberPath="Name" Height="30" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Anzahl" Style="{StaticResource Feld}" Margin="0,0,0,2" />
+                            <ComboBox ItemsSource="{Binding Anzahlen}" SelectedItem="{Binding Anzahl}" Height="30" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                            <TextBlock Text="Kategorie" Style="{StaticResource Feld}" Margin="0,0,0,2" />
+                            <ComboBox ItemsSource="{Binding Kategorien}" SelectedItem="{Binding Kategorie}" DisplayMemberPath="Designation" Height="30" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Schwierigkeit" Style="{StaticResource Feld}" Margin="0,0,0,2" />
+                            <ComboBox ItemsSource="{Binding Schwierigkeiten}" SelectedItem="{Binding Schwierigkeit}" Height="30" />
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="Links (einer je Zeile)" Style="{StaticResource Feld}" />
+                    <TextBox Text="{Binding Links, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="NoWrap"
+                             MinHeight="50" MaxHeight="110" VerticalScrollBarVisibility="Auto"
+                             ToolTip="Der Server holt die Seiten ab und gibt ihren Text der KI als Material. Höchstens 5." />
+
+                    <TextBlock Text="Text oder Daten" Style="{StaticResource Feld}" />
+                    <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap"
+                             MinHeight="90" MaxHeight="200" VerticalScrollBarVisibility="Auto"
+                             ToolTip="Eingefügter Artikel, eine Tabelle, Stichpunkte - Material, aus dem die Fragen entstehen." />
+
+                    <TextBlock Text="Bilder (ziehen, einfügen mit Strg+V oder wählen)" Style="{StaticResource Feld}" />
+                    <Border x:Name="BildFlaeche" AllowDrop="True" Drop="BildGezogen" DragOver="BildDrueber"
+                            BorderBrush="#3A3A3A" BorderThickness="1" CornerRadius="4" Padding="6" MinHeight="44" Background="{StaticResource ControlBgBrush}">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="Bild wählen …" Command="{Binding BildCommand}" Padding="8,2" VerticalAlignment="Top"
+                                    ToolTip="Ein Bild als Material mitschicken - etwa ein Foto, aus dem eine Frage werden soll. Höchstens 4, je bis 5 MB." />
+                            <ItemsControl ItemsSource="{Binding BildListe}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Margin="0,1">
+                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" MaxWidth="240" TextTrimming="CharacterEllipsis" />
+                                            <Button Content="✕" Style="{StaticResource IconButton}" Margin="6,0,0,0"
+                                                    Command="{Binding DataContext.BildEntfernenCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}" ToolTip="Dieses Bild nicht mitschicken" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </DockPanel>
+                    </Border>
+
+                    <TextBlock Text="Wünsche (frei)" Style="{StaticResource Feld}" />
+                    <TextBox Text="{Binding Wuensche, UpdateSourceTrigger=PropertyChanged}" Height="30" VerticalContentAlignment="Center"
+                             ToolTip="Etwa „für Kinder“, „mit Jahreszahlen“, „nicht zu leicht“." />
+                </StackPanel>
+            </ScrollViewer>
+
+            <DockPanel Grid.Column="1">
+                <TextBlock DockPanel.Dock="Top" Text="Entwürfe" Style="{StaticResource SectionHeader}" Margin="0,0,0,4" />
+
+                <TextBlock DockPanel.Dock="Top" Text="Die KI arbeitet …" Visibility="{Binding ArbeitetVisibility}"
+                           FontSize="16" FontWeight="DemiBold" Margin="0,8" />
+
+                <ItemsControl DockPanel.Dock="Bottom" ItemsSource="{Binding Hinweise}" Margin="0,6,0,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding StringFormat=! {0}}" Foreground="Orange" TextWrapping="Wrap" Margin="0,1" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Vorschlaege}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource PanelBgBrush}" BorderBrush="#3A3A3A" BorderThickness="1"
+                                        CornerRadius="4" Padding="10,8" Margin="0,0,0,8">
+                                    <DockPanel>
+                                        <CheckBox DockPanel.Dock="Left" IsChecked="{Binding Uebernehmen}" VerticalAlignment="Top" Margin="0,2,10,0"
+                                                  ToolTip="Diesen Entwurf übernehmen" />
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Kopf}" FontSize="12" Opacity="0.7" />
+                                            <TextBlock Text="{Binding Entwurf.Fragetext}" FontSize="15" FontWeight="DemiBold" TextWrapping="Wrap" Margin="0,2,0,4" />
+                                            <TextBlock Text="{Binding Inhalt}" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding Entwurf.Notizen}" TextWrapping="Wrap" Opacity="0.7" FontSize="12" Margin="0,4,0,0" />
+                                            <TextBlock Text="{Binding Quellen}" TextWrapping="Wrap" Opacity="0.6" FontSize="11" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Grid>
+    </DockPanel>
+</base:WindowBase>

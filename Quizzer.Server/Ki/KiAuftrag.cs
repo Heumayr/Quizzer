@@ -150,7 +150,8 @@ namespace Quizzer.Server.Ki
                 ["punkte"] = new JsonObject { ["type"] = "integer" },
                 ["schwierigkeit"] = new JsonObject { ["type"] = "integer" },
                 ["zeilen"] = new JsonObject { ["type"] = "array", ["items"] = zeile },
-                ["aufloesung"] = Text(),
+                // Über nameof: als Zeichenfolge hielte die Umlautprüfung den Schlüssel für Anzeigetext.
+                [JsonNamingPolicy.CamelCase.ConvertName(nameof(KiFrageEntwurf.Aufloesung))] = Text(),
                 ["sollwert"] = OderNull(new JsonObject { ["type"] = "number" }),
                 ["einheit"] = OderNull(new JsonObject { ["type"] = "string", ["enum"] = einheiten }),
                 ["sollDatum"] = OderNull(Text()),

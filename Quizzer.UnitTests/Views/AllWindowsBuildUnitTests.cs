@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -54,6 +54,8 @@ namespace Quizzer.UnitTests.Views
             typeof(Quizzer.Server.StatisticsView),
             typeof(Quizzer.Server.SyncRejectionsView),
             typeof(Quizzer.Views.HelperViewModels.PromptView),
+            typeof(Quizzer.Server.KiEinstellungenView),
+            typeof(Quizzer.Views.QuestionTypes.KiEntwurfView),
         ];
 
         /// <summary>

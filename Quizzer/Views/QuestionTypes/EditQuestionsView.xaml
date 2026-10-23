@@ -41,13 +41,24 @@
 
     <DockPanel Background="{StaticResource AppBgBrush}">
 
-        <!-- Kopfzeile: welcher Fragetyp hier bearbeitet wird -->
+        <!-- Kopfzeile: welcher Fragetyp hier bearbeitet wird - bei einer neuen Frage hier gewaehlt (E1) -->
         <Border DockPanel.Dock="Top" Background="{StaticResource PanelBgBrush}"
                 BorderThickness="0,0,0,1" Padding="10,8">
             <StackPanel>
-                <TextBlock Text="{Binding TypeDisplayName}" FontSize="18" FontWeight="Bold" />
+                <DockPanel LastChildFill="True">
+                    <Button DockPanel.Dock="Right" Content="Mit KI entwerfen …" Command="{Binding KiCommand}"
+                            Visibility="{Binding KiVisibility}" MinWidth="170" Margin="8,0,0,0" FontWeight="Bold"
+                            ToolTip="Thema, Links, Text oder Bilder angeben - die KI des Servers schlägt Fragen vor. Gespeichert wird erst hier." />
+                    <ComboBox DockPanel.Dock="Right" ItemsSource="{Binding TypProfile}" DisplayMemberPath="DisplayName"
+                              SelectedItem="{Binding GewaehlterTyp, Mode=TwoWay}" Visibility="{Binding TypwahlVisibility}"
+                              MinWidth="200" Margin="8,0,0,0" VerticalAlignment="Center"
+                              ToolTip="Der Typ einer neuen Frage. Texte und Zeilen werden beim Wechsel mitgenommen; nach dem Speichern geht es nur noch über „Umwandeln“." />
+                    <TextBlock Text="{Binding TypeDisplayName}" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" />
+                </DockPanel>
                 <TextBlock Text="{Binding TypeHelpText}" TextWrapping="Wrap" Opacity="0.75"
                            Margin="0,3,0,0" />
+                <TextBlock Text="{Binding KiHinweis}" Visibility="{Binding KiHinweisVisibility}" TextWrapping="Wrap"
+                           Foreground="Orange" Margin="0,6,0,0" />
             </StackPanel>
         </Border>
 
@@ -78,6 +89,9 @@
                 <Button Content="Speichern"
                         ToolTip="Schreibt die Frage samt ihren Schritten, ohne das Fenster zu schließen." Command="{Binding SaveCommand}"
                         MinWidth="110" Margin="0,0,8,0" />
+                <Button Content="{Binding NaechsteText}" Visibility="{Binding NaechsteVisibility}"
+                        ToolTip="Speichert und öffnet gleich die nächste neue Frage - mit Typ, Kategorie und Punkten dieser. Strg+Enter." Command="{Binding SaveAndNextCommand}"
+                        MinWidth="170" Margin="0,0,8,0" FontWeight="Bold" />
                 <Button Content="Speichern und schließen"
                         ToolTip="Schreibt die Frage samt ihren Schritten und kehrt zur Liste zurück." Command="{Binding SaveAndCloseCommand}"
                         MinWidth="180" />
@@ -136,92 +150,13 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="5">
 
-                <TextBlock Text="Grunddaten" Style="{StaticResource SectionHeader}" />
+                <TextBlock Text="Frage" Style="{StaticResource SectionHeader}" />
 
-                <StackPanel Style="{StaticResource FieldRow}">
-                    <Label Style="{StaticResource FieldLabel}" Content="Bezeichnung *"
-                           ToolTip="Vollständiger Name der Frage. Nur intern sichtbar." />
-                    <TextBox VerticalContentAlignment="Center" MinWidth="320"
-                             Text="{Binding Path=Question.Designation, UpdateSourceTrigger=PropertyChanged}" />
-                </StackPanel>
-
-                <StackPanel Style="{StaticResource FieldRow}">
-                    <Label Style="{StaticResource FieldLabel}" Content="Kurzbezeichnung"
-                           ToolTip="Steht in der Zelle des Spielfelds. Bleibt sie leer, bleibt die Zelle leer." />
-                    <TextBox VerticalContentAlignment="Center" MinWidth="320"
-                             Text="{Binding Path=Question.DesignationShort, UpdateSourceTrigger=PropertyChanged}" />
-                </StackPanel>
-
-                <StackPanel Style="{StaticResource FieldRow}">
-                    <Label Style="{StaticResource FieldLabel}" Content="Kategorie *"
-                           ToolTip="Thematische Zuordnung. Ohne Kategorie lässt sich die Frage nicht speichern." />
-                    <ComboBox ItemsSource="{Binding Categories}"
-                              SelectedItem="{Binding Path=SelectedCategory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              DisplayMemberPath="Designation" MinWidth="320" />
-                </StackPanel>
-
-                <StackPanel Style="{StaticResource FieldRow}">
-                    <Label Style="{StaticResource FieldLabel}" Content="Fragetext"
-                           VerticalAlignment="Top"
-                           ToolTip="Wird den Spielern angezeigt. Kann leer bleiben, wenn der Text im ersten Schritt steht." />
-                    <TextBox Text="{Binding Question.QuestionText, UpdateSourceTrigger=PropertyChanged}"
-                             AcceptsReturn="True" TextWrapping="Wrap"
-                             VerticalScrollBarVisibility="Auto"
-                             MinWidth="500" MinHeight="60" MaxHeight="160" />
-                </StackPanel>
-
-                <TextBlock Text="Bewertung" Style="{StaticResource SectionHeader}" />
-
-                <StackPanel Style="{StaticResource FieldRow}">
-                    <Label Style="{StaticResource FieldLabel}" Content="Punkte *"
-                           ToolTip="Grundwert. Schwierigkeit und Spielphase rechnen ihn hoch." />
-                    <TextBox VerticalContentAlignment="Center" MinWidth="120">
-                        <TextBox.Text>
-                            <Binding Path="Question.Points"
-                                     UpdateSourceTrigger="PropertyChanged"
-                                     ValidatesOnDataErrors="True"
-                                     ValidatesOnExceptions="True"
-                                     NotifyOnValidationError="True">
-                                <Binding.ValidationRules>
-                                    <val:PositiveIntValidationRule />
-                                </Binding.ValidationRules>
-                            </Binding>
-                        </TextBox.Text>
-                    </TextBox>
-
-                    <Label Content="Minuspunkte" Margin="20,0,0,0" VerticalAlignment="Center"
-                           ToolTip="Abzug bei falscher Antwort." />
-                    <TextBox VerticalContentAlignment="Center" MinWidth="120">
-                        <TextBox.Text>
-                            <Binding Path="Question.MinusPoints"
-                                     UpdateSourceTrigger="PropertyChanged"
-                                     ValidatesOnDataErrors="True"
-                                     ValidatesOnExceptions="True"
-                                     NotifyOnValidationError="True">
-                                <Binding.ValidationRules>
-                                    <val:PositiveIntValidationRule />
-                                </Binding.ValidationRules>
-                            </Binding>
-                        </TextBox.Text>
-                    </TextBox>
-                </StackPanel>
-
-                <StackPanel Style="{StaticResource FieldRow}">
-                    <Label Style="{StaticResource FieldLabel}" Content="Schwierigkeit"
-                           ToolTip="Stufe 0 bis 15. Fließt in die Punkteberechnung ein." />
-                    <ComboBox ItemsSource="{Binding Difficulties}" MinWidth="200"
-                              SelectedItem="{Binding Question.Difficulty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                </StackPanel>
-
-                <TextBlock Text="{Binding TypeDisplayName, StringFormat=Einstellungen für {0}}"
-                           Style="{StaticResource SectionHeader}" />
-
-                <StackPanel Style="{StaticResource FieldRow}" Visibility="{Binding ShowTextOnKeySelectVisibility}">
-                    <Label Style="{StaticResource FieldLabel}" Content="Text auf den Tasten"
-                           ToolTip="Ob die Spieler den Antworttext am Telefon sehen oder nur den Buchstaben." />
-                    <CheckBox VerticalAlignment="Center"
-                              IsChecked="{Binding Path=Question.ShowTextOnKeySelect}" />
-                </StackPanel>
+                <TextBox x:Name="FragetextFeld" Margin="5,0,5,4"
+                         Text="{Binding Fragetext, UpdateSourceTrigger=PropertyChanged}"
+                         AcceptsReturn="True" TextWrapping="Wrap" FontSize="15"
+                         VerticalScrollBarVisibility="Auto" MinHeight="54" MaxHeight="160"
+                         ToolTip="Wird den Spielern angezeigt. Bezeichnung und Kurzbezeichnung entstehen daraus, bis Sie sie unter „Weitere Einstellungen“ ändern." />
 
                 <!-- Nur Schaetzfrage -->
                 <StackPanel Visibility="{Binding ExpectedValueVisibility}">
@@ -258,6 +193,89 @@
                                Opacity="0.75" Margin="5,3,5,3" />
                 </StackPanel>
 
+                <!-- Die Maske des Fragetyps. Was hier steht, entscheidet der Typ -
+                     Antwortliste, Hinweisleiter, Sollwert oder Aufdeckschritte. -->
+                <ContentControl Content="{Binding Zeileneditor}" Margin="0,4,0,0">
+                    <ContentControl.ContentTemplate>
+                        <DataTemplate>
+                            <typed:ZeileneditorView />
+                        </DataTemplate>
+                    </ContentControl.ContentTemplate>
+                </ContentControl>
+
+
+                <TextBlock Text="Einordnung" Style="{StaticResource SectionHeader}" />
+
+                <StackPanel Style="{StaticResource FieldRow}">
+                    <Label Style="{StaticResource FieldLabel}" Content="Kategorie *"
+                           ToolTip="Thematische Zuordnung. Ohne Kategorie lässt sich die Frage nicht speichern." />
+                    <ComboBox ItemsSource="{Binding Categories}"
+                              SelectedItem="{Binding Path=SelectedCategory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              DisplayMemberPath="Designation" MinWidth="320" />
+                </StackPanel>
+                <StackPanel Style="{StaticResource FieldRow}">
+                    <Label Style="{StaticResource FieldLabel}" Content="Punkte *"
+                           ToolTip="Grundwert. Schwierigkeit und Spielphase rechnen ihn hoch." />
+                    <TextBox VerticalContentAlignment="Center" MinWidth="120">
+                        <TextBox.Text>
+                            <Binding Path="Question.Points"
+                                     UpdateSourceTrigger="PropertyChanged"
+                                     ValidatesOnDataErrors="True"
+                                     ValidatesOnExceptions="True"
+                                     NotifyOnValidationError="True">
+                                <Binding.ValidationRules>
+                                    <val:PositiveIntValidationRule />
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </TextBox.Text>
+                    </TextBox>
+
+                </StackPanel>
+                <StackPanel Style="{StaticResource FieldRow}">
+                    <Label Style="{StaticResource FieldLabel}" Content="Schwierigkeit"
+                           ToolTip="Stufe 0 bis 15. Fließt in die Punkteberechnung ein." />
+                    <ComboBox ItemsSource="{Binding Difficulties}" MinWidth="200"
+                              SelectedItem="{Binding Question.Difficulty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+
+                <!-- E1 (M31): selten Gebrauchtes zugeklappt - der Inhalt steht oben. -->
+                <Expander Header="Weitere Einstellungen - Bezeichnung, Minuspunkte, Warnungen, Teilen, Notizen" Margin="5,12,5,5" Padding="4">
+                    <StackPanel>
+                <StackPanel Style="{StaticResource FieldRow}">
+                    <Label Style="{StaticResource FieldLabel}" Content="Bezeichnung *"
+                           ToolTip="Vollständiger Name der Frage. Nur intern sichtbar. Entsteht aus dem Fragetext, bis Sie ihn ändern." />
+                    <TextBox VerticalContentAlignment="Center" MinWidth="320"
+                             Text="{Binding Bezeichnung, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Style="{StaticResource FieldRow}">
+                    <Label Style="{StaticResource FieldLabel}" Content="Kurzbezeichnung"
+                           ToolTip="Steht in der Zelle des Spielfelds. Bleibt sie leer, bleibt die Zelle leer. Entsteht aus dem Fragetext, bis Sie sie ändern." />
+                    <TextBox VerticalContentAlignment="Center" MinWidth="320"
+                             Text="{Binding Kurzbezeichnung, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Style="{StaticResource FieldRow}">
+                    <Label Style="{StaticResource FieldLabel}" Content="Minuspunkte"
+                           ToolTip="Abzug bei falscher Antwort." />
+                    <TextBox VerticalContentAlignment="Center" MinWidth="120">
+                        <TextBox.Text>
+                            <Binding Path="Question.MinusPoints"
+                                     UpdateSourceTrigger="PropertyChanged"
+                                     ValidatesOnDataErrors="True"
+                                     ValidatesOnExceptions="True"
+                                     NotifyOnValidationError="True">
+                                <Binding.ValidationRules>
+                                    <val:PositiveIntValidationRule />
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </TextBox.Text>
+                    </TextBox>
+                </StackPanel>
+                <StackPanel Style="{StaticResource FieldRow}" Visibility="{Binding ShowTextOnKeySelectVisibility}">
+                    <Label Style="{StaticResource FieldLabel}" Content="Text auf den Tasten"
+                           ToolTip="Ob die Spieler den Antworttext am Telefon sehen oder nur den Buchstaben." />
+                    <CheckBox VerticalAlignment="Center"
+                              IsChecked="{Binding Path=Question.ShowTextOnKeySelect}" />
+                </StackPanel>
                 <!-- Nur Eigenschaftsfrage und Aufdeckfrage: die Punktekurve (F16) -->
                 <StackPanel Visibility="{Binding ProportionalScoreHintVisibility}">
                     <StackPanel Style="{StaticResource FieldRow}">
@@ -279,12 +297,10 @@
                     <TextBlock Text="{Binding ScoreReductionHintText}"
                                Opacity="0.75" Margin="5,3" TextWrapping="Wrap" />
                 </StackPanel>
-
                 <!-- Nur Multiple Choice -->
                 <TextBlock Visibility="{Binding RandomSequenceHintVisibility}"
                            Text="Die Antwortoptionen werden bei jedem Spielen neu gemischt."
                            Opacity="0.75" Margin="5,3" TextWrapping="Wrap" />
-
                 <TextBlock Text="Warnungen beim Spielen" Style="{StaticResource SectionHeader}" />
 
                 <StackPanel Style="{StaticResource FieldRow}">
@@ -338,16 +354,8 @@
                     </StackPanel>
                 </Expander>
 
-                <!-- Die Maske des Fragetyps. Was hier steht, entscheidet der Typ -
-                     Antwortliste, Hinweisleiter, Sollwert oder Aufdeckschritte. -->
-                <ContentControl Content="{Binding Zeileneditor}" Margin="0,4,0,0">
-                    <ContentControl.ContentTemplate>
-                        <DataTemplate>
-                            <typed:ZeileneditorView />
-                        </DataTemplate>
-                    </ContentControl.ContentTemplate>
-                </ContentControl>
-
+                    </StackPanel>
+                </Expander>
 
             </StackPanel>
         </ScrollViewer>
