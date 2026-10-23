@@ -182,7 +182,9 @@ namespace Quizzer.Views.QuestionTypes
             OnPropertyChanged(nameof(TypwahlVisibility));
             OnPropertyChanged(nameof(GewaehlterTyp));
             OnPropertyChanged(nameof(KiVisibility));
+            OnPropertyChanged(nameof(AblenkerVisibility));
             OnPropertyChanged(nameof(NaechsteText));
+            MeldeKiPruefung();
             OnPropertyChanged(nameof(NaechsteVisibility));
         }
 

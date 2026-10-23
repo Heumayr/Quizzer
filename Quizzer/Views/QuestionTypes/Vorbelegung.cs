@@ -1,6 +1,7 @@
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Helpers;
 using Quizzer.DataModels.Models;
+using System.IO;
 
 namespace Quizzer.Views.QuestionTypes
 {
@@ -12,7 +13,11 @@ namespace Quizzer.Views.QuestionTypes
     /// schreibt, stellte bisher zehnmal Typ, Kategorie und Punkte ein - und die Typwahl war ein
     /// eigenes Fenster vor dem Editor. Jetzt öffnet der Editor gleich, mit dem Stand von eben.
     /// </para>
-    /// <para>Nur für diesen Programmlauf; ein Neustart beginnt mit der Standardfrage zu 100 Punkten.</para>
+    /// <para>
+    /// <b>Über einen Neustart hinweg</b> (M32) - aber nur, wenn das Programm es mit
+    /// <see cref="LadeDauerhaft"/> einschaltet. Die Tests speichern viele neue Fragen; schrieben sie
+    /// dabei mit, landete ihre Vorbelegung in den echten Einstellungen dessen, der sie startet.
+    /// </para>
     /// </summary>
     internal static class Vorbelegung
     {
@@ -22,7 +27,24 @@ namespace Quizzer.Views.QuestionTypes
         private static int minuspunkte;
         private static Difficulty schwierigkeit = Difficulty.Level1;
 
+        private static bool dauerhaft;
+
         public static QuestionType Typ => typ;
+
+        /// <summary>Beim Programmstart: liest die gemerkte Vorbelegung und schreibt künftig mit.</summary>
+        public static void LadeDauerhaft()
+        {
+            dauerhaft = true;
+
+            if (DataModels.UserSettings.Load().Vorbelegung is not { } v)
+                return;
+
+            typ = Enum.IsDefined(v.Typ) ? v.Typ : QuestionType.Default;
+            kategorie = v.Kategorie;
+            punkte = v.Punkte > 0 ? v.Punkte : 100;
+            minuspunkte = Math.Max(0, v.Minuspunkte);
+            schwierigkeit = Enum.IsDefined(v.Schwierigkeit) ? v.Schwierigkeit : Difficulty.Level1;
+        }
 
         /// <summary>Eine neue, ungespeicherte Frage mit dem Stand der letzten.</summary>
         public static QuestionBase NeueFrage(QuestionType? anderer = null)
@@ -49,6 +71,18 @@ namespace Quizzer.Views.QuestionTypes
             punkte = frage.Points > 0 ? frage.Points : punkte;
             minuspunkte = frage.MinusPoints;
             schwierigkeit = frage.Difficulty;
+
+            if (!dauerhaft)
+                return;
+
+            try
+            {
+                DataModels.UserSettings.SaveVorbelegung(new(typ, kategorie, punkte, minuspunkte, schwierigkeit));
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // Nur eine Bequemlichkeit - ein gesperrter Einstellungsordner hält das Speichern der Frage nicht auf.
+            }
         }
     }
 }

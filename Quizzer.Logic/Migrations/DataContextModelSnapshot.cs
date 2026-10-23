@@ -560,6 +560,9 @@ namespace Quizzer.Logic.Migrations
                     b.Property<bool>("IsShared")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("KiUngeprueft")
+                        .HasColumnType("bit");
+
                     b.Property<int>("MinusPoints")
                         .HasColumnType("int");
 

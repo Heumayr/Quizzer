@@ -29,6 +29,9 @@ namespace Quizzer
             // Spieldatenbank.
             UserSettings.Apply();
 
+            // M32: neue Fragen beginnen wie die zuletzt gespeicherte, auch nach einem Neustart.
+            Views.QuestionTypes.Vorbelegung.LadeDauerhaft();
+
             if (Server.ServerSession.IsConfigured)
             {
                 // M9: im Servermodus meldet man sich mit seinem Konto an. Die lokale Datenbank

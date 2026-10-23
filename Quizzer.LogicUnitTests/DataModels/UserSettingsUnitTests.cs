@@ -47,6 +47,23 @@ namespace Quizzer.LogicUnitTests.DataModels
                 Directory.Delete(ordner, recursive: true);
         }
 
+        /// <summary>M32: die Vorbelegung neuer Fragen übersteht den Neustart und lässt den Rest stehen.</summary>
+        [TestMethod]
+        public void ThePresetOfNewQuestionsSurvivesARestart()
+        {
+            UserSettings.SaveScoresLeft(true);
+            var kategorie = Guid.NewGuid();
+
+            UserSettings.SaveVorbelegung(new(Quizzer.DataModels.Enumerations.QuestionType.Appreciate, kategorie, 300, 50, Quizzer.DataModels.Enumerations.Difficulty.Level4));
+
+            var gelesen = UserSettings.Load();
+            Assert.AreEqual(new UserSettings.VorbelegungWerte(Quizzer.DataModels.Enumerations.QuestionType.Appreciate, kategorie, 300, 50, Quizzer.DataModels.Enumerations.Difficulty.Level4), gelesen.Vorbelegung);
+            Assert.IsTrue(gelesen.ScoresLeft, "Die Vorbelegung hat eine andere Einstellung überschrieben.");
+
+            UserSettings.SaveToene(false);
+            Assert.AreEqual(300, UserSettings.Load().Vorbelegung!.Punkte, "Eine andere Einstellung hat die Vorbelegung gelöscht.");
+        }
+
         /// <summary>Gespeichert, gelesen, angewandt - und die Datei liegt beim Nutzer.</summary>
         [TestMethod]
         public void SavedValuesOverrideTheShippedDefaults()

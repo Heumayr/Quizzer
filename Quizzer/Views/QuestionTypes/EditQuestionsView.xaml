@@ -46,6 +46,9 @@
                 BorderThickness="0,0,0,1" Padding="10,8">
             <StackPanel>
                 <DockPanel LastChildFill="True">
+                    <Button DockPanel.Dock="Right" Content="Falsche Antworten vorschlagen" Command="{Binding AblenkerCommand}"
+                            Visibility="{Binding AblenkerVisibility}" MinWidth="200" Margin="8,0,0,0"
+                            ToolTip="Die KI ergänzt zur Frage und der angehakten richtigen Antwort plausible falsche - bis vier Antworten. Zählt einen Aufruf des Tageslimits." />
                     <Button DockPanel.Dock="Right" Content="Mit KI entwerfen …" Command="{Binding KiCommand}"
                             Visibility="{Binding KiVisibility}" MinWidth="170" Margin="8,0,0,0" FontWeight="Bold"
                             ToolTip="Thema, Links, Text oder Bilder angeben - die KI des Servers schlägt Fragen vor. Gespeichert wird erst hier." />
@@ -151,6 +154,13 @@
             <StackPanel Margin="5">
 
                 <TextBlock Text="Frage" Style="{StaticResource SectionHeader}" />
+
+                <!-- M32: ein KI-Entwurf bleibt "ungeprueft", bis jemand die Fakten bestaetigt. -->
+                <Border Visibility="{Binding KiPruefungVisibility}" Margin="5,0,5,6" Padding="8,6" CornerRadius="4"
+                        BorderBrush="Orange" BorderThickness="1">
+                    <CheckBox Content="Fakten geprüft - Frage und Lösung stimmen" IsChecked="{Binding FaktenGeprueft}"
+                              ToolTip="Nimmt die Marke „ungeprüft“ weg. Solange sie steht, zeigt die Fragenliste die Frage unter „Nur ungeprüfte KI-Entwürfe“." />
+                </Border>
 
                 <TextBox x:Name="FragetextFeld" Margin="5,0,5,4"
                          Text="{Binding Fragetext, UpdateSourceTrigger=PropertyChanged}"

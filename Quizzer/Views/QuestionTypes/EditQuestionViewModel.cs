@@ -74,6 +74,8 @@ namespace Quizzer.Views.QuestionTypes
 
             Categories = new ObservableCollection<Category>(categories);
 
+            await LadeVergleichAsync();
+
             if (Question != null && Question.CategoryId != Guid.Empty)
                 SelectedCategory = categories.FirstOrDefault(c => c.Id == Question.CategoryId);
 
@@ -186,6 +188,8 @@ namespace Quizzer.Views.QuestionTypes
             await ctrl.SaveWithStepsAsync(Question);
             await ctrl.SaveChangesAsync();
             ResultState = wasNew ? EditResultState.New : EditResultState.Updated;
+
+            MerkeFuerVergleich();
 
             // E1: die nächste neue Frage beginnt mit Typ, Kategorie und Punkten dieser.
             if (wasNew)

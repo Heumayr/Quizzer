@@ -23,6 +23,32 @@ namespace Quizzer.Views.QuestionTypes
         public Visibility KiVisibility
             => IstNeu && ServerSession.IsActive && !ServerSession.IsOffline ? Visibility.Visible : Visibility.Collapsed;
 
+        private bool kiPruefungSichtbar;
+
+        /// <summary>Der Haken „Fakten geprüft" - nur bei einer Frage, die als KI-Entwurf entstand (M32).</summary>
+        public Visibility KiPruefungVisibility => kiPruefungSichtbar ? Visibility.Visible : Visibility.Collapsed;
+
+        public bool FaktenGeprueft
+        {
+            get => Question?.KiUngeprueft == false;
+            set
+            {
+                if (Question == null)
+                    return;
+
+                Question.KiUngeprueft = !value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>Beim Laden einer Frage: der Haken bleibt sichtbar, auch nachdem er gesetzt wurde.</summary>
+        private void MeldeKiPruefung()
+        {
+            kiPruefungSichtbar = Question?.KiUngeprueft == true;
+            OnPropertyChanged(nameof(KiPruefungVisibility));
+            OnPropertyChanged(nameof(FaktenGeprueft));
+        }
+
         private string kiHinweis = string.Empty;
 
         /// <summary>Was beim Übernehmen auffiel - steht im Kopf, bis die nächste Frage kommt.</summary>
@@ -38,6 +64,104 @@ namespace Quizzer.Views.QuestionTypes
         }
 
         public Visibility KiHinweisVisibility => string.IsNullOrWhiteSpace(KiHinweis) ? Visibility.Collapsed : Visibility.Visible;
+
+        /// <summary>„Falsche Antworten vorschlagen" - bei jeder Multiple-Choice-Frage, auch einer gespeicherten (M32).</summary>
+        public Visibility AblenkerVisibility
+            => Question?.Typ == DataModels.Enumerations.QuestionType.MultipleChoice && ServerSession.IsActive && !ServerSession.IsOffline
+                ? Visibility.Visible : Visibility.Collapsed;
+
+        /// <summary>So viele Antworten soll eine Frage nach dem Vorschlag haben.</summary>
+        internal const int AntwortenZiel = 4;
+
+        private AsyncRelayCommand? ablenkerCommand;
+
+        /// <summary>
+        /// Holt nur die falschen Antworten von der KI (M32): Frage und richtige Antwort bleiben, wie
+        /// sie sind; ergänzt wird bis vier Antworten, mindestens eine. Kostet einen Aufruf des Limits.
+        /// </summary>
+        public ICommand AblenkerCommand => ablenkerCommand ??= new AsyncRelayCommand(async _ =>
+        {
+            if (Question == null || Zeileneditor is not { } editor || ServerSession.Api is not { } api)
+                return;
+
+            var belegt = editor.Zeilen.Where(z => !string.IsNullOrWhiteSpace(z.Text)).ToList();
+            var richtige = belegt.Where(z => z.IstRichtig).Select(z => z.Text.Trim()).ToList();
+            var falsche = belegt.Where(z => !z.IstRichtig).Select(z => z.Text.Trim()).ToList();
+
+            if (string.IsNullOrWhiteSpace(Question.QuestionText) || richtige.Count == 0)
+            {
+                UserPrompt.Inform("Erst den Fragetext und die richtige Antwort eintragen und anhaken - dazu passend schlägt die KI falsche vor.", "Falsche Antworten");
+                return;
+            }
+
+            var anzahl = Math.Max(1, AntwortenZiel - belegt.Count);
+            var anfrage = AblenkerAnfrage(Question.QuestionText, richtige, falsche, anzahl);
+
+            System.Windows.Input.Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
+            try
+            {
+                var antwort = await api.PostKiEntwurfAsync(anfrage);
+                var vorschlaege = NeueAblenker(antwort.Entwuerfe, richtige.Concat(falsche), anzahl);
+
+                if (vorschlaege.Count == 0)
+                {
+                    KiHinweis = "Die KI hat keine neuen falschen Antworten geliefert. Noch einmal versuchen oder selbst ergänzen.";
+                    return;
+                }
+
+                foreach (var text in vorschlaege)
+                {
+                    var frei = editor.Zeilen.FirstOrDefault(z => string.IsNullOrWhiteSpace(z.Text));
+                    if (frei == null)
+                    {
+                        editor.AddRowCommand.Execute(null);
+                        frei = editor.Zeilen[^1];
+                    }
+
+                    frei.Text = text;
+                    frei.IstRichtig = false;
+                }
+
+                // Eine „falsche" Antwort, die in Wahrheit stimmt, ist ein Faktenfehler wie jeder andere.
+                Question.KiUngeprueft = true;
+                MeldeKiPruefung();
+                KiHinweis = $"{vorschlaege.Count} falsche Antwort(en) von der KI ergänzt - bitte prüfen, dass keine davon doch stimmt. Heute noch {antwort.VerbleibendHeute} Aufrufe.";
+                Revalidate();
+            }
+            catch (Exception e) when (e is Client.ApiException or Client.ServerUnreachableException)
+            {
+                UserPrompt.Inform(e.Message, "Falsche Antworten");
+            }
+            finally
+            {
+                System.Windows.Input.Mouse.OverrideCursor = null;
+            }
+        });
+
+        /// <summary>Die Anfrage für Ablenker - eigene Methode, damit sie ohne Server prüfbar ist.</summary>
+        internal static KiEntwurfAnfrage AblenkerAnfrage(string fragetext, IReadOnlyList<string> richtige, IReadOnlyList<string> falsche, int anzahl) => new()
+        {
+            Thema = Kuerze(fragetext, 200),
+            Typ = DataModels.Enumerations.QuestionType.MultipleChoice,
+            Anzahl = 1,
+            Text = $"Frage: {fragetext}\nRichtige Antwort(en): {string.Join("; ", richtige)}"
+                + (falsche.Count > 0 ? $"\nSchon vorhandene falsche Antworten: {string.Join("; ", falsche)}" : string.Empty),
+            Wuensche = $"Behalte genau diese Frage und die richtigen Antworten. Liefere zusätzlich {anzahl} neue, plausible, aber eindeutig falsche Antworten im Stil der vorhandenen.",
+        };
+
+        /// <summary>Die falschen Antworten des Entwurfs, die es noch nicht gibt - höchstens so viele wie bestellt.</summary>
+        internal static List<string> NeueAblenker(IEnumerable<KiFrageEntwurf> entwuerfe, IEnumerable<string> vorhanden, int anzahl)
+        {
+            var bekannt = new HashSet<string>(vorhanden.Select(t => t.Trim()), StringComparer.CurrentCultureIgnoreCase);
+
+            return entwuerfe
+                .SelectMany(e => e.Zeilen)
+                .Where(z => !z.Richtig && !string.IsNullOrWhiteSpace(z.Text))
+                .Select(z => z.Text.Trim())
+                .Where(bekannt.Add)
+                .Take(anzahl)
+                .ToList();
+        }
 
         private AsyncRelayCommand? kiCommand;
 

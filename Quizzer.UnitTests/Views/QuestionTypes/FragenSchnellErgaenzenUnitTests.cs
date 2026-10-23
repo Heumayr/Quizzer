@@ -98,6 +98,33 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
             Assert.AreEqual(QuestionType.Default, vm.Question!.Typ, "Eine gespeicherte Frage wird umgewandelt, nicht neu aufgebaut.");
         }
 
+        /// <summary>M32: von der KI kommen nur neue falsche Antworten - keine richtige, keine doppelte.</summary>
+        [TestMethod]
+        public void OnlyNewWrongAnswersAreTakenFromTheDraft()
+        {
+            var entwurf = new DataModels.Transfer.Ki.KiFrageEntwurf
+            {
+                Zeilen =
+                [
+                    new() { Text = "Lima", Richtig = true },
+                    new() { Text = "quito" },
+                    new() { Text = "Bogotá" },
+                    new() { Text = "Caracas" },
+                    new() { Text = "Santiago" },
+                ],
+            };
+
+            var neu = EditQuestionViewModel.NeueAblenker([entwurf], ["Lima", "Quito"], anzahl: 2);
+
+            CollectionAssert.AreEqual(new[] { "Bogotá", "Caracas" }, neu);
+
+            var anfrage = EditQuestionViewModel.AblenkerAnfrage("Hauptstadt von Peru?", ["Lima"], ["Quito"], 2);
+            Assert.AreEqual(QuestionType.MultipleChoice, anfrage.Typ);
+            StringAssert.Contains(anfrage.Text, "Lima");
+            StringAssert.Contains(anfrage.Text, "Quito");
+            StringAssert.Contains(anfrage.Wuensche, "2");
+        }
+
         [TestMethod]
         public void FromATileThereIsNoSaveAndNext()
         {

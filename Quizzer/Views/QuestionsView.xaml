@@ -17,15 +17,18 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Margin="5">
-            <!-- Der Typ wird jetzt im Anlegen-Fenster gewaehlt, mit Namen und Erklaerung. -->
+            <!-- Seit M31 wird der Typ im Editor gewaehlt; vorbelegt ist der der letzten Frage. -->
             <Button Content="Neue Frage"
-                    ToolTip="Legt eine neue Frage an - der Typ wird im nächsten Fenster gewählt." Command="{Binding AddQuestionCommand}" MinWidth="150" />
+                    ToolTip="Öffnet den Editor mit Typ, Kategorie und Punkten der zuletzt gespeicherten Frage. Der Typ lässt sich oben im Editor ändern." Command="{Binding AddQuestionCommand}" MinWidth="150" />
             <Button Content="Frage duplizieren" Command="{Binding DuplicateQuestionCommand}"
                     MinWidth="150" Margin="8,0,0,0"
                     ToolTip="Legt eine Kopie samt Schritten an und öffnet sie zum Bearbeiten." />
             <Button Content="Frage entfernen"
                     ToolTip="Löscht die gewählte Frage. Zellen, auf denen sie liegt, werden leer." Command="{Binding RemoveQuestionCommand}"
                     Style="{StaticResource DangerButton}" MinWidth="150" Margin="0,4,0,0" />
+            <!-- M32: KI-Entwuerfe, deren Fakten noch niemand bestaetigt hat. -->
+            <CheckBox Content="{Binding UngeprueftText}" IsChecked="{Binding NurUngepruefte}" Margin="0,12,0,0"
+                      ToolTip="Zeigt nur KI-Entwürfe, bei denen im Editor noch nicht „Fakten geprüft“ angehakt ist." />
         </StackPanel>
 
         <DataGrid Grid.Column="1" ItemsSource="{Binding QuestionsView}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" IsReadOnly="True"
@@ -34,6 +37,7 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Bezeichnung" Binding="{Binding Designation}" Width="2*" />
                 <DataGridTextColumn Header="Kurz" Binding="{Binding DesignationShort}" Width="0.6*" />
+                <DataGridTextColumn Header="KI" Binding="{Binding KiStatusText}" Width="0.6*" />
                 <!-- Ohne diese Spalte war einer fertigen Frage nirgends anzusehen, welcher Typ sie ist. -->
                 <DataGridTextColumn Header="Typ" Binding="{Binding TypDisplayName}" Width="*" />
                 <DataGridTextColumn Header="Kategorie" Binding="{Binding Category.Designation}" Width="*" />

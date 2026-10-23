@@ -72,6 +72,10 @@ namespace Quizzer.Views.QuestionTypes
             {
                 foreach (var issue in QuestionValidator.Validate(geprueft))
                     Issues.Add(issue);
+
+                // M32: nur eine Warnung - sie sperrt das Speichern nicht.
+                foreach (var issue in Dubletten())
+                    Issues.Add(issue);
             }
 
             OnPropertyChanged(nameof(HasIssues));

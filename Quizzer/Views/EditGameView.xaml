@@ -100,6 +100,8 @@
                     </TextBox>
                     <Button Content="Raster neu aufbauen"
                             ToolTip="Baut das Spielfeld aus Breite, Höhe und Tiefe neu. Zuweisungen auf weggefallenen Zellen gehen verloren." Command="{Binding RefreshGridCommand}" />
+                    <Button Content="Leere Zellen füllen" Margin="8,0,0,0"
+                            ToolTip="Belegt leere Zellen mit freien Fragen der Kategorie, die über der Spalte steht - leichte oben, schwere unten. Fragt vorher nach; ungeprüfte KI-Entwürfe bleiben draußen." Command="{Binding FillEmptyCellsCommand}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="5">
                     <Label MinWidth="210" Content="Phasen im Abend:" VerticalAlignment="Center"

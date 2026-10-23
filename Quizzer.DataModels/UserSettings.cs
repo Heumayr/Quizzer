@@ -37,7 +37,19 @@ namespace Quizzer.DataModels
             string? LastUserName = null,
             bool ScoresLeft = false,
             bool Animationen = true,
-            bool Toene = true);
+            bool Toene = true,
+            VorbelegungWerte? Vorbelegung = null);
+
+        /// <summary>
+        /// Womit eine neue Frage beginnt - Typ, Kategorie, Punkte der zuletzt gespeicherten
+        /// (M32, 2026-10-23: „über einen Neustart hinweg merken").
+        /// </summary>
+        public sealed record VorbelegungWerte(
+            Enumerations.QuestionType Typ,
+            Guid Kategorie,
+            int Punkte,
+            int Minuspunkte,
+            Enumerations.Difficulty Schwierigkeit);
 
         private static string? folderOverride;
 
@@ -157,6 +169,18 @@ namespace Quizzer.DataModels
             Directory.CreateDirectory(Folder);
 
             var werte = Load() with { ScoresLeft = scoresLeft };
+
+            File.WriteAllText(
+                FilePath,
+                JsonSerializer.Serialize(werte, new JsonSerializerOptions { WriteIndented = true }));
+        }
+
+        /// <summary>Merkt sich die Vorbelegung neuer Fragen (M32). Alles andere bleibt unberührt.</summary>
+        public static void SaveVorbelegung(VorbelegungWerte vorbelegung)
+        {
+            Directory.CreateDirectory(Folder);
+
+            var werte = Load() with { Vorbelegung = vorbelegung };
 
             File.WriteAllText(
                 FilePath,

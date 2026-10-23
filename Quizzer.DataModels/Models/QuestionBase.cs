@@ -71,6 +71,13 @@ namespace Quizzer.DataModels.Models
         /// </summary>
         public bool IsShared { get; set; }
 
+        /// <summary>
+        /// Ein KI-Entwurf, dessen Fakten noch niemand bestätigt hat (M32, 2026-10-23). Der
+        /// Übersetzer setzt es, der Haken „Fakten geprüft" im Editor nimmt es weg; die Fragenliste
+        /// filtert danach, damit kein ungeprüfter Entwurf unbemerkt ins Spiel kommt.
+        /// </summary>
+        public bool KiUngeprueft { get; set; }
+
         /// <summary>Interne Notizen des Spielleiters zur Frage (nicht für Spieler sichtbar).</summary>
         public string Notes { get; set; } = string.Empty;
 
@@ -144,6 +151,10 @@ namespace Quizzer.DataModels.Models
         /// </summary>
         [NotMapped]
         public string TypDisplayName => Questions.QuestionTypeProfiles.For(Typ).DisplayName;
+
+        /// <summary>Für die Fragenliste (M32): „ungeprüft" bei einem KI-Entwurf ohne Bestätigung.</summary>
+        [NotMapped]
+        public string KiStatusText => KiUngeprueft ? "ungeprüft" : string.Empty;
 
         /// <summary>V5: wie die Frage gelaufen ist - von der Fragenliste gesetzt, nicht gespeichert.</summary>
         [NotMapped]
@@ -381,6 +392,7 @@ namespace Quizzer.DataModels.Models
             // CloneCompletenessUnitTests faengt genau das ab.
             target.OwnerPlayerId = OwnerPlayerId;
             target.IsShared = IsShared;
+            target.KiUngeprueft = KiUngeprueft;
 
             target.Steps = new List<QuestionStepResource>();
             target.Category = null;

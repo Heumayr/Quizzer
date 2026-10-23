@@ -31,11 +31,37 @@ namespace Quizzer.Views
                 _questions = value;
                 OnPropertyChanged();
                 QuestionsView = CollectionViewSource.GetDefaultView(_questions);
+                WendeFilter();
                 OnPropertyChanged(nameof(QuestionsView));
             }
         }
 
         public ICollectionView? QuestionsView { get; private set; }
+
+        private bool nurUngepruefte;
+
+        /// <summary>M32: nur KI-Entwürfe, deren Fakten noch niemand bestätigt hat.</summary>
+        public bool NurUngepruefte
+        {
+            get => nurUngepruefte;
+            set
+            {
+                nurUngepruefte = value;
+                OnPropertyChanged();
+                WendeFilter();
+            }
+        }
+
+        public string UngeprueftText => $"Nur ungeprüfte KI-Entwürfe ({Questions.Count(q => q.KiUngeprueft)})";
+
+        private void WendeFilter()
+        {
+            if (QuestionsView == null)
+                return;
+
+            QuestionsView.Filter = nurUngepruefte ? o => o is QuestionBase { KiUngeprueft: true } : null;
+            OnPropertyChanged(nameof(UngeprueftText));
+        }
 
         public override async Task VMSaveAsync()
         {

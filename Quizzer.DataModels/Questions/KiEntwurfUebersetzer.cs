@@ -86,6 +86,7 @@ namespace Quizzer.DataModels.Questions
                 hinweise.Add("Das Bild wurde nicht übernommen - bei diesem Fragetyp hat es keinen festen Platz. Im Editor einem Schritt zuordnen.");
 
             frage.Notes = Notizen(entwurf, heute);
+            frage.KiUngeprueft = true;
 
             return new Ergebnis(frage, hinweise);
         }
