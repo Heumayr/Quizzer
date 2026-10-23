@@ -31,13 +31,19 @@ if ($PSVersionTable.PSVersion.Major -lt 7) { throw 'Bitte mit PowerShell 7 start
 if (-not (Test-Path .env)) { throw '.env fehlt - zuerst .\new-secrets.ps1' }
 if (-not (Get-Command sqlcmd -ErrorAction SilentlyContinue)) { throw 'sqlcmd fehlt (kommt mit SQL Server LocalDB bzw. den SQL-Befehlszeilentools).' }
 
-# --- Vorgaben wie im WPF: appsettings.json der DataModels, darueber %APPDATA%\Quizzer\settings.json
-$vorgaben = (Get-Content (Join-Path $PSScriptRoot '..\Quizzer.DataModels\appsettings.json') -Raw | ConvertFrom-Json).AppSettings
+# --- Vorgaben wie im WPF (M28): die aus Settings.DefaultFilePathQuizzer/DefaultConnectionString, darueber
+# Quizzer.DataModels\appsettings.json (nicht im Repo, also oft gar nicht da), darueber %APPDATA%\Quizzer\settings.json
+$vorgaben = [pscustomobject]@{ FilePathQuizzer = '%ProgramData%\Quizzer\Daten'; MsSqlConString = 'Data Source=(localdb)\MSSQLLocalDB;Database=Quizzer;Integrated Security=True' }
+$appsettings = Join-Path $PSScriptRoot '..\Quizzer.DataModels\appsettings.json'
+$dateiWerte = if (Test-Path $appsettings) { (Get-Content $appsettings -Raw | ConvertFrom-Json).AppSettings } else { $null }
 $eigene = Join-Path $env:APPDATA 'Quizzer\settings.json'
 $eigeneWerte = if (Test-Path $eigene) { Get-Content $eigene -Raw | ConvertFrom-Json } else { $null }
-if (-not $Datenordner) { $Datenordner = if ($eigeneWerte.FilePathQuizzer) { $eigeneWerte.FilePathQuizzer } else { $vorgaben.FilePathQuizzer } }
+if (-not $Datenordner) {
+    $Datenordner = @($eigeneWerte.FilePathQuizzer, $dateiWerte.FilePathQuizzer, $vorgaben.FilePathQuizzer) | Where-Object { $_ } | Select-Object -First 1
+    $Datenordner = [Environment]::ExpandEnvironmentVariables($Datenordner)
+}
 if (-not $Datenbank) {
-    $verbindung = if ($eigeneWerte.MsSqlConString) { $eigeneWerte.MsSqlConString } else { $vorgaben.MsSqlConString }
+    $verbindung = @($eigeneWerte.MsSqlConString, $dateiWerte.MsSqlConString, $vorgaben.MsSqlConString) | Where-Object { $_ } | Select-Object -First 1
     $Datenbank = if ($verbindung -match '(?i)(Database|Initial Catalog)\s*=\s*([^;]+)') { $Matches[2].Trim() } else { 'Quizzer' }
 }
 if (-not (Test-Path $Datenordner)) { throw "Datenordner $Datenordner fehlt." }
