@@ -154,6 +154,9 @@ namespace Quizzer.Views.GameViews.Sub
             OnPropertyChanged(nameof(ActualScore));
             OnPropertyChanged(nameof(BackgroundBrush));
 
+            // Am Spielende wählt niemand mehr - und UpdateScores läuft genau dann (M30).
+            WaehlerGeaendert();
+
             ZeigeWechsel(ActualScore);
         }
     }

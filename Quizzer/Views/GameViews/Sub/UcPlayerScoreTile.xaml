@@ -195,5 +195,25 @@
                        Foreground="White" />
         </Viewbox>
     </Border>
+
+    <!-- M30: wer als Naechstes waehlt - ein hellblauer Rahmen (anders als das Gold der Plaetze)
+         und die Plakette "wählt" oben links. Das Wort steht da, damit es nicht nur an der Farbe
+         haengt; oben rechts ist der Platz der Punkteaenderung. -->
+    <Border Visibility="{Binding ChoosingVisibility}"
+            IsHitTestVisible="False"
+            Margin="1"
+            CornerRadius="10"
+            BorderBrush="#4FC3F7"
+            BorderThickness="3" />
+    <Border Visibility="{Binding ChoosingVisibility}"
+            IsHitTestVisible="False"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Margin="14,0,0,0"
+            Background="#4FC3F7"
+            CornerRadius="6"
+            Padding="10,1">
+        <TextBlock Text="wählt" FontWeight="Bold" FontSize="15" Foreground="#111111" />
+    </Border>
     </Grid>
 </UserControl>
