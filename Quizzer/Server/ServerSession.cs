@@ -84,12 +84,13 @@ namespace Quizzer.Server
             var account = api.Account ?? throw new InvalidOperationException("Nicht angemeldet.");
 
             progress?.Report("Lokale Datenbank wird vorbereitet …");
-            await SwitchToCacheAsync(account);
+            await SwitchToCacheAsync(account, api.BaseAddress);
 
-            // Ausdruecklich gegen die Zwischendatenbank, nicht gegen Settings.ConnectionString -
-            // die globale Einstellung kann sich unter dem laufenden Abgleich aendern (Fund 1).
+            // Ausdruecklich gegen die Zwischendatenbank und den Medienordner des Servers, nicht
+            // gegen die globalen Einstellungen - die koennen sich unter dem laufenden Abgleich
+            // aendern (Fund 1).
             var cache = CacheConnectionString!;
-            Sync = new ClientSyncService(api, () => new SyncStore(cache), new FileSyncStateStore(StatePath(api.BaseAddress, account.AccountId)), Settings.FilePathQuizzer);
+            Sync = new ClientSyncService(api, () => new SyncStore(cache), new FileSyncStateStore(StatePath(api.BaseAddress, account.AccountId)), CacheMediaFolder);
 
             progress?.Report("Daten werden vom Server geladen …");
             var result = await Sync.PullAsync();
@@ -112,7 +113,7 @@ namespace Quizzer.Server
             if (account == null || new DpapiTokenStore(server).Load() == null)
                 return false;
 
-            await SwitchToCacheAsync(account);
+            await SwitchToCacheAsync(account, server);
 
             if (!DatabaseInitializer.Exists())
                 return false;
@@ -182,7 +183,7 @@ namespace Quizzer.Server
             if (!IsOffline)
                 return WiederverbindungsErgebnis.Verbunden;
 
-            if (Account is not { } offline || CacheConnectionString is not { } cache)
+            if (Account is not { } offline || CacheConnectionString is not { } cache || CacheMediaFolder is not { } medien)
                 return WiederverbindungsErgebnis.AnmeldungNoetig;
 
             QuizzerApiClient api;
@@ -208,7 +209,7 @@ namespace Quizzer.Server
             if (api.Account is not { } account || account.AccountId != offline.AccountId)
                 return WiederverbindungsErgebnis.AnmeldungNoetig;
 
-            Sync = new ClientSyncService(api, () => new SyncStore(cache), new FileSyncStateStore(StatePath(api.BaseAddress, account.AccountId)), Settings.FilePathQuizzer);
+            Sync = new ClientSyncService(api, () => new SyncStore(cache), new FileSyncStateStore(StatePath(api.BaseAddress, account.AccountId)), medien);
             Account = account;
             RememberAccount(api.BaseAddress, account);
             IsOffline = false;
@@ -268,14 +269,29 @@ namespace Quizzer.Server
         public static string? CacheConnectionString { get; private set; }
 
         /// <summary>
+        /// Der Datenordner von vor dem Umschalten auf den Medienordner des Servers (M26). Die
+        /// Einstellungsmaske zeigt und speichert diesen - nie den unter ProgramData.
+        /// </summary>
+        public static string? LocalFilePath { get; private set; }
+
+        /// <summary>Der Medienordner des Servers unter ProgramData. Der Abgleich legt <b>nur</b> hier ab.</summary>
+        public static string? CacheMediaFolder { get; private set; }
+
+        /// <summary>
         /// Nach dem Speichern oder Zuruecksetzen der Einstellungen: die laufende Sitzung bleibt auf
-        /// der Zwischendatenbank. <c>UserSettings.Save</c> setzt <c>Settings.ConnectionString</c>
-        /// auf die eigene lokale Datenbank - und ohne diesen Ruecksprung hielte der naechste Push
-        /// jede Serverzeile fuer lokal geloescht und loeschte sie am Server (Durchsicht
-        /// 2026-10-21, Fund 1).
+        /// der Zwischendatenbank und dem Medienordner des Servers. <c>UserSettings.Save</c> setzt
+        /// <c>Settings.ConnectionString</c> und <c>Settings.FilePathQuizzer</c> auf die eigenen
+        /// lokalen Werte - und ohne diesen Ruecksprung hielte der naechste Push jede Serverzeile
+        /// fuer lokal geloescht und loeschte sie am Server (Durchsicht 2026-10-21, Fund 1).
         /// </summary>
         public static void KeepSessionDatabase()
         {
+            if (CacheMediaFolder != null)
+            {
+                LocalFilePath = Settings.FilePathQuizzer;
+                Settings.FilePathQuizzer = CacheMediaFolder;
+            }
+
             if (CacheConnectionString == null)
                 return;
 
@@ -283,8 +299,32 @@ namespace Quizzer.Server
             Settings.ConnectionString = CacheConnectionString;
         }
 
-        private static async Task SwitchToCacheAsync(AccountInfo account)
+        /// <summary>
+        /// Schaltet die Medien auf den Ordner des Servers unter ProgramData um (M26): was der
+        /// Abgleich holt, landet dort und nicht im Datenordner des Einzelbetriebs. Ohne Datenbank,
+        /// damit es sich pruefen laesst.
+        /// </summary>
+        /// <param name="server">Die Serveradresse - je Server ein eigener Ordner.</param>
+        /// <param name="programData">Nur für Tests: statt <c>%ProgramData%</c>.</param>
+        internal static void UseServerMedia(Uri server, string? programData = null)
         {
+            LocalFilePath ??= Settings.FilePathQuizzer;
+            CacheMediaFolder = ServerMediaFolder.For(server, programData);
+            Directory.CreateDirectory(CacheMediaFolder);
+            Settings.FilePathQuizzer = CacheMediaFolder;
+        }
+
+        /// <summary>Nur für Tests: vergisst die Umschaltung der Medien wieder.</summary>
+        internal static void ForgetServerMediaForTests()
+        {
+            LocalFilePath = null;
+            CacheMediaFolder = null;
+        }
+
+        private static async Task SwitchToCacheAsync(AccountInfo account, Uri server)
+        {
+            UseServerMedia(server);
+
             LocalConnectionString ??= Settings.ConnectionString;
             var local = LocalConnectionString;
             CacheConnectionString = DatabaseInitializer.WithDatabase(local, CacheDatabaseName(account.AccountId));
