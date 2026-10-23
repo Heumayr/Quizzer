@@ -20,6 +20,31 @@ namespace Quizzer.DataModels
         /// <summary>Wurzelverzeichnis für alle Quizzer-Assets (Bilder, Ressourcen). Aus <c>AppSettings:FilePathQuizzer</c>.</summary>
         public static string FilePathQuizzer { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Alles, was Quizzer unter ProgramData ablegt (M28): darunter liegt der Datenordner
+        /// <c>Daten</c>, und „Daten von diesem Rechner entfernen" leert genau diesen Ordner.
+        /// Für Tests umlenkbar.
+        /// </summary>
+        public static string ProgramDataRoot { get; set; } = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Quizzer");
+
+        /// <summary>
+        /// Der Datenordner aus der Datei, mit aufgelösten Umgebungsvariablen. Die Vorgabe steht als
+        /// <c>%ProgramData%\Quizzer\Daten</c> darin (M28) - ein fester Laufwerksbuchstabe passte nur
+        /// auf einen einzigen Rechner.
+        /// </summary>
+        internal static string ResolveDataFolder(string eintrag) => Environment.ExpandEnvironmentVariables(eintrag);
+
+        /// <summary>Ob <paramref name="ordner"/> unter <see cref="ProgramDataRoot"/> liegt.</summary>
+        public static bool IsUnderProgramDataRoot(string? ordner)
+        {
+            if (string.IsNullOrWhiteSpace(ordner))
+                return false;
+
+            var wurzel = Path.TrimEndingDirectorySeparator(Path.GetFullPath(ProgramDataRoot)) + Path.DirectorySeparatorChar;
+            return Path.GetFullPath(ordner).StartsWith(wurzel, StringComparison.OrdinalIgnoreCase);
+        }
+
         /// <summary>Unterordner für Fragen-Ressourcen (Bilder, Videos, Audio).</summary>
         public static string ResourceRootFolder => Path.Combine(FilePathQuizzer, "Resources");
 
@@ -65,25 +90,34 @@ namespace Quizzer.DataModels
         /// <summary>SQL Server-Verbindungsstring. Aus <c>AppSettings:MsSqlConString</c>.</summary>
         public static string ConnectionString { get; set; } = string.Empty;
 
+        /// <summary>Der Datenordner, wenn keine <c>appsettings.json</c> ihn nennt (M28).</summary>
+        internal const string DefaultFilePathQuizzer = @"%ProgramData%\Quizzer\Daten";
+
+        /// <summary>Die Verbindung, wenn keine <c>appsettings.json</c> sie nennt - die LocalDB des Einzelbetriebs.</summary>
+        internal const string DefaultConnectionString = @"Data Source=(localdb)\MSSQLLocalDB;Database=Quizzer;Integrated Security=True";
+
         /// <summary>
         /// Lädt die Konfiguration aus <c>appsettings.json</c> im Ausgabe-Verzeichnis und
         /// befüllt alle statischen Properties. Muss einmalig beim App-Start aufgerufen werden
         /// (in <c>App.OnStartup</c> und im statischen Konstruktor von <c>DataContext</c>).
         /// </summary>
-        /// <exception cref="InvalidOperationException">
-        /// Wenn <c>AppSettings:FilePathQuizzer</c> oder <c>AppSettings:MsSqlConString</c>
-        /// in der Konfigurationsdatei fehlen.
-        /// </exception>
-        public static void LoadSettings()
+        public static void LoadSettings() => LoadSettingsFrom(AppDomain.CurrentDomain.BaseDirectory);
+
+        /// <summary>
+        /// Wie <see cref="LoadSettings"/>, aus einem bestimmten Ordner. <b>Fehlt die Datei oder ein
+        /// Eintrag, gelten die Vorgaben</b> (M28): die Datei steht in der <c>.gitignore</c>, ein
+        /// frischer Klon hat keine - vorher brach der Start dann ab.
+        /// </summary>
+        internal static void LoadSettingsFrom(string ordner)
         {
             var builder = new ConfigurationBuilder()
-                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                .SetBasePath(ordner)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
             Configuration = builder.Build();
 
-            FilePathQuizzer = Configuration["AppSettings:FilePathQuizzer"]! ?? throw new InvalidOperationException("Missing FilePathQuestions");
-            ConnectionString = Configuration["AppSettings:MsSqlConString"]! ?? throw new InvalidOperationException("Missing MsSqlConString");
+            FilePathQuizzer = ResolveDataFolder(Configuration["AppSettings:FilePathQuizzer"] ?? DefaultFilePathQuizzer);
+            ConnectionString = Configuration["AppSettings:MsSqlConString"] ?? DefaultConnectionString;
         }
     }
 }

@@ -31,10 +31,10 @@ gehört ins `.harness`-Submodul (dort committen und pushen), nirgendwo sonst —
   andere Projekte gebraucht; zurück mit `gh workflow enable ci`). Solange gilt wieder: Bau und
   Tests auf diesem Rechner sind die einzige maschinelle Prüfung. `.github/workflows/ci.yml` bleibt
   liegen. Lokal ohne LocalDB: `QUIZZER_LOGIC_TEST_SQL`
-- Fehlt der Ordner aus `AppSettings.FilePathQuizzer` (`Quizzer.DataModels/appsettings.json`,
-  standardmäßig `E:\QuizzerData`), **startet die Anwendung trotzdem** — sie sagt es seit
-  2026-09-07 beim Start und bleibt sonst schwarz (`StaticResources` fällt je Bild auf Schwarz
-  zurück, es wirft nichts). Zum Arbeiten braucht es ihn trotzdem
+- Der Datenordner ist seit 2026-10-23 (M28) per Vorgabe `%ProgramData%\Quizzer\Daten` — im Code
+  (`Settings.DefaultFilePathQuizzer`), denn `Quizzer.DataModels/appsettings.json` ist **nicht im
+  Repo** (`.gitignore`) und überschreibt nur, wo sie lokal liegt. Unter ProgramData legt der Start
+  ihn still an; ein fehlender Ordner anderswo wird gemeldet, die Anwendung startet trotzdem
 - Beim Bauen darf keine laufende Instanz die DLLs sperren (MSB3021/MSB3027)
 
 ## Nach einem Neuklon

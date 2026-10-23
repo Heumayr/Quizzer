@@ -215,6 +215,8 @@ namespace Quizzer
         /// <b>Und der Ordner wird nicht heimlich angelegt.</b> Ein leerer Ordner behebt nichts:
         /// die Bilder sind dann immer noch weg, und der Hinweis käme beim nächsten Start nicht
         /// mehr. Angelegt wird er beim Speichern in den Einstellungen, wo es der Nutzer sieht.
+        /// <b>Ausnahme seit M28:</b> unter <c>Settings.ProgramDataRoot</c> liegt die Vorgabe, und
+        /// dort fehlt nichts, was verloren sein könnte - der wird still angelegt.
         /// </para>
         /// </summary>
         internal static void DatenordnerPruefen()
@@ -223,6 +225,15 @@ namespace Quizzer
 
             if (!string.IsNullOrWhiteSpace(ordner) && System.IO.Directory.Exists(ordner))
                 return;
+
+            // Unter ProgramData liegt die Vorgabe (M28) - dort fehlt nichts, was verloren sein
+            // koennte: ein neuer Rechner oder nach „Daten entfernen". Still anlegen; im Servermodus
+            // fuellt ihn die Anmeldung.
+            if (Settings.IsUnderProgramDataRoot(ordner))
+            {
+                System.IO.Directory.CreateDirectory(ordner);
+                return;
+            }
 
             var oeffnen = Base.UserPrompt.Confirm(
                 "Der Datenordner wurde nicht gefunden."

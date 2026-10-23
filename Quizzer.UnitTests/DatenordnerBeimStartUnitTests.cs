@@ -24,15 +24,46 @@ namespace Quizzer.UnitTests
     public class DatenordnerBeimStartUnitTests
     {
         private string vorher = string.Empty;
+        private string wurzelVorher = string.Empty;
 
         [TestInitialize]
-        public void SetUp() => vorher = Settings.FilePathQuizzer;
+        public void SetUp()
+        {
+            vorher = Settings.FilePathQuizzer;
+            wurzelVorher = Settings.ProgramDataRoot;
+        }
 
         [TestCleanup]
         public void TearDown()
         {
             Settings.FilePathQuizzer = vorher;
+            Settings.ProgramDataRoot = wurzelVorher;
             UserPrompt.Reset();
+        }
+
+        /// <summary>
+        /// Unter ProgramData liegt die Vorgabe (M28) - fehlt der Ordner dort, wird er still
+        /// angelegt: ein neuer Rechner oder nach „Daten entfernen" ist das der Normalfall, und
+        /// verloren ist nichts.
+        /// </summary>
+        [TestMethod]
+        public void AMissingFolderUnderProgramDataIsCreatedWithoutAsking()
+        {
+            var wurzel = Path.Combine(Path.GetTempPath(), "quizzer-pd-" + Guid.NewGuid(), "Quizzer");
+            Settings.ProgramDataRoot = wurzel;
+            Settings.FilePathQuizzer = Path.Combine(wurzel, "Daten");
+            UserPrompt.Current = new ThrowingUserPrompt();
+
+            try
+            {
+                Quizzer.App.DatenordnerPruefen();
+
+                Assert.IsTrue(Directory.Exists(Settings.FilePathQuizzer), "Der Ordner unter ProgramData wurde nicht angelegt.");
+            }
+            finally
+            {
+                Directory.Delete(Path.GetDirectoryName(wurzel)!, recursive: true);
+            }
         }
 
         /// <summary>Ein fehlender Ordner wird gemeldet, mit Pfad und Folge.</summary>
