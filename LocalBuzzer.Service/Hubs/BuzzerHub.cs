@@ -116,6 +116,10 @@ namespace LocalBuzzer.Service.Hubs
             if (_stateManager.CurrentState is not BuzzerState buzz)
                 return;
 
+            // M33: nach Ablauf des Countdowns zählt kein Buzzer mehr, bis der Spielleiter freigibt.
+            if (_stateManager.ZeitAbgelaufen)
+                return;
+
             if (!_registry.TryGetPlayer(Context.ConnectionId, out var player))
                 return;
 
@@ -139,7 +143,7 @@ namespace LocalBuzzer.Service.Hubs
             // Bis zur Sicherheitspruefung 2026-10-21 lief jede spaete Abgabe ungeprueft an den
             // Spielleiter durch, setzte dessen Bewertungsvorschlaege neu und schickte jedes Mal
             // StateChanged an alle Telefone.
-            if (inputState.Locked)
+            if (inputState.Locked || _stateManager.ZeitAbgelaufen)
                 return;
 
             if (!_registry.TryGetPlayer(Context.ConnectionId, out var player))
@@ -168,7 +172,7 @@ namespace LocalBuzzer.Service.Hubs
                 return;
 
             // Siehe SubmitInput: nach dem Schliessen der Runde nichts mehr annehmen.
-            if (keySelector.Locked)
+            if (keySelector.Locked || _stateManager.ZeitAbgelaufen)
                 return;
 
             if (!_registry.TryGetPlayer(Context.ConnectionId, out var player))

@@ -73,6 +73,29 @@ namespace LocalBuzzer.Service.Base
                 cancellationToken: ct);
         }
 
+        /// <summary>
+        /// Der Countdown ist abgelaufen (M33): die Telefone sperren, bis <see cref="GibEingabenFreiAsync"/>
+        /// kommt. Ausgewertet wird nichts - dafür bleibt „Runde schließen".
+        /// </summary>
+        public async Task SperreWegenZeitAsync(CancellationToken ct = default)
+        {
+            CheckServerRunning();
+
+            StateManager.SperreWegenZeit();
+
+            await HubContext.Clients.All.SendAsync("StateChanged", StateManager.CreateClientState(), cancellationToken: ct);
+        }
+
+        /// <summary>Der Spielleiter erlaubt nach dem Ablauf wieder Eingaben (M33).</summary>
+        public async Task GibEingabenFreiAsync(CancellationToken ct = default)
+        {
+            CheckServerRunning();
+
+            StateManager.GibFrei();
+
+            await HubContext.Clients.All.SendAsync("StateChanged", StateManager.CreateClientState(), cancellationToken: ct);
+        }
+
         private void CheckServerRunning()
         {
             if (HubContext is null || EventBus is null || StateManager is null)

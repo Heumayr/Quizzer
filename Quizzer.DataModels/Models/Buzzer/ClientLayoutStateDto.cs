@@ -36,6 +36,12 @@ namespace Quizzer.DataModels.Models.Buzzer
         public bool AllLocked { get; set; }
 
         /// <summary>
+        /// Der Countdown ist abgelaufen (M33): gesperrt, bis der Spielleiter freigibt. Steckt schon
+        /// in <see cref="CurrentLayoutLocked"/>; eigenes Feld nur für den Text am Telefon.
+        /// </summary>
+        public bool ZeitAbgelaufen { get; set; }
+
+        /// <summary>
         /// Layout-spezifische Zusatzinformationen (z.B. Antwort-Optionen bei KeySelect).
         /// Der Typ hängt vom aktiven <see cref="Layout"/> ab und wird client-seitig deserialisiert.
         /// </summary>

@@ -142,8 +142,14 @@ namespace Quizzer.Views.GameViews
 
         public ICommand StartCountdownCommand => startCountdownCommand ??= new RelayCommand(p =>
         {
-            if (int.TryParse(p?.ToString(), out var sekunden) && sekunden > 0)
-                Countdown?.Starte(sekunden);
+            if (!int.TryParse(p?.ToString(), out var sekunden) || sekunden <= 0)
+                return;
+
+            // M33: ein neuer Countdown ist eine bewusste Handlung des Spielleiters - er gibt
+            // eine vorige Zeitsperre frei. Läuft er ab, sperren die Telefone wieder.
+            var buzzer = BuzzerControlsViewModel;
+            _ = buzzer?.GibEingabenFreiAsync();
+            Countdown?.Starte(sekunden, () => _ = buzzer?.SperreWegenZeitAsync());
         });
 
         private RelayCommand? stopCountdownCommand;

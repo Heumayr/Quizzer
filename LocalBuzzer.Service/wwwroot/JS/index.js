@@ -18,6 +18,7 @@ const state = {
     layoutInfo: null,
     currentLayoutLocked: true,
     allLocked: false,
+    zeitAbgelaufen: false,
     winner: null,
     replaced: false,
     conn: null
@@ -40,6 +41,11 @@ function buildContext() {
 }
 
 function buildStatusText() {
+    // M33: nach dem Countdown gesperrt, bis der Spielleiter wieder freigibt.
+    if (state.zeitAbgelaufen) {
+        return `Runde ${state.round}: Zeit ist um – warte auf den Spielleiter`;
+    }
+
     if (state.winner) {
         return `Runde ${state.round}: Gewinner: ${state.winner}`;
     }
@@ -60,6 +66,7 @@ function buildStatusText() {
 
 function applyServerState(serverState) {
     const previousLayout = state.currentLayout;
+    const warAbgelaufen = state.zeitAbgelaufen;
 
     state.playerName = serverState.playerName ?? state.playerName;
     state.round = serverState.round ?? state.round;
@@ -68,7 +75,14 @@ function applyServerState(serverState) {
     state.layoutInfo = serverState.layoutInfo ?? null;
     state.currentLayoutLocked = serverState.currentLayoutLocked ?? true;
     state.allLocked = serverState.allLocked ?? false;
+    state.zeitAbgelaufen = serverState.zeitAbgelaufen ?? false;
     state.winner = serverState.winner ?? null;
+
+    if (state.zeitAbgelaufen && !warAbgelaufen) {
+        toast("warning", "Zeit ist um – Eingaben gesperrt");
+    } else if (!state.zeitAbgelaufen && warAbgelaufen && state.currentLayout !== Layouts.None) {
+        toast("info", "Weiter – Eingaben wieder frei");
+    }
 
     dom.name.textContent = state.playerName || "—";
     dom.status.textContent = buildStatusText();

@@ -245,7 +245,11 @@
                                 ToolTip="Countdown über eine Minute. Wer buzzert, hält ihn an." />
                     </UniformGrid>
                     <Button Content="Countdown anhalten" Command="{Binding StopCountdownCommand}" Margin="4,6,4,0"
-                            ToolTip="Nimmt den Countdown vom Beamer." />
+                            ToolTip="Nimmt den Countdown vom Beamer. Angehalten sperrt er nichts." />
+                    <!-- M33: nach Ablauf sind die Telefone gesperrt, bis hier freigegeben wird. -->
+                    <Button Content="Eingaben wieder erlauben" Command="{Binding BuzzerControlsViewModel.FreigebenCommand}"
+                            Visibility="{Binding BuzzerControlsViewModel.FreigabeVisibility}" Margin="4,6,4,0" FontWeight="Bold"
+                            ToolTip="Der Countdown ist abgelaufen, die Telefone nehmen nichts mehr an. Das gibt sie wieder frei - auch ein neuer Countdown tut das." />
                 </StackPanel>
             </Grid>
         </Border>

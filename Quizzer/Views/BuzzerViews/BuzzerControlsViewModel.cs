@@ -97,6 +97,63 @@ namespace Quizzer.Views.BuzzerViews
             }
         }
 
+        private bool eingabenGesperrt;
+
+        /// <summary>M33: nach Ablauf des Countdowns gesperrt, bis der Spielleiter freigibt.</summary>
+        public bool EingabenGesperrt
+        {
+            get => eingabenGesperrt;
+            private set
+            {
+                eingabenGesperrt = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(FreigabeVisibility));
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+
+        public Visibility FreigabeVisibility => EingabenGesperrt ? Visibility.Visible : Visibility.Collapsed;
+
+        /// <summary>
+        /// Der Countdown ist abgelaufen (M33, 2026-10-23): die Telefone nehmen nichts mehr an, bis
+        /// <see cref="GibEingabenFreiAsync"/>. Ohne laufenden Server geschieht nichts.
+        /// </summary>
+        public async Task SperreWegenZeitAsync()
+        {
+            try
+            {
+                if (BuzzerController is null)
+                    return;
+
+                await BuzzerController.SperreWegenZeitAsync();
+                EingabenGesperrt = true;
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
+        }
+
+        public async Task GibEingabenFreiAsync()
+        {
+            try
+            {
+                if (BuzzerController is null || !EingabenGesperrt)
+                    return;
+
+                await BuzzerController.GibEingabenFreiAsync();
+                EingabenGesperrt = false;
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
+        }
+
+        private AsyncRelayCommand? freigebenCommand;
+
+        public ICommand FreigebenCommand => freigebenCommand ??= new AsyncRelayCommand(_ => GibEingabenFreiAsync(), _ => EingabenGesperrt);
+
         private AsyncRelayCommand? resetRoundCommand;
 
         public ICommand ResetRoundCommand => resetRoundCommand ??= new AsyncRelayCommand(ResetRoundAsync, _ => BuzzerServerViewModel?.IsBuzzerServerRunning ?? false);
@@ -122,6 +179,9 @@ namespace Quizzer.Views.BuzzerViews
                     buzzerLayout = bcl;
 
                 await BuzzerController.ResetRoundAsync(Game.CurrentRound, buzzerLayout);
+
+                // Eine neue Runde hebt die Zeitsperre am Server auf (ResetLayouts) - hier ebenso.
+                EingabenGesperrt = false;
             }
             catch (Exception ex)
             {

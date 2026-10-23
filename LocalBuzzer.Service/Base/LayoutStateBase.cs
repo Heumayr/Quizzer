@@ -33,6 +33,21 @@ namespace LocalBuzzer.Service.Base
 
         public bool AllLocked { get; private set; }
 
+        /// <summary>
+        /// Der Countdown ist abgelaufen (M33, 2026-10-23): keine Eingabe wird mehr angenommen, bis
+        /// der Spielleiter ausdrücklich freigibt. <b>Anders als <see cref="LockAll"/></b> schließt
+        /// das die Runde nicht - es wird nichts ausgewertet, und nach der Freigabe geht es weiter,
+        /// wo es stand. Eine neue Runde hebt die Sperre auf.
+        /// </summary>
+        public bool ZeitAbgelaufen => zeitAbgelaufen;
+
+        // Gesetzt vom Oberflächen-Thread, gelesen von den Hub-Threads.
+        private volatile bool zeitAbgelaufen;
+
+        public void SperreWegenZeit() => zeitAbgelaufen = true;
+
+        public void GibFrei() => zeitAbgelaufen = false;
+
         public BuzzerState BuzzerState { get; }
         public BuzzerKeySelector BuzzerKeySelector { get; }
         public BuzzerInputState BuzzerInputState { get; }
@@ -57,6 +72,7 @@ namespace LocalBuzzer.Service.Base
             CurrentLayout = layout;
             Round = round;
             AllLocked = false;
+            zeitAbgelaufen = false;
 
             ResetCount++;
 
@@ -92,7 +108,8 @@ namespace LocalBuzzer.Service.Base
                 Round = Round,
                 ResetCount = ResetCount,
                 Layout = CurrentLayout,
-                CurrentLayoutLocked = CurrentState?.Locked ?? true,
+                CurrentLayoutLocked = (CurrentState?.Locked ?? true) || ZeitAbgelaufen,
+                ZeitAbgelaufen = ZeitAbgelaufen,
                 AllLocked = AllLocked,
                 LayoutInfo = CurrentState?.BuzzerStateInfo,
                 Winner = BuzzerState.Winner?.CalculatedDisplayName

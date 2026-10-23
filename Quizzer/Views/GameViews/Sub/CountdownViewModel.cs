@@ -32,8 +32,12 @@ namespace Quizzer.Views.GameViews.Sub
             takt.Tick += (_, _) => Weiter(DateTime.UtcNow);
         }
 
-        public void Starte(int sekunden)
+        /// <summary>Was beim Ablauf geschieht (M33: die Telefone sperren). Ein Anhalten ruft es nicht.</summary>
+        private Action? beiAblauf;
+
+        public void Starte(int sekunden, Action? beiAblauf = null)
         {
+            this.beiAblauf = beiAblauf;
             laufend = new Countdown(TimeSpan.FromSeconds(sekunden), DateTime.UtcNow);
             letzteSekunde = -1;
             zeitUm = false;
@@ -46,6 +50,7 @@ namespace Quizzer.Views.GameViews.Sub
             takt.Stop();
             laufend = null;
             zeitUm = false;
+            beiAblauf = null;
             Melde();
         }
 
@@ -71,6 +76,10 @@ namespace Quizzer.Views.GameViews.Sub
                     zeitUm = true;
                     zeitUmBis = jetzt + ZeitUmAnzeige;
                     Klang.Ende();
+
+                    var ablauf = beiAblauf;
+                    beiAblauf = null;
+                    ablauf?.Invoke();
                 }
             }
             else if (zeitUm && jetzt >= zeitUmBis)
