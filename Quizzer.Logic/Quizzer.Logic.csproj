@@ -9,6 +9,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.3" />
+    <!-- Sicherheitsfix (M34, 2026-10-23): SqlClient 6.1.1 bringt Pkcs 9.0.4 mit, betroffen von
+         CVE-2026-84008 (high) und CVE-2026-70162 (DoS). Fest auf die behobene Fassung, bis
+         SqlClient selbst sie mitbringt - dann diese Zeile wieder streichen. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
 
   <ItemGroup>
