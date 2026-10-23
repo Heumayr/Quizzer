@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Quizzer — Installation</title>
+<title>Quizzer-Installation</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <style>
   :root{
     --grund:#ffffff; --flaeche:#f6f7f9; --rand:#dfe3e8;
@@ -24,6 +25,7 @@
       --gefahr:#f3a3ad; --gefahr-flaeche:#2e1a1e; --gefahr-rand:#5c3037;
       --ok:#8fd6a8; --ok-flaeche:#16281d; --ok-rand:#2f5a3d;
       --code:#232830; --zeichnung:#1b1f26; --linie:#6b7686; --kasten:#232830;
+      color-scheme:dark;
     }
   }
   :root[data-theme="dark"]{
@@ -34,6 +36,7 @@
     --gefahr:#f3a3ad; --gefahr-flaeche:#2e1a1e; --gefahr-rand:#5c3037;
     --ok:#8fd6a8; --ok-flaeche:#16281d; --ok-rand:#2f5a3d;
     --code:#232830; --zeichnung:#1b1f26; --linie:#6b7686; --kasten:#232830;
+    color-scheme:dark;
   }
 
   *{box-sizing:border-box}
@@ -42,8 +45,9 @@
     font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
   .huelle{display:flex; align-items:flex-start; max-width:82rem; margin:0 auto}
 
-  .leiste{position:sticky; top:0; flex:0 0 var(--seitenleiste); width:var(--seitenleiste);
-    height:100vh; overflow-y:auto; padding:1.5rem 1rem 2rem 1.25rem;
+  .leiste{position:sticky; top:env(safe-area-inset-top, 0px); flex:0 0 var(--seitenleiste); width:var(--seitenleiste);
+    height:100vh; overflow-y:auto; padding-block:1.5rem 2rem; padding-right:1rem;
+    padding-left:max(1.25rem, env(safe-area-inset-left, 0px));
     border-right:1px solid var(--rand); background:var(--flaeche)}
   .leiste h2{font-size:.72rem; text-transform:uppercase; letter-spacing:.09em; color:var(--gedaempft); margin:1.5rem 0 .5rem; border:0; padding:0}
   .marke{font-weight:700; font-size:1rem; line-height:1.3}
@@ -57,7 +61,8 @@
     border:1px solid var(--rand); border-radius:.4rem; background:var(--grund); color:var(--gedaempft)}
   .schalter:hover,.schalter:focus-visible{color:var(--akzent); border-color:var(--akzent)}
 
-  main{flex:1 1 auto; min-width:0; padding:2.5rem 2.5rem 6rem; max-width:58rem}
+  main{flex:1 1 auto; min-width:0; padding-block:2.5rem 6rem; padding-left:2.5rem;
+    padding-right:max(2.5rem, env(safe-area-inset-right, 0px)); max-width:58rem}
   h1{font-size:1.9rem; line-height:1.25; margin:0 0 .4rem; letter-spacing:-.015em}
   h2{font-size:1.35rem; margin:3rem 0 .8rem; padding-top:.5rem; letter-spacing:-.01em; border-top:1px solid var(--rand)}
   h3{font-size:1.05rem; margin:1.9rem 0 .5rem}
@@ -116,8 +121,9 @@
 
   @media (max-width:900px){
     .huelle{display:block}
-    .leiste{position:static; width:auto; height:auto; border-right:0; border-bottom:1px solid var(--rand); padding:1rem 16px}
-    main{padding:1.5rem 16px 4rem}
+    .leiste{position:static; width:auto; height:auto; border-right:0; border-bottom:1px solid var(--rand);
+      padding-block:1rem; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px))}
+    main{padding-block:1.5rem 4rem; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px))}
   }
 </style>
 </head>
