@@ -276,7 +276,7 @@ namespace Quizzer.Views.GameViews
             if (Game.CurrentChoosingPlayerId == Guid.Empty)
                 Game.CurrentChoosingPlayerId = Game.RegularChoosingPlayerId;
 
-            OnPropertyChanged(nameof(ChoosingPlayer));
+            ChoosingPlayerChanged();
         }
 
         public async Task SetNextChoosingPlayer(List<Player> cellWinners)
@@ -294,7 +294,7 @@ namespace Quizzer.Views.GameViews
             }
 
             await VMSaveAsync();
-            OnPropertyChanged(nameof(ChoosingPlayer));
+            ChoosingPlayerChanged();
         }
 
         private void SetChoosingPlayerFromWinners(List<Player> winners)
@@ -520,7 +520,7 @@ namespace Quizzer.Views.GameViews
 
             GameGridVMs.CellVMs.FirstOrDefault(c => c.Coordinate == merk.Zelle)?.RefreshFromModel();
             StatsContext.UpdateScores(IsGameFinished);
-            OnPropertyChanged(nameof(ChoosingPlayer));
+            ChoosingPlayerChanged();
             await UpdateGameStateAsync();
             GamePlayerViewModel?.RefreshFinishState();
         }

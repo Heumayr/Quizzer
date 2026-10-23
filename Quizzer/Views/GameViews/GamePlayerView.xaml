@@ -57,8 +57,41 @@
 
         <!-- MAIN AREA -->
         <Grid Grid.Row="0" Grid.Column="1" Visibility="{Binding ShowMainContent}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- M30: wer die naechste Frage waehlt - ueber dem Raster in eigener Zeile, damit er keine
+                 Kategorie verdeckt. Auch bei ausgeblendetem Punktestand; waehrend einer Frage und
+                 nach dem Spiel nicht. -->
+            <Border Grid.Row="0" HorizontalAlignment="Center" Margin="0,8,0,2" Padding="18,6"
+                    CornerRadius="10" Background="#CC111111" BorderBrush="#4FC3F7" BorderThickness="2">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="{Binding WaehlerHinweisVisibility}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ShowQuestionView}" Value="Visible">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ShowGameGridView}" Value="Hidden">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ShowGameGridView}" Value="Collapsed">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsGameFinished}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <TextBlock x:Name="WaehlerHinweis" Text="{Binding WaehlerHinweis}" FontSize="30" FontWeight="SemiBold"
+                           Foreground="WhiteSmoke" TextWrapping="Wrap" TextAlignment="Center" />
+            </Border>
+
             <!-- Zurueck zum Raster: ruhig einblenden, kein Schwung - der Blick sucht die naechste Zelle -->
-            <Viewbox Visibility="{Binding ShowGameGridView}" Margin="5"
+            <Viewbox Grid.Row="1" Visibility="{Binding ShowGameGridView}" Margin="5"
                  base:Bewegung.Einblenden="True" base:Bewegung.Stil="Blenden"
                  Stretch="Uniform"
                  HorizontalAlignment="Stretch"
@@ -159,7 +192,7 @@
 
             <!-- Die Frageanzeige liegt in QuestionScreenView, damit die Vorschau im
                  Frageneditor dieselbe benutzt und nicht daneben etwas Eigenes zeichnet. -->
-            <local:QuestionScreenView Visibility="{Binding ShowQuestionView}"
+            <local:QuestionScreenView Grid.Row="0" Grid.RowSpan="2" Visibility="{Binding ShowQuestionView}"
                                       base:Bewegung.Einblenden="True" base:Bewegung.Stil="Zoomen" />
         </Grid>
 
