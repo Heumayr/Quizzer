@@ -28,7 +28,7 @@ namespace Quizzer.Views
     /// auch die Verbindungsprobe: sonst hieße der Weg speichern, neu starten, scheitern.
     /// </para>
     /// </summary>
-    public class SettingsViewModel : ViewModelBase
+    public partial class SettingsViewModel : ViewModelBase
     {
         private string datenordner = string.Empty;
         private string befund = string.Empty;

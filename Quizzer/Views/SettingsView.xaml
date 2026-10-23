@@ -149,6 +149,13 @@
                 <TextBlock Text="{Binding Ablageort}" FontSize="12" Opacity="0.8" TextWrapping="Wrap" />
                 <TextBlock FontSize="12" Opacity="0.8" Margin="0,4,0,0" TextWrapping="Wrap"
                            Text="Diese Werte überschreiben die ausgelieferten Vorgaben. Sie liegen im Benutzerordner, nicht im Programmordner." />
+
+                <!-- M28: alles von diesem Rechner auf einmal entfernen. -->
+                <TextBlock Style="{StaticResource SectionHeader}" Margin="0,20,0,4" Text="Daten auf diesem Rechner" />
+                <TextBlock Text="{Binding ProgramDataOrt}" FontSize="12" Opacity="0.8" TextWrapping="Wrap" />
+                <Button Content="Daten von diesem Rechner entfernen" Command="{Binding RemoveDataCommand}"
+                        HorizontalAlignment="Left" Margin="0,6,0,0" Padding="10,4"
+                        ToolTip="Löscht alles unter dem genannten Ordner (Bilder, Töne, Designs) sowie Zwischendatenbanken und gemerkte Anmeldungen des Servermodus, dann Neustart. Vorher kommt eine Rückfrage, die sagt, was verloren geht." />
             </StackPanel>
         </ScrollViewer>
 
