@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quizzer — Installation</title>
+<style>
+  :root{
+    --grund:#ffffff; --flaeche:#f6f7f9; --rand:#dfe3e8;
+    --schrift:#1b1f24; --gedaempft:#5a6472;
+    --akzent:#0b5cab; --akzent-flaeche:#e8f1fb;
+    --warn:#8a5300; --warn-flaeche:#fdf3e3; --warn-rand:#e8c98a;
+    --gefahr:#7a2f3a; --gefahr-flaeche:#fbecee; --gefahr-rand:#e7b9c0;
+    --ok:#1f6b3a; --ok-flaeche:#e9f5ed; --ok-rand:#b5ddc3;
+    --code:#f0f2f5; --zeichnung:#ffffff; --linie:#8a94a3; --kasten:#f6f7f9;
+    --seitenleiste:18rem;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --grund:#14171c; --flaeche:#1b1f26; --rand:#2e353f;
+      --schrift:#e6e9ee; --gedaempft:#9aa4b2;
+      --akzent:#79b8ff; --akzent-flaeche:#16283d;
+      --warn:#e8b563; --warn-flaeche:#2d2415; --warn-rand:#5a4620;
+      --gefahr:#f3a3ad; --gefahr-flaeche:#2e1a1e; --gefahr-rand:#5c3037;
+      --ok:#8fd6a8; --ok-flaeche:#16281d; --ok-rand:#2f5a3d;
+      --code:#232830; --zeichnung:#1b1f26; --linie:#6b7686; --kasten:#232830;
+    }
+  }
+  :root[data-theme="dark"]{
+    --grund:#14171c; --flaeche:#1b1f26; --rand:#2e353f;
+    --schrift:#e6e9ee; --gedaempft:#9aa4b2;
+    --akzent:#79b8ff; --akzent-flaeche:#16283d;
+    --warn:#e8b563; --warn-flaeche:#2d2415; --warn-rand:#5a4620;
+    --gefahr:#f3a3ad; --gefahr-flaeche:#2e1a1e; --gefahr-rand:#5c3037;
+    --ok:#8fd6a8; --ok-flaeche:#16281d; --ok-rand:#2f5a3d;
+    --code:#232830; --zeichnung:#1b1f26; --linie:#6b7686; --kasten:#232830;
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+  body{margin:0; background:var(--grund); color:var(--schrift);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  .huelle{display:flex; align-items:flex-start; max-width:82rem; margin:0 auto}
+
+  .leiste{position:sticky; top:0; flex:0 0 var(--seitenleiste); width:var(--seitenleiste);
+    height:100vh; overflow-y:auto; padding:1.5rem 1rem 2rem 1.25rem;
+    border-right:1px solid var(--rand); background:var(--flaeche)}
+  .leiste h2{font-size:.72rem; text-transform:uppercase; letter-spacing:.09em; color:var(--gedaempft); margin:1.5rem 0 .5rem; border:0; padding:0}
+  .marke{font-weight:700; font-size:1rem; line-height:1.3}
+  .marke span{display:block; font-weight:400; font-size:.8rem; color:var(--gedaempft); margin-top:.15rem}
+  .leiste ol{list-style:none; margin:0; padding:0}
+  .leiste li{margin:.1rem 0}
+  .leiste a{display:block; padding:.3rem .5rem; border-radius:.35rem; color:var(--schrift); text-decoration:none; font-size:.88rem}
+  .leiste a:hover,.leiste a:focus-visible{background:var(--akzent-flaeche); color:var(--akzent)}
+  .leiste .tief{padding-left:1.4rem; font-size:.83rem; color:var(--gedaempft)}
+  .schalter{margin-top:1.25rem; padding:.4rem .6rem; font-size:.8rem; cursor:pointer;
+    border:1px solid var(--rand); border-radius:.4rem; background:var(--grund); color:var(--gedaempft)}
+  .schalter:hover,.schalter:focus-visible{color:var(--akzent); border-color:var(--akzent)}
+
+  main{flex:1 1 auto; min-width:0; padding:2.5rem 2.5rem 6rem; max-width:58rem}
+  h1{font-size:1.9rem; line-height:1.25; margin:0 0 .4rem; letter-spacing:-.015em}
+  h2{font-size:1.35rem; margin:3rem 0 .8rem; padding-top:.5rem; letter-spacing:-.01em; border-top:1px solid var(--rand)}
+  h3{font-size:1.05rem; margin:1.9rem 0 .5rem}
+  h4{font-size:.95rem; margin:1.4rem 0 .4rem; color:var(--gedaempft)}
+  p{margin:.75rem 0}
+  ul{margin:.6rem 0; padding-left:1.3rem}
+  li{margin:.25rem 0}
+  a{color:var(--akzent)}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--akzent); outline-offset:2px}
+  code{background:var(--code); padding:.1rem .35rem; border-radius:.25rem; font:.87em/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; overflow-wrap:anywhere}
+  strong{font-weight:650}
+  .untertitel{color:var(--gedaempft); margin:0}
+
+  .kopf{background:var(--flaeche); border:1px solid var(--rand); border-radius:.6rem; padding:1.1rem 1.25rem; margin:1.25rem 0 0}
+  .kopf p{margin:.5rem 0 0}
+  .kopf p:first-child{margin-top:0}
+
+  pre{background:var(--code); border-radius:.5rem; padding:.9rem 1.1rem; overflow-x:auto;
+    font:.85rem/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; white-space:pre; margin:1rem 0}
+
+  .tabellenhuelle{overflow-x:auto; margin:1rem 0}
+  table{border-collapse:collapse; width:100%; font-size:.9rem}
+  th,td{text-align:left; vertical-align:top; padding:.55rem .7rem; border-bottom:1px solid var(--rand)}
+  th{font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:var(--gedaempft); border-bottom:2px solid var(--rand)}
+  tbody tr:hover{background:var(--flaeche)}
+  table.variablen td:first-child code{white-space:nowrap}
+
+  .hinweis,.gefahr,.beleg{padding:.8rem 1rem; margin:1.1rem 0; border-radius:0 .4rem .4rem 0}
+  .hinweis{border-left:3px solid var(--warn-rand); background:var(--warn-flaeche)}
+  .gefahr{border-left:3px solid var(--gefahr-rand); background:var(--gefahr-flaeche)}
+  .beleg{border-left:3px solid var(--ok-rand); background:var(--ok-flaeche)}
+  .hinweis p,.gefahr p,.beleg p{margin:.4rem 0}
+  .hinweis p:first-child,.gefahr p:first-child,.beleg p:first-child{margin-top:0}
+  .hinweis p:last-child,.gefahr p:last-child,.beleg p:last-child{margin-bottom:0}
+  .titel{font-weight:650}
+  .hinweis .titel{color:var(--warn)} .gefahr .titel{color:var(--gefahr)} .beleg .titel{color:var(--ok)}
+
+  .schritt{display:flex; align-items:baseline; gap:.7rem; margin-top:2rem}
+  .schritt .nr{flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+    width:1.9rem; height:1.9rem; border-radius:50%; background:var(--akzent-flaeche); color:var(--akzent); font-weight:700; font-size:.9rem}
+  .schritt h3{margin:0}
+
+  figure{margin:1.2rem 0}
+  .zeichnung{background:var(--zeichnung); border:1px solid var(--rand); border-radius:.6rem; padding:.75rem; overflow-x:auto}
+  .zeichnung svg{display:block; width:100%; min-width:40rem; height:auto}
+  figcaption{font-size:.85rem; color:var(--gedaempft); margin-top:.5rem}
+  svg .kasten{fill:var(--kasten); stroke:var(--linie); stroke-width:1.2}
+  svg .kasten.tuer{stroke:var(--akzent); stroke-width:1.8}
+  svg .rahmen{fill:none; stroke:var(--linie); stroke-width:1.2; stroke-dasharray:6 5}
+  svg .linie{stroke:var(--linie); stroke-width:1.6; fill:none}
+  svg .spitze{fill:var(--linie)}
+  svg text{fill:var(--schrift); font:13px -apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+  svg .name{font-weight:650; font-size:14px}
+  svg .mono{font:12px ui-monospace,Consolas,monospace; fill:var(--gedaempft)}
+  svg .klein{font-size:11.5px; fill:var(--gedaempft)}
+
+  @media (max-width:900px){
+    .huelle{display:block}
+    .leiste{position:static; width:auto; height:auto; border-right:0; border-bottom:1px solid var(--rand); padding:1rem 16px}
+    main{padding:1.5rem 16px 4rem}
+  }
+</style>
+</head>
+<body>
+<div class="huelle">
+
+<nav class="leiste" aria-label="Inhalt">
+  <div class="marke">Quizzer<span>Installation auf dem eigenen Rechner</span></div>
+  <h2>Inhalt</h2>
+  <ol>
+    <li><a href="#ueberblick">Der Aufbau auf einen Blick</a></li>
+    <li><a href="#voraussetzungen">Was der Rechner mitbringen muss</a></li>
+    <li><a href="#umgebung">Umgebungsvariablen — was wohin gehört</a></li>
+    <li><a class="tief" href="#umgebung-orte">Wo die Einstellungen liegen</a></li>
+    <li><a class="tief" href="#umgebung-env">Die Umgebungsdatei</a></li>
+    <li><a class="tief" href="#umgebung-dienste">Je Dienst im Container</a></li>
+    <li><a class="tief" href="#umgebung-api-optional">Optional für die API</a></li>
+    <li><a class="tief" href="#umgebung-wpf">Das WPF</a></li>
+    <li><a class="tief" href="#umgebung-pruefung">Nur für Entwicklung und Prüfung</a></li>
+    <li><a class="tief" href="#umgebung-az">Alle Variablen von A bis Z</a></li>
+    <li><a href="#schritte">Der Aufbau, Schritt für Schritt</a></li>
+    <li><a class="tief" href="#entwicklung">Start aus der Entwicklungsumgebung</a></li>
+    <li><a href="#pruefen">Prüfen, ob es läuft</a></li>
+    <li><a href="#betrieb">Im Betrieb</a></li>
+    <li><a href="#spaeter">Später: Laptop und Freunde</a></li>
+    <li><a href="#fehler">Fehlerbilder</a></li>
+    <li><a href="#gemessen">Was gemessen ist und was nicht</a></li>
+  </ol>
+  <button class="schalter" id="farbschalter" type="button" title="Zwischen hellem und dunklem Erscheinungsbild umschalten">Hell / Dunkel</button>
+</nav>
+
+<main>
+<h1>Quizzer auf dem eigenen Rechner</h1>
+<p class="untertitel">Docker Desktop trägt Datenbank, REST-API und Mediendateien — das WPF meldet sich dort an.</p>
+
+<div class="kopf">
+  <p><strong>Stand 23.10.2026</strong> (Meldung M24). Jeder Schritt ist an diesem Tag auf dem Entwicklungsrechner
+  durchgespielt worden; was nicht gemessen ist, steht unter <a href="#gemessen">Was gemessen ist und was nicht</a>.</p>
+  <p><strong>Am Ende läuft:</strong> ein Stapel aus vier Containern unter Docker Desktop, erreichbar nur auf diesem
+  Rechner unter <code>https://localhost:8543</code>. Spiele, Fragen, Mitspieler, Ergebnisse und Designs liegen im
+  Container, ebenso alle Bilder und Töne. Das WPF arbeitet mit einem Konto dagegen.</p>
+  <p><strong>Verwandte Dateien:</strong> <code>deploy/README.md</code> (Betrieb, Sicherung, Tailscale) und
+  <code>deploy/.env.example</code> (Vorlage der Umgebungsdatei).</p>
+</div>
+
+<h2 id="ueberblick">Der Aufbau auf einen Blick</h2>
+
+<figure>
+  <div class="zeichnung">
+    <svg viewBox="0 0 980 330" role="img"
+         aria-label="WPF auf diesem Rechner spricht über https://localhost:8543 mit Caddy im Docker-Stapel. Caddy leitet an die API weiter, die API an SQL Server. Daten liegen in den Volumes quizzer-sql und quizzer-media. Die Telefone buzzern direkt beim WPF über Port 5000.">
+      <defs>
+        <marker id="pfeil" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" class="spitze"></path>
+        </marker>
+      </defs>
+
+      <rect class="kasten" x="20" y="40" width="230" height="110" rx="8"></rect>
+      <text class="name" x="34" y="64">WPF — dieser Rechner</text>
+      <text class="mono" x="34" y="84">LocalDB Quizzer_Server_&lt;Konto&gt;</text>
+      <text class="mono" x="34" y="102">ProgramData\Quizzer\Server\…</text>
+      <text class="klein" x="34" y="124">holt beim Anmelden alles,</text>
+      <text class="klein" x="34" y="139">schickt Gespeichertes nach 3 s</text>
+
+      <rect class="kasten" x="20" y="220" width="230" height="74" rx="8"></rect>
+      <text class="name" x="34" y="244">Telefone der Mitspieler</text>
+      <text class="mono" x="34" y="264">http://&lt;PC im WLAN&gt;:5000</text>
+      <text class="klein" x="34" y="282">Buzzer — unverändert, läuft im WPF</text>
+      <path class="linie" d="M135,220 L135,154" marker-end="url(#pfeil)"></path>
+
+      <rect class="rahmen" x="300" y="14" width="660" height="300" rx="10"></rect>
+      <text class="klein" x="316" y="34">Docker Desktop · Projekt „quizzer“ · deploy/docker-compose.yml</text>
+
+      <rect class="kasten tuer" x="320" y="56" width="180" height="86" rx="8"></rect>
+      <text class="name" x="334" y="80">caddy</text>
+      <text class="mono" x="334" y="100">127.0.0.1:8543 → 8443</text>
+      <text class="klein" x="334" y="118">TLS mit certs/server.*</text>
+      <text class="klein" x="334" y="133">einzige Tür nach außen</text>
+
+      <rect class="kasten" x="540" y="56" width="180" height="86" rx="8"></rect>
+      <text class="name" x="554" y="80">api</text>
+      <text class="mono" x="554" y="100">http :8080, kein Port</text>
+      <text class="klein" x="554" y="118">Anmeldung, Abgleich,</text>
+      <text class="klein" x="554" y="133">Medien, Konten</text>
+
+      <rect class="kasten" x="760" y="56" width="180" height="86" rx="8"></rect>
+      <text class="name" x="774" y="80">sql</text>
+      <text class="mono" x="774" y="100">SQL Server 2022 Express</text>
+      <text class="klein" x="774" y="118">kein Port nach außen</text>
+      <text class="klein" x="774" y="133">Datenbank „Quizzer“</text>
+
+      <rect class="kasten" x="760" y="176" width="180" height="56" rx="8"></rect>
+      <text class="name" x="774" y="200">migrator</text>
+      <text class="klein" x="774" y="219">Schema, Anmeldung, endet</text>
+
+      <rect class="kasten" x="540" y="250" width="180" height="50" rx="8"></rect>
+      <text class="mono" x="554" y="272">Volume quizzer-media</text>
+      <text class="klein" x="554" y="289">Resources · Themes · Bilder</text>
+      <rect class="kasten" x="760" y="250" width="180" height="50" rx="8"></rect>
+      <text class="mono" x="774" y="272">Volume quizzer-sql</text>
+      <text class="klein" x="774" y="289">Datenbankdateien</text>
+
+      <path class="linie" d="M250,98 L316,98" marker-end="url(#pfeil)"></path>
+      <text class="klein" x="254" y="90">https</text>
+      <path class="linie" d="M500,99 L536,99" marker-end="url(#pfeil)"></path>
+      <path class="linie" d="M720,99 L756,99" marker-end="url(#pfeil)"></path>
+      <path class="linie" d="M630,142 L630,246" marker-end="url(#pfeil)"></path>
+      <path class="linie" d="M850,232 L850,246" marker-end="url(#pfeil)"></path>
+      <path class="linie" d="M850,176 L850,146" marker-end="url(#pfeil)"></path>
+    </svg>
+  </div>
+  <figcaption>Der Weg der Daten. Nur Caddy hat einen Port auf dem Rechner, und der lauscht nur auf
+  <code>127.0.0.1</code>. Die Telefone sprechen weiterhin mit dem WPF, nicht mit dem Docker.</figcaption>
+</figure>
+
+<p><strong>Wie das WPF mit dem Docker arbeitet:</strong> Beim Anmelden holt es alles, was das Konto sehen darf, in eine
+eigene lokale Zwischendatenbank (<code>Quizzer_Server_</code> plus 12 Zeichen der Konto-Kennung, auf derselben LocalDB) und
+die Medien nach <strong><code>C:\ProgramData\Quizzer\Server\&lt;rechner&gt;_&lt;port&gt;</code></strong> — lokal also
+<code>C:\ProgramData\Quizzer\Server\localhost_8543</code> (seit Meldung M26; vorher landeten sie im Datenordner des
+Einzelbetriebs). Solange die Sitzung läuft, liest das Programm alle Bilder und Töne von dort. Danach laufen alle Masken
+unverändert lokal; jedes Speichern geht drei Sekunden später zum Server. Fällt die Verbindung weg, wird lokal
+weitergespielt und später nachgeschickt.</p>
+
+<div class="tabellenhuelle">
+<table>
+  <thead><tr><th>Was</th><th>Wo es liegt</th><th>Überlebt</th></tr></thead>
+  <tbody>
+    <tr><td>Spiele, Fragen, Mitspieler, Ergebnisse, Designs, Konten</td><td>Volume <code>quizzer_quizzer-sql</code>, Datenbank <code>Quizzer</code></td><td>Neustart, <code>docker compose down</code>, Neubau — nicht <code>down -v</code></td></tr>
+    <tr><td>Bilder und Töne der Fragen, Spielerbilder, Design-Texturen, Grundtexturen</td><td>Volume <code>quizzer_quizzer-media</code>: <code>Resources/</code>, <code>Themes/&lt;Ordner&gt;/</code>, Spielerbilder und Grundtexturen oben</td><td>wie oben</td></tr>
+    <tr><td>Die Kopie des WPF</td><td>LocalDB <code>Quizzer_Server_…</code> und <code>C:\ProgramData\Quizzer\Server\localhost_8543</code></td><td>wird bei jeder Anmeldung abgeglichen</td></tr>
+    <tr><td>Der frühere Einzelbetrieb</td><td>LocalDB <code>Quizzer</code> und <code>E:\QuizzerData</code> — bleiben unverändert liegen</td><td>Rückfall, siehe <a href="#betrieb">Im Betrieb</a></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="voraussetzungen">Was der Rechner mitbringen muss</h2>
+
+<div class="tabellenhuelle">
+<table>
+  <thead><tr><th>Was</th><th>Wofür</th><th>Prüfen</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Windows 10/11, x64</strong>, mindestens 4 GB Arbeitsspeicher frei</td><td>SQL Server allein will 2 GB</td><td><code>docker info</code> zeigt <code>Total Memory</code></td></tr>
+    <tr><td><strong>Docker Desktop</strong> mit WSL 2</td><td>der Stapel</td><td><code>docker version</code> antwortet mit Client <em>und</em> Server (gemessen: 29.8.0, Compose 5.5.1)</td></tr>
+    <tr><td><strong>PowerShell 7</strong></td><td>alle Skripte in <code>deploy\</code></td><td><code>pwsh -v</code>; fehlt sie: <code>winget install --id Microsoft.PowerShell --source winget --exact</code></td></tr>
+    <tr><td><strong>SQL Server LocalDB</strong> und <code>sqlcmd</code></td><td>Zwischendatenbank des WPF; die Übernahme liest die alte Datenbank damit</td><td><code>sqllocaldb info</code>, <code>sqlcmd -?</code></td></tr>
+    <tr><td><strong>.NET 10 SDK</strong></td><td>das WPF bauen und starten (der Stapel braucht es nicht — er baut im Container)</td><td><code>dotnet --version</code></td></tr>
+    <tr><td><strong>Git</strong></td><td>das Repo holen und aktualisieren</td><td><code>git --version</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="hinweis">
+  <p class="titel">Windows PowerShell 5.1 reicht nicht.</p>
+  <p>Gemessen am 23.10.2026: <code>new-secrets.ps1</code> bricht dort ab („keine Methode mit dem Namen Fill“), und
+  <code>backup.ps1</code>/<code>restore.ps1</code> halten nur unter PowerShell 7 bei einem gescheiterten
+  <code>docker</code>-Aufruf an — unter 5.1 liefen sie weiter und meldeten „Gesichert“. Alle Befehle unten in einer
+  <code>pwsh</code>-Konsole.</p>
+</div>
+
+<p><strong>Ports.</strong> Der Stapel braucht einen freien TCP-Port auf <code>127.0.0.1</code>. Vorgabe ist 8443 — auf dem
+Entwicklungsrechner belegt GebaTech 8443, 8445 und 8446, deshalb steht dort <code>QUIZZER_PORT=8543</code>. Das WPF
+öffnet für die Telefone zusätzlich Port 5000 im WLAN (unverändert, siehe <code>deploy/README.md</code> zur Firewall).</p>
+
+<h2 id="umgebung">Umgebungsvariablen — was wohin gehört</h2>
+
+<p><strong>Stand 23.10.2026.</strong> Hier steht jede Variable des Stapels und der Skripte — aus
+<code>deploy/.env.example</code>, aus den <code>environment:</code>-Blöcken von <code>deploy/docker-compose.yml</code>,
+aus dem <code>Dockerfile</code> und aus jedem <code>GetEnvironmentVariable</code> im Repo (am 23.10.2026 durchsucht;
+am laufenden Stapel mit <code>docker inspect</code> gegengeprüft). Dazu die Dateien, in denen das WPF seine
+Einstellungen hält — <strong>das WPF selbst liest keine Umgebungsvariable</strong>.</p>
+
+<p>Eine Einstellung des Stapels durchläuft drei Stationen, und an jeder <strong>kann sie anders heißen</strong>: der
+Betreiber trägt einen Wert in <code>deploy/.env</code> ein, <code>docker-compose.yml</code> reicht ihn unter einem
+zweiten Namen an einen Dienst weiter, und das Programm im Container liest ihn beim Start.</p>
+
+<pre>.env                 QUIZZER_APP_PASSWORD=HIER-EIN-ZUFAELLIGES-KENNWORT
+docker-compose.yml   migrator:  Quizzer__AppLogin__Password: ${QUIZZER_APP_PASSWORD}
+                     api:       ConnectionStrings__Quizzer: "Server=sql;...;Password=${QUIZZER_APP_PASSWORD};..."
+Wirkung              der Migrator legt damit die Anmeldung quizzer_app an (oder setzt ihr Kennwort neu),
+                     die API meldet sich damit bei jedem Start am SQL Server an</pre>
+
+<p><strong>Der doppelte Unterstrich trennt die Ebenen</strong>: <code>Quizzer__Jwt__SigningKey</code> ist der Eintrag
+<code>SigningKey</code> im Abschnitt <code>Quizzer:Jwt</code>. Der Server hat <strong>keine
+<code>appsettings.json</code></strong> (im Abbild nachgesehen) — die Umgebung ist seine einzige Quelle.</p>
+
+<div class="gefahr">
+  <p class="titel">Ein Neustart übernimmt keine Umgebungswerte.</p>
+  <p>Nach jeder Änderung an <code>.env</code> den Stapel mit <code>docker compose up -d</code> neu anlegen lassen — er
+  legt jeden Dienst neu an, dessen Werte sich geändert haben. Ein <code>docker restart</code> startet den alten
+  Container mit den alten Werten, <em>und nichts meldet es.</em></p>
+</div>
+
+<h3 id="umgebung-orte">Wo die Einstellungen liegen</h3>
+
+<div class="tabellenhuelle">
+<table>
+  <thead><tr><th>Ort</th><th>Was dort steht</th><th>Wer es pflegt</th><th>Wann eine Änderung wirkt</th></tr></thead>
+  <tbody>
+    <tr><td><code>deploy/.env</code></td>
+        <td><strong>Alle Geheimnisse</strong> des Stapels, dazu Port, Bindung, Tailscale-Name, Sicherung. <code>NAME=Wert</code>, eine Zeile je Wert. Entsteht mit <code>new-secrets.ps1</code>; nur der eigene Benutzer darf sie lesen.</td>
+        <td>der Betreiber, einmal je Rechner; <strong>nie ins Repo</strong> (steht in <code>deploy/.gitignore</code>)</td>
+        <td>wenn der lesende Dienst neu angelegt wird (<code>docker compose up -d</code>); die Skripte lesen sie bei jedem Lauf</td></tr>
+    <tr><td><code>deploy/docker-compose.yml</code></td>
+        <td>Welcher Wert an welchen Dienst geht und unter welchem Namen; feste Werte, Netze, Volumes. Kein Geheimnis.</td>
+        <td>Entwicklung, versioniert</td><td>wenn der Dienst neu angelegt wird</td></tr>
+    <tr><td><code>Quizzer.Server/Dockerfile</code></td>
+        <td>Feste Umgebung im Abbild: <code>ASPNETCORE_URLS</code>, <code>Quizzer__MediaRoot</code>, <code>DOTNET_gcServer</code>.</td>
+        <td>Entwicklung, versioniert</td><td>erst mit einem neuen Abbild (<code>up -d --build</code>)</td></tr>
+    <tr><td><code>deploy/Caddyfile</code></td>
+        <td>Die Tür: TLS-Dateien, Größengrenze 210 MB, Sicherheitsköpfe, Weiterleitung an <code>api:8080</code>. Liest keine Variable.</td>
+        <td>Entwicklung, versioniert</td><td>wenn <code>caddy</code> neu angelegt wird</td></tr>
+    <tr><td><code>deploy/certs/</code></td>
+        <td><code>server.crt</code>, <code>server.key</code> (für Caddy), <code>server.sha256</code> (Fingerabdruck fürs WPF).</td>
+        <td>der Betreiber; <strong>nie ins Repo</strong></td><td>wenn <code>caddy</code> neu angelegt wird</td></tr>
+    <tr><td><code>Quizzer.DataModels/appsettings.json</code></td>
+        <td>Vorgaben des WPF: <code>AppSettings:FilePathQuizzer</code> (<code>E:\QuizzerData</code>) und <code>AppSettings:MsSqlConString</code> (LocalDB <code>Quizzer</code>). Wird in jedes Ausgabeverzeichnis kopiert.</td>
+        <td>Entwicklung, versioniert</td><td>beim nächsten Bau des WPF</td></tr>
+    <tr><td><code>%APPDATA%\Quizzer\settings.json</code></td>
+        <td>Eigene Werte des WPF über den Vorgaben, <strong>die Serverangaben</strong> und die Anzeigeschalter (<a href="#umgebung-wpf">Felder</a>).</td>
+        <td>das WPF (Einstellungen) oder <code>deploy/wpf-verbinden.ps1</code></td><td>beim nächsten Start des WPF</td></tr>
+    <tr><td><code>C:\ProgramData\Quizzer\Server\&lt;rechner&gt;_&lt;port&gt;\</code></td>
+        <td>Die vom Server geholten Medien, je Server ein Ordner: <code>Resources\</code>, <code>Themes\&lt;Ordner&gt;\</code>, Spielerbilder und Grundtexturen oben. Keine Einstellung — der Ort ergibt sich aus <code>ServerUrl</code>.</td>
+        <td>das WPF selbst (Abgleich) und alles, was im Servermodus neu importiert wird</td><td>sofort; Löschen holt die nächste Anmeldung neu</td></tr>
+    <tr><td><code>%LOCALAPPDATA%\Quizzer\server\</code></td>
+        <td><code>session-*.bin</code> (Erneuerungsschlüssel, mit DPAPI an den Windows-Benutzer gebunden), <code>account-*.json</code> (zuletzt angemeldetes Konto), <code>sync-*.json</code> (Abgleichstand, abgewiesene Zeilen).</td>
+        <td>das WPF selbst — <strong>nicht von Hand</strong></td><td>sofort</td></tr>
+    <tr><td><code>%APPDATA%\Quizzer\buzzer-geheimnis.bin</code></td>
+        <td>Rechnergeheimnis, aus dem die Buzzer-Schlüssel der Telefone abgeleitet werden.</td>
+        <td>das WPF selbst</td><td>Löschen macht jeden QR-Code und jedes gemerkte Telefon ungültig</td></tr>
+    <tr><td>Umgebung der Konsole</td>
+        <td>Nur Prüfläufe (<a href="#umgebung-pruefung">Nur für Entwicklung und Prüfung</a>).</td>
+        <td>wer die Tests startet</td><td>beim nächsten <code>dotnet test</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="umgebung-lesen">So sind die Tabellen zu lesen</h3>
+
+<div class="tabellenhuelle">
+<table>
+  <thead><tr><th>In der Spalte „Pflicht · Vorgabe“</th><th>Bedeutung</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Pflicht · Startsperre</strong></td><td><code>docker-compose.yml</code> bricht den Start ab und nennt den fehlenden Schlüssel (<code>${NAME:?…}</code>).</td></tr>
+    <tr><td><strong>optional · Vorgabe …</strong></td><td>Es gibt eine Vorgabe; eintragen nur, wer abweichen will.</td></tr>
+    <tr><td><strong>fest</strong></td><td>Steht in <code>docker-compose.yml</code> oder im <code>Dockerfile</code>, nicht in der <code>.env</code>. Beschreibt den Aufbau; der Betreiber ändert ihn nicht.</td></tr>
+    <tr><td><strong>nur Prüfung</strong></td><td>Für Testläufe. Im Betrieb nicht gesetzt.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Beispiele sind als Beispiel erkennbar</strong> — Platzhalter beginnen mit <code>HIER-</code>; abgeschrieben ist
+nichts aus einer laufenden Anlage.</p>
+
+<h3 id="umgebung-env">In der Umgebungsdatei <code>deploy/.env</code></h3>
+
+<div class="tabellenhuelle">
+<table class="variablen">
+  <thead><tr><th>Variable</th><th>Bedeutung</th><th>Pflicht · Vorgabe</th><th>Beispiel</th><th>Gesetzt in</th><th>Gelesen von</th></tr></thead>
+  <tbody>
+    <tr id="v-sa"><td><code>QUIZZER_SA_PASSWORD</code></td><td>Kennwort des SQL-Server-Verwalters <code>sa</code>. Kennt nur der Migrator und die Skripte.</td><td>Pflicht · Startsperre</td><td><code>HIER-ZUFALL-30-ZEICHEN</code></td><td><code>.env</code>, von <code>new-secrets.ps1</code> erzeugt</td><td><code>sql</code> als <code>MSSQL_SA_PASSWORD</code>; <code>migrator</code> in <code>ConnectionStrings__QuizzerMigrator</code>; <code>backup</code>/<code>restore</code>/<code>bestand-uebernehmen</code> über die Umgebung des <code>sql</code>-Containers</td></tr>
+    <tr id="v-app"><td><code>QUIZZER_APP_PASSWORD</code></td><td>Kennwort der Betriebsanmeldung <code>quizzer_app</code> (nur lesen und schreiben, kein Schema).</td><td>Pflicht · Startsperre</td><td><code>HIER-ZUFALL-30-ZEICHEN</code></td><td><code>.env</code>, von <code>new-secrets.ps1</code></td><td><code>migrator</code> als <code>Quizzer__AppLogin__Password</code> (legt an oder setzt neu — Ändern geht also); <code>api</code> in <code>ConnectionStrings__Quizzer</code></td></tr>
+    <tr id="v-jwt"><td><code>QUIZZER_JWT_KEY</code></td><td>Signaturschlüssel der Anmeldeausweise. Base64, mindestens 32 Byte (<code>new-secrets</code> nimmt 48).</td><td>Pflicht · Startsperre</td><td><code>HIER-BASE64-48-BYTE</code></td><td><code>.env</code>, von <code>new-secrets.ps1</code></td><td><code>api</code> als <code>Quizzer__Jwt__SigningKey</code>. Ändern meldet jedes WPF ab.</td></tr>
+    <tr id="v-adminuser"><td><code>QUIZZER_ADMIN_USER</code></td><td>Name des ersten Admin-Kontos. <strong>Bewusst nicht <code>admin</code></strong> — einen bekannten Namen kann jeder mit fünf Fehlversuchen sperren.</td><td>Pflicht · Startsperre</td><td><code>leitung-HIER6</code></td><td><code>.env</code>, von <code>new-secrets.ps1</code> als <code>leitung-</code> plus 6 Zufallszeichen</td><td><code>api</code> als <code>Quizzer__Bootstrap__AdminUser</code> — <strong>nur solange es gar kein Konto gibt</strong>; dabei entsteht ein eigener Mitspieler dieses Namens. <code>wpf-verbinden.ps1</code> trägt ihn als vorbelegten Anmeldenamen ein.</td></tr>
+    <tr id="v-adminpw"><td><code>QUIZZER_ADMIN_PASSWORD</code></td><td>Sein Anfangskennwort. Mindestens 12 Zeichen, nicht der Benutzername, nicht auf der Liste bekannter Kennwörter.</td><td>Pflicht · Startsperre</td><td><code>HIER-ZUFALL-30-ZEICHEN</code></td><td><code>.env</code>, von <code>new-secrets.ps1</code></td><td><code>api</code> als <code>Quizzer__Bootstrap__AdminPassword</code> — nur beim ersten Start. <strong>Wer es im WPF ändert, dessen <code>.env</code>-Wert ist danach veraltet.</strong></td></tr>
+    <tr id="v-bind"><td><code>QUIZZER_BIND_ADDRESS</code></td><td>Auf welcher Adresse des Rechners die Tür lauscht.</td><td>optional · Vorgabe <code>127.0.0.1</code></td><td><code>127.0.0.1</code>, mit Tailscale <code>100.HIER.x.y</code></td><td><code>.env</code>, in der Vorlage vorbelegt</td><td><code>caddy</code>, Abschnitt <code>ports:</code>. <strong>Nie <code>0.0.0.0</code></strong> — Docker umgeht dabei die Windows-Firewall.</td></tr>
+    <tr id="v-port"><td><code>QUIZZER_PORT</code></td><td>Port der Tür auf dem Rechner. Im Container bleibt Caddy auf 8443.</td><td>optional · Vorgabe <code>8443</code></td><td><code>8543</code> (Entwicklungsrechner, 8443 belegt GebaTech)</td><td><code>.env</code>, in der Vorlage vorbelegt</td><td><code>caddy</code>, <code>ports:</code>; <code>wpf-verbinden.ps1</code> baut daraus die Adresse fürs WPF</td></tr>
+    <tr id="v-ts"><td><code>QUIZZER_TS_HOSTNAME</code></td><td>Tailscale-Name des Rechners (<code>&lt;rechner&gt;.&lt;tailnet&gt;.ts.net</code>).</td><td>optional · leer im lokalen Betrieb</td><td><code>quiz-pc.HIER.ts.net</code></td><td><code>.env</code></td><td><code>zertifikat-erneuern.ps1</code>/<code>.sh</code> (<code>tailscale cert</code>) — nicht <code>zertifikat-lokal.ps1</code></td></tr>
+    <tr id="v-keep"><td><code>QUIZZER_BACKUP_KEEP</code></td><td>So viele der neuesten Sicherungen bleiben, hier und am zweiten Ziel.</td><td>optional · Vorgabe <code>14</code></td><td><code>14</code></td><td><code>.env</code>, vorbelegt</td><td><code>backup.ps1</code>/<code>.sh</code>; gelöscht werden nur Ordner mit Zeitstempel-Namen</td></tr>
+    <tr id="v-copy"><td><code>QUIZZER_BACKUP_COPY_TO</code></td><td>Zweites Ziel für jede Sicherung (USB-Platte, NAS-Ordner).</td><td>optional · leer = Warnung</td><td><code>\\nas\quizzer</code></td><td><code>.env</code></td><td><code>backup.ps1</code>/<code>.sh</code> — leer bleibt die Sicherung nur auf diesem Rechner</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="umgebung-dienste">Je Dienst im Container — <code>docker-compose.yml</code> und <code>Dockerfile</code></h3>
+
+<h4 id="umgebung-sql">Dienst <code>sql</code></h4>
+<div class="tabellenhuelle">
+<table class="variablen">
+  <thead><tr><th>Variable</th><th>Bedeutung</th><th>Pflicht · Vorgabe</th><th>Gesetzt in</th><th>Gelesen von</th></tr></thead>
+  <tbody>
+    <tr><td><code>ACCEPT_EULA</code></td><td>Lizenz von SQL Server angenommen.</td><td>fest <code>Y</code></td><td><code>docker-compose.yml</code>, <code>sql</code></td><td>SQL Server beim Start</td></tr>
+    <tr><td><code>MSSQL_SA_PASSWORD</code></td><td>Kennwort von <code>sa</code>.</td><td>aus <code>QUIZZER_SA_PASSWORD</code></td><td><code>docker-compose.yml</code>, <code>sql</code></td><td>SQL Server; der Gesundheitstest; die Skripte (<code>$MSSQL_SA_PASSWORD</code> im Container)</td></tr>
+    <tr><td><code>MSSQL_PID</code></td><td>Ausgabe von SQL Server.</td><td>fest <code>Express</code></td><td><code>docker-compose.yml</code>, <code>sql</code></td><td>SQL Server</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="hinweis">
+  <p class="titel">Das <code>sa</code>-Kennwort später zu ändern ist kein Eintrag in der <code>.env</code>.</p>
+  <p>SQL Server übernimmt <code>MSSQL_SA_PASSWORD</code> laut Microsoft nur beim ersten Start mit leerem Volume
+  — <strong>hier nicht nachgemessen</strong>. Danach stimmten <code>.env</code> und Datenbank nicht mehr überein, und
+  der Migrator scheiterte. Wer es ändern will: erst in SQL Server (<code>ALTER LOGIN sa WITH PASSWORD = …</code>), dann
+  in der <code>.env</code>, dann <code>docker compose up -d</code>.</p>
+</div>
+
+<h4 id="umgebung-migrator">Dienst <code>migrator</code> — läuft einmal und endet</h4>
+<div class="tabellenhuelle">
+<table class="variablen">
+  <thead><tr><th>Variable</th><th>Bedeutung</th><th>Pflicht · Vorgabe</th><th>Gesetzt in</th><th>Gelesen von</th></tr></thead>
+  <tbody>
+    <tr><td><code>ConnectionStrings__QuizzerMigrator</code></td><td>Verbindung als <code>sa</code>: <code>Server=sql;Database=Quizzer;User Id=sa;Password=${QUIZZER_SA_PASSWORD};Encrypt=True;TrustServerCertificate=True</code></td><td>fest, Kennwort aus <code>.env</code></td><td><code>docker-compose.yml</code>, <code>migrator</code></td><td><code>Quizzer.Server migrate</code>: Migrationen einspielen</td></tr>
+    <tr><td><code>Quizzer__AppLogin__Name</code></td><td>Name der Betriebsanmeldung.</td><td>fest <code>quizzer_app</code></td><td><code>docker-compose.yml</code>, <code>migrator</code></td><td><code>DatabaseSetup</code>: <code>CREATE LOGIN</code>/<code>ALTER LOGIN</code>, Benutzer, <code>db_datareader</code> + <code>db_datawriter</code></td></tr>
+    <tr><td><code>Quizzer__AppLogin__Password</code></td><td>Ihr Kennwort.</td><td>aus <code>QUIZZER_APP_PASSWORD</code></td><td><code>docker-compose.yml</code>, <code>migrator</code></td><td>wie oben</td></tr>
+  </tbody>
+</table>
+</div>
+<p><code>TrustServerCertificate=True</code> ist eine bewusste Ausnahme: das Zertifikat des SQL Servers ist selbst erzeugt,
+die Strecke ist trotzdem verschlüsselt und verlässt das interne Docker-Netz nicht.</p>
+
+<h4 id="umgebung-api">Dienst <code>api</code></h4>
+<div class="tabellenhuelle">
+<table class="variablen">
+  <thead><tr><th>Variable</th><th>Bedeutung</th><th>Pflicht · Vorgabe</th><th>Gesetzt in</th><th>Gelesen von</th></tr></thead>
+  <tbody>
+    <tr><td><code>ConnectionStrings__Quizzer</code></td><td>Verbindung als <code>quizzer_app</code>: <code>Server=sql;Database=Quizzer;User Id=quizzer_app;Password=${QUIZZER_APP_PASSWORD};Encrypt=True;TrustServerCertificate=True</code></td><td>fest, Kennwort aus <code>.env</code></td><td><code>docker-compose.yml</code>, <code>api</code></td><td><code>DatabaseSetup.UseConnection</code> — ohne sie bricht der Start ab</td></tr>
+    <tr><td><code>Quizzer__Jwt__SigningKey</code></td><td>Signaturschlüssel.</td><td>aus <code>QUIZZER_JWT_KEY</code></td><td><code>docker-compose.yml</code>, <code>api</code></td><td>Ausstellen und Prüfen der Ausweise</td></tr>
+    <tr><td><code>Quizzer__Bootstrap__AdminUser</code></td><td>Erstes Admin-Konto.</td><td>aus <code>QUIZZER_ADMIN_USER</code></td><td><code>docker-compose.yml</code>, <code>api</code></td><td><code>AccountService.BootstrapAsync</code>, nur ohne jedes Konto</td></tr>
+    <tr><td><code>Quizzer__Bootstrap__AdminPassword</code></td><td>Sein Anfangskennwort.</td><td>aus <code>QUIZZER_ADMIN_PASSWORD</code></td><td><code>docker-compose.yml</code>, <code>api</code></td><td>wie oben</td></tr>
+    <tr><td><code>ASPNETCORE_URLS</code></td><td>Worauf die API im Container lauscht.</td><td>fest <code>http://+:8080</code></td><td><code>docker-compose.yml</code> und <code>Dockerfile</code></td><td>Kestrel</td></tr>
+    <tr><td><code>Quizzer__TrustedProxyNetworks</code></td><td>Nur von dieser Adresse wird <code>X-Forwarded-For</code> geglaubt — sonst träfe die Anmeldebremse je Adresse alle gemeinsam.</td><td>fest <code>172.30.77.10/32</code></td><td><code>docker-compose.yml</code>, <code>api</code></td><td><code>ServerSetup</code>. <strong>Muss zu <code>caddy</code> → <code>ipv4_address</code> passen</strong>; wer das Netz <code>edge</code> ändert, ändert beide Stellen</td></tr>
+    <tr><td><code>Quizzer__MediaRoot</code></td><td>Ablage der Medien im Container.</td><td>fest <code>/data/media</code></td><td><code>Dockerfile</code></td><td><code>MediaService</code>; dort hängt das Volume <code>quizzer-media</code></td></tr>
+    <tr><td><code>DOTNET_gcServer</code></td><td>Arbeitsplatz-Speicherbereinigung statt Server-Modus — weniger Arbeitsspeicher.</td><td>fest <code>0</code></td><td><code>Dockerfile</code></td><td>.NET-Laufzeit</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h4 id="umgebung-caddy">Dienst <code>caddy</code></h4>
+<p>Keine eigene Variable. Er liest <code>deploy/Caddyfile</code> und <code>deploy/certs/</code> (beide nur lesend
+eingehängt), und <code>docker-compose.yml</code> veröffentlicht <code>${QUIZZER_BIND_ADDRESS}:${QUIZZER_PORT}</code> auf
+seinen Port 8443. Feste Adresse <code>172.30.77.10</code> im Netz <code>edge</code> (<code>172.30.77.0/24</code> — am
+23.10.2026 mit keinem anderen Docker-Netz des Rechners überschnitten).</p>
+
+<h4 id="umgebung-grundabbild">Was die Grundabbilder mitbringen</h4>
+<p><code>docker inspect</code> zeigt zusätzlich Variablen, die nicht aus diesem Repo kommen und nicht anzufassen sind:
+<code>APP_UID</code>, <code>ASPNETCORE_HTTP_PORTS</code>, <code>ASPNET_VERSION</code>, <code>DOTNET_VERSION</code>,
+<code>DOTNET_RUNNING_IN_CONTAINER</code> (Microsoft-.NET-Abbild; <code>ASPNETCORE_URLS</code> sticht
+<code>ASPNETCORE_HTTP_PORTS</code>), <code>MSSQL_RPC_PORT</code>, <code>CONFIG_EDGE_BUILD</code> (SQL-Server-Abbild),
+<code>CADDY_VERSION</code>, <code>XDG_CONFIG_HOME</code>, <code>XDG_DATA_HOME</code> (Caddy-Abbild).</p>
+
+<h3 id="umgebung-api-optional">Optional für die API — Vorgaben im Code</h3>
+<p>Nicht gesetzt; es gelten die Vorgaben aus <code>Quizzer.Server/Infrastructure/ServerOptions.cs</code>. Wer abweicht,
+trägt sie <strong>als eigene Zeile unter <code>api: environment:</code></strong> in <code>docker-compose.yml</code> ein — eine
+Zeile nur in der <code>.env</code> erreicht den Container nicht.</p>
+<div class="tabellenhuelle">
+<table class="variablen">
+  <thead><tr><th>Variable</th><th>Bedeutung</th><th>Vorgabe</th></tr></thead>
+  <tbody>
+    <tr><td><code>Quizzer__PasswordMinLength</code></td><td>Mindestlänge neuer Kennwörter</td><td><code>12</code></td></tr>
+    <tr><td><code>Quizzer__LockoutThreshold</code></td><td>Fehlversuche bis zur kurzen Sperre eines Kontos</td><td><code>5</code></td></tr>
+    <tr><td><code>Quizzer__LockoutDuration</code></td><td>Dauer dieser Sperre</td><td><code>00:05:00</code></td></tr>
+    <tr><td><code>Quizzer__AuthRequestsPerMinute</code></td><td>Anmeldeversuche je Absenderadresse und Minute</td><td><code>10</code></td></tr>
+    <tr><td><code>Quizzer__MaxMediaBytes</code></td><td>Größte einzelne Mediendatei. <strong>Darüber auch <code>max_size</code> im <code>Caddyfile</code> anheben</strong> (210 MB)</td><td><code>209715200</code> (200 MB)</td></tr>
+    <tr><td><code>Quizzer__MaxMediaTotalBytes</code></td><td>Größe der ganzen Medienablage</td><td><code>21474836480</code> (20 GB)</td></tr>
+    <tr><td><code>Quizzer__Jwt__Issuer</code> / <code>__Audience</code></td><td>Aussteller und Empfänger im Ausweis</td><td><code>quizzer-server</code> / <code>quizzer-wpf</code></td></tr>
+    <tr><td><code>Quizzer__Jwt__SigningKeyFile</code></td><td>Schlüssel aus einer Datei statt aus <code>SigningKey</code></td><td>leer</td></tr>
+    <tr><td><code>Quizzer__Jwt__AccessTokenLifetime</code></td><td>Gültigkeit eines Zugriffsausweises</td><td><code>00:15:00</code></td></tr>
+    <tr><td><code>Quizzer__Jwt__RefreshTokenLifetime</code></td><td>Gültigkeit des Erneuerungsschlüssels — so lange meldet sich das WPF von selbst wieder an</td><td><code>14.00:00:00</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="umgebung-wpf">Das WPF — <code>%APPDATA%\Quizzer\settings.json</code></h3>
+<p>Das WPF liest <strong>keine</strong> Umgebungsvariable. Es nimmt die Vorgaben aus
+<code>Quizzer.DataModels/appsettings.json</code> und legt die Werte dieser Datei darüber; ein leeres Feld lässt die
+Vorgabe stehen. Die Namen sind <strong>groß- und kleinschreibungsgenau</strong>. Eine unlesbare Datei wirft nicht — dann
+gelten still die Vorgaben.</p>
+<div class="tabellenhuelle">
+<table class="variablen">
+  <thead><tr><th>Feld</th><th>Bedeutung</th><th>Vorgabe</th><th>Gesetzt von</th></tr></thead>
+  <tbody>
+    <tr><td><code>FilePathQuizzer</code></td><td>Datenordner für Bilder und Medien <strong>im Einzelbetrieb</strong>. Im Servermodus arbeitet das Programm stattdessen mit <code>C:\ProgramData\Quizzer\Server\&lt;rechner&gt;_&lt;port&gt;</code>; die Einstellungsmaske zeigt und speichert trotzdem diesen eigenen Ordner.</td><td><code>null</code> → <code>E:\QuizzerData</code></td><td>Einstellungen → Ordner</td></tr>
+    <tr><td><code>MsSqlConString</code></td><td>Die eigene lokale Datenbank. Im Servermodus entsteht daneben die Zwischendatenbank.</td><td><code>null</code> → LocalDB <code>Quizzer</code></td><td>Einstellungen</td></tr>
+    <tr><td><code>UseServer</code></td><td>Servermodus ein.</td><td><code>false</code></td><td>„Mit Konto am Quizzer-Server arbeiten“ oder <code>wpf-verbinden.ps1</code></td></tr>
+    <tr><td><code>ServerUrl</code></td><td>Adresse der Tür, <strong>ohne</strong> <code>/api/v1</code> — das hängt das WPF selbst an.</td><td><code>null</code></td><td>wie oben; lokal <code>https://localhost:8543</code></td></tr>
+    <tr><td><code>ServerCertificateSha256</code></td><td>Fingerabdruck eines selbst erzeugten Zertifikats (64 Hex-Zeichen). Ohne ihn nimmt das WPF nur öffentlich vertrauenswürdige an.</td><td><code>null</code></td><td>„Fingerabdruck des Zertifikats“ oder <code>wpf-verbinden.ps1</code> aus <code>certs\server.sha256</code></td></tr>
+    <tr><td><code>LastUserName</code></td><td>Vorbelegter Name im Anmeldefenster.</td><td><code>null</code></td><td>das WPF nach jeder Anmeldung</td></tr>
+    <tr><td><code>ScoresLeft</code>, <code>Animationen</code>, <code>Toene</code></td><td>Anzeigeschalter: Punktestand links, Bewegungen, Töne.</td><td><code>false</code>, <code>true</code>, <code>true</code></td><td>das WPF</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="umgebung-pruefung">Nur für Entwicklung und Prüfung</h3>
+<div class="tabellenhuelle">
+<table class="variablen">
+  <thead><tr><th>Variable</th><th>Bedeutung</th><th>Gelesen von</th></tr></thead>
+  <tbody>
+    <tr><td><code>QUIZZER_LOGIC_TEST_SQL</code></td><td>Ein SQL Server statt LocalDB für die Logiktests; der Wächter lässt genau diesen Server zu.</td><td><code>Quizzer.LogicUnitTests</code> (<code>DatabaseInitializer</code>, <code>TestDatabase</code>)</td></tr>
+    <tr><td><code>QUIZZER_SERVER_TEST_SQL</code></td><td>Datenbank für die Servertests; der Name muss auf <code>_Tests</code> enden. Leer: LocalDB <code>Quizzer_Server_Tests</code>.</td><td><code>Quizzer.Server.Tests</code></td></tr>
+    <tr><td><code>QUIZZER_E2E_URL</code></td><td>Adresse eines laufenden Stapels für den Rauchtest.</td><td><code>StackSmokeTests</code> — <strong>schreibt das Demospiel „Alle Fragetypen“ in den Stapel</strong>, nicht gegen den eigenen Bestand laufen lassen</td></tr>
+    <tr><td><code>QUIZZER_E2E_USER</code>, <code>QUIZZER_E2E_PASSWORD</code></td><td>Konto dafür.</td><td>wie oben</td></tr>
+    <tr><td><code>QUIZZER_E2E_PIN</code></td><td>Fingerabdruck bei selbst erzeugtem Zertifikat.</td><td>wie oben</td></tr>
+    <tr><td><code>QUIZZER_BILDSCHIRMFOTOS</code></td><td>Ordner für die Bildschirmfotos der Oberflächentests.</td><td><code>Quizzer.UnitTests</code>, Kategorie <code>Bildschirmfotos</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="umgebung-az">Alle Variablen von A bis Z</h3>
+<p>
+<code>ACCEPT_EULA</code> (<a href="#umgebung-sql">sql</a>) ·
+<code>ASPNETCORE_URLS</code> (<a href="#umgebung-api">api</a>) ·
+<code>ConnectionStrings__Quizzer</code> (<a href="#umgebung-api">api</a>) ·
+<code>ConnectionStrings__QuizzerMigrator</code> (<a href="#umgebung-migrator">migrator</a>) ·
+<code>DOTNET_gcServer</code> (<a href="#umgebung-api">api</a>) ·
+<code>MSSQL_PID</code>, <code>MSSQL_SA_PASSWORD</code> (<a href="#umgebung-sql">sql</a>) ·
+<code>QUIZZER_ADMIN_PASSWORD</code>, <code>QUIZZER_ADMIN_USER</code>, <code>QUIZZER_APP_PASSWORD</code> (<a href="#umgebung-env">.env</a>) ·
+<code>QUIZZER_BACKUP_COPY_TO</code>, <code>QUIZZER_BACKUP_KEEP</code>, <code>QUIZZER_BIND_ADDRESS</code> (<a href="#umgebung-env">.env</a>) ·
+<code>QUIZZER_BILDSCHIRMFOTOS</code> (<a href="#umgebung-pruefung">Prüfung</a>) ·
+<code>QUIZZER_E2E_PASSWORD</code>, <code>QUIZZER_E2E_PIN</code>, <code>QUIZZER_E2E_URL</code>, <code>QUIZZER_E2E_USER</code> (<a href="#umgebung-pruefung">Prüfung</a>) ·
+<code>QUIZZER_JWT_KEY</code> (<a href="#umgebung-env">.env</a>) ·
+<code>QUIZZER_LOGIC_TEST_SQL</code> (<a href="#umgebung-pruefung">Prüfung</a>) ·
+<code>QUIZZER_PORT</code>, <code>QUIZZER_SA_PASSWORD</code> (<a href="#umgebung-env">.env</a>) ·
+<code>QUIZZER_SERVER_TEST_SQL</code> (<a href="#umgebung-pruefung">Prüfung</a>) ·
+<code>QUIZZER_TS_HOSTNAME</code> (<a href="#umgebung-env">.env</a>) ·
+<code>Quizzer__AppLogin__Name</code>, <code>Quizzer__AppLogin__Password</code> (<a href="#umgebung-migrator">migrator</a>) ·
+<code>Quizzer__AuthRequestsPerMinute</code> (<a href="#umgebung-api-optional">optional</a>) ·
+<code>Quizzer__Bootstrap__AdminPassword</code>, <code>Quizzer__Bootstrap__AdminUser</code> (<a href="#umgebung-api">api</a>) ·
+<code>Quizzer__Jwt__AccessTokenLifetime</code>, <code>__Audience</code>, <code>__Issuer</code>, <code>__RefreshTokenLifetime</code>, <code>__SigningKeyFile</code> (<a href="#umgebung-api-optional">optional</a>) ·
+<code>Quizzer__Jwt__SigningKey</code> (<a href="#umgebung-api">api</a>) ·
+<code>Quizzer__LockoutDuration</code>, <code>Quizzer__LockoutThreshold</code>, <code>Quizzer__MaxMediaBytes</code>, <code>Quizzer__MaxMediaTotalBytes</code> (<a href="#umgebung-api-optional">optional</a>) ·
+<code>Quizzer__MediaRoot</code> (<a href="#umgebung-api">api</a>) ·
+<code>Quizzer__PasswordMinLength</code> (<a href="#umgebung-api-optional">optional</a>) ·
+<code>Quizzer__TrustedProxyNetworks</code> (<a href="#umgebung-api">api</a>)
+</p>
+
+<h2 id="schritte">Der Aufbau, Schritt für Schritt</h2>
+<p>Alle Befehle in einer <strong>PowerShell-7-Konsole</strong> (<code>pwsh</code>), ab Schritt 3 im Ordner
+<code>deploy</code> des Repos.</p>
+
+<div class="schritt"><span class="nr">1</span><h3 id="s1">Das Repo holen</h3></div>
+<pre>git clone https://github.com/Heumayr/Quizzer.git
+cd Quizzer</pre>
+<p>Die Harness-Submodule braucht der Stapel nicht.</p>
+
+<div class="schritt"><span class="nr">2</span><h3 id="s2">PowerShell 7, falls sie fehlt</h3></div>
+<pre>winget install --id Microsoft.PowerShell --source winget --exact</pre>
+<p>Danach eine neue Konsole mit <code>pwsh</code> öffnen.</p>
+
+<div class="schritt"><span class="nr">3</span><h3 id="s3">Die Umgebungsdatei erzeugen</h3></div>
+<pre>cd deploy
+.\new-secrets.ps1</pre>
+<p>Legt <code>.env</code> mit Zufallswerten an; eine bestehende überschreibt es nie. Dann den Port prüfen:</p>
+<pre>netstat -ano | findstr ":8443 "</pre>
+<p>Steht dort eine Zeile mit <code>LISTENING</code>, ist er belegt — in der <code>.env</code> einen freien eintragen, etwa
+<code>QUIZZER_PORT=8543</code>.</p>
+
+<div class="schritt"><span class="nr">4</span><h3 id="s4">Das Zertifikat</h3></div>
+<pre>.\zertifikat-lokal.ps1</pre>
+<p>Legt <code>certs\server.crt</code>, <code>certs\server.key</code> (nur für den eigenen Benutzer lesbar) und
+<code>certs\server.sha256</code> an — ECDSA P-256, gültig für <code>localhost</code>, den Rechnernamen und
+<code>127.0.0.1</code>, fünf Jahre. Die Ausgabe nennt den Fingerabdruck. Ein vorhandenes Zertifikat bleibt; ersetzen
+nur mit <code>-Neu</code> (dann ändert sich der Fingerabdruck im WPF).</p>
+
+<div class="schritt"><span class="nr">5</span><h3 id="s5">Den Stapel starten</h3></div>
+<pre>docker compose up -d --build
+docker compose ps -a</pre>
+<p>Beim ersten Mal lädt Docker SQL Server (1,7 GB) und baut das Server-Abbild — einige Minuten. Erwartet:</p>
+<pre>api       running   Up …
+caddy     running   Up …
+migrator  exited    Exited (0) …
+sql       running   Up … (healthy)</pre>
+<p>Kurzprobe der Tür (der Pfad ist <code>/api/v1/version</code>, <code>/version</code> antwortet 401):</p>
+<pre>curl.exe --cacert certs\server.crt https://localhost:8543/api/v1/version
+{"apiVersion":1,"syncFormatVersion":1,"serverVersion":"1.0.0"}</pre>
+
+<div class="schritt"><span class="nr">6</span><h3 id="s6">Den bisherigen Bestand übernehmen</h3></div>
+<pre>.\bestand-uebernehmen.ps1</pre>
+<p>Spielt die LocalDB des Einzelbetriebs (aus <code>Quizzer.DataModels/appsettings.json</code>, überschrieben von
+<code>settings.json</code>) samt Datenordner in den Stapel: Datenbank zurückspielen, Medien in
+<code>quizzer-media</code>, Migrator, dann das Design <strong>„Hausdesign“</strong> aus den 12 Grundtexturen des
+Datenordners — es wird jedem Spiel ohne Design zugewiesen. Der Grund: der Abgleich lädt Texturen, die direkt im
+Datenordner liegen, nie hoch; als Design reisen sie mit dem Spiel zu jedem Rechner. Zusätzlich legt das Skript die
+13 Grundtexturen oben in die Ablage — von dort gibt der Server sie jedem Konto heraus (<code>MediaService.SkinFiles</code>),
+und auch die Fenster außerhalb eines Spiels sehen auf jedem Rechner aus wie hier. Die lokale Datenbank und der
+Datenordner werden nur gelesen. Am Ende zählt das Skript nach:</p>
+<pre>              erwartet  Server
+Spiele               3       3
+Fragen              24      24
+Schritte            76      76
+Mitspieler          10      10
+Kategorien           7       7
+Ergebnisse          11      11
+Designs              2       2
+Mediendateien       54      54
+Grundtexturen oben in der Ablage: 13
+Design Hausdesign mit 12 Texturen; Spiele ohne Design: 0
+Uebernommen. Anmeldung im WPF mit QUIZZER_ADMIN_USER aus .env.</pre>
+<p>Das ist die Ausgabe vom 23.10.2026. Weicht eine Zahl ab, endet das Skript mit Fehler.</p>
+<div class="tabellenhuelle">
+<table>
+  <thead><tr><th>Schalter</th><th>Wirkung</th></tr></thead>
+  <tbody>
+    <tr><td><code>-Design 'Name'</code></td><td>Anderer Name für das Design (Buchstaben, Ziffern, Leerzeichen, <code>_</code>, <code>-</code>). <code>-Design ''</code>: kein Design, die Spiele bleiben auf dem Auslieferungsstand.</td></tr>
+    <tr><td><code>-Ersetzen</code></td><td>Auch wenn der Server schon Spiele, Fragen oder mehr als das erste Konto hat — <strong>die gehen dabei verloren</strong>. Ohne den Schalter bricht das Skript ab, bevor es etwas anfasst. Vorher <code>.\backup.ps1</code>.</td></tr>
+    <tr><td><code>-Datenordner</code>, <code>-Datenbank</code>, <code>-Server</code></td><td>Andere Quelle als die Vorgaben des WPF.</td></tr>
+  </tbody>
+</table>
+</div>
+<p><strong>Was die Medienliste nicht zeigt:</strong> der Server gibt nur Dateien heraus, auf die eine Zeile verweist.
+Auf dem Entwicklungsrechner lagen unter <code>Resources</code> 18 Dateien, 10 davon mit Verweis; die übrigen 8 sind
+Altstände früherer Bearbeitungen. Sie liegen mit im Volume, werden aber nicht ausgeliefert.</p>
+
+<div class="schritt"><span class="nr">7</span><h3 id="s7">Das WPF auf den Docker umstellen</h3></div>
+<pre>.\wpf-verbinden.ps1</pre>
+<p>Setzt in <code>%APPDATA%\Quizzer\settings.json</code> den Servermodus, <code>https://localhost:&lt;QUIZZER_PORT&gt;</code>
+und den Fingerabdruck; alles andere in der Datei bleibt, die alte Fassung liegt als
+<code>settings.json.vor-wpf-verbinden-&lt;Zeit&gt;</code> daneben. Von Hand geht dasselbe im WPF unter
+<strong>Einstellungen</strong>: „Mit Konto am Quizzer-Server arbeiten“, die Adresse, „Fingerabdruck des Zertifikats (nur
+bei einem selbst erzeugten)“ aus <code>certs\server.sha256</code>, dann „Server prüfen“.</p>
+
+<div class="schritt"><span class="nr">8</span><h3 id="s8">Die erste Anmeldung</h3></div>
+<pre>cd ..
+dotnet run --project Quizzer/Quizzer.csproj</pre>
+<p>Anmelden mit dem Namen aus <code>QUIZZER_ADMIN_USER</code> und dem Kennwort aus <code>QUIZZER_ADMIN_PASSWORD</code>:</p>
+<pre>Select-String '^QUIZZER_ADMIN_' deploy\.env</pre>
+<p>Das WPF legt dabei die Zwischendatenbank an und holt alles — die Medien nach
+<code>C:\ProgramData\Quizzer\Server\localhost_8543</code> (gemessen: 46 Dateien, davon 12 unter
+<code>Themes\Hausdesign</code>); <code>E:\QuizzerData</code> bleibt unberührt. Ab dem zweiten Start meldet es sich mit
+dem gemerkten Ausweis selbst an (14 Tage): das Anmeldefenster zeigt dann kurz nur „Sitzung wird fortgesetzt …“ ohne
+Eingabefelder.
+Danach, in dieser Reihenfolge:</p>
+<ul>
+  <li><strong>Kennwort ändern</strong> (Hauptfenster) — der Wert in der <code>.env</code> ist danach nur noch ein alter.</li>
+  <li><strong>Konten verwalten</strong>: ein eigenes Konto anlegen und dabei den eigenen Mitspieler wählen (bestehende
+  Mitspieler ohne Konto stehen zur Auswahl). Dann gehören dessen Spiele dem eigenen Konto; das Admin-Konto hat einen
+  eigenen, neuen Mitspieler und sieht als Admin trotzdem alles.</li>
+  <li>Für die Freunde ebenso: je ein Konto, an ihren Mitspieler gehängt.</li>
+</ul>
+<div class="hinweis">
+  <p class="titel">Das Anmeldefenster nicht einfach schließen.</p>
+  <p>Wer es schließt, bekommt keine Meldung, sondern ein Programm, das sich wortlos beendet — von außen nicht von einem
+  Absturz zu unterscheiden.</p>
+</div>
+
+<h3 id="entwicklung">Start aus der Entwicklungsumgebung</h3>
+<p>Visual Studio (F5) und <code>dotnet run --project Quizzer/Quizzer.csproj</code> starten dasselbe Programm aus
+<code>Quizzer\bin\Debug\net10.0-windows\</code> (es gibt keine <code>launchSettings.json</code>). Beide lesen
+<code>%APPDATA%\Quizzer\settings.json</code> — nach <a href="#s7">Schritt 7</a> spricht also auch jeder Start aus der
+Entwicklungsumgebung mit dem Docker (Meldung M27; am 23.10.2026 mit dem Debug-Build nachgespielt: Anmeldefenster im
+Servermodus, Anmeldung, Medien unter ProgramData, zweiter Start meldet sich selbst an).</p>
+<ul>
+  <li><strong>Die Tests bleiben davon unberührt:</strong> sie lenken die Einstellungsablage in einen Wegwerfordner um
+  (<code>UserSettings.UseFolderForTests</code>) und lesen nie die echte <code>settings.json</code>.</li>
+  <li><strong>Zum Arbeiten ohne Docker</strong> (etwa an einer Maske gegen die eigene LocalDB):
+  <code>.\wpf-verbinden.ps1 -Aus</code>, zurück mit <code>.\wpf-verbinden.ps1</code>.</li>
+  <li>Läuft der Stapel nicht, bietet das Anmeldefenster „Ohne Server mit dem letzten Stand weiterarbeiten“ an —
+  vorausgesetzt, es gab auf diesem Rechner schon eine Anmeldung.</li>
+</ul>
+
+<div class="schritt"><span class="nr">9</span><h3 id="s9">Die Sicherung einplanen</h3></div>
+<p>In der <code>.env</code> <code>QUIZZER_BACKUP_COPY_TO</code> auf ein zweites Laufwerk setzen, dann:</p>
+<pre>.\backup.ps1                 # einmal von Hand: backups\&lt;Zeitstempel&gt;\quizzer.bak + medien.tar.gz
+.\aufgaben-einrichten.ps1    # Sicherung täglich 03:12, Zertifikat sonntags 04:17</pre>
+<p>Die Aufgaben laufen nur, solange der Benutzer angemeldet ist (Sperren genügt), weil Docker Desktop in der
+Benutzersitzung läuft. <strong>Die Sicherungen sind nicht verschlüsselt.</strong> Die Zertifikatsaufgabe ist für
+Tailscale gedacht; mit dem lokalen Zertifikat endet sie mit Fehler, weil <code>QUIZZER_TS_HOSTNAME</code> leer ist —
+das stört die Sicherung nicht.</p>
+
+<h2 id="pruefen">Prüfen, ob es läuft</h2>
+<div class="tabellenhuelle">
+<table>
+  <thead><tr><th>Frage</th><th>Befehl (in <code>deploy</code>)</th><th>Erwartet</th></tr></thead>
+  <tbody>
+    <tr><td>Laufen die Container?</td><td><code>docker compose ps -a</code></td><td>siehe <a href="#s5">Schritt 5</a></td></tr>
+    <tr><td>Antwortet die Tür?</td><td><code>curl.exe --cacert certs\server.crt https://localhost:8543/api/v1/version</code></td><td>JSON mit <code>apiVersion</code></td></tr>
+    <tr><td>Lauscht sie nur lokal?</td><td><code>docker port quizzer-caddy-1</code></td><td><code>8443/tcp -&gt; 127.0.0.1:8543</code></td></tr>
+    <tr><td>Stimmt der Fingerabdruck im WPF?</td><td><code>Get-Content certs\server.sha256</code> gegen Einstellungen</td><td>gleich, 64 Zeichen</td></tr>
+    <tr><td>Was sagt die API?</td><td><code>docker compose logs api --tail 30</code></td><td>keine <code>fail:</code>-Zeilen</td></tr>
+    <tr><td>Warum endete der Migrator?</td><td><code>docker compose logs migrator</code></td><td>Exitcode 0</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="betrieb">Im Betrieb</h2>
+<ul>
+  <li><strong>Rechner neu gestartet:</strong> die Container stehen auf <code>restart: unless-stopped</code> und kommen mit
+  Docker Desktop wieder. Docker Desktop startet beim Anmelden (<code>AutoStart</code> in
+  <code>%APPDATA%\Docker\settings-store.json</code>, am 23.10.2026 <code>true</code>).</li>
+  <li><strong>Aktualisieren:</strong> <code>git pull</code>, dann <code>docker compose up -d --build</code> — der Migrator
+  bringt das Schema mit; die API startet nicht, solange Migrationen offen sind.</li>
+  <li><strong>Anhalten / Starten:</strong> <code>docker compose stop</code> / <code>docker compose start</code>.
+  <code>docker compose down</code> behält die Daten. <strong><code>docker compose down -v</code> löscht Datenbank und
+  Medien.</strong></li>
+  <li><strong>Sichern und zurückspielen:</strong> <code>.\backup.ps1</code>, <code>.\restore.ps1 backups\&lt;Ordner&gt;</code>
+  (Einzelheiten in <code>deploy/README.md</code>). Auf einem <em>frisch angelegten</em> Stapel vor dem ersten
+  <code>restore.ps1</code> einmal <code>.\backup.ps1</code> laufen lassen — es legt den Ordner
+  <code>/var/opt/mssql/backup</code> im Container an, den <code>restore.ps1</code> voraussetzt.</li>
+  <li><strong>Zertifikat erneuern</strong> (gilt fünf Jahre): <code>.\zertifikat-lokal.ps1 -Neu</code>,
+  <code>docker compose up -d --force-recreate caddy</code>, dann <code>.\wpf-verbinden.ps1</code>.</li>
+  <li><strong>Zurück in den Einzelbetrieb:</strong> <code>.\wpf-verbinden.ps1 -Aus</code>. Das WPF arbeitet dann wieder auf
+  der LocalDB <code>Quizzer</code> und mit <code>E:\QuizzerData</code> — <strong>mit dem Stand vom Tag der
+  Übernahme</strong>. Was seitdem im Servermodus entstanden ist, liegt im Docker und unter ProgramData, nicht dort.</li>
+  <li><strong>Medienordner unter ProgramData leeren:</strong> darf man, solange das WPF nicht läuft — die nächste
+  Anmeldung holt alles wieder. Ausnahme: im Servermodus neu importierte Medien, die der Abgleich noch nicht
+  hinausgeschickt hat (Statuszeile).</li>
+</ul>
+
+<h2 id="spaeter">Später: Laptop und Freunde</h2>
+<p>Von einem anderen Gerät ist <code>127.0.0.1</code> nicht erreichbar. Der vorgesehene Weg ist Tailscale (Entscheidung
+F20): Tailscale auf diesem Rechner, <code>QUIZZER_BIND_ADDRESS</code> auf die Tailscale-Adresse
+(<code>tailscale ip -4</code>), <code>QUIZZER_TS_HOSTNAME</code> setzen und das Zertifikat mit
+<code>.\zertifikat-erneuern.ps1</code> holen statt mit <code>zertifikat-lokal.ps1</code>. Ein
+<code>tailscale cert</code>-Zertifikat ist öffentlich vertrauenswürdig — dann braucht kein WPF einen Fingerabdruck,
+und alle tragen <code>https://&lt;rechner&gt;.&lt;tailnet&gt;.ts.net:&lt;QUIZZER_PORT&gt;</code> ein, auch dieser Rechner.
+Ablauf: <code>deploy/README.md</code>, Abschnitt „Einrichten“.</p>
+
+<h2 id="fehler">Fehlerbilder</h2>
+<div class="tabellenhuelle">
+<table>
+  <thead><tr><th>Was man sieht</th><th>Ursache</th><th>Was hilft</th></tr></thead>
+  <tbody>
+    <tr><td><code>Bind for 127.0.0.1:8443 failed: port is already allocated</code></td><td>Ein anderer Stapel hat den Port.</td><td><code>QUIZZER_PORT</code> in der <code>.env</code> ändern, <code>docker compose up -d</code>, dann <code>.\wpf-verbinden.ps1</code>.</td></tr>
+    <tr><td><code>new-secrets.ps1</code>: „… keine Methode mit dem Namen Fill“</td><td>Unter Windows PowerShell 5.1 gestartet.</td><td>In <code>pwsh</code> starten.</td></tr>
+    <tr><td>WPF: „Das Zertifikat des Servers wurde nicht angenommen …“</td><td>Fingerabdruck fehlt oder ist alt (etwa nach <code>-Neu</code>).</td><td><code>.\wpf-verbinden.ps1</code> oder den Wert aus <code>certs\server.sha256</code> eintragen.</td></tr>
+    <tr><td>„Der Server hat schon Spiele, Fragen oder mehr als das erste Konto. Nichts geändert.“</td><td>Der Riegel von <code>bestand-uebernehmen.ps1</code>.</td><td>Gewollt? <code>.\backup.ps1</code>, dann mit <code>-Ersetzen</code>.</td></tr>
+    <tr><td><code>restore.ps1</code>: „Could not find the file /var/opt/mssql/backup“</td><td>Frischer Stapel, der Ordner fehlt noch.</td><td>Einmal <code>.\backup.ps1</code>, dann <code>restore.ps1</code> erneut. Die API startet das Skript in jedem Fall wieder.</td></tr>
+    <tr><td><code>migrator</code> endet mit <code>Exited (1)</code></td><td>Meist die Verbindung zu <code>sql</code> (Kennwort, Start noch nicht fertig).</td><td><code>docker compose logs migrator</code>; dann <code>docker compose up -d</code>.</td></tr>
+    <tr><td>Das Anmeldefenster zeigt keine Eingabefelder, nur „Sitzung wird fortgesetzt …“</td><td>Richtig so: es meldet sich mit dem gemerkten Ausweis selbst an (bis 14 Tage nach der letzten Anmeldung).</td><td>Warten. Für ein anderes Konto gibt es noch keinen Abmelden-Knopf: das WPF schließen, unter
+    <code>%LOCALAPPDATA%\Quizzer\server\</code> die Datei <code>session-*.bin</code> löschen, neu starten.</td></tr>
+    <tr><td><code>curl</code> auf <code>/version</code> antwortet 401</td><td>Falscher Pfad — alles liegt unter <code>/api/v1</code>.</td><td><code>/api/v1/version</code>.</td></tr>
+    <tr><td><code>curl</code>: <code>SEC_E_UNTRUSTED_ROOT</code></td><td>Ohne <code>--cacert</code> vertraut Windows dem selbst erzeugten Zertifikat nicht — richtig so.</td><td><code>--cacert certs\server.crt</code> angeben.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="gemessen">Was gemessen ist und was nicht</h2>
+<div class="beleg">
+  <p class="titel">Am 23.10.2026 auf dem Entwicklungsrechner gemessen</p>
+  <ul>
+    <li><code>docker compose up -d --build</code> grün; Tür nur auf <code>127.0.0.1:8543</code>; HSTS,
+    <code>nosniff</code>, <code>no-referrer</code> in der Antwort; ohne Fingerabdruck abgewiesen.</li>
+    <li>Fingerabdruck aus <code>zertifikat-lokal.ps1</code> mit OpenSSL gegengerechnet — gleich.</li>
+    <li><code>bestand-uebernehmen.ps1</code> mit der Ausgabe oben; zweiter Lauf ohne <code>-Ersetzen</code> bricht ab, die
+    API bleibt unberührt.</li>
+    <li>Mit dem Client des WPF (<code>Quizzer.Client</code>) gegen den Stapel: Anmeldung, Abholen in eine
+    Wegwerf-Zwischendatenbank — 211 Zeilen, 33 Mediendateien, keine Probleme; alle drei Spiele auf Hausdesign; die
+    Texturen byteweise gleich mit dem Datenordner; ein falscher Fingerabdruck abgewiesen.</li>
+    <li><code>settings.json</code> aus <code>wpf-verbinden.ps1</code> von <code>UserSettings.Load()</code> so gelesen.</li>
+    <li><code>backup.ps1</code> gegen den Stapel: <code>quizzer.bak</code> 6,5 MB, <code>medien.tar.gz</code> 75 MB.</li>
+    <li>Das WPF aus dem Debug-Build gestartet (wie Visual Studio): Anmeldefenster im Servermodus, Anmeldung als Admin,
+    Hauptfenster „Angemeldet als …“; 46 Mediendateien unter <code>C:\ProgramData\Quizzer\Server\localhost_8543</code>
+    (Resources 10, Hausdesign 12, Abendrot 6, oben 18), <code>E:\QuizzerData\Themes</code> unverändert; zweiter Start
+    meldet sich selbst an; Beenden mit Exitcode 0.</li>
+  </ul>
+</div>
+<div class="hinweis">
+  <p class="titel">Nicht gemessen</p>
+  <ul>
+    <li><strong>Die Masken hinter der Anmeldung gegen den Docker</strong> — Konten, Kennwort ändern, ein Spiel spielen
+    und speichern. Anmeldung, Abholen und Hauptfenster sind gemessen.</li>
+    <li><code>restore.ps1</code> und <code>aufgaben-einrichten.ps1</code> auf diesem Rechner.</li>
+    <li>Ein Neustart des Rechners mit laufendem Stapel.</li>
+    <li>Dass SQL Server ein später geändertes <code>MSSQL_SA_PASSWORD</code> nicht übernimmt (Angabe von Microsoft).</li>
+  </ul>
+</div>
+
+</main>
+</div>
+<script>
+  (function () {
+    var wurzel = document.documentElement;
+    // Gemerkt wird nur die Farbwahl. In einem privaten Fenster oder bei gesperrtem Speicher wirft
+    // localStorage - dann gilt einfach die Einstellung des Systems, die Seite geht ohne.
+    try { var gemerkt = localStorage.getItem('quizzer-installation-farbe'); if (gemerkt) wurzel.dataset.theme = gemerkt; }
+    catch (e) { console.warn('Farbwahl nicht lesbar:', e); }
+    document.getElementById('farbschalter').addEventListener('click', function () {
+      var dunkel = wurzel.dataset.theme === 'dark' ||
+        (!wurzel.dataset.theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      var neu = dunkel ? 'light' : 'dark';
+      wurzel.dataset.theme = neu;
+      try { localStorage.setItem('quizzer-installation-farbe', neu); }
+      catch (e) { console.warn('Farbwahl nicht gespeichert:', e); }
+    });
+  })();
+</script>
+</body>
+</html>

@@ -4,6 +4,10 @@ SQL Server, Migration, REST-API und davor **Caddy** (TLS) laufen als vier Contai
 Docker-Volumes (`quizzer-sql`, `quizzer-media`) und überleben jeden Neustart und Neubau.
 Plan und Begründung: `.harness/docs/server-trennung.md`.
 
+**Nur auf diesem Rechner, ohne Tailscale** (Docker Desktop, WPF auf demselben PC): Schritt für Schritt samt
+Bestandsübernahme und allen Umgebungsvariablen in [`Installation.html`](Installation.html) — `zertifikat-lokal.ps1`,
+`bestand-uebernehmen.ps1`, `wpf-verbinden.ps1`.
+
 ## Was gebraucht wird
 
 - Ein x86-Rechner mit **Docker Desktop** (Windows) oder Docker Engine (Linux), mindestens 4 GB RAM
