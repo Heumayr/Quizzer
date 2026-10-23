@@ -48,11 +48,12 @@ namespace Quizzer.Views
 
         private static string RemovalQuestion(LocalDataRemoval.Targets ziele, int offen)
         {
+            // Der Ordner in eigener Zeile: im Fliesstext brach der Umbruch den Pfad nach „C:" auseinander.
             var absaetze = new List<string>
             {
-                $"Entfernt wird alles, was Quizzer auf diesem Rechner unter {ziele.ProgramDataRoot} abgelegt hat "
-                + "- Bilder, Töne und Designs -, dazu die Zwischendatenbanken und gemerkten Anmeldungen des "
-                + "Servermodus. Danach startet das Programm neu.",
+                "Entfernt werden alle Bilder, Töne und Designs, die Quizzer auf diesem Rechner abgelegt hat, dazu "
+                + "die Zwischendatenbanken und gemerkten Anmeldungen des Servermodus. Danach startet das Programm neu."
+                + Environment.NewLine + "Ordner: " + ziele.ProgramDataRoot,
             };
 
             if (ServerSession.IsOffline)
