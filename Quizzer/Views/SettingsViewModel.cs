@@ -292,10 +292,10 @@ namespace Quizzer.Views
 
         protected override Task OnloadAsync()
         {
-            // Im Servermodus zeigen Settings.FilePathQuizzer auf den Medienordner des Servers unter
-            // ProgramData und Settings.ConnectionString auf die Zwischendatenbank des Kontos -
-            // angezeigt und gespeichert werden aber der eigene Ordner und die eigene Verbindung.
-            Datenordner = Quizzer.Server.ServerSession.LocalFilePath ?? Settings.FilePathQuizzer;
+            Datenordner = Settings.FilePathQuizzer;
+
+            // Im Servermodus zeigt Settings.ConnectionString auf die Zwischendatenbank des Kontos -
+            // angezeigt und gespeichert wird aber die eigene lokale Verbindung.
             Uebernimm(Datenbankangaben.Zerlege(Quizzer.Server.ServerSession.LocalConnectionString ?? Settings.ConnectionString));
 
             var werte = UserSettings.Load();
@@ -517,7 +517,7 @@ namespace Quizzer.Views
             Settings.LoadSettings();
             Quizzer.Server.ServerSession.KeepSessionDatabase();
 
-            Datenordner = Quizzer.Server.ServerSession.LocalFilePath ?? Settings.FilePathQuizzer;
+            Datenordner = Settings.FilePathQuizzer;
 
             Uebernimm(Datenbankangaben.Zerlege(Quizzer.Server.ServerSession.LocalConnectionString ?? Settings.ConnectionString));
         });
