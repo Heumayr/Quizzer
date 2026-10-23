@@ -1,3 +1,4 @@
+using Quizzer.DataModels.Transfer.Ki;
 using Quizzer.DataModels.Transfer.Server;
 using Quizzer.DataModels.Transfer.Sync;
 using Quizzer.Server.Auth;
@@ -131,6 +132,37 @@ namespace Quizzer.Server
                     MediaService.UploadResult.Full => Results.Json(new ApiError("Die Medienablage des Servers ist voll."), statusCode: StatusCodes.Status507InsufficientStorage),
                     _ => Results.BadRequest(new ApiError("Dieser Pfad oder Dateityp wird nicht angenommen.")),
                 };
+            });
+
+            // M31: KI-Entwürfe. Status und Entwurf für jedes angemeldete Konto (der Dienst prüft
+            // die Freigabe), Einstellungen und Probe nur für den Admin.
+            var ki = api.MapGroup("/ki");
+
+            ki.MapGet("/status", async (HttpContext http, Ki.KiDienst dienst, CancellationToken ct) =>
+                Results.Ok(await dienst.StatusAsync(CurrentAccount.From(http.User), ct)));
+
+            ki.MapPost("/entwurf", async (KiEntwurfAnfrage anfrage, HttpContext http, Ki.KiDienst dienst, CancellationToken ct) =>
+            {
+                var ergebnis = await dienst.EntwurfAsync(CurrentAccount.From(http.User), anfrage, ct);
+                return ergebnis.Antwort != null
+                    ? Results.Ok(ergebnis.Antwort)
+                    : Results.Json(new ApiError(ergebnis.Fehler ?? "Fehler"), statusCode: ergebnis.Status);
+            });
+
+            var kiAdmin = ki.MapGroup("/einstellungen").RequireAuthorization(ServerSetup.AdminPolicy);
+
+            kiAdmin.MapGet("", async (Ki.KiSpeicher speicher, CancellationToken ct) => Results.Ok(await speicher.FuerAdminAsync(ct)));
+
+            kiAdmin.MapPut("", async (KiEinstellungenDto einstellungen, Ki.KiSpeicher speicher, CancellationToken ct) =>
+            {
+                var fehler = await speicher.SpeichereAsync(einstellungen, ct);
+                return fehler != null ? Results.BadRequest(new ApiError(fehler)) : Results.NoContent();
+            });
+
+            kiAdmin.MapPost("/probe", async (Ki.KiDienst dienst, CancellationToken ct) =>
+            {
+                var fehler = await dienst.ProbeAsync(ct);
+                return fehler != null ? Results.Json(new ApiError(fehler), statusCode: StatusCodes.Status502BadGateway) : Results.NoContent();
             });
 
             var accounts = api.MapGroup("/accounts").RequireAuthorization(ServerSetup.AdminPolicy);

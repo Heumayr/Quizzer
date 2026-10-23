@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -60,7 +61,8 @@ namespace Quizzer.Server.Tests
                 Directory.Delete(MediaRoot, recursive: true);
         }
 
-        public static WebApplicationFactory<Program> CreateFactory(int authRequestsPerMinute = 1000)
+        public static WebApplicationFactory<Program> CreateFactory(int authRequestsPerMinute = 1000,
+            IDictionary<string, string?>? extra = null, Action<Microsoft.Extensions.DependencyInjection.IServiceCollection>? services = null)
             => new WebApplicationFactory<Program>().WithWebHostBuilder(web =>
             {
                 web.UseEnvironment("Development");
@@ -73,6 +75,12 @@ namespace Quizzer.Server.Tests
                     ["Quizzer:MediaRoot"] = MediaRoot,
                     ["Quizzer:AuthRequestsPerMinute"] = authRequestsPerMinute.ToString(),
                 }));
+
+                if (extra != null)
+                    web.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(extra));
+
+                if (services != null)
+                    web.ConfigureTestServices(services);
             });
 
         public static async Task<TokenResponse> LoginAsync(HttpClient client, string user, string password)

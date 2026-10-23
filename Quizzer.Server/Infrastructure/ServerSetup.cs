@@ -30,6 +30,13 @@ namespace Quizzer.Server.Infrastructure
             services.AddSingleton<MediaService>();
             services.AddSingleton<StatisticsService>();
 
+            // M31: KI-Entwürfe. Die Fabrik ist austauschbar, damit Tests ohne echte KI laufen.
+            services.AddHttpClient(nameof(Ki.OpenAiModell), c => c.Timeout = TimeSpan.FromMinutes(5));
+            services.AddSingleton<Ki.KiSpeicher>();
+            services.AddSingleton<Ki.IKiModellFabrik, Ki.KiModellFabrik>();
+            services.AddSingleton<Func<Ki.LinkAbruf>>(_ => () => new Ki.LinkAbruf());
+            services.AddSingleton<Ki.KiDienst>();
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 
             // Die Ausweisparameter haengen am Signierschluessel aus den Optionen - deshalb hier

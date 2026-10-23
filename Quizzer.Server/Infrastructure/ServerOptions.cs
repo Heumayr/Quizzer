@@ -14,6 +14,12 @@ namespace Quizzer.Server.Infrastructure
         /// <summary>Ablage der Medien. Im Container ein Volume.</summary>
         public string MediaRoot { get; set; } = "/data/media";
 
+        /// <summary>
+        /// Wo die KI-Einstellungen und der Tageszähler liegen (M31). Leer: <c>.ki</c> im
+        /// <see cref="MediaRoot"/> - damit im selben Volume und in derselben Sicherung.
+        /// </summary>
+        public string? KiFolder { get; set; }
+
         /// <summary>Mindestlaenge neuer Kennwoerter (NIST 800-63B: Laenge vor Komplexitaet).</summary>
         public int PasswordMinLength { get; set; } = 12;
 

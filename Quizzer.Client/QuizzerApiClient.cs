@@ -1,3 +1,4 @@
+using Quizzer.DataModels.Transfer.Ki;
 using Quizzer.DataModels.Transfer.Server;
 using Quizzer.DataModels.Transfer.Sync;
 using System.Net;
@@ -44,7 +45,8 @@ namespace Quizzer.Client
             http = new HttpClient(handler ?? CreateHandler(PinnedCertificateSha256), disposeHandler: true)
             {
                 BaseAddress = baseAddress,
-                Timeout = TimeSpan.FromSeconds(100),
+                // Die Frist setzt SendOnceAsync je Anfrage: ein KI-Entwurf darf Minuten dauern.
+                Timeout = Timeout.InfiniteTimeSpan,
             };
         }
 
@@ -166,6 +168,22 @@ namespace Quizzer.Client
         public Task UpdateAccountAsync(Guid accountId, UpdateAccountRequest request, CancellationToken ct = default)
             => SendAsync<object>(HttpMethod.Put, $"accounts/{accountId}", request, authorized: true, ct);
 
+        // M31: KI-Entwürfe. Der Server prüft Freigabe und Limit; die Einstellungen nur für den Admin.
+        public Task<KiStatusDto> GetKiStatusAsync(CancellationToken ct = default)
+            => SendAsync<KiStatusDto>(HttpMethod.Get, "ki/status", null, authorized: true, ct);
+
+        public Task<KiEntwurfAntwort> PostKiEntwurfAsync(KiEntwurfAnfrage anfrage, CancellationToken ct = default)
+            => SendAsync<KiEntwurfAntwort>(HttpMethod.Post, "ki/entwurf", anfrage, authorized: true, ct, KiFrist);
+
+        public Task<KiEinstellungenDto> GetKiEinstellungenAsync(CancellationToken ct = default)
+            => SendAsync<KiEinstellungenDto>(HttpMethod.Get, "ki/einstellungen", null, authorized: true, ct);
+
+        public Task PutKiEinstellungenAsync(KiEinstellungenDto einstellungen, CancellationToken ct = default)
+            => SendAsync<object>(HttpMethod.Put, "ki/einstellungen", einstellungen, authorized: true, ct);
+
+        public Task PostKiProbeAsync(CancellationToken ct = default)
+            => SendAsync<object>(HttpMethod.Post, "ki/einstellungen/probe", null, authorized: true, ct, KiFrist);
+
         public Task<List<MediaFileInfo>> GetMediaManifestAsync(CancellationToken ct = default)
             => SendAsync<List<MediaFileInfo>>(HttpMethod.Get, "media", null, authorized: true, ct);
 
@@ -256,11 +274,20 @@ namespace Quizzer.Client
                 await RefreshAsync(ct);
         }
 
-        private async Task<T> SendAsync<T>(HttpMethod method, string path, object? body, bool authorized, CancellationToken ct)
+        private static readonly TimeSpan StandardFrist = TimeSpan.FromSeconds(100);
+
+        /// <summary>Ein großes Modell mit Nachdenken braucht für fünf Entwürfe gut zwei Minuten.</summary>
+        private static readonly TimeSpan KiFrist = TimeSpan.FromMinutes(6);
+
+        private static readonly HttpRequestOptionsKey<TimeSpan> FristSchluessel = new("quizzer-frist");
+
+        private async Task<T> SendAsync<T>(HttpMethod method, string path, object? body, bool authorized, CancellationToken ct, TimeSpan? frist = null)
         {
             HttpRequestMessage Build()
             {
                 var request = new HttpRequestMessage(method, path);
+                if (frist is { } f)
+                    request.Options.Set(FristSchluessel, f);
                 if (body != null)
                     request.Content = JsonContent.Create(body, body.GetType(), options: Json);
                 return request;
@@ -297,9 +324,12 @@ namespace Quizzer.Client
 
         private async Task<HttpResponseMessage> SendOnceAsync(HttpRequestMessage request, CancellationToken ct)
         {
+            using var frist = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            frist.CancelAfter(request.Options.TryGetValue(FristSchluessel, out var f) ? f : StandardFrist);
+
             try
             {
-                return await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+                return await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, frist.Token);
             }
             catch (HttpRequestException ex)
             {
