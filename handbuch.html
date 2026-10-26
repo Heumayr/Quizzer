@@ -345,6 +345,7 @@
     <li><a href="#fragetypen">Fragetypen</a></li>
     <li><a href="#spielfeld">Spielfeld aufbauen</a></li>
     <li><a href="#spieler">Spieler verwalten</a></li>
+    <li><a href="#anmeldung">Wer meldet sich wo an?</a></li>
     <li><a href="#buzzer">Buzzer-Server</a></li>
     <li><a href="#spiel-starten">Spiel spielen</a></li>
     <li><a href="#phasen">Phasen & Schwierigkeit</a></li>
@@ -706,6 +707,47 @@
     </div>
   </section>
 
+  <!-- ── Anmeldung ── -->
+  <section id="anmeldung">
+    <h2>🔐 Wer meldet sich wo an?</h2>
+    <p>Es gibt <strong>zwei getrennte Anmeldungen</strong>: das Konto im Programm (nur mit Server) und das Mitspielen am Handy.</p>
+
+    <h3>1. Konto am Server – im Programm</h3>
+    <ul>
+      <li>Nur nötig, wenn das Programm im <strong>Servermodus</strong> läuft (Einstellungen → Server).</li>
+      <li>Ein Konto braucht, wer im Programm Fragen und Spiele vorbereitet oder als Spielleiter spielt.</li>
+      <li>Konten legt nur der Admin an: <strong>Konten verwalten</strong> im Startfenster, mit Benutzername und Kennwort.</li>
+      <li><strong>Mitspieler brauchen kein Konto.</strong></li>
+    </ul>
+
+    <h3>2. Mitspielen am Handy – am Spielabend</h3>
+    <p>Kein Kennwort: über das WLAN geht nur der Name. Im Fenster <strong>Buzzer-Server</strong> gibt es drei Wege:</p>
+    <table>
+      <thead><tr><th>Weg</th><th>So geht's</th><th>Muss der Spielleiter bestätigen?</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Persönlicher QR-Code</strong></td><td>In der Spielerliste beim Mitspieler <strong>QR-Code zeigen</strong>; er scannt ihn</td><td>Nein – er ist sofort drin</td></tr>
+        <tr><td><strong>QR für alle</strong></td><td><strong>QR zum Selbst-Anmelden</strong> zeigen (am besten auf dem Beamer); jeder scannt und wählt seinen Namen aus der Liste</td><td>Ja – am Laptop erscheint „Anna möchte mitspielen“ mit <strong>Annehmen</strong> / <strong>Ablehnen</strong></td></tr>
+        <tr><td><strong>Als Gast</strong></td><td>Wer nicht in der Liste steht, tippt am Handy einen Namen ein</td><td>Ja – beim Annehmen entsteht ein neuer Mitspieler (ohne Konto)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Wer in der Namensliste am Handy steht</h3>
+    <ul>
+      <li>die Mitspieler dieses Spiels und alle, die auf diesem Rechner schon einmal mitgespielt haben;</li>
+      <li><strong>nicht</strong> der Spielleiter und <strong>nicht</strong> alle Konten des Servers – die Liste ist im WLAN ohne Anmeldung abrufbar.</li>
+    </ul>
+
+    <div class="info">
+      <span class="info-icon">ℹ️</span>
+      <div>Wer angenommen wird und noch nicht im Spiel ist, wird automatisch als Mitspieler hinzugefügt. Eine unbeantwortete Anfrage verfällt nach 10 Minuten; je Handy sind höchstens zwei Anfragen gleichzeitig offen.</div>
+    </div>
+
+    <div class="tip">
+      <span class="info-icon">💡</span>
+      <div><strong>Für den Abend am einfachsten:</strong> Spiel starten → Buzzer-Server → Server starten → <strong>QR zum Selbst-Anmelden</strong> auf den Beamer → alle scannen → du nimmst am Laptop an.</div>
+    </div>
+  </section>
+
   <!-- ── Buzzer-Server ── -->
   <section id="buzzer">
     <h2>📡 Buzzer-Server</h2>
@@ -731,7 +773,7 @@
         <div class="step-num">3</div>
         <div class="step-body">
           <h4>QR-Code teilen</h4>
-          <p>Zeige den QR-Code den Spielern — jeder scannt ihn mit seinem Smartphone und wird automatisch verbunden.</p>
+          <p>Entweder je Spieler <strong>QR-Code zeigen</strong> (sofort verbunden) oder einmal <strong>QR zum Selbst-Anmelden</strong> für alle – dann bestätigst du jede Anmeldung. Einzelheiten: <a href="#anmeldung">Wer meldet sich wo an?</a></p>
         </div>
       </div>
       <div class="step">
@@ -867,7 +909,7 @@
         <div class="step-num">1</div>
         <div class="step-body">
           <h4>QR-Code scannen</h4>
-          <p>Der Spielleiter zeigt einen QR-Code auf seinem Bildschirm. Scanne ihn mit deiner Smartphone-Kamera oder einer QR-App.</p>
+          <p>Der Spielleiter zeigt einen QR-Code. Ist es dein persönlicher, bist du sofort drin. Ist es der für alle, wählst du deinen Namen (oder meldest dich als Gast) und wartest, bis der Spielleiter dich annimmt.</p>
         </div>
       </div>
       <div class="step">
