@@ -1,7 +1,8 @@
-# Legt deploy\.env mit Zufallsgeheimnissen an. Ueberschreibt nie eine bestehende .env.
+# Legt deploy\.env (oder -Datei, etwa .env.pruef) mit Zufallsgeheimnissen an. Ueberschreibt nie eine bestehende.
+param([string]$Datei = '.env')
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
-if (Test-Path .env) { Write-Host ".env gibt es schon - nichts geaendert."; exit 0 }
+if (Test-Path $Datei) { Write-Host "$Datei gibt es schon - nichts geaendert."; exit 0 }
 
 function New-Secret([int]$bytes) {
     $buffer = [byte[]]::new($bytes)
@@ -18,17 +19,17 @@ $text = $text -replace '(?m)^QUIZZER_ADMIN_PASSWORD=.*$', "QUIZZER_ADMIN_PASSWOR
 # Ein zufaelliger Admin-Name statt "admin" - den bekannten Namen koennte jeder sperren.
 $adminName = 'leitung-' + [Convert]::ToHexString((New-Secret 3)).ToLowerInvariant()
 $text = $text -replace '(?m)^QUIZZER_ADMIN_USER=.*$', "QUIZZER_ADMIN_USER=$adminName"
-Set-Content .env $text -NoNewline -Encoding utf8
+Set-Content $Datei $text -NoNewline -Encoding utf8
 
 # Nur der eigene Benutzer darf die Datei lesen.
 if ($IsWindows -or $PSVersionTable.PSEdition -eq 'Desktop') {
-    $acl = Get-Acl .env
+    $acl = Get-Acl $Datei
     $acl.SetAccessRuleProtection($true, $false)
     $acl.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new($env:USERNAME, 'FullControl', 'Allow'))
-    Set-Acl .env $acl
+    Set-Acl $Datei $acl
 }
 else {
-    chmod 600 .env
+    chmod 600 $Datei
 }
 
-Write-Host ".env angelegt. Erste Anmeldung: Benutzer $adminName, Kennwort in QUIZZER_ADMIN_PASSWORD - danach aendern."
+Write-Host "$Datei angelegt. Erste Anmeldung: Benutzer $adminName, Kennwort in QUIZZER_ADMIN_PASSWORD - danach aendern."

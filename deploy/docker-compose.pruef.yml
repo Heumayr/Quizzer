@@ -1,0 +1,29 @@
+# Pruefstapel (M36 A1): derselbe Stapel als eigenes Projekt neben dem Betriebsstapel, mit
+# Wegwerfdaten. Nie direkt aufrufen, sondern ueber pruefstapel.ps1 - das setzt Projektname,
+# .env.pruef und diese Datei zusammen.
+#
+# Alles, was beide Stapel sonst teilen wuerden, steht hier anders: Abbild (ein Neubau hier
+# ersetzt nicht das Abbild des Betriebsstapels), beide Netze (feste Subnetze, nie der
+# Docker-Vorrat aus 192.168.x - der kann das Heimnetz treffen) und Caddys Adresse.
+
+services:
+  migrator:
+    image: quizzer-server:pruef
+  api:
+    image: quizzer-server:pruef
+    environment:
+      Quizzer__TrustedProxyNetworks: 172.30.78.10/32
+  caddy:
+    networks:
+      edge:
+        ipv4_address: 172.30.78.10
+
+networks:
+  backend:
+    ipam:
+      config:
+        - subnet: 172.30.79.0/24
+  edge:
+    ipam:
+      config: !override
+        - subnet: 172.30.78.0/24

@@ -124,11 +124,31 @@ Frage *Mit KI entwerfen …*: Thema, Links, Text oder Bilder hinein, Entwürfe h
 - **Kosten bremsen:** Tageslimit je Konto (Vorgabe 20 Aufrufe, je bis zu 5 Entwürfe). Gescheiterte
   Aufrufe zählen nicht. Die Probe in *KI einrichten* zählt nicht.
 
-## Rauchtest gegen den laufenden Stapel
+## Prüfstapel und Rauchtest
 
 Ein Test schickt das Demospiel „Alle Fragetypen" von einem „PC" über Caddy zum Server und holt
-es auf einem „Laptop" wieder ab - samt Bildern. **Er schreibt in den Stapel**, also nicht gegen den
-Server laufen lassen, auf dem die Freunde ihre Spiele haben.
+es auf einem „Laptop" wieder ab - samt Bildern. **Er schreibt in den Stapel**, und `up --build`
+startet die API neu. Deshalb läuft beides nie gegen den Betriebsstapel, auf dem die Freunde ihre
+Spiele haben, sondern gegen einen **Prüfstapel mit Wegwerfdaten** (M36 A1):
+
+```powershell
+./pruefstapel.ps1 up      # bauen und starten; beim ersten Mal entsteht .env.pruef
+./pruefstapel.ps1 smoke   # StackSmoke gegen https://127.0.0.1:8544
+./pruefstapel.ps1 status  # Container und /version
+./pruefstapel.ps1 weg     # anhalten und Daten löschen (down: nur anhalten)
+```
+
+Der Prüfstapel ist das Compose-Projekt `quizzer-pruef`: eigenes Abbild (`quizzer-server:pruef`),
+eigene Volumes, eigene feste Netze (`172.30.78.0/24`, `172.30.79.0/24` - nie der Docker-Vorrat aus
+`192.168.x`, der das Heimnetz treffen kann), Port 8544 nur auf `127.0.0.1`. Alle Unterschiede
+stehen in `docker-compose.pruef.yml`; `docker-compose.yml` bleibt für den Betriebsstapel unverändert.
+Braucht PowerShell 7.
+
+Gemessen 2026-11-15: Prüfstapel neben dem laufenden Betriebsstapel gestartet, StackSmoke grün
+(1/1, 18 s); 22 API-Anfragen an der Tür des Prüfstapels, 0 am Betriebsstapel, dessen API-Abbild
+und Startzeit unverändert.
+
+Von Hand gegen einen anderen Stapel - **nur gegen einen ohne echte Daten**:
 
 ```powershell
 $env:QUIZZER_E2E_URL      = "https://<rechnername>.<tailnet>.ts.net:8443"
