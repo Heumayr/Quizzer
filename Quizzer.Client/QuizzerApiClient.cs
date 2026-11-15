@@ -48,6 +48,8 @@ namespace Quizzer.Client
                 // Die Frist setzt SendOnceAsync je Anfrage: ein KI-Entwurf darf Minuten dauern.
                 Timeout = Timeout.InfiniteTimeSpan,
             };
+            http.DefaultRequestHeaders.Add(ApiInfo.SyncFormatHeader,
+                SyncSnapshot.CurrentFormatVersion.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
 
         public string? PinnedCertificateSha256 { get; }
@@ -371,6 +373,7 @@ namespace Quizzer.Client
             HttpStatusCode.Forbidden => "Dafür fehlt die Berechtigung.",
             HttpStatusCode.NotFound => "Nicht gefunden.",
             HttpStatusCode.TooManyRequests => "Zu viele Versuche. Bitte eine Minute warten.",
+            HttpStatusCode.UpgradeRequired => "Dieses Quizzer-Programm ist zu alt für den Server. Bitte Quizzer aktualisieren.",
             _ => $"Der Server meldet einen Fehler ({(int)status}).",
         };
 

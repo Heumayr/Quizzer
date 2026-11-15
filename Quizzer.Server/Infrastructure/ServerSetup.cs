@@ -138,6 +138,7 @@ namespace Quizzer.Server.Infrastructure
                 app.UseHsts();
 
             app.UseExceptionHandler();
+            app.UseClientFormatGate();
             app.UseRateLimiter();
             app.UseAuthentication();
             app.UseAuthorization();

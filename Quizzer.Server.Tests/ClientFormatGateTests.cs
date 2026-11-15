@@ -1,0 +1,133 @@
+using Microsoft.AspNetCore.Http;
+using Quizzer.Client;
+using Quizzer.DataModels.Transfer.Server;
+using Quizzer.DataModels.Transfer.Sync;
+using Quizzer.Server.Infrastructure;
+using System.Globalization;
+using System.Net;
+using System.Net.Http.Json;
+using System.Text;
+
+namespace Quizzer.Server.Tests
+{
+    /// <summary>
+    /// Versionsriegel (M36 A4): ein WPF mit anderem Abgleichformat haelt schon an der Anmeldung,
+    /// mit einer Meldung, die auch ein altes Programm anzeigt.
+    /// </summary>
+    [TestClass]
+    public sealed class ClientFormatGateTests
+    {
+        private static string Format(int wert) => wert.ToString(CultureInfo.InvariantCulture);
+
+        private static async Task<HttpResponseMessage> LoginWithFormatAsync(HttpClient client, string? format)
+        {
+            if (format != null)
+                client.DefaultRequestHeaders.Add(ApiInfo.SyncFormatHeader, format);
+
+            return await client.PostAsJsonAsync("/api/v1/auth/login",
+                new LoginRequest(ServerTestHost.AdminUser, ServerTestHost.AdminPassword));
+        }
+
+        [TestMethod]
+        public async Task AProgramWithTheCurrentFormatGetsThrough()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+
+            var antwort = await LoginWithFormatAsync(factory.CreateClient(), Format(SyncSnapshot.CurrentFormatVersion));
+
+            Assert.AreEqual(HttpStatusCode.OK, antwort.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task AnOlderProgramIsStoppedAtLoginWithAMessageItCanShow()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+
+            var antwort = await LoginWithFormatAsync(factory.CreateClient(), Format(SyncSnapshot.CurrentFormatVersion - 1));
+
+            Assert.AreEqual(HttpStatusCode.UpgradeRequired, antwort.StatusCode);
+            Assert.AreEqual(ClientFormatGate.TooOld, (await antwort.Content.ReadFromJsonAsync<ApiError>())?.Message);
+        }
+
+        [TestMethod]
+        public async Task ANewerProgramIsStoppedWithItsOwnMessage()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+
+            var antwort = await LoginWithFormatAsync(factory.CreateClient(), Format(SyncSnapshot.CurrentFormatVersion + 1));
+
+            Assert.AreEqual(HttpStatusCode.Conflict, antwort.StatusCode);
+            Assert.AreEqual(ClientFormatGate.TooNew, (await antwort.Content.ReadFromJsonAsync<ApiError>())?.Message);
+        }
+
+        /// <summary>Die Versionsabfrage muss jedes Programm erreichen, sonst kann es nicht einmal fragen.</summary>
+        [TestMethod]
+        public async Task TheVersionQueryStaysOpenForEveryProgram()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var client = factory.CreateClient();
+            client.DefaultRequestHeaders.Add(ApiInfo.SyncFormatHeader, Format(SyncSnapshot.CurrentFormatVersion - 1));
+
+            Assert.AreEqual(HttpStatusCode.OK, (await client.GetAsync("/api/v1/version")).StatusCode);
+        }
+
+        /// <summary>Die WPF von vor dem Riegel schicken keinen Kopf; sie sprechen Format 1.</summary>
+        [TestMethod]
+        public void AProgramWithoutTheHeaderCountsAsFormat1()
+        {
+            Assert.AreEqual(ClientFormatGate.Check("1"), ClientFormatGate.Check(null));
+            Assert.AreEqual(ClientFormatGate.Check("1"), ClientFormatGate.Check(""));
+        }
+
+        [TestMethod]
+        [DataRow("zwei")]
+        [DataRow("-1")]
+        [DataRow("1.0")]
+        [DataRow(" 1")]
+        public void AnUnreadableHeaderIsRejected(string wert)
+        {
+            Assert.AreEqual(StatusCodes.Status400BadRequest, ClientFormatGate.Check(wert)?.Status);
+        }
+
+        [TestMethod]
+        public async Task TheClientNamesItsFormatOnEveryRequest()
+        {
+            var handler = new Aufzeichner(HttpStatusCode.OK, """{"apiVersion":1,"syncFormatVersion":1,"serverVersion":"t"}""");
+            using var api = new QuizzerApiClient(new Uri("https://quizzer.test"), new MemoryTokenStore(), handler: handler);
+
+            await api.GetVersionAsync();
+
+            Assert.AreEqual(Format(SyncSnapshot.CurrentFormatVersion), handler.Format);
+        }
+
+        /// <summary>Was der Server dem alten Programm sagt, kommt beim Nutzer an - auch ohne Rumpf.</summary>
+        [TestMethod]
+        public async Task TheServersWordsReachTheUser()
+        {
+            var mitRumpf = new Aufzeichner(HttpStatusCode.UpgradeRequired, $$"""{"message":"{{ClientFormatGate.TooOld}}"}""");
+            var ohneRumpf = new Aufzeichner(HttpStatusCode.UpgradeRequired, "");
+            using var a = new QuizzerApiClient(new Uri("https://quizzer.test"), new MemoryTokenStore(), handler: mitRumpf);
+            using var b = new QuizzerApiClient(new Uri("https://quizzer.test"), new MemoryTokenStore(), handler: ohneRumpf);
+
+            var ausA = await Assert.ThrowsExactlyAsync<ApiException>(() => a.GetVersionAsync());
+            var ausB = await Assert.ThrowsExactlyAsync<ApiException>(() => b.GetVersionAsync());
+
+            Assert.AreEqual(ClientFormatGate.TooOld, ausA.Message);
+            StringAssert.Contains(ausB.Message, "Bitte Quizzer aktualisieren");
+        }
+
+        private sealed class Aufzeichner(HttpStatusCode status, string rumpf) : HttpMessageHandler
+        {
+            public string? Format { get; private set; }
+
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+            {
+                Format = request.Headers.TryGetValues(ApiInfo.SyncFormatHeader, out var werte) ? string.Join(",", werte) : null;
+                return Task.FromResult(new HttpResponseMessage(status)
+                {
+                    Content = new StringContent(rumpf, Encoding.UTF8, "application/json"),
+                });
+            }
+        }
+    }
+}

@@ -12,6 +12,9 @@ namespace Quizzer.DataModels.Transfer.Server
         public const int ApiVersion = 1;
 
         public const string BasePath = "/api/v1";
+
+        /// <summary>Kopf, mit dem das WPF sein Abgleichformat nennt (Versionsriegel, M36 A4).</summary>
+        public const string SyncFormatHeader = "X-Quizzer-Sync-Format";
     }
 
     public sealed record VersionResponse(int ApiVersion, int SyncFormatVersion, string ServerVersion);
