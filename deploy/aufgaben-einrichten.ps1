@@ -5,6 +5,10 @@
 # Docker Desktop laeuft in der Sitzung des Benutzers - die Aufgaben laufen deshalb nur, wenn er
 # angemeldet ist ("Interactive"). Der Server-PC sollte angemeldet bleiben (Bildschirm sperren
 # genuegt). Ergebnisse stehen in deploy\logs\.
+#
+# -NurSicherung: ohne Zertifikatsaufgabe - fuer das selbst erzeugte Zertifikat (5 Jahre), das kein
+# "tailscale cert" erneuert. Sonst scheiterte die Aufgabe jede Woche (M36 A8).
+param([switch]$NurSicherung)
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 
@@ -26,6 +30,8 @@ function Register-QuizzerTask([string]$name, [string]$skript, $ausloeser) {
 }
 
 Register-QuizzerTask 'Quizzer Sicherung' 'backup.ps1' (New-ScheduledTaskTrigger -Daily -At '03:12')
-Register-QuizzerTask 'Quizzer Zertifikat' 'zertifikat-erneuern.ps1' (New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At '04:17')
+if (-not $NurSicherung) {
+    Register-QuizzerTask 'Quizzer Zertifikat' 'zertifikat-erneuern.ps1' (New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At '04:17')
+}
 
 Write-Host "Pruefen: Aufgabenplanung -> 'Quizzer ...' -> Ausfuehren; Protokolle unter $logs"
