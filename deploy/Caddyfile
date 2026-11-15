@@ -36,6 +36,9 @@
 		Strict-Transport-Security "max-age=15552000"
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "no-referrer"
+		# Die API liefert nur JSON und Medien an das WPF - kein Browser braucht Inhalte oder Rahmen (M36 A5).
+		Content-Security-Policy "default-src 'none'; frame-ancestors 'none'"
+		X-Frame-Options "DENY"
 		-Server
 		-Via
 	}
