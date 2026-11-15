@@ -149,7 +149,7 @@
     <li><a href="#pruefen">Prüfen, ob es läuft</a></li>
     <li><a href="#betrieb">Im Betrieb</a></li>
     <li><a href="#ki">KI-Entwürfe für Fragen</a></li>
-    <li><a href="#spaeter">Später: Laptop und Freunde</a></li>
+    <li><a href="#spaeter">Laptop und Freunde: Tunnel und Tailscale</a></li>
     <li><a href="#fehler">Fehlerbilder</a></li>
     <li><a href="#gemessen">Was gemessen ist und was nicht</a></li>
   </ol>
@@ -459,6 +459,18 @@ eingehängt), und <code>docker-compose.yml</code> veröffentlicht <code>${QUIZZE
 seinen Port 8443. Feste Adresse <code>172.30.77.10</code> im Netz <code>edge</code> (<code>172.30.77.0/24</code> — am
 23.10.2026 mit keinem anderen Docker-Netz des Rechners überschnitten).</p>
 
+<h4 id="umgebung-tunnel">Dienst <code>tunnel</code> — Cloudflare Tunnel, nur mit Profil (M36)</h4>
+<div class="tabellenhuelle">
+<table class="variablen">
+  <thead><tr><th>Variable</th><th>Bedeutung</th><th>Pflicht · Vorgabe</th><th>Gesetzt in</th><th>Gelesen von</th></tr></thead>
+  <tbody>
+    <tr><td><code>TUNNEL_TOKEN</code></td><td>Zugangsschlüssel des Tunnels aus dem Cloudflare-Dashboard. <strong>Geheimnis</strong> — nie ins Repo, nie in einen Chat.</td><td>nur mit Profil <code>tunnel</code>; leer = Dienst bricht sofort ab</td><td><code>.env</code> bzw. <code>.env.pruef</code></td><td><code>cloudflared</code></td></tr>
+    <tr><td><code>COMPOSE_PROFILES</code></td><td><code>tunnel</code> schaltet den Dienst ein. Bis die Härtung (M36 A5) im Betriebsstapel steht, nur im Prüfstapel.</td><td>leer = kein Tunnel</td><td><code>.env</code> bzw. <code>.env.pruef</code></td><td>Docker Compose</td></tr>
+    <tr><td><code>QUIZZER_TUNNEL_IP</code></td><td>Adresse des Tunnel-Containers. Nur ihr glaubt Caddy die echte Absenderadresse (<code>Cf-Connecting-Ip</code>).</td><td>Vorgabe <code>172.30.77.11</code> (Prüfstapel <code>172.30.78.11</code>); <strong>leer gesetzt startet Caddy nicht</strong></td><td><code>docker-compose.pruef.yml</code></td><td><code>Caddyfile</code>, <code>trusted_proxies</code></td></tr>
+  </tbody>
+</table>
+</div>
+
 <h4 id="umgebung-grundabbild">Was die Grundabbilder mitbringen</h4>
 <p><code>docker inspect</code> zeigt zusätzlich Variablen, die nicht aus diesem Repo kommen und nicht anzufassen sind:
 <code>APP_UID</code>, <code>ASPNETCORE_HTTP_PORTS</code>, <code>ASPNET_VERSION</code>, <code>DOTNET_VERSION</code>,
@@ -750,14 +762,49 @@ erscheint dann bei einer neuen Frage <em>Mit KI entwerfen …</em>.</p>
   <em>KI einrichten</em> zeigt beim ersten Einrichten, ob es geht.</li>
 </ul>
 
-<h2 id="spaeter">Später: Laptop und Freunde</h2>
-<p>Von einem anderen Gerät ist <code>127.0.0.1</code> nicht erreichbar. Der vorgesehene Weg ist Tailscale (Entscheidung
-F20): Tailscale auf diesem Rechner, <code>QUIZZER_BIND_ADDRESS</code> auf die Tailscale-Adresse
-(<code>tailscale ip -4</code>), <code>QUIZZER_TS_HOSTNAME</code> setzen und das Zertifikat mit
-<code>.\zertifikat-erneuern.ps1</code> holen statt mit <code>zertifikat-lokal.ps1</code>. Ein
-<code>tailscale cert</code>-Zertifikat ist öffentlich vertrauenswürdig — dann braucht kein WPF einen Fingerabdruck,
-und alle tragen <code>https://&lt;rechner&gt;.&lt;tailnet&gt;.ts.net:&lt;QUIZZER_PORT&gt;</code> ein, auch dieser Rechner.
-Ablauf: <code>deploy/README.md</code>, Abschnitt „Einrichten“.</p>
+<h2 id="spaeter">Laptop und Freunde: Tunnel und Tailscale</h2>
+<p>Von einem anderen Gerät ist <code>127.0.0.1</code> nicht erreichbar. Seit M36 gibt es <strong>zwei gleichwertige
+Wege</strong> (Entscheidung F-M36-03); dieser Rechner selbst bleibt auf <code>https://127.0.0.1:8543</code>.</p>
+<div class="tabellenhuelle">
+<table>
+  <thead><tr><th></th><th>Cloudflare Tunnel</th><th>Tailscale</th></tr></thead>
+  <tbody>
+    <tr><td>Beim Freund</td><td>nichts zu installieren außer dem Quizzer</td><td>Tailscale-App und Einladung ins Tailnet</td></tr>
+    <tr><td>Adresse im WPF</td><td><code>https://quizzer.&lt;deine-domain&gt;</code></td><td><code>https://&lt;rechner&gt;.&lt;tailnet&gt;.ts.net:&lt;Port&gt;</code></td></tr>
+    <tr><td>Verschlüsselung</td><td>endet bei Cloudflare (bewusst hingenommen, F-M36-04)</td><td>Ende zu Ende</td></tr>
+    <tr><td>Größte Datei</td><td><strong>100 MB</strong> je Anfrage (Gratistarif)</td><td>200 MB (Grenze der API)</td></tr>
+    <tr><td>Stand</td><td>gebaut (M36 A2/A3), am echten Tunnel noch nicht gemessen</td><td><strong>noch nicht gebaut</strong> (M36 A11)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Cloudflare Tunnel einrichten</h3>
+<ol>
+  <li>Im Cloudflare-Dashboard einen Tunnel vom Typ <em>cloudflared</em> anlegen und den Token kopieren.</li>
+  <li><strong>Zuerst am Prüfstapel</strong>: in <code>deploy/.env.pruef</code> die Zeilen <code>TUNNEL_TOKEN=…</code> und
+    <code>COMPOSE_PROFILES=tunnel</code> eintragen, dann <code>./pruefstapel.ps1 up</code>.
+    <strong>Nie beide Stapel zugleich mit demselben Token</strong> — zwei Verbindungen eines Tunnels teilen sich die Anfragen.</li>
+  <li>Im Dashboard den öffentlichen Hostnamen anlegen: Typ <strong>HTTPS</strong>, URL <strong><code>caddy:8443</code></strong>;
+    unter TLS <strong>Origin Server Name <code>localhost</code></strong>, <strong>CA Pool <code>/certs/server.crt</code></strong>,
+    <strong>No TLS Verify aus</strong>. Optional: Ratenregel für <code>/api/v1/auth/*</code> und die E-Mail-Benachrichtigung bei Tunnelausfall.</li>
+  <li>Prüfen: <code>./pruefstapel.ps1 absender</code> (echte Absenderadresse) und von einem zweiten Gerät
+    <code>https://quizzer.&lt;deine-domain&gt;/api/v1/version</code>.</li>
+  <li>Erst wenn die Härtung samt Zwei-Faktor im Betriebsstapel steht: Token und Profil aus <code>.env.pruef</code> nehmen,
+    in <code>.env</code> eintragen, <code>docker compose up -d</code>.</li>
+</ol>
+<p>Weil Cloudflare die Anmeldung im Klartext sieht: <strong>jeder Freund nimmt für den Quizzer ein eigenes Kennwort</strong>,
+das er nirgends sonst benutzt. Admin-Konten brauchen Zwei-Faktor.</p>
+
+<h3>Tailscale</h3>
+<p>Bis A11 gebaut ist, gilt der alte Weg: Tailscale auf diesem Rechner, <code>QUIZZER_BIND_ADDRESS</code> auf die
+Tailscale-Adresse (<code>tailscale ip -4</code>), <code>QUIZZER_TS_HOSTNAME</code> setzen und das Zertifikat mit
+<code>.\zertifikat-erneuern.ps1</code> holen. <strong>Dann ist die Tür aber nur noch im Tailnet offen</strong> — auch
+dieser Rechner erreicht sie nicht mehr über <code>127.0.0.1</code>, und der Tunnel findet Caddy trotzdem. A11 macht
+beide Türen gleichzeitig möglich.</p>
+
+<h3>Das WPF für die Freunde</h3>
+<p><strong>Ein fertiges Paket gibt es noch nicht</strong> (gemessen 2026-11-16: kein Veröffentlichungsprofil im Repo).
+Es entsteht mit M36 A7, samt Aktualisierung über den Server.</p>
 
 <h2 id="fehler">Fehlerbilder</h2>
 <div class="tabellenhuelle">
