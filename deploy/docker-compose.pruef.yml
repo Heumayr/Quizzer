@@ -17,6 +17,10 @@ services:
     networks:
       edge:
         ipv4_address: 172.30.78.10
+  tunnel:
+    networks:
+      edge:
+        ipv4_address: 172.30.78.11
 
 networks:
   backend:

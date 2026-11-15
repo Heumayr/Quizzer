@@ -101,6 +101,31 @@ services:
     security_opt: ["no-new-privileges:true"]
     restart: unless-stopped
 
+  # Cloudflare Tunnel (M36 A2): baut die Verbindung von innen nach aussen auf, kein Port im Router.
+  # Nur mit Profil "tunnel" (COMPOSE_PROFILES=tunnel); ohne startet der Stapel wie bisher. Ziel und
+  # TLS stehen im Cloudflare-Dashboard: https://caddy:8443, Servername localhost, CA-Pool
+  # /certs/server.crt - geprueftes TLS bis Caddy, nie "No TLS Verify".
+  tunnel:
+    image: cloudflare/cloudflared:2026.10.7@sha256:4955524aeaa379e154023d5a027c250f7b35041a2e7e950cf13f144bc9b9c5ba
+    profiles: [tunnel]
+    command: ["tunnel", "--no-autoupdate", "run"]
+    environment:
+      # ":-" statt ":?": Compose prueft Pflichtwerte auch fuer abgeschaltete Profile.
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    volumes:
+      - ./certs/server.crt:/certs/server.crt:ro
+    depends_on:
+      - caddy
+    networks:
+      edge:
+        # Fest, damit Caddy genau dieser Adresse die echte Absenderadresse glaubt (A3).
+        ipv4_address: 172.30.77.11
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+
 volumes:
   quizzer-sql:
   quizzer-media:
