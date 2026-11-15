@@ -773,7 +773,7 @@ Wege</strong> (Entscheidung F-M36-03); dieser Rechner selbst bleibt auf <code>ht
     <tr><td>Adresse im WPF</td><td><code>https://quizzer.&lt;deine-domain&gt;</code></td><td><code>https://&lt;rechner&gt;.&lt;tailnet&gt;.ts.net:&lt;Port&gt;</code></td></tr>
     <tr><td>Verschlüsselung</td><td>endet bei Cloudflare (bewusst hingenommen, F-M36-04)</td><td>Ende zu Ende</td></tr>
     <tr><td>Größte Datei</td><td><strong>100 MB</strong> je Anfrage (Gratistarif)</td><td>200 MB (Grenze der API)</td></tr>
-    <tr><td>Stand</td><td>gebaut (M36 A2/A3), am echten Tunnel noch nicht gemessen</td><td><strong>noch nicht gebaut</strong> (M36 A11)</td></tr>
+    <tr><td>Stand</td><td>gebaut (M36 A2/A3), am echten Tunnel noch nicht gemessen</td><td>gebaut (M36 A11), mit Probezertifikat gemessen; echtes <code>tailscale cert</code> noch nicht</td></tr>
   </tbody>
 </table>
 </div>
@@ -795,12 +795,21 @@ Wege</strong> (Entscheidung F-M36-03); dieser Rechner selbst bleibt auf <code>ht
 <p>Weil Cloudflare die Anmeldung im Klartext sieht: <strong>jeder Freund nimmt für den Quizzer ein eigenes Kennwort</strong>,
 das er nirgends sonst benutzt. Admin-Konten brauchen Zwei-Faktor.</p>
 
-<h3>Tailscale</h3>
-<p>Bis A11 gebaut ist, gilt der alte Weg: Tailscale auf diesem Rechner, <code>QUIZZER_BIND_ADDRESS</code> auf die
-Tailscale-Adresse (<code>tailscale ip -4</code>), <code>QUIZZER_TS_HOSTNAME</code> setzen und das Zertifikat mit
-<code>.\zertifikat-erneuern.ps1</code> holen. <strong>Dann ist die Tür aber nur noch im Tailnet offen</strong> — auch
-dieser Rechner erreicht sie nicht mehr über <code>127.0.0.1</code>, und der Tunnel findet Caddy trotzdem. A11 macht
-beide Türen gleichzeitig möglich.</p>
+<h3>Tailscale einrichten</h3>
+<ol>
+  <li>Tailscale auf diesem Rechner installieren und anmelden; die Freunde ins Tailnet einladen.</li>
+  <li>In <code>.env</code>: <code>QUIZZER_TS_HOSTNAME=&lt;rechner&gt;.&lt;tailnet&gt;.ts.net</code>,
+    <code>QUIZZER_TS_ADDRESS=</code> die Ausgabe von <code>tailscale ip -4</code>, nach Bedarf <code>QUIZZER_TS_PORT</code>,
+    und <code>COMPOSE_FILE=docker-compose.yml;docker-compose.tailscale.yml</code>.</li>
+  <li><code>.\zertifikat-erneuern.ps1</code> — legt <code>certs\ts.crt</code> an; <code>certs\server.crt</code> bleibt das
+    selbst erzeugte, denn lokale Tür und Tunnel brauchen es.</li>
+  <li><code>docker compose up -d</code>. Danach lauscht Caddy an <strong>beiden</strong> Türen: <code>127.0.0.1</code> für diesen
+    Rechner, die Tailscale-Adresse für die Freunde. Er wählt das Zertifikat nach dem Servernamen.</li>
+  <li>Einplanen: <code>.\aufgaben-einrichten.ps1</code> (ohne <code>-NurSicherung</code>) — das Tailscale-Zertifikat gilt 90 Tage.</li>
+</ol>
+<p>Über den veröffentlichten Port reicht Docker Desktop alle Anfragen mit <strong>einer</strong> Absenderadresse durch
+(gemessen 2026-11-16: <code>172.30.78.1</code>). Die Tailscale-Freunde teilen sich deshalb eine Anmeldebremse; die
+Kontosperre je Konto wirkt unabhängig davon.</p>
 
 <h3>Das WPF für die Freunde</h3>
 <p><strong>Ein fertiges Paket gibt es noch nicht</strong> (gemessen 2026-11-16: kein Veröffentlichungsprofil im Repo).

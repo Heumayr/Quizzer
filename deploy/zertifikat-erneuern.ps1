@@ -2,6 +2,8 @@
 # Zum Einplanen (aufgaben-einrichten.ps1, woechentlich) - tailscale cert erneuert selbst nur, wenn
 # es noetig ist, ein haeufiger Aufruf schadet also nicht. Das Zertifikat gilt 90 Tage und
 # erneuert sich NICHT von allein; vorher stand dafuer nur ein Satz im README.
+# Schreibt nach certs/ts.crt (zweite Tuer, M36 A11). certs/server.crt bleibt das selbst erzeugte:
+# lokale Tuer und Tunnel pruefen Caddy dagegen, ein Ueberschreiben braeche beide.
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $true
 Set-Location $PSScriptRoot
@@ -10,8 +12,8 @@ Set-Location $PSScriptRoot
 $name = (Read-QuizzerEnv)['QUIZZER_TS_HOSTNAME']
 if (-not $name) { throw 'QUIZZER_TS_HOSTNAME fehlt in .env (<rechner>.<tailnet>.ts.net).' }
 
-$crt = Join-Path 'certs' 'server.crt'
-$key = Join-Path 'certs' 'server.key'
+$crt = Join-Path 'certs' 'ts.crt'
+$key = Join-Path 'certs' 'ts.key'
 New-Item -ItemType Directory -Force 'certs' | Out-Null
 
 $vorher = if (Test-Path $crt) { (Get-FileHash $crt).Hash } else { '' }

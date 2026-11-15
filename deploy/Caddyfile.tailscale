@@ -1,0 +1,9 @@
+# Zweite Tuer fuer Tailscale (M36 A11). Haengt docker-compose.tailscale.yml nach
+# /etc/caddy/zusatz/ ein. Caddy waehlt die Seite nach dem Servernamen: Anfragen an den
+# Tailscale-Namen bekommen ts.crt, alle uebrigen die lokale Seite mit server.crt.
+https://{$QUIZZER_TS_HOSTNAME}:8443 {
+	tls /certs/ts.crt /certs/ts.key {
+		protocols tls1.2 tls1.3
+	}
+	import quizzer
+}

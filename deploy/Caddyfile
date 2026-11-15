@@ -1,9 +1,8 @@
 # Caddy vor dem Quizzer-Server: TLS, Groessengrenze, Sicherheitskoepfe.
 #
-# Das Zertifikat kommt aus certs/ - dieselben Dateien, die bisher Kestrel las (tailscale cert
-# oder selbst erzeugt, siehe README.md). Damit bleibt der Fingerabdruck im WPF gueltig.
-# Caddy holt bewusst kein eigenes: der Rechner ist aus dem Internet nicht erreichbar, und ein
-# alle 12 Stunden erneuertes internes Zertifikat liesse sich im WPF nicht anheften.
+# Das Zertifikat kommt aus certs/: server.crt ist das selbst erzeugte (lokale Tuer, Tunnel prueft
+# Caddy dagegen), ts.crt das von "tailscale cert" fuer die zweite Tuer (M36 A11). Caddy holt bewusst
+# kein eigenes: ein alle 12 Stunden erneuertes internes Zertifikat liesse sich im WPF nicht anheften.
 
 {
 	# Keine Verwaltungsschnittstelle, kein Port 80, keine Zertifikatsbeschaffung.
@@ -22,11 +21,8 @@
 	}
 }
 
-:8443 {
-	tls /certs/server.crt /certs/server.key {
-		protocols tls1.2 tls1.3
-	}
-
+# Alles ausser dem Zertifikat - gilt fuer jede Tuer gleich.
+(quizzer) {
 	# Etwas ueber Quizzer:MaxMediaBytes (200 MB) - die genaue Grenze prueft die API selbst.
 	request_body {
 		max_size 210MB
@@ -53,4 +49,14 @@
 		output stdout
 		format console
 	}
+}
+
+# Weitere Tueren (Tailscale) haengt nur ein Override ein; ohne Datei gilt allein die lokale.
+import /etc/caddy/zusatz/*.caddy
+
+:8443 {
+	tls /certs/server.crt /certs/server.key {
+		protocols tls1.2 tls1.3
+	}
+	import quizzer
 }

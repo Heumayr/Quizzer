@@ -1,0 +1,13 @@
+# Zweite, gleichwertige Tuer fuer Tailscale neben der lokalen (M36 A11, F-M36-03). Einschalten in
+# .env:  COMPOSE_FILE=docker-compose.yml;docker-compose.tailscale.yml   (unter Linux mit ":")
+# dazu QUIZZER_TS_HOSTNAME, QUIZZER_TS_ADDRESS (tailscale ip -4) und das Zertifikat per
+# zertifikat-erneuern.ps1 (schreibt certs/ts.crt, certs/server.crt bleibt das lokale).
+
+services:
+  caddy:
+    environment:
+      QUIZZER_TS_HOSTNAME: ${QUIZZER_TS_HOSTNAME:?QUIZZER_TS_HOSTNAME fehlt in .env (<rechner>.<tailnet>.ts.net)}
+    ports:
+      - "${QUIZZER_TS_ADDRESS:?QUIZZER_TS_ADDRESS fehlt in .env (tailscale ip -4)}:${QUIZZER_TS_PORT:-8443}:8443"
+    volumes:
+      - ./Caddyfile.tailscale:/etc/caddy/zusatz/tailscale.caddy:ro

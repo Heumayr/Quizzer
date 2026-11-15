@@ -12,7 +12,8 @@ Bestandsübernahme und allen Umgebungsvariablen in [`Installation.html`](Install
 
 - Ein x86-Rechner mit **Docker Desktop** (Windows) oder Docker Engine (Linux), mindestens 4 GB RAM
   frei — SQL Server allein will 2 GB.
-- **Tailscale** auf diesem Rechner, für den Zugang der Freunde (Entscheidung F20).
+- Für den Zugang der Freunde einer von zwei gleichwertigen Wegen (M36, F-M36-03): **Cloudflare
+  Tunnel** (Konto und eigene Domain) oder **Tailscale** auf diesem Rechner - oder beide.
 - Dieses Repo.
 
 ## Einrichten (einmal)
@@ -23,13 +24,19 @@ cd deploy
 ```
 
 **Zertifikat**: von außen gibt es nur HTTPS, und das macht Caddy mit den Dateien aus `certs\`.
-Mit Tailscale:
-
-in `.env` `QUIZZER_TS_HOSTNAME=<rechnername>.<tailnet>.ts.net` eintragen, dann
+`certs\server.crt` ist immer das selbst erzeugte (`.\zertifikat-lokal.ps1`): die lokale Tür
+nutzt es, und der Tunnel prüft Caddy dagegen. **Mit Tailscale** kommt eine zweite Tür dazu
+(M36 A11): in `.env` `QUIZZER_TS_HOSTNAME=<rechnername>.<tailnet>.ts.net`, `QUIZZER_TS_ADDRESS`
+(`tailscale ip -4`) und `COMPOSE_FILE=docker-compose.yml;docker-compose.tailscale.yml`, dann
 
 ```powershell
-.\zertifikat-erneuern.ps1     # tailscale cert + Caddy neu starten, wenn es sich geaendert hat
+.\zertifikat-erneuern.ps1     # tailscale cert nach certs\ts.crt + Caddy neu starten, wenn geaendert
 ```
+
+Caddy wählt das Zertifikat nach dem Servernamen: der Tailscale-Name bekommt `ts.crt`, alles
+andere `server.crt`. *Gemessen am 2026-11-16 mit einem Probezertifikat für einen erfundenen Namen
+(beide Seiten, beide Zertifikate, alle Sicherheitsköpfe); ein echtes `tailscale cert` ist auf
+diesem Rechner noch nicht gelaufen - Tailscale ist hier nicht installiert.*
 
 Das Zertifikat gilt 90 Tage und erneuert sich **nicht von selbst** — `aufgaben-einrichten.ps1`
 (siehe *Sichern*) plant das Skript wöchentlich ein. Es endet mit Fehler, wenn das Zertifikat in
@@ -40,8 +47,8 @@ erreichbar, und Caddys internes Zertifikat wechselt alle 12 Stunden - im WPF lie
 anheften. Ein `tailscale cert`-Zertifikat ist öffentlich vertrauenswürdig, das WPF braucht dafür
 keinen Fingerabdruck.
 
-**Adresse**: in `.env` `QUIZZER_BIND_ADDRESS` auf die Tailscale-Adresse setzen
-(`tailscale ip -4`). Dann lauscht der Port nur im Tailnet und nicht im Heimnetz.
+**Adresse**: `QUIZZER_BIND_ADDRESS` bleibt `127.0.0.1` (die lokale Tür); die Tailscale-Tür lauscht
+nur auf `QUIZZER_TS_ADDRESS`, also nur im Tailnet und nicht im Heimnetz.
 
 ```powershell
 docker compose up -d --build
@@ -55,8 +62,10 @@ Unter Linux den Schlüssel nur für den Besitzer lesbar machen: `chmod 600 certs
 `new-secrets` als `leitung-<zufall>` erzeugt, und `QUIZZER_ADMIN_PASSWORD`). Bewusst nicht
 `admin`: der erste Name, den jemand rät. Ohne `QUIZZER_ADMIN_USER` startet der Stapel nicht -
 ältere `.env` um die Zeile ergänzen. In der WPF-App unter *Einstellungen → Server* die Adresse
-`https://<rechnername>.<tailnet>.ts.net:8443` eintragen. Danach das Kennwort ändern und
-Konten für die Freunde anlegen.
+eintragen: auf diesem Rechner `https://127.0.0.1:<QUIZZER_PORT>` (mit Fingerabdruck,
+`.\wpf-verbinden.ps1`), bei den Freunden `https://quizzer.<domain>` (Tunnel) oder
+`https://<rechnername>.<tailnet>.ts.net:<QUIZZER_TS_PORT>` (Tailscale). Danach das Kennwort
+ändern und Konten für die Freunde anlegen.
 
 ## Was wo läuft
 
