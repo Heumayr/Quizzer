@@ -58,6 +58,9 @@ namespace Quizzer.DataModels.Models.Base
         public Guid RegularChoosingPlayerId { get; set; } = Guid.Empty;
         public Guid CurrentChoosingPlayerId { get; set; } = Guid.Empty;
 
+        /// <summary>Darf ein Kontostand unter 0 fallen? Nein kappt jeden Minus-Vorschlag am Kontostand (M35 E2).</summary>
+        public bool AllowNegativeScore { get; set; } = true;
+
         [NotMapped]
         public List<int> PhaseTrashholds { get; set; } = new();
 
@@ -137,6 +140,9 @@ namespace Quizzer.DataModels.Models.Base
         [NotMapped]
         public IEnumerable<QuestionResult> QuestionResults => GameGridCoordinates.SelectMany(x => x.QuestionResults);
 
+        /// <summary>Summe aller gebuchten Punkte eines Spielers in diesem Spiel - die eine Stelle dafuer.</summary>
+        public int Kontostand(Guid playerId) => QuestionResults.Where(r => r.PlayerId == playerId).Sum(r => r.FinalScore);
+
         public List<PlayerXGame> PlayerXGames { get; set; } = new();
 
         [NotMapped]
@@ -182,6 +188,7 @@ namespace Quizzer.DataModels.Models.Base
                 GameThemeId = GameThemeId,
                 RegularChoosingPlayerId = RegularChoosingPlayerId,
                 CurrentChoosingPlayerId = CurrentChoosingPlayerId,
+                AllowNegativeScore = AllowNegativeScore,
                 Headers = new List<Header>(),
                 GameGridCoordinates = new List<GameGridCoordinate>(),
                 PlayerXGames = new List<PlayerXGame>()

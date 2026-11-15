@@ -57,6 +57,7 @@ namespace Quizzer.DataModels.Transfer
                     PhaseMultiplier = spiel.PhaseMultiplier,
                     PhaseAddition = spiel.PhaseAddition,
                     SuggestedPhases = spiel.SuggestedPhases,
+                    AllowNegativeScore = spiel.AllowNegativeScore,
                 },
             };
 
@@ -236,6 +237,7 @@ namespace Quizzer.DataModels.Transfer
                 PhaseMultiplier = dokument.Spiel.PhaseMultiplier,
                 PhaseAddition = dokument.Spiel.PhaseAddition,
                 SuggestedPhases = dokument.Spiel.SuggestedPhases,
+                AllowNegativeScore = dokument.Spiel.AllowNegativeScore,
 
                 // Ein importiertes Spiel beginnt am Anfang, nicht dort, wo das andere aufhoerte.
                 State = GameState.Building,

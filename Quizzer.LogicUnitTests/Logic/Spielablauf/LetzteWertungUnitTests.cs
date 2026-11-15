@@ -127,6 +127,32 @@ namespace Quizzer.LogicUnitTests.Logic.Spielablauf
             Assert.IsTrue((await AusDerDatenbankAsync()).All(r => r.FinalScore == 0 && !r.CorrectAnswered), "In der Datenbank stehen noch Punkte.");
         }
 
+        /// <summary>M35: ein Klau bucht Plus beim Dieb und Minus beim Opfer in derselben Zelle - die Rücknahme nimmt beides.</summary>
+        [TestMethod]
+        public async Task AStealIsUndoneForThiefAndVictim()
+        {
+            var merk = LetzteWertung.Merke(spiel, zelle);
+            using (var ctrl = new QuestionResultsController())
+            {
+                var zeilen = new List<QuestionResult>();
+                foreach (var (spieler, korrektur) in new[] { (anna, 150), (ben, -150) })
+                {
+                    var zeile = new QuestionResult { Id = Guid.NewGuid(), PlayerId = spieler.Id, GameId = spiel.Id, GameGridCoordinateId = zelle.Id, QuestionBaseId = zelle.QuestionBaseId!.Value, Correction = korrektur, CorrectionsCount = 1 };
+                    await ctrl.UpsertAsync(zeile);
+                    zeilen.Add(zeile);
+                }
+                await ctrl.SaveChangesAsync();
+                zelle.QuestionResults = zeilen.Select(z => z.CloneWithoutReferences()).ToList();
+                zelle.IsDone = true;
+            }
+
+            CollectionAssert.AreEquivalent(new[] { (anna.Id, 150), (ben.Id, -150) }, merk.Aenderungen().ToList());
+            await merk.NimmZurueckAsync(spiel);
+
+            Assert.IsTrue(zelle.QuestionResults.All(r => r.FinalScore == 0 && r.Correction == 0 && r.CorrectionsCount == 0));
+            Assert.IsTrue((await AusDerDatenbankAsync()).All(r => r.FinalScore == 0), "In der Datenbank steht noch ein Klau.");
+        }
+
         /// <summary>Eine nachträgliche Korrektur an einer schon gespielten Zelle geht auf deren vorigen Stand zurück, nicht auf null.</summary>
         [TestMethod]
         public async Task ACorrectionReturnsToThePreviousScoreNotToZero()

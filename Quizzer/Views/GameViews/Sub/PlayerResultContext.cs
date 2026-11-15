@@ -203,12 +203,13 @@ namespace Quizzer.Views.GameViews.Sub
             set
             {
                 suggestion = value;
+                Grund = null;
                 OnPropertyChanged();
 
                 CurrentScoreManipulation = suggestion switch
                 {
                     ScoreSuggestion.Right => GetCurrentPoints(),
-                    ScoreSuggestion.Wrong => Coordinate?.CurrentMinusPoints * -1 ?? 0,
+                    ScoreSuggestion.Wrong => KappeMinus(Coordinate?.CurrentMinusPoints * -1 ?? 0),
                     _ => 0,
                 };
 
@@ -234,7 +235,7 @@ namespace Quizzer.Views.GameViews.Sub
         {
             ScoreSuggestion.Right => $"Bewertung: richtig, +{CurrentScoreManipulation}",
             ScoreSuggestion.Wrong => $"Bewertung: falsch, {CurrentScoreManipulation}",
-            ScoreSuggestion.Correction => $"Bewertung: eigener Wert, {CurrentScoreManipulation}",
+            ScoreSuggestion.Correction => $"Bewertung: eigener Wert, {CurrentScoreManipulation}{GrundText}",
             _ => "Noch nicht bewertet",
         };
 

@@ -142,11 +142,7 @@ namespace Quizzer.Views.GameViews.Sub
         {
             if (Player == null || Game == null) return 0;
 
-            var results = Game.QuestionResults.Where(x => x.PlayerId == Player.Id);
-
-            var score = results.Sum(r => r.FinalScore);
-
-            return score;
+            return Game.Kontostand(Player.Id);
         }
 
         public void UpdateScore()

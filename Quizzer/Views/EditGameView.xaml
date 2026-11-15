@@ -116,6 +116,11 @@
                         </TextBox.Text>
                     </TextBox>
                 </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="5">
+                    <CheckBox Content="Kontostand darf unter 0 fallen" VerticalAlignment="Center"
+                              IsChecked="{Binding AllowNegativeScore}"
+                              ToolTip="Ausgeschaltet nimmt kein Minus-Vorschlag auf der Spielerkarte einem Spieler mehr, als er hat - weder eine falsche Antwort noch ein Klau oder ein verlorener Einsatz. Ein eigener Wert, den der Spielleiter selbst einträgt, bleibt frei." />
+                </StackPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="210" Content="Schwierigkeit Faktor / Zuschlag:" ToolTip="Punkte = Fragepunkte × (Faktor × Schwierigkeit + 1) + Zuschlag × Schwierigkeit." VerticalAlignment="Center" />

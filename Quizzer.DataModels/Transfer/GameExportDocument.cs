@@ -78,6 +78,9 @@ namespace Quizzer.DataModels.Transfer
             public int PhaseAddition { get; set; }
 
             public int SuggestedPhases { get; set; } = 3;
+
+            /// <summary>Fehlt in Buendeln von vor M35 - dann gilt die Vorgabe des Spiels (erlaubt).</summary>
+            public bool AllowNegativeScore { get; set; } = true;
         }
 
         /// <summary>Eine Kategorie - außer ihrer Bezeichnung hat sie keine Nutzlast.</summary>
