@@ -184,11 +184,28 @@ Aus `.env`:
 
 ```powershell
 .\aufgaben-einrichten.ps1    # Sicherung taeglich 03:12, Zertifikat sonntags 04:17
+.\aufgaben-einrichten.ps1 -NurSicherung    # mit selbst erzeugtem Zertifikat (ohne tailscale cert)
 ```
 
 Docker Desktop läuft in der Benutzersitzung - die Aufgaben laufen nur, wenn er angemeldet ist
 (sperren genügt). Protokolle in `logs\`. Nach dem Einrichten einmal in der Aufgabenplanung
 *Ausführen* und das Protokoll ansehen.
+
+## Betrieb auf dem Spiel-PC (M36)
+
+Läuft der Stapel auf dem PC, an dem die Freunde über Tunnel oder Tailscale Spiele vorbereiten,
+muss er laufen, wann immer jemand arbeitet. Gemessen am 2026-11-16 auf dem Entwicklungsrechner:
+
+| Was | Soll | Gemessen | Wo einstellen |
+|---|---|---|---|
+| Docker Desktop startet mit der Anmeldung | ja | ja | Docker Desktop → Settings → General |
+| Container kommen von selbst | `restart: unless-stopped` | ja (alle Dienste) | `docker-compose.yml` |
+| Ruhezustand im Netzbetrieb | nie | nie | `powercfg /change standby-timeout-ac 0` |
+| Sicherung geplant | täglich | **nein** | `.\aufgaben-einrichten.ps1 -NurSicherung` |
+| Sicherung außer Haus | ja | **nein** | `QUIZZER_BACKUP_COPY_TO` in `.env` |
+
+**Docker Desktop läuft in der Benutzersitzung**: Der PC muss angemeldet sein (gesperrt genügt),
+eingeschaltet allein reicht nicht. Nach einem Neustart also anmelden.
 
 ## Aktualisieren
 
