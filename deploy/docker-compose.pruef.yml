@@ -14,6 +14,9 @@ services:
     environment:
       Quizzer__TrustedProxyNetworks: 172.30.78.10/32
   caddy:
+    environment:
+      # Caddyfile: trusted_proxies - im Betriebsstapel gilt die Vorgabe 172.30.77.11.
+      QUIZZER_TUNNEL_IP: 172.30.78.11
     networks:
       edge:
         ipv4_address: 172.30.78.10

@@ -135,6 +135,7 @@ Spiele haben, sondern gegen einen **Prüfstapel mit Wegwerfdaten** (M36 A1):
 ./pruefstapel.ps1 up      # bauen und starten; beim ersten Mal entsteht .env.pruef
 ./pruefstapel.ps1 smoke   # StackSmoke gegen https://127.0.0.1:8544
 ./pruefstapel.ps1 status  # Container und /version
+./pruefstapel.ps1 absender  # echte Absenderadresse hinter dem Tunnel (M36 A3), mit hartem Ergebnis
 ./pruefstapel.ps1 weg     # anhalten und Daten löschen (down: nur anhalten)
 ```
 

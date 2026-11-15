@@ -14,6 +14,11 @@
 	# versuchten es sonst vergeblich (alt-svc).
 	servers {
 		protocols h1 h2
+		# Echte Absenderadresse hinter dem Cloudflare Tunnel (M36 A3): Cf-Connecting-Ip zaehlt nur,
+		# wenn die Anfrage vom Tunnel-Container kommt. Ueber die lokale Tuer bleibt ein solcher Kopf
+		# wirkungslos. Die Vorgabe gilt fuer den Betriebsstapel, der Pruefstapel setzt seine Adresse.
+		trusted_proxies static {$QUIZZER_TUNNEL_IP:172.30.77.11}/32
+		client_ip_headers Cf-Connecting-Ip
 	}
 }
 
@@ -35,9 +40,11 @@
 		-Via
 	}
 
-	# Caddy ersetzt X-Forwarded-For durch die echte Gegenstelle (ohne trusted_proxies wird ein
-	# mitgeschickter Kopf nicht weitergereicht). Die API glaubt ihm nur aus dem Netz "edge".
-	reverse_proxy api:8080
+	# Genau ein Wert fuer die API: die Gegenstelle, beim Tunnel dessen Cf-Connecting-Ip. Die API
+	# glaubt X-Forwarded-For nur Caddy und nur einen Sprung (ForwardLimit 1).
+	reverse_proxy api:8080 {
+		header_up X-Forwarded-For {client_ip}
+	}
 
 	log {
 		output stdout
