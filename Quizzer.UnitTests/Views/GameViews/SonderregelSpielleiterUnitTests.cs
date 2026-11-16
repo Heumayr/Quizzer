@@ -219,6 +219,14 @@ namespace Quizzer.UnitTests.Views.GameViews
             var feld = world!.Coordinate.CurrentPoints;
             var minus = world.Coordinate.CurrentMinusPoints;
 
+            // „Runde zuruecksetzen" mitten in der Vorphase: sie beginnt neu, die Wahl davor zaehlt nicht.
+            await AbgebenAsync(0, CellSpecialRule.Risk, new { doubled = false });
+            Assert.IsTrue(await WarteAsync(() => Zustand.Rules?.CurrentSubmissions.Count == 1), "Die erste Wahl kam nicht an.");
+            await serverVm!.BuzzerControlsViewModel!.ResetRoundAsync(vm.CurrentBuzzerLayout);
+            Assert.IsTrue(await WarteAsync(() => Zustand.Phase == MinigamePhase.Running && Zustand.Rules?.CurrentSubmissions.Count == 0),
+                "Nach dem Zuruecksetzen laeuft die Vorphase nicht neu.");
+            Assert.IsTrue(vm.VorphaseLaeuft);
+
             await AbgebenAsync(0, CellSpecialRule.Risk, new { doubled = true });
             await AbgebenAsync(1, CellSpecialRule.Risk, new { doubled = false });
 

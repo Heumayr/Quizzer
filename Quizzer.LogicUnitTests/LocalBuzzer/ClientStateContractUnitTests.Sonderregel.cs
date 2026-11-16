@@ -30,7 +30,8 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [DataRow(typeof(RiskPayload), "risiko.js")]
         public void TheSpecialRulePhoneSendsTheFieldsTheServerReads(Type typ, string datei)
         {
-            var skript = ReadScript("sonderregeln", datei);
+            // Ohne Kommentare: ein Feldname im Kommentar hielte die Zusicherung sonst gruen (gemessen am Rahmen, M35 C3).
+            var skript = Regex.Replace(ReadScript("sonderregeln", datei), @"//.*", string.Empty);
 
             var fehlend = Felder(typ).Where(f => !Regex.IsMatch(skript, $@"\b{f}\s*[:,}}]")).ToList();
 
