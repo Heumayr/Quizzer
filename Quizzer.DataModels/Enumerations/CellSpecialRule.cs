@@ -21,5 +21,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Auktion (M35 C3b): geheime Gebote; der Hoechstbietende antwortet allein und zahlt.</summary>
         Auction = 3,
+
+        /// <summary>Wette (M35 C3b): jeder wettet auf einen Spieler, auch sich; nur dessen „richtig" gewinnt.</summary>
+        Bet = 4,
     }
 }

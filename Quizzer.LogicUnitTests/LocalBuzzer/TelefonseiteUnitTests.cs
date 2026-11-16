@@ -187,5 +187,9 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// <summary>M35 C3b: Auktion - das Modul des Einsatzes mit eigenen Texten, 0 heisst passen, genau einmal.</summary>
         [TestMethod]
         public void TheAuctionBidsSecretlyOnceAndZeroPasses() => LaufeMit("auktion.test.mjs");
+
+        /// <summary>M35 C3b: Wette, Experte, Allianz - die Frage des Servers, genau eine Wahl, die eigene als Satz.</summary>
+        [TestMethod]
+        public void TheSpecialRuleChoiceSendsOneIdAndShowsItAsText() => LaufeMit("wahl.test.mjs");
     }
 }

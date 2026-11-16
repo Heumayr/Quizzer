@@ -76,6 +76,7 @@ namespace Quizzer.Views.GameViews.Sonderregeln
             CellSpecialRule.Stake => new EinsatzAblauf(),
             CellSpecialRule.Risk => new RisikoAblauf(),
             CellSpecialRule.Auction => new AuktionAblauf(),
+            CellSpecialRule.Bet => new WetteAblauf(),
             _ => null,
         };
 

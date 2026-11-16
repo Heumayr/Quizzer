@@ -16,6 +16,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [DataRow(typeof(StakeClientInfo), "einsatz.js", "artInfo")]
         [DataRow(typeof(RiskClientInfo), "risiko.js", "artInfo")]
         [DataRow(typeof(AuctionClientInfo), "einsatz.js", "artInfo")] // die Auktion erbt das Modul, nur die Texte sind eigen
+        [DataRow(typeof(ChoiceClientInfo), "wahl.js", "artInfo")]
         public void TheSpecialRuleModulesReadExactlyTheFieldsTheServerSends(Type typ, string datei, string variable)
         {
             var zugriffe = Zugriffe(ReadScript("sonderregeln", datei), variable);

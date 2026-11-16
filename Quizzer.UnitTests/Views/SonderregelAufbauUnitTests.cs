@@ -160,6 +160,30 @@ namespace Quizzer.UnitTests.Views
             Assert.AreEqual(1, zelle.SpecialRuleVariant, "Eine Spielweise, die es nicht gibt, wurde genommen.");
         }
 
+        /// <summary>M35 C3b: die Wette kennt einen Anteil - 1 bis 100 an der Zelle, 0 heisst Vorgabe; der Regeltext traegt ihn.</summary>
+        [TestMethod]
+        public void TheBetTakesAShareBetweenZeroAndHundredAndShowsIt()
+        {
+            var vm = new QuestionSelectorViewModel();
+            var zelle = new GameGridCoordinate { Id = Guid.NewGuid(), QuestionBase = new DefaultQuestion { Id = Guid.NewGuid() } };
+            vm.SetDependencys(new Game(), zelle);
+
+            vm.GewaehlteSonderregel = vm.SonderregelOptionen.Single(o => o.Regel == CellSpecialRule.Bet);
+
+            Assert.AreEqual(Visibility.Visible, vm.SonderregelAnteilVisibility, "Die Wette zeigt kein Feld fuer den Anteil.");
+            Assert.AreEqual(Visibility.Collapsed, vm.SonderregelSpielweiseVisibility, "Die Wette bietet eine Spielweise an.");
+            StringAssert.Contains(vm.SonderregelRegeltext, "50 %", "Ohne eigenen Anteil steht nicht die Vorgabe im Regeltext.");
+
+            vm.SonderregelAnteil = 40;
+            Assert.AreEqual(40, zelle.SpecialRuleShare);
+            StringAssert.Contains(vm.SonderregelRegeltext, "40 %", "Der Regeltext folgt dem Anteil nicht.");
+
+            vm.SonderregelAnteil = 101;
+            Assert.AreEqual(40, zelle.SpecialRuleShare, "Ueber 100 % genommen.");
+            vm.SonderregelAnteil = 0;
+            Assert.AreEqual(0, zelle.SpecialRuleShare, "Zurueck auf die Vorgabe geht nicht.");
+        }
+
         /// <summary>Am selben Zell-ViewModel: das Steuerelement entscheidet, ob eine verdeckte Regel zu sehen ist.</summary>
         [TestMethod]
         public void TheBeamerCellHidesWhatTheMasterCellShows()

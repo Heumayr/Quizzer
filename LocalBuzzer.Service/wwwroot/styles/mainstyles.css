@@ -749,7 +749,8 @@ body {
 .duell-inhalt,
 .raeuber-inhalt,
 .teilen-inhalt,
-.risiko-inhalt {
+.risiko-inhalt,
+.wahl-inhalt {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
@@ -772,7 +773,8 @@ body {
 .spielerwahl-frage,
 .raeuber-ergebnis,
 .einsatz-text,
-.risiko-text {
+.risiko-text,
+.wahl-text {
     margin: 0;
     font-size: 20px;
     overflow-wrap: break-word;

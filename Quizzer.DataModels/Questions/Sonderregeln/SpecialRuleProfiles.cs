@@ -74,6 +74,14 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
                     new("Zweitpreis", AuktionText("zahlt nur das zweithöchste Gebot (allein geboten: nichts)")),
                 ],
             },
+            new(CellSpecialRule.Bet, "Wette",
+                "Vor der Frage wettet jeder am Telefon auf einen Mitspieler – auch auf sich selbst. Einsatz: "
+                + $"{SharePlaceholder} % der Feldpunkte. Antwortet der Gewählte richtig, gewinnt die Wette, und zwar umso "
+                + "mehr, je weiter hinten er liegt (der Letzte bringt das Doppelte); sonst ist der Einsatz weg. "
+                + "Die eigene Antwort zählt wie immer dazu.")
+            {
+                DefaultShare = 50,
+            },
         ];
 
         private static string AuktionText(string preis)
