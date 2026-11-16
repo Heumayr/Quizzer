@@ -243,6 +243,19 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             Assert.IsNull(Art(anna).Scramble);
         }
 
+        /// <summary>Was sich nicht verwuerfeln laesst, wird nicht gespielt - ohne Wirrwarr hinge die Runde bis zur Frist.</summary>
+        [TestMethod]
+        public void ATermThatCannotBeScrambledIsSkipped()
+        {
+            Starte(spiel, ["Otto", "AAA", "Käse", "X"]);
+            uhr.Vor(Vorlauf);
+
+            Assert.AreEqual(2, Art(anna).TotalTerms, "Unverwuerfelbare Begriffe zaehlen als Begriff.");
+            Assert.IsNull(Rate(anna, "otto").Closed);
+            Assert.IsNotNull(Art(bert).Scramble, "Nach dem ersten Begriff steht kein Wirrwarr am Telefon - die Runde haengt.");
+            Assert.IsNotNull(Rate(bert, "kaese").Closed, "Nach allen spielbaren Begriffen ist die Runde nicht zu.");
+        }
+
         [TestMethod]
         public void AReconnectingPhoneGetsTheOpenTermBack()
         {
