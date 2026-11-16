@@ -184,6 +184,33 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
         }
 
         /// <summary>
+        /// M35 C5: der Buchstabensalat nennt seine Zeilen „Begriffe", ohne Haken; ein unverwuerfelbarer Begriff zaehlt
+        /// nicht mit, mit weniger als drei spielbaren ist er nicht speicherbar.
+        /// </summary>
+        [TestMethod]
+        public void TheWordScrambleAsksForPlayableTerms()
+        {
+            var (vm, maske) = Neu();
+
+            maske.Art = MinigameProfiles.For(MinigameKind.WordScramble);
+
+            Assert.AreEqual("Begriffe", maske.ZeilenTitel);
+            Assert.AreEqual(Visibility.Collapsed, maske.RichtigVisibility, "Der Buchstabensalat zeigt einen Haken.");
+            Assert.AreEqual("Höchstdauer (Sekunden)", maske.DauerBeschriftung);
+
+            maske.Zeilen[0].Text = "Käse";
+            maske.Zeilen[1].Text = "Regenbogen";
+            maske.Zeilen[2].Text = "aa";
+
+            StringAssert.Contains(maske.Zeilenhinweis, "2 Begriffe");
+            Assert.IsFalse(vm.CanSave, "Mit zwei spielbaren Begriffen speicherbar.");
+
+            maske.Zeilen[2].Text = "Fußball";
+            Assert.IsTrue(vm.CanSave, "Mit drei Begriffen nicht speicherbar. Offen: "
+                + string.Join(" | ", vm.Issues.Where(i => i.IsError).Select(i => i.Code)));
+        }
+
+        /// <summary>
         /// M35 C2: Duell fragt nach Runden, Spielweise und Anteil, Raeuber nur nach dem Anteil, Teilen nach
         /// nichts. Ein Anteil von 0 ist nicht speicherbar, wo die Art ihn liest.
         /// </summary>

@@ -207,6 +207,7 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
                 [MinigameKind.MentalArithmetic] = 16,
                 [MinigameKind.Memory] = 17,
                 [MinigameKind.LightningRound] = 18,
+                [MinigameKind.WordScramble] = 19,
             };
 
             var ohne = Enum.GetValues<MinigameKind>().Where(k => !seitFormat.ContainsKey(k)).ToList();

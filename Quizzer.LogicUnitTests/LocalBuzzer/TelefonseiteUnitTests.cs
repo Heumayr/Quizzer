@@ -188,6 +188,10 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         public void LightningRoundSendsOneVerdictPerStatement() => LaufeMit("blitzrunde.test.mjs");
 
+        /// <summary>M35 C5: Buchstabensalat - eine Abgabe je Versuch, der naechste Begriff kommt vom Server, auch wenn ein anderer loest.</summary>
+        [TestMethod]
+        public void WordScrambleSendsOneGuessAndFollowsTheServer() => LaufeMit("buchstabensalat.test.mjs");
+
         /// <summary>M35 C4: Gluecksrad - nur der Dreher waehlt ein Ziel, genau einmal; die Aufloesung vom Server.</summary>
         [TestMethod]
         public void TheWheelLetsOnlyTheSpinnerChooseOnce() => LaufeMit("gluecksrad.test.mjs");

@@ -19,7 +19,8 @@ export const MinigameKinds = Object.freeze({
     WheelOfFortune: 9,
     MentalArithmetic: 10,
     Memory: 11,
-    LightningRound: 12
+    LightningRound: 12,
+    WordScramble: 13
 });
 
 export const MinigamePhases = Object.freeze({

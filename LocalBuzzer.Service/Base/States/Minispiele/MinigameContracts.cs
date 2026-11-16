@@ -171,6 +171,13 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
     {
     }
 
+    /// <summary>
+    /// Eine Abgabe, die aendert, was alle sehen (M35 C5, Buchstabensalat: ein geloester Begriff wechselt fuer
+    /// alle). Der Rahmen packt <see cref="Value"/> aus und schickt jedem Telefon seinen Zustand - ohne neuen
+    /// Durchgang, damit das Modul mitten in der Runde weiterlaeuft.
+    /// </summary>
+    public sealed record MinigameSeenByAll(object Value);
+
     /// <summary>Der Ausloeser hat seinen Gegner oder Partner gewaehlt - geprueft am Server (E4).</summary>
     public sealed record PlayerChosen(Guid ChooserId, Guid ChosenId) : IMinigameStageChange;
 

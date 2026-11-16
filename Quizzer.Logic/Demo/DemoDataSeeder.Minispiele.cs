@@ -8,7 +8,7 @@ namespace Quizzer.Logic.Demo
     /// <summary>
     /// Die Minispiele der Typenschau (M35 B2) - eigene Teildatei, weil die Typenschau sonst ueber die
     /// Groessen-Obergrenze wuechse. Mehrheit und Reaktion im Raster; Minderheit (B3), Tippsprint und
-    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen, Memory und Blitzrunde (C5) im Vorrat - das Raster hat zwei Zeilen.
+    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen, Memory, Blitzrunde und Buchstabensalat (C5) im Vorrat - das Raster hat zwei Zeilen.
     /// </summary>
     public static partial class DemoDataSeeder
     {
@@ -74,9 +74,20 @@ namespace Quizzer.Logic.Demo
                     ("Der Mond leuchtet aus eigener Kraft.", false),
                     ("Ein Schaltjahr hat 366 Tage.", true),
                 ]);
+
+            yield return MitZeilen(kat, "Typenschau: Buchstabensalat", "MIN-14", 200, Difficulty.Level2,
+                "Wer entwirrt die Begriffe zuerst? Alle sehen dasselbe Wirrwarr!", MinigameKind.WordScramble,
+                [
+                    ("Käse", false),
+                    ("Schmetterling", false),
+                    ("Gießkanne", false),
+                    ("Fußball", false),
+                    ("Regenbogen", false),
+                    ("Eichhörnchen", false),
+                ]);
         }
 
-        /// <summary>Arten mit Inhalt (Blitzrunde, M35 C5): je Zeile ein Schritt, der Haken heisst „wahr".</summary>
+        /// <summary>Arten mit Inhalt (Blitzrunde, Buchstabensalat, M35 C5): je Zeile ein Schritt, bei der Blitzrunde heisst der Haken „wahr".</summary>
         private static QuestionBase MitZeilen(
             Guid kategorieId, string bezeichnung, string kurz, int punkte, Difficulty stufe, string frageText,
             MinigameKind art, (string Text, bool Wahr)[] zeilen)

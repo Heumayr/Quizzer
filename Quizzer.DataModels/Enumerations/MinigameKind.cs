@@ -44,5 +44,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Blitzrunde: Aussagen aus den Zeilen, je Spieler einzeln nachgereicht - wahr oder falsch (M35 C5).</summary>
         LightningRound = 12,
+
+        /// <summary>Buchstabensalat: verwuerfelte Begriffe aus den Zeilen, wer zuerst richtig tippt, loest ihn (M35 C5).</summary>
+        WordScramble = 13,
     }
 }

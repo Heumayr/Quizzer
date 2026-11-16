@@ -84,6 +84,9 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// <summary>Ob je Zeile ein Haken „wahr" steht (Blitzrunde, M35 C5) - die Maske zeigt ihn nur dann.</summary>
         public bool ShowTruePerRow { get; init; }
 
+        /// <summary>Ob eine Zeile mit diesem Text gespielt wird und darum als Zeile zaehlt - beim Buchstabensalat nur verwuerfelbare (M35 C5).</summary>
+        public Func<string, bool> CountsAsOption { get; init; } = _ => true;
+
         /// <summary>So viele Mitspieler braucht das Spiel - geprueft erst beim Spielstart.</summary>
         public int MinPlayers { get; init; } = 1;
 

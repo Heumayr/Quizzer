@@ -80,6 +80,7 @@ namespace Quizzer.Views.BuzzerViews
                     ZockerAusstieg aus => $"bei {ZockerEvaluator.Text(aus.Multiplikator)} ausgestiegen",
                     KopfrechnenAntwort antwort => KopfrechnenEvaluator.Describe(antwort.Stand),
                     BlitzrundeFortschritt fortschritt => $"{fortschritt.Beantwortet} beantwortet",
+                    BuchstabensalatVersuch versuch => versuch.Richtig ? $"Begriff {versuch.Begriff} gelöst" : "daneben",
                     MemoryZug zug => $"{zug.Stand.Paare} {(zug.Stand.Paare == 1 ? "Paar" : "Paare")}" + (zug.Stand.Fertig != null ? " – fertig" : string.Empty),
 
                     // M35 C2: geheime Wahlen bleiben auch hier „abgegeben" - der Beamer loest sie auf.

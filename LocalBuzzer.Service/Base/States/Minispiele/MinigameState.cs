@@ -9,8 +9,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
     /// <param name="Value">Was die Art daraus gemacht hat.</param>
     /// <param name="Closed">Gesetzt, wenn die Abgabe die Runde geschlossen hat.</param>
     /// <param name="Restarted">Die Abgabe hat eine neue Stufe geoeffnet (Spielerwahl, M35 C2) - alle bekommen ihren Zustand.</param>
+    /// <param name="ForAll">Die Abgabe aendert, was alle sehen (M35 C5) - alle bekommen ihren Zustand, im selben Durchgang.</param>
     public sealed record MinigameSubmitResult(
-        bool Accepted, object? Value = null, MinigameRoundClosed? Closed = null, bool Restarted = false)
+        bool Accepted, object? Value = null, MinigameRoundClosed? Closed = null, bool Restarted = false, bool ForAll = false)
     {
         public static readonly MinigameSubmitResult Rejected = new(false);
     }
@@ -250,7 +251,11 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
                     return new(true, wert, Restarted: true);
                 }
 
-                return new(true, wert, AlleHabenAbgegeben() ? CloseRound() : null);
+                var fuerAlle = wert is MinigameSeenByAll;
+                if (wert is MinigameSeenByAll alle)
+                    wert = alle.Value;
+
+                return new(true, wert, AlleHabenAbgegeben() ? CloseRound() : null, ForAll: fuerAlle);
             }
         }
 

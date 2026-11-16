@@ -338,6 +338,35 @@ namespace Quizzer.DataModels.Questions.Minispiele
             ShowTruePerRow = true,
         };
 
+        private static readonly MinigameProfile WordScramble = new()
+        {
+            Kind = MinigameKind.WordScramble,
+            DisplayName = "Buchstabensalat",
+            Description = "Alle sehen am Telefon denselben Begriff mit verwürfelten Buchstaben und tippen die Lösung. Wer ihn "
+                        + "zuerst richtig hat (gemessen an der Uhr des Servers), löst ihn, und für alle kommt der nächste. Groß "
+                        + "und klein zählt nicht, ä gilt wie ae, ö wie oe, ü wie ue, ß wie ss. Der Vorschlag ist der Anteil der "
+                        + "Punkte des Felds je gelöstem Begriff – wer alle löst, bekommt sie ganz; falsch raten kostet nichts. "
+                        + $"Mehr als {BuchstabensalatEvaluator.MaxVersucheJeFenster} Versuche in "
+                        + $"{BuchstabensalatEvaluator.FensterSekunden} Sekunden nimmt der Server nicht an.",
+            Variants =
+            [
+                new("Verwürfelte Begriffe",
+                    $"Buchstabensalat! Wer den Begriff zuerst entwirrt, bekommt ihn – ihr habt {DurationPlaceholder} Sekunden."),
+            ],
+            Layout = BuzzerControlsLayout.Minigame,
+            ShowDurationSeconds = true,
+            DefaultDurationSeconds = 90,
+            MinDurationSeconds = 20,
+            MaxDurationSeconds = 300,
+            DurationLabel = "Höchstdauer (Sekunden)",
+            DurationToolTip = "So lange läuft die Runde höchstens – sie endet früher, wenn alle Begriffe gelöst sind.",
+
+            // Ein oder zwei Begriffe sind ein Wettlauf um ein Wort, kein Spiel (Annahme C5b); unverwuerfelbare zaehlen nicht.
+            MinOptions = 3,
+            OptionsName = "Begriffe",
+            CountsAsOption = BuchstabensalatBegriffe.Verwuerfelbar,
+        };
+
         /// <summary>Steht im Regeltext fuer <see cref="MinigameQuestion.DurationSeconds"/> - <see cref="RulesFor"/> setzt die Zahl ein.</summary>
         public const string DurationPlaceholder = "{Dauer}";
 
@@ -350,7 +379,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// <summary>Alle Profile in der Reihenfolge, in der sie angeboten werden.</summary>
         public static IReadOnlyList<MinigameProfile> All { get; } =
             [Majority, Reaction, TapSprint, Stopwatch, Duel, RobberAndGuard, ShareOrTake, Crash, WheelOfFortune, MentalArithmetic, Memory,
-             LightningRound];
+             LightningRound, WordScramble];
 
         /// <summary>Liefert das Profil zu einer Art.</summary>
         /// <exception cref="ArgumentOutOfRangeException">Bei einer unbekannten Art.</exception>

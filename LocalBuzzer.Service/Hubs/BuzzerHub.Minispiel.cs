@@ -41,6 +41,13 @@ namespace LocalBuzzer.Service.Hubs
                 return;
             }
 
+            // Ein geloester Begriff wechselt fuer alle (M35 C5) - jedes Telefon bekommt ihn, ohne Neustart.
+            if (ergebnis.ForAll)
+            {
+                await SendStateToEachAsync();
+                return;
+            }
+
             // Die anderen sehen nichts Neues - und ein Update mitten in ihrer Wartezeit stoert nur.
             await ClientStateSender.SendToAsync(Clients, Context.ConnectionId, _registry, _stateManager);
         }

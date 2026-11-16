@@ -55,7 +55,8 @@ namespace Quizzer.DataModels.Questions.Minispiele
                     $"Minispiel {art.DisplayName}: Anteil 1 bis 100 Prozent, eingetragen sind {frage.Share}.",
                     nameof(frage.Share));
 
-            var zeilen = (frage.Steps ?? []).Count(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly);
+            var zeilen = (frage.Steps ?? []).Count(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly
+                && art.CountsAsOption((string.IsNullOrWhiteSpace(s.StepText) ? s.Designation : s.StepText) ?? string.Empty));
 
             if (zeilen < art.MinOptions)
                 yield return new(TooFewOptions, ValidationSeverity.Error,

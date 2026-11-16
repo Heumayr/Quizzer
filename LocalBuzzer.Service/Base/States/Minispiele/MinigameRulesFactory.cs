@@ -33,6 +33,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             MinigameKind.MentalArithmetic => new MentalArithmeticRules(setup, kontext),
             MinigameKind.Memory => new MemoryRules(setup, kontext),
             MinigameKind.LightningRound => new LightningRoundRules(setup, kontext),
+            MinigameKind.WordScramble => new WordScrambleRules(setup, kontext),
             _ => null,
         };
     }

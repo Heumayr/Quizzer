@@ -45,3 +45,53 @@
     background: var(--secondary);
     border: 2px dashed var(--border-input);
 }
+
+/* Buchstabensalat - Wirrwarr gross und gesperrt, darunter Eingabe und Senden; der Hinweis sagt richtig/falsch in Worten. */
+.buchstabensalat-inhalt {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.buchstabensalat-stand,
+.buchstabensalat-hinweis {
+    margin: 0;
+    font-size: 18px;
+    color: var(--text-soft);
+}
+
+.buchstabensalat-wirrwarr {
+    margin: 0;
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.buchstabensalat-zeile {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-xs);
+}
+
+.buchstabensalat-eingabe {
+    min-height: var(--input-height);
+    padding: 0 var(--space-sm);
+    font-size: 22px;
+    color: var(--text);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-md);
+    background: var(--input-bg);
+}
+
+.buchstabensalat-senden {
+    min-height: var(--input-height);
+    padding: 0 var(--space-sm);
+    border-radius: var(--radius-md);
+    font-size: 20px;
+    font-weight: 700;
+    background: var(--primary);
+    touch-action: manipulation;
+}
