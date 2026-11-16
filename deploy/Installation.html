@@ -812,8 +812,34 @@ das er nirgends sonst benutzt. Admin-Konten brauchen Zwei-Faktor.</p>
 Kontosperre je Konto wirkt unabhängig davon.</p>
 
 <h3>Das WPF für die Freunde</h3>
-<p><strong>Ein fertiges Paket gibt es noch nicht</strong> (gemessen 2026-11-16: kein Veröffentlichungsprofil im Repo).
-Es entsteht mit M36 A7, samt Aktualisierung über den Server.</p>
+<ol>
+  <li><strong>Paket bauen und bereitstellen:</strong> <code>.\wpf-paket.ps1 -Bereitstellen</code> — baut das WPF
+    eigenständig (kein .NET beim Freund nötig, rund 105 MB), legt es nach <code>deploy\pakete\</code> und in den
+    laufenden Betriebsstapel. Die lokale <code>appsettings.json</code> bleibt draußen.</li>
+  <li><strong>Erste Installation:</strong> die ZIP aus <code>deploy\pakete\</code> weitergeben (USB-Stick, Cloud-Ordner);
+    beim Freund entpacken und <code>Quizzer.exe</code> starten. Windows zeigt beim ersten Start eine
+    SmartScreen-Warnung („Weitere Informationen" → „Trotzdem ausführen"): das Programm ist nicht signiert.</li>
+  <li>Im Anmeldefenster unter <em>Einstellungen → Server</em> die Adresse eintragen
+    (<code>https://quizzer.&lt;deine-domain&gt;</code> oder die Tailscale-Adresse), mit dem Konto anmelden, das du in der
+    Kontenverwaltung angelegt hast, und das Kennwort ändern — <strong>eines, das der Freund nirgends sonst benutzt</strong>.</li>
+  <li><strong>Jede weitere Version kommt über den Server:</strong> Liegt ein neueres Paket bereit, bietet das
+    Anmeldefenster „Neue Version verfügbar" an — auch dann, wenn der Server das alte Programm schon abweist. Die neue
+    Version landet in <code>%LOCALAPPDATA%\Quizzer\app\</code>; die erste Installation startet sie künftig von selbst.</li>
+</ol>
+
+<h3>Zwei-Faktor-Anmeldung</h3>
+<p><strong>Für Admin-Konten Pflicht, für Freunde freiwillig</strong> (F-M36-02). Ein Admin ohne Zwei-Faktor kann
+sich anmelden, darf aber nichts anderes, als es einzurichten — das WPF öffnet den Dialog dazu nach der Anmeldung
+von selbst.</p>
+<ol>
+  <li>Eine Authenticator-App aufs Handy (Microsoft Authenticator, Google Authenticator, Aegis …).</li>
+  <li>Den QR-Code im Dialog scannen, den angezeigten 6-stelligen Code eintippen.</li>
+  <li><strong>Die 10 Wiederherstellungscodes aufschreiben</strong> und getrennt vom Handy aufheben — jeder gilt einmal,
+    an Stelle eines Codes aus der App.</li>
+</ol>
+<p>Handy verloren: ein <em>anderer</em> Admin setzt die Zwei-Faktor-Anmeldung in der Kontenverwaltung zurück; mit nur
+einem Admin-Konto bleibt nur ein Wiederherstellungscode. <strong>Ein Wechsel von <code>QUIZZER_JWT_KEY</code> macht alle
+Einrichtungen unlesbar</strong> — danach gelten nur noch Wiederherstellungscodes.</p>
 
 <h2 id="fehler">Fehlerbilder</h2>
 <div class="tabellenhuelle">
