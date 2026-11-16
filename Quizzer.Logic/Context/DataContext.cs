@@ -10,7 +10,7 @@ using Quizzer.DataModels.Models.QuestionTypes;
 
 namespace Quizzer.Logic.Context
 {
-    internal class DataContext : DbContext
+    internal partial class DataContext : DbContext
     {
         static DataContext()
         {

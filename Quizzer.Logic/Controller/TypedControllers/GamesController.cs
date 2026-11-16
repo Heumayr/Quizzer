@@ -63,6 +63,10 @@ namespace Quizzer.Logic.Controller.TypedControllers
         {
             if ((action & Actions.DeleteActions) > 0)
             {
+                // Das Aufraeumen steht sofort in der Datenbank; erst die Klammer bindet es an das
+                // Speichern des Loeschens - ganz oder gar nicht (V05).
+                await CurrentContext.EnsureTransactionUntilSaveAsync();
+
                 using var ctrlPlayerXGame = new PlayerXGamesController(this);
                 using var ctrlResults = new QuestionResultsController(this);
                 using var ctrlCoordinate = new GameGridCoordinatesController(this);

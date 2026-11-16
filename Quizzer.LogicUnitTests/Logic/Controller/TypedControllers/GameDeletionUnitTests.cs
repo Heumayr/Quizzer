@@ -242,5 +242,51 @@ namespace Quizzer.LogicUnitTests.Logic.Controller.TypedControllers
             Assert.IsNull(await spiele.GetAsync(spiel.Id), "Das Spiel steht noch da.");
             Assert.AreEqual(0, (await pruefer.GetForGameAsync(spiel.Id)).Count, "Joker des gelöschten Spiels sind übrig.");
         }
+
+        /// <summary>
+        /// V05 (M37 D2): scheitert das Speichern nach dem Aufräumen, steht der vorherige Zustand - Joker,
+        /// Ergebnis, Zelle und Platz, nicht nur das Spiel. Die Störung ist eine Zelle zu einem Spiel, das es
+        /// nicht gibt: ihr Fremdschlüssel scheitert im selben Speichern.
+        /// </summary>
+        [TestMethod]
+        public async Task AFailedDeleteLeavesJokersAndResultsInPlace()
+        {
+            var joker = new PlayerJoker
+            {
+                Id = Guid.NewGuid(), GameId = spiel.Id, PlayerId = spieler.Id, Kind = JokerKind.Shield, Reason = "eingelöst",
+                GameGridCoordinateId = zelle.Id, RedeemedAt = DateTimeOffset.Now,
+            };
+
+            using (var ctrl = new PlayerJokersController())
+            {
+                await ctrl.InsertAsync(joker);
+                await ctrl.SaveChangesAsync();
+            }
+
+            using (var ctrl = new GamesController())
+            using (var stoerung = new GameGridCoordinatesController(ctrl))
+            {
+                await ctrl.DeleteAsync(spiel.Id);
+                await stoerung.InsertAsync(new GameGridCoordinate { Id = Guid.NewGuid(), GameId = Guid.NewGuid(), Phase = 1 });
+
+                await Assert.ThrowsExactlyAsync<Microsoft.EntityFrameworkCore.DbUpdateException>(
+                    async () => await ctrl.SaveChangesAsync(),
+                    "Die Störung hätte das Speichern scheitern lassen müssen - sonst misst dieser Test nichts.");
+            }
+
+            TestDatabase.ClearDiscardedChanges();
+
+            using var spiele = new GamesController();
+            var geladen = await spiele.GetAsync(spiel.Id);
+            Assert.IsNotNull(geladen, "Das Spiel ist weg.");
+            Assert.AreEqual(1, geladen!.GameGridCoordinates.Count, "Die Zelle ist weg, das Spiel steht noch.");
+            Assert.AreEqual(1, geladen.PlayerXGames.Count, "Der Platz des Mitspielers ist weg, das Spiel steht noch.");
+
+            using var ergebnisse = new QuestionResultsController();
+            Assert.AreEqual(1, (await ergebnisse.GetAllResultsForCoordinate(zelle.Id))?.Count ?? 0, "Das Ergebnis ist weg, das Spiel steht noch.");
+
+            using var jokerCtrl = new PlayerJokersController();
+            Assert.AreEqual(1, (await jokerCtrl.GetForGameAsync(spiel.Id)).Count, "Der Joker ist weg, das Spiel steht noch.");
+        }
     }
 }
