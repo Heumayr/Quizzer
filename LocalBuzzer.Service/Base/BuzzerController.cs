@@ -105,6 +105,19 @@ namespace LocalBuzzer.Service.Base
             await SendStateAsync(ct);
         }
 
+        /// <summary>
+        /// Nur diese duerfen die gewoehnliche Frage beantworten (M35 C3b); <c>null</c>: alle. Die Telefone der
+        /// anderen sind gesperrt und sagen es, auch nach dem Wiederverbinden.
+        /// </summary>
+        public async Task SetAnswerersAsync(IEnumerable<Guid>? antwortende, CancellationToken ct = default)
+        {
+            CheckServerRunning();
+
+            StateManager.AnswerLock.Restrict(antwortende);
+
+            await SendStateAsync(ct);
+        }
+
         private void CheckServerRunning()
         {
             if (HubContext is null || EventBus is null || StateManager is null || Registry is null)

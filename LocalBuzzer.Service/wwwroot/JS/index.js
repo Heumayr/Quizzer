@@ -1,7 +1,7 @@
 ﻿import { Layouts } from "./constants.js";
 import { dom, resolveAccessKey, clearPlayerCookie, showError, getErrMsg, toast, nextRetryDelay, setConnectionIndicator } from "./helpers.js";
 import { JoinFlow } from "./join.js";
-import { LayoutManager } from "./layoutManager.js";
+import { LayoutManager, EXCLUDED_TEXT } from "./layoutManager.js";
 import { BuzzerLayout } from "./layouts/buzzerLayout.js";
 import { KeySelectLayout } from "./layouts/keySelectLayout.js";
 import { InputLayout } from "./layouts/inputLayout.js";
@@ -20,6 +20,7 @@ const state = {
     currentLayoutLocked: true,
     allLocked: false,
     zeitAbgelaufen: false,
+    excluded: false,
     winner: null,
     replaced: false,
     conn: null
@@ -37,6 +38,7 @@ function buildContext() {
         layoutInfo: state.layoutInfo,
         currentLayoutLocked: state.currentLayoutLocked,
         allLocked: state.allLocked,
+        excluded: state.excluded,
         winner: state.winner
     };
 }
@@ -49,6 +51,11 @@ function buildStatusText() {
 
     if (state.winner) {
         return `Runde ${state.round}: Gewinner: ${state.winner}`;
+    }
+
+    // M35 C3b: Auktion, Experte, Allianz - nur einige antworten.
+    if (state.excluded) {
+        return `Runde ${state.round}: ${EXCLUDED_TEXT}`;
     }
 
     switch (state.currentLayout) {
@@ -79,6 +86,7 @@ function applyServerState(serverState) {
     state.currentLayoutLocked = serverState.currentLayoutLocked ?? true;
     state.allLocked = serverState.allLocked ?? false;
     state.zeitAbgelaufen = serverState.zeitAbgelaufen ?? false;
+    state.excluded = serverState.excludedFromQuestion ?? false;
     state.winner = serverState.winner ?? null;
 
     if (state.zeitAbgelaufen && !warAbgelaufen) {

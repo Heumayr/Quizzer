@@ -140,6 +140,14 @@
                         </StackPanel>
                     </Viewbox>
                 </Border>
+
+                <!-- M35 C3b: was waehrend der Frage dazu gilt, etwa „Kopfgeld auf Anna" - oben, die Frage bleibt lesbar. -->
+                <Border Visibility="{Binding QuestionStepViewContext.Sonderregel.HinweisVisibility, FallbackValue=Collapsed}"
+                        VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,16,0,0" Padding="28,10"
+                        Background="#DD000000" CornerRadius="8">
+                    <TextBlock Text="{Binding QuestionStepViewContext.Sonderregel.Hinweis}" Foreground="WhiteSmoke"
+                               FontSize="36" FontWeight="Bold" TextWrapping="Wrap" TextAlignment="Center" />
+                </Border>
             </Grid>
         </Grid>
 </UserControl>

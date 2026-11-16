@@ -23,6 +23,12 @@ namespace Quizzer.Views.GameViews.Sub
 
         public bool VorphaseLaeuft { get; private set; }
 
+        /// <summary>Was waehrend der Frage dazu gilt, etwa „Kopfgeld auf Anna" (M35 C3b) - mit Symbol, nie allein Farbe.</summary>
+        public string Hinweis { get; private set; } = string.Empty;
+
+        /// <summary>Am Beamer ueber der Frage, sobald die Vorphase zu ist.</summary>
+        public Visibility HinweisVisibility => Aktiv && !VorphaseLaeuft && Hinweis.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+
         /// <summary>Am Beamer nur waehrend der Vorphase - danach gehoert der Bildschirm der Frage.</summary>
         public Visibility BeamerVisibility => VorphaseLaeuft ? Visibility.Visible : Visibility.Collapsed;
 
@@ -30,8 +36,9 @@ namespace Quizzer.Views.GameViews.Sub
 
         public Visibility SchliessenVisibility => VorphaseLaeuft ? Visibility.Visible : Visibility.Collapsed;
 
-        internal void Zeige(string titel, string regeltext, string stand, bool vorphaseLaeuft)
+        internal void Zeige(string titel, string regeltext, string stand, bool vorphaseLaeuft, string hinweis = "")
         {
+            Hinweis = hinweis.Length > 0 ? $"{Quizzer.DataModels.Questions.Sonderregeln.SpecialRuleProfiles.Symbol} {hinweis}" : string.Empty;
             Titel = titel;
             Regeltext = regeltext;
             Stand = stand;
@@ -42,7 +49,7 @@ namespace Quizzer.Views.GameViews.Sub
 
         internal void Leere()
         {
-            Titel = Regeltext = Stand = string.Empty;
+            Titel = Regeltext = Stand = Hinweis = string.Empty;
             Aktiv = VorphaseLaeuft = false;
             Melde();
         }
@@ -57,6 +64,8 @@ namespace Quizzer.Views.GameViews.Sub
             OnPropertyChanged(nameof(BeamerVisibility));
             OnPropertyChanged(nameof(SpielleiterVisibility));
             OnPropertyChanged(nameof(SchliessenVisibility));
+            OnPropertyChanged(nameof(Hinweis));
+            OnPropertyChanged(nameof(HinweisVisibility));
         }
     }
 }

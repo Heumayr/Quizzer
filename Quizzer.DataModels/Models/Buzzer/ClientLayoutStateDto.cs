@@ -42,6 +42,12 @@ namespace Quizzer.DataModels.Models.Buzzer
         public bool ZeitAbgelaufen { get; set; }
 
         /// <summary>
+        /// Diese Frage beantworten andere (M35 C3b: Auktion, Experte, Allianz) - steckt schon in
+        /// <see cref="CurrentLayoutLocked"/>; eigenes Feld fuer den Satz am Telefon.
+        /// </summary>
+        public bool ExcludedFromQuestion { get; set; }
+
+        /// <summary>
         /// Layout-spezifische Zusatzinformationen (z.B. Antwort-Optionen bei KeySelect).
         /// Der Typ hängt vom aktiven <see cref="Layout"/> ab und wird client-seitig deserialisiert.
         /// </summary>

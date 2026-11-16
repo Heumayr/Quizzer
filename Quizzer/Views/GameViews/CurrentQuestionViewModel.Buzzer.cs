@@ -61,6 +61,9 @@ namespace Quizzer.Views.GameViews
             if (await StarteVorphaseAsync())
                 return;
 
+            // Auktion, Experte, Allianz (M35 C3b): nur einige duerfen antworten - am Server geprueft.
+            await SetzeAntwortendeAsync();
+
             var layout = Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None;
 
             // Der Spielleiter soll waehrend der Runde sehen, worauf er wartet und was richtig

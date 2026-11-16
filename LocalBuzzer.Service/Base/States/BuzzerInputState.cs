@@ -18,10 +18,12 @@ namespace LocalBuzzer.Service.Base.States
     public sealed class BuzzerInputState : IBuzzerLayoutState
     {
         private readonly GameAccessor _gameAccessor;
+        private readonly AnswerLock _answerLock;
 
-        public BuzzerInputState(GameAccessor gameAccessor)
+        public BuzzerInputState(GameAccessor gameAccessor, AnswerLock? answerLock = null)
         {
             _gameAccessor = gameAccessor;
+            _answerLock = answerLock ?? new();
         }
 
         public BuzzerControlsLayout BuzzerControlsLayout => BuzzerControlsLayout.Input;
@@ -74,7 +76,7 @@ namespace LocalBuzzer.Service.Base.States
         /// </summary>
         public void SetInput(InputResult result)
         {
-            if (result.Player == null || Locked)
+            if (result.Player == null || Locked || !_answerLock.Allows(result.Player.Id))
                 return;
 
             lock (this)
@@ -85,7 +87,8 @@ namespace LocalBuzzer.Service.Base.States
 
                 InputsForPlayer.AddOrUpdate(result.Player.Id, _ => result, (_, _) => result);
 
-                var playersCount = _gameAccessor.GetGame?.Invoke()?.Players?.Count() ?? 0;
+                // M35 C3b: nur wer antworten darf, haelt die Runde offen.
+                var playersCount = _gameAccessor.GetGame?.Invoke()?.Players?.Count(p => _answerLock.Allows(p.Id)) ?? 0;
 
                 if (playersCount <= 0)
                 {

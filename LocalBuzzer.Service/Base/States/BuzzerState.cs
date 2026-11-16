@@ -11,10 +11,12 @@ namespace LocalBuzzer.Service.Base.States
     public sealed class BuzzerState : IBuzzerLayoutState
     {
         private readonly GameAccessor _gameAccessor;
+        private readonly AnswerLock _answerLock;
 
-        public BuzzerState(GameAccessor gameAccessor)
+        public BuzzerState(GameAccessor gameAccessor, AnswerLock? answerLock = null)
         {
             _gameAccessor = gameAccessor;
+            _answerLock = answerLock ?? new();
         }
 
         public BuzzerControlsLayout BuzzerControlsLayout => BuzzerControlsLayout.Buzzer;
@@ -29,7 +31,8 @@ namespace LocalBuzzer.Service.Base.States
 
         public bool TryBuzz(Player? player)
         {
-            if (player == null) return false;
+            // M35 C3b: wer die Frage nicht beantworten darf, buzzert ins Leere.
+            if (player == null || !_answerLock.Allows(player.Id)) return false;
 
             lock (this)
             {

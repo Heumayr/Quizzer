@@ -59,18 +59,34 @@ namespace Quizzer.Views.GameViews
 
         /// <summary>
         /// Startet die Vorphase, wenn die Zelle eine gespielte Regel traegt. <c>true</c>: die Frage geht
-        /// erst nach der Vorphase auf die Telefone. Eine gespielte Zelle spielt keine Vorphase mehr.
+        /// erst nach der Vorphase auf die Telefone. Eine gespielte Zelle spielt keine Vorphase mehr. Eine Regel
+        /// ohne Vorphase (Kopfgeld, M35 C3b) steht sofort, und die Frage geht gleich auf die Telefone.
         /// </summary>
         private async Task<bool> StarteVorphaseAsync()
         {
             if (vorphaseGespielt || Coordinate is not { IsDone: false } zelle || BuzzerControlsViewModel == null
-                || !SpecialRuleProfiles.Applies(zelle, Question) || SonderregelAblauf.Fuer(zelle.SpecialRule) is not { } regel)
+                || !SpecialRuleProfiles.Applies(zelle, Question) || SonderregelFabrik(zelle.SpecialRule) is not { } regel)
                 return false;
 
             SetzeSonderregel(regel);
+            var grundlage = Grundlage();
+            regel.Oeffne(grundlage);
+
+            if (!regel.HatVorphase)
+            {
+                regel.Schliesse(new Dictionary<Guid, object>());
+                ZeigeVorphase();
+
+                foreach (var karte in PlayersResultViewModel?.PlayerResultContextList ?? [])
+                    karte.SonderregelGeaendert();
+
+                WerteSonderregel();
+                return false;
+            }
+
             VorphaseLaeuft = true;
 
-            BuzzerControlsViewModel.SetMinigameInfo(regel.Setup(Grundlage()));
+            BuzzerControlsViewModel.SetMinigameInfo(regel.Setup(grundlage));
             BuzzerControlsViewModel.MinigameRoundClosed = OnVorphaseZuAsync;
             BuzzerControlsViewModel.MinigameSubmitted = OnVorphaseAbgabeAsync;
             ZeigeVorphase();
@@ -84,9 +100,18 @@ namespace Quizzer.Views.GameViews
             return true;
         }
 
+        /// <summary>Woher die Regel zur Zelle kommt - ein Test setzt eine eigene ein.</summary>
+        internal Func<CellSpecialRule, SonderregelAblauf?> SonderregelFabrik { get; set; } = SonderregelAblauf.Fuer;
+
         private VorphaseGrundlage Grundlage()
-            => new(Coordinate?.CurrentPoints ?? 0,
-                (PlayersResultViewModel?.PlayerResultContextList ?? []).ToDictionary(k => k.Player.Id, k => k.Kontostand));
+        {
+            var karten = PlayersResultViewModel?.PlayerResultContextList ?? [];
+
+            return new(Coordinate?.CurrentPoints ?? 0,
+                karten.ToDictionary(k => k.Player.Id, k => k.Kontostand),
+                karten.ToDictionary(k => k.Player.Id, k => k.Player.CalculatedDisplayName),
+                Ausloeser);
+        }
 
         /// <summary>Der Spielleiter schliesst die Vorphase (E1) - wer nichts abgegeben hat, fuer den greift die Regel nicht.</summary>
         internal async Task SchliesseVorphaseAsync()
@@ -151,11 +176,11 @@ namespace Quizzer.Views.GameViews
                 return;
 
             var gesamt = PlayersResultViewModel?.PlayerResultContextList.Count ?? 0;
-            var stand = VorphaseLaeuft
-                ? $"Vorphase: {abgegeben} von {gesamt} haben abgegeben"
+            var stand = !sonderregel.HatVorphase ? "Ohne Vorphase"
+                : VorphaseLaeuft ? $"Vorphase: {abgegeben} von {gesamt} haben abgegeben"
                 : $"Vorphase zu: {abgegeben} von {gesamt} haben abgegeben";
 
-            Sonderregel.Zeige(sonderregel.Titel, sonderregel.Profil.RulesText, stand, VorphaseLaeuft);
+            Sonderregel.Zeige(sonderregel.Titel, sonderregel.Profil.RulesText, stand, VorphaseLaeuft, sonderregel.Hinweis);
         }
 
         private void LoeseVorphase()
@@ -168,10 +193,21 @@ namespace Quizzer.Views.GameViews
             BuzzerControlsViewModel.MinigameReset = null;
         }
 
+        /// <summary>Nach der Vorphase: nur, wen die Regel nennt, darf antworten (M35 C3b) - die anderen Telefone sind gesperrt.</summary>
+        private async Task SetzeAntwortendeAsync()
+        {
+            if (sonderregel != null && BuzzerControlsViewModel != null)
+                await BuzzerControlsViewModel.SetAnswerersAsync(sonderregel.Antwortende);
+        }
+
         private void ClearSonderregel()
         {
             if (VorphaseLaeuft)
                 LoeseVorphase();
+
+            // Die Sperre gilt nur dieser Frage - das Zuruecksetzen danach schickt es an die Telefone.
+            if (sonderregel != null)
+                BuzzerControlsViewModel?.ClearAnswerers();
 
             VorphaseLaeuft = false;
             Sonderregel.Leere();

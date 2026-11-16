@@ -131,6 +131,10 @@ namespace LocalBuzzer.Service.Hubs
             if (!_registry.TryGetPlayer(Context.ConnectionId, out var player))
                 return;
 
+            // M35 C3b: wer diese Frage nicht beantworten darf, gibt nichts ab - auch nichts an den Spielleiter weiter.
+            if (!_stateManager.AnswerLock.Allows(player.Id))
+                return;
+
             if (buzz.TryBuzz(player))
             {
                 _bus.OnWinner(player, _stateManager.Round);
@@ -155,6 +159,10 @@ namespace LocalBuzzer.Service.Hubs
                 return;
 
             if (!_registry.TryGetPlayer(Context.ConnectionId, out var player))
+                return;
+
+            // M35 C3b: wer diese Frage nicht beantworten darf, gibt nichts ab - auch nichts an den Spielleiter weiter.
+            if (!_stateManager.AnswerLock.Allows(player.Id))
                 return;
 
             // Wer abgibt, sagt die Verbindung - nicht die Nachricht. Ein Spieler kann so nur
@@ -184,6 +192,10 @@ namespace LocalBuzzer.Service.Hubs
                 return;
 
             if (!_registry.TryGetPlayer(Context.ConnectionId, out var player))
+                return;
+
+            // M35 C3b: wer diese Frage nicht beantworten darf, gibt nichts ab - auch nichts an den Spielleiter weiter.
+            if (!_stateManager.AnswerLock.Allows(player.Id))
                 return;
 
             results.PlayerId = player.Id;

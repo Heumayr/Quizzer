@@ -179,5 +179,9 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// <summary>M35 C3: Sonderregel Risiko - doppelt ja oder nein, genau einmal, als Satz.</summary>
         [TestMethod]
         public void TheRiskChoiceIsSentOnceAndShownAsText() => LaufeMit("risiko.test.mjs");
+
+        /// <summary>M35 C3b: wer die Frage nicht beantworten darf, sieht den Satz statt des Layouts - und bekommt es zurueck.</summary>
+        [TestMethod]
+        public void AnExcludedPhoneSaysThatOthersAnswer() => LaufeMit("antwortsperre.test.mjs");
     }
 }

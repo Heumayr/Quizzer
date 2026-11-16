@@ -54,15 +54,18 @@ namespace LocalBuzzer.Service.Base
         public BuzzerInputState BuzzerInputState { get; }
         public MinigameState MinigameState { get; }
 
+        /// <summary>Wer die gewoehnliche Frage beantworten darf (M35 C3b) - ueberlebt jedes Zuruecksetzen der Runde.</summary>
+        public AnswerLock AnswerLock { get; } = new();
+
         private readonly GameAccessor _gameAccessor;
 
         public LayoutStateManager(GameAccessor gameAccessor)
         {
             _gameAccessor = gameAccessor;
 
-            BuzzerState = new(gameAccessor);
-            BuzzerKeySelector = new(gameAccessor);
-            BuzzerInputState = new(gameAccessor);
+            BuzzerState = new(gameAccessor, AnswerLock);
+            BuzzerKeySelector = new(gameAccessor, AnswerLock);
+            BuzzerInputState = new(gameAccessor, AnswerLock);
             MinigameState = new(gameAccessor);
 
             States.Add(BuzzerState);
@@ -106,14 +109,18 @@ namespace LocalBuzzer.Service.Base
 
         public ClientLayoutStateDto CreateClientState(Player? player = null)
         {
+            // M35 C3b: wer die Frage nicht beantworten darf, ist gesperrt - die Vorphase im Minispiel-Rahmen nicht.
+            var ausgeschlossen = player != null && CurrentLayout != BuzzerControlsLayout.Minigame && !AnswerLock.Allows(player.Id);
+
             return new ClientLayoutStateDto
             {
                 PlayerName = player?.CalculatedDisplayName,
                 Round = Round,
                 ResetCount = ResetCount,
                 Layout = CurrentLayout,
-                CurrentLayoutLocked = (CurrentState?.IsLockedFor(player) ?? true) || ZeitAbgelaufen,
+                CurrentLayoutLocked = (CurrentState?.IsLockedFor(player) ?? true) || ZeitAbgelaufen || ausgeschlossen,
                 ZeitAbgelaufen = ZeitAbgelaufen,
+                ExcludedFromQuestion = ausgeschlossen,
                 AllLocked = AllLocked,
                 LayoutInfo = CurrentState?.InfoFor(player),
                 Winner = BuzzerState.Winner?.CalculatedDisplayName

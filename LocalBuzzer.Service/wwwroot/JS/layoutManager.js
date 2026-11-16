@@ -1,9 +1,13 @@
-﻿export class LayoutManager {
+﻿// M35 C3b: Auktion, Experte, Allianz - diese Frage beantworten nur einige. Der Server sperrt, hier steht es.
+export const EXCLUDED_TEXT = "Diese Frage beantworten andere";
+
+export class LayoutManager {
     constructor(state) {
         this.state = state;
         this.layouts = new Map();
         this.activeLayout = null;
         this.activeLayoutId = null;
+        this.excluded = false;
     }
 
     register(layoutId, layout) {
@@ -13,6 +17,13 @@
     switchTo(layoutId, context) {
         this.clear(context.host);
         this.activeLayoutId = layoutId;
+        this.excluded = !!context.excluded;
+
+        // Gesperrt fuer diese Frage: statt des Layouts der Satz, wer antwortet - nie nur ein grauer Knopf.
+        if (this.excluded) {
+            this.showExcluded(context.host);
+            return;
+        }
 
         const layout = this.layouts.get(layoutId);
         if (!layout) {
@@ -46,6 +57,18 @@
         host.appendChild(root);
     }
 
+    showExcluded(host) {
+        const root = document.createElement("div");
+        root.className = "layout layout-ausgeschlossen";
+
+        const message = document.createElement("p");
+        message.className = "ausgeschlossen-text";
+        message.textContent = `${EXCLUDED_TEXT} – du schaust zu.`;
+
+        root.appendChild(message);
+        host.appendChild(root);
+    }
+
     clear(host) {
         if (this.activeLayout?.dispose) {
             this.activeLayout.dispose();
@@ -57,6 +80,12 @@
     }
 
     update(context) {
+        // Die Sperre fuer diese Frage kam oder ging: neu aufbauen, nicht nur sperren.
+        if (!!context.excluded !== this.excluded) {
+            this.switchTo(context.currentLayout ?? this.activeLayoutId, context);
+            return;
+        }
+
         if (!this.activeLayout) return;
         this.activeLayout.update?.(context);
         this.activeLayout.setLocked?.(context.currentLayoutLocked || context.allLocked);

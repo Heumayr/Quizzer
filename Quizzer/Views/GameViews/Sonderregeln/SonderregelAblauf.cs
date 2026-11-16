@@ -5,8 +5,13 @@ using Quizzer.DataModels.Questions.Sonderregeln;
 
 namespace Quizzer.Views.GameViews.Sonderregeln
 {
-    /// <summary>Was die Vorphase am Server braucht: die Feldpunkte und die Kontostaende beim Oeffnen der Zelle.</summary>
-    internal sealed record VorphaseGrundlage(int Feldpunkte, IReadOnlyDictionary<Guid, int> Kontostaende);
+    /// <summary>Was eine Regel beim Oeffnen der Zelle braucht - fuer die Vorphase am Server und fuer ihre Wertung.</summary>
+    /// <param name="Feldpunkte">Was „richtig" in der Zelle bringt.</param>
+    /// <param name="Kontostaende">Kontostand je Spieler beim Oeffnen.</param>
+    /// <param name="Namen">Anzeigename je Spieler - fuer Beamer und Spielerkarte.</param>
+    /// <param name="Ausloeser">Wer das Feld aufgedeckt hat, wenn er mitspielt (Allianz).</param>
+    internal sealed record VorphaseGrundlage(
+        int Feldpunkte, IReadOnlyDictionary<Guid, int> Kontostaende, IReadOnlyDictionary<Guid, string>? Namen = null, Guid? Ausloeser = null);
 
     /// <summary>
     /// Eine Sonderregel im Fragefenster (M35 C3): stellt die Vorphase ein, merkt sich deren Abgaben und
@@ -25,6 +30,20 @@ namespace Quizzer.Views.GameViews.Sonderregeln
 
         /// <summary>„Sonderregel: Einsatz" - Ueberschrift an Beamer und Telefon.</summary>
         public string Titel => $"Sonderregel: {Profil.DisplayName}";
+
+        /// <summary>Wer die Frage nach der Vorphase beantworten darf (M35 C3b); <c>null</c>: alle.</summary>
+        public virtual IReadOnlyCollection<Guid>? Antwortende => null;
+
+        /// <summary>Ob die Regel eine Vorphase am Telefon spielt (M35 C3b) - das Kopfgeld nicht, es steht beim Oeffnen fest.</summary>
+        public virtual bool HatVorphase => true;
+
+        /// <summary>Was Beamer und Spielleiter waehrend der Frage dazu lesen, etwa „Kopfgeld auf Anna"; leer: nichts.</summary>
+        public virtual string Hinweis => string.Empty;
+
+        /// <summary>Die Zelle ist offen: die Regel merkt sich, was sie spaeter braucht (Kontostaende, Namen, Ausloeser).</summary>
+        public virtual void Oeffne(VorphaseGrundlage grundlage)
+        {
+        }
 
         /// <summary>Ob die Vorphase geschlossen ist - erst dann rechnet die Regel.</summary>
         public bool VorphaseZu { get; private set; }

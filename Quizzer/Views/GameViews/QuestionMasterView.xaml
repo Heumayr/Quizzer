@@ -269,6 +269,8 @@
                         <Separator Margin="4,18,4,2" />
                         <TextBlock Style="{StaticResource SectionHeader}" Text="Sonderregel" Margin="4,0,4,4" />
                         <TextBlock Text="{Binding Sonderregel.Titel}" FontWeight="Bold" TextWrapping="Wrap" Margin="4,0,4,2" />
+                        <TextBlock Text="{Binding Sonderregel.Hinweis}" Visibility="{Binding Sonderregel.HinweisVisibility}"
+                                   TextWrapping="Wrap" Margin="4,0,4,2" />
                         <TextBlock Text="{Binding Sonderregel.Stand}" FontSize="12" Opacity="0.8"
                                    TextWrapping="Wrap" Margin="4,0,4,6" />
                         <Button Content="Vorphase schließen" Command="{Binding CloseVorphaseCommand}" FontWeight="Bold"
