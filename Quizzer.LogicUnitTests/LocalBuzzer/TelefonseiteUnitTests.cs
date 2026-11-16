@@ -172,6 +172,10 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         public void ShareOrTakeDecidesOnceAndShowsTheOutcome() => LaufeMit("teilen.test.mjs");
 
+        /// <summary>M35 C4: Zocker - genau ein Ausstieg, der Absturzpunkt erst nach der Runde.</summary>
+        [TestMethod]
+        public void TheCrashCashesOutOnceAndLearnsTheCrashOnlyAfterwards() => LaufeMit("zocker.test.mjs");
+
         /// <summary>M35 C3: Sonderregel Einsatz - eine Zahl bis zur Obergrenze, genau einmal, die eigene kommt zurueck.</summary>
         [TestMethod]
         public void TheStakeIsAWholeNumberUpToTheLimitSentOnce() => LaufeMit("einsatz.test.mjs");

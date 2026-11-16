@@ -19,6 +19,7 @@ namespace Quizzer.Base
         private static readonly Lazy<SoundPlayer> buzzer = new(() => Spieler(Toene.Buzzer()));
         private static readonly Lazy<SoundPlayer> tick = new(() => Spieler(Toene.Tick()));
         private static readonly Lazy<SoundPlayer> ende = new(() => Spieler(Toene.Ende()));
+        private static readonly Lazy<SoundPlayer> absturz = new(() => Spieler(Toene.Absturz()));
 
         public static bool Aktiv
         {
@@ -31,6 +32,8 @@ namespace Quizzer.Base
         public static void Tick() => Spiele(tick, nameof(Tick));
 
         public static void Ende() => Spiele(ende, nameof(Ende));
+
+        public static void Absturz() => Spiele(absturz, nameof(Absturz));
 
         /// <summary>Nur fuer Tests: welcher Ton angefordert wurde, auch wenn die Toene aus sind (M35 B3).</summary>
         internal static Action<string>? Mitschnitt { get; set; }

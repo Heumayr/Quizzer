@@ -52,6 +52,7 @@ namespace Quizzer.Views.GameViews
         /// <summary>Stellt den Rahmen am Server auf diese Frage ein - vor dem Ausspielen.</summary>
         private void PrepareMinigame()
         {
+            ablauf?.Beende();
             ablauf = null;
 
             if (Minispiel is not { } frage || BuzzerControlsViewModel == null)
@@ -128,7 +129,7 @@ namespace Quizzer.Views.GameViews
         {
             Ablauf.RundeZu(runde);
 
-            Klang.Ende(); // V5: Ergebnis
+            Ablauf.TonZu(runde); // V5: Ergebnis, je Art
 
             if (runde.Finished)
                 await OpenResultsAsync();
@@ -151,6 +152,7 @@ namespace Quizzer.Views.GameViews
 
         private void ClearMinigame()
         {
+            ablauf?.Beende();
             ablauf = null;
             Reaktion.Zeige(string.Empty);
 

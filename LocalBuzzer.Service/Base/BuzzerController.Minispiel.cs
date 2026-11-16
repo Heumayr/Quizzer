@@ -13,6 +13,7 @@ namespace LocalBuzzer.Service.Base
             if (!StateManager.MinigameState.StartNextRound())
                 return false;
 
+            StarteFristwache();
             await SendStateAsync(ct);
             return true;
         }
@@ -25,6 +26,7 @@ namespace LocalBuzzer.Service.Base
             if (!StateManager.MinigameState.RepeatRound())
                 return false;
 
+            StarteFristwache();
             await SendStateAsync(ct);
             return true;
         }
@@ -67,6 +69,57 @@ namespace LocalBuzzer.Service.Base
                 EventBus.OnMinigameRoundClosed(geschlossen);
 
             await SendStateAsync(ct);
+        }
+
+        // --- Fristwache (M35 C4): Zocker und Gluecksrad schliessen ihre Runde an der Serveruhr ---
+
+        /// <summary>So oft sieht die Fristwache nach. Entschieden wird an der Serveruhr - der Takt verzoegert nur den Versand.</summary>
+        internal static TimeSpan FristTakt { get; } = TimeSpan.FromMilliseconds(50);
+
+        private CancellationTokenSource? fristwache;
+
+        /// <summary>Wacht ueber die laufende Runde, wenn die Art eine Frist hat - eine neue Runde loest die alte Wache ab.</summary>
+        private void StarteFristwache()
+        {
+            StoppeFristwache();
+
+            if (!StateManager.MinigameState.HasDeadline)
+                return;
+
+            var abbruch = fristwache = new CancellationTokenSource();
+            _ = WacheAsync(StateManager.MinigameState, abbruch.Token);
+        }
+
+        private void StoppeFristwache()
+        {
+            fristwache?.Cancel();
+            fristwache?.Dispose();
+            fristwache = null;
+        }
+
+        /// <summary>
+        /// Schliesst die Runde, sobald ihre Frist abgelaufen ist - auch wenn kein Telefon mehr abgibt (alle
+        /// getrennt oder niemand steigt aus). Endet mit der Runde, beim Abbruch und beim Zuruecksetzen.
+        /// </summary>
+        private async Task WacheAsync(MinigameState spiel, CancellationToken ct)
+        {
+            try
+            {
+                while (spiel.Phase == MinigamePhase.Running)
+                {
+                    await Task.Delay(FristTakt, ct);
+
+                    if (spiel.CloseIfDue() is { } geschlossen)
+                    {
+                        await MeldeUndSendeAsync(geschlossen, ct);
+                        return;
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Abgeloest durch eine neue Runde oder den Serverstopp - nichts mehr zu tun.
+            }
         }
     }
 }

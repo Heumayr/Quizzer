@@ -126,6 +126,7 @@ namespace LocalBuzzer.Service.Base
 
         public void Dispose()
         {
+            StoppeFristwache();
             HubContext = null!;
             EventBus = null!;
             StateManager = null!;

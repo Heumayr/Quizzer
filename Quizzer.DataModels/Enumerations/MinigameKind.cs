@@ -29,5 +29,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Teilen oder Nehmen: Ausloeser und gewaehlter Partner entscheiden geheim um den Topf (M35 C2).</summary>
         ShareOrTake = 7,
+
+        /// <summary>Zocker: ein Multiplikator steigt, wer vor dem geheimen Absturz aussteigt, gewinnt (M35 C4).</summary>
+        Crash = 8,
     }
 }

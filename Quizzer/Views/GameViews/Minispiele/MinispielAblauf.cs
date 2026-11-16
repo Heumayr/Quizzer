@@ -1,4 +1,5 @@
 using LocalBuzzer.Service.Base.States.Minispiele;
+using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.DataModels.Questions.Minispiele;
@@ -58,6 +59,7 @@ namespace Quizzer.Views.GameViews.Minispiele
             MinigameKind.Duel => new DuellAblauf(fenster),
             MinigameKind.RobberAndGuard => new RaeuberAblauf(fenster),
             MinigameKind.ShareOrTake => new TeilenAblauf(fenster),
+            MinigameKind.Crash => new ZockerAblauf(fenster),
             _ => new ReaktionAblauf(fenster, art),
         };
 
@@ -77,5 +79,13 @@ namespace Quizzer.Views.GameViews.Minispiele
 
         /// <summary>„Runde zuruecksetzen" hat das Minispiel am Server auf Anfang gestellt - hier ebenso.</summary>
         public abstract void SetzeZurueck();
+
+        /// <summary>Der Ton zum Ende einer Runde (V5) - der Zocker hat seinen eigenen fuer den Absturz (M35 C4).</summary>
+        public virtual void TonZu(MinigameRoundClosed runde) => Klang.Ende();
+
+        /// <summary>Die Frage ist zu oder eine andere kommt - eine laufende Anzeige (Takt) haelt hier an.</summary>
+        public virtual void Beende()
+        {
+        }
     }
 }

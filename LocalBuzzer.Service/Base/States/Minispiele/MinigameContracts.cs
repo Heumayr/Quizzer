@@ -151,6 +151,16 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
     }
 
     /// <summary>
+    /// Arten mit einer Frist an der Serveruhr (M35 C4) - der Zocker stuerzt ab, das Gluecksrad landet. Die
+    /// Runde schliesst dann der Server selbst (Fristwache im <c>BuzzerController</c>), auch ohne Abgabe.
+    /// </summary>
+    public interface IMinigameDeadlineRules : IMinigameRules
+    {
+        /// <summary>Ob die Frist abgelaufen ist - nur ja oder nein, nie wann: der Zeitpunkt ist beim Zocker geheim.</summary>
+        bool IsDue { get; }
+    }
+
+    /// <summary>
     /// Eine Abgabe, die nicht zaehlt, sondern die naechste Stufe der Runde oeffnet (M35 C2): der Rahmen
     /// gibt einen neuen Durchgang aus, und jedes Telefon bekommt seinen Zustand.
     /// </summary>

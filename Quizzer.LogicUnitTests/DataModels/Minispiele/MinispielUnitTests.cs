@@ -202,6 +202,7 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
                 [MinigameKind.Duel] = 6,
                 [MinigameKind.RobberAndGuard] = 6,
                 [MinigameKind.ShareOrTake] = 6,
+                [MinigameKind.Crash] = 14,
             };
 
             var ohne = Enum.GetValues<MinigameKind>().Where(k => !seitFormat.ContainsKey(k)).ToList();

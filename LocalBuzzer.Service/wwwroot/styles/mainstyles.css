@@ -825,3 +825,23 @@ body {
     .risiko-taste:disabled {
         opacity: 0.7;
     }
+
+/* M35 C4: Zocker - ein grosser Knopf; was geschah, sagt der Satz darunter, nie nur die Farbe. */
+.zocker-taste {
+    min-height: calc(var(--input-height) * 2);
+    border-radius: var(--radius-lg);
+    font-size: 30px;
+    font-weight: 800;
+    background: var(--primary);
+    touch-action: manipulation;
+}
+
+    .zocker-taste:disabled {
+        opacity: 0.7;
+    }
+
+.zocker-text {
+    margin: 0;
+    font-size: 20px;
+    overflow-wrap: break-word;
+}

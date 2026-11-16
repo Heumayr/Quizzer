@@ -77,6 +77,7 @@ namespace Quizzer.Views.BuzzerViews
                     ReactionAttempt versuch => ReaktionEvaluator.Describe(versuch),
                     TippsprintStand stand => TippsprintEvaluator.Describe(stand.Tipps),
                     StoppuhrVersuch stopp => StoppuhrEvaluator.Describe(stopp),
+                    ZockerAusstieg aus => $"bei {ZockerEvaluator.Text(aus.Multiplikator)} ausgestiegen",
 
                     // M35 C2: geheime Wahlen bleiben auch hier „abgegeben" - der Beamer loest sie auf.
                     PlayerChosen => "hat gewählt",

@@ -44,6 +44,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         /// <summary>Zufallsquelle fuer die Geheimnisse der Arten, wie <see cref="Random.Next(int, int)"/>.</summary>
         public Func<int, int, int> Zufall { get; set; } = Random.Shared.Next;
 
+        /// <summary>Die Serveruhr (M35 C4): sie entscheidet, ob ein Ausstieg vor dem Absturz kam - eigene nur fuer Tests.</summary>
+        public TimeProvider Uhr { get; set; } = TimeProvider.System;
+
         public BuzzerControlsLayout BuzzerControlsLayout => BuzzerControlsLayout.Minigame;
 
         /// <summary>Gesperrt heisst: es laeuft keine Runde, nichts wird angenommen.</summary>
@@ -73,7 +76,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             lock (gate)
             {
                 setup = neu with { TotalRounds = Math.Max(1, neu.TotalRounds) };
-                rules = MinigameRulesFactory.For(setup, new((a, b) => Zufall(a, b), NameVon, Mitspieler));
+                rules = MinigameRulesFactory.For(setup, new((a, b) => Zufall(a, b), NameVon, Mitspieler, () => Uhr.GetElapsedTime(0)));
                 ClearLocked();
             }
         }
@@ -260,6 +263,21 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             lock (gate)
             {
                 return Phase == MinigamePhase.Running && AlleHabenAbgegeben() ? CloseRound() : null;
+            }
+        }
+
+        /// <summary>Ob die eingestellte Art eine Frist an der Serveruhr hat (M35 C4) - dann wacht der Controller.</summary>
+        public bool HasDeadline
+        {
+            get { lock (gate) return rules is IMinigameDeadlineRules; }
+        }
+
+        /// <summary>Schliesst die laufende Runde, wenn ihre Frist an der Serveruhr abgelaufen ist (Zocker: Absturz).</summary>
+        public MinigameRoundClosed? CloseIfDue()
+        {
+            lock (gate)
+            {
+                return Phase == MinigamePhase.Running && rules is IMinigameDeadlineRules { IsDue: true } ? CloseRound() : null;
             }
         }
 

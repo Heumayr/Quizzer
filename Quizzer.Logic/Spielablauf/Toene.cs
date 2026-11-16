@@ -22,6 +22,9 @@ namespace Quizzer.Logic.Spielablauf
         /// <summary>Ein tiefer, abklingender Ton - „Zeit ist um".</summary>
         public static byte[] Ende() => Wav(Gong(392, 0.9), 0.6);
 
+        /// <summary>Drei fallende Toene - „abgestuerzt" beim Zocker (M35 C4).</summary>
+        public static byte[] Absturz() => Wav(Folge((523, 0.12), (392, 0.12), (262, 0.4)), 0.6);
+
         private static float[] Folge(params (double Hz, double Sekunden)[] toene)
         {
             var teile = toene.Select(t => Ton(t.Hz, t.Sekunden)).ToList();
