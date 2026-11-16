@@ -200,6 +200,10 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         public void BluffSendsOneBluffThenOneServerNumber() => LaufeMit("bluff.test.mjs");
 
+        /// <summary>M35 C6: Heisse Kartoffel - nur der Halter urteilt und gibt weiter, je Tipp eine Abgabe mit der Nummer des Servers; keine Uhr am Telefon.</summary>
+        [TestMethod]
+        public void HotPotatoLetsOnlyTheHolderAnswerAndPassOnce() => LaufeMit("kartoffel.test.mjs");
+
         /// <summary>M35 C4: Gluecksrad - nur der Dreher waehlt ein Ziel, genau einmal; die Aufloesung vom Server.</summary>
         [TestMethod]
         public void TheWheelLetsOnlyTheSpinnerChooseOnce() => LaufeMit("gluecksrad.test.mjs");

@@ -2,7 +2,7 @@ using Quizzer.DataModels.Enumerations;
 
 namespace Quizzer.DataModels.Questions.Minispiele
 {
-    /// <summary>Die mehrphasigen Spiele (M35 C6): Erklärbär und Bluff.</summary>
+    /// <summary>Die mehrphasigen Spiele (M35 C6): Erklärbär, Bluff und Heiße Kartoffel.</summary>
     public static partial class MinigameProfiles
     {
         private static readonly MinigameProfile ExplainIt = new()
@@ -74,6 +74,48 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
             // Mit zweien gaebe es nur einen fremden Bluff - die Wahl waere ein Muenzwurf (Annahme C6a).
             MinPlayers = 3,
+        };
+
+        private static readonly MinigameProfile HotPotato = new()
+        {
+            Kind = MinigameKind.HotPotato,
+            DisplayName = "Heiße Kartoffel",
+            Description = "Wer die Kartoffel hält, beantwortet am Telefon Aussagen mit wahr oder falsch – wahr ist eine Aussage mit "
+                        + "Haken. Nur nach einer richtigen Antwort gibt er sie an einen Mitspieler seiner Wahl weiter, nach einer "
+                        + "falschen kommt die nächste Aussage. Direkt zurück an den, der sie gerade gegeben hat, geht nur, wenn sonst "
+                        + "niemand verbunden ist. Irgendwann platzt sie: Der Zünder ist geheim, auch der Spielleiter kennt ihn nicht; "
+                        + "er geht zwischen einem Drittel und der ganzen eingestellten Zeit hoch. Wer sie dann hält, verliert den "
+                        + "Anteil der Feldpunkte (gekappt, wenn das Spiel kein Minus erlaubt), wer sie ihm zugeschoben hat, gewinnt "
+                        + "ihn. Zuerst hält sie, wer das Feld aufgedeckt hat; fehlt er, wählt der Spielleiter. Mehr als "
+                        + $"{KartoffelEvaluator.MaxAntwortenJeFenster} Antworten in {KartoffelEvaluator.FensterSekunden} Sekunden "
+                        + "nimmt der Server nicht an.",
+            Variants =
+            [
+                new("Wahr oder falsch",
+                    "Heiße Kartoffel! Wer sie hält, beantwortet Aussagen – nur nach einer richtigen Antwort darf er sie "
+                    + $"weitergeben. Wann sie platzt, weiß niemand: Wer sie dann hält, verliert {SharePlaceholder} % der "
+                    + "Feldpunkte, wer sie ihm zugeschoben hat, gewinnt sie."),
+            ],
+            Layout = BuzzerControlsLayout.Minigame,
+            ShowShare = true,
+            ShowDurationSeconds = true,
+            DefaultDurationSeconds = 60,
+            MinDurationSeconds = 20,
+            MaxDurationSeconds = 300,
+            DurationLabel = "Längste Zündschnur (Sekunden)",
+            DurationToolTip = "Der Zünder geht zufällig zwischen einem Drittel dieser Zeit und ihr ganz hoch – wann genau, weiß "
+                            + "niemand, auch der Spielleiter nicht.",
+
+            // Die Aussagen kommen reihum wieder; mit weniger als sechs kennt man sie nach einem Durchgang (Annahme C6b).
+            MinOptions = 6,
+            OptionsName = "Aussagen",
+            ShowTruePerRow = true,
+            CountsAsOption = t => t.Any(char.IsLetterOrDigit),
+
+            // Mit zweien geht sie hin und her - direkt zurueck ist dann erlaubt, sonst steckte sie fest.
+            MinPlayers = 2,
+            ChooserOnly = true,
+            ChooserLabel = "Wer hält zuerst",
         };
     }
 }

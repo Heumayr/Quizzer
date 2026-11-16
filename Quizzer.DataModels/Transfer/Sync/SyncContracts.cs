@@ -55,8 +55,9 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// 19: Minispiel-Art Buchstabensalat (M35 C5) - derselbe Grund wie bei 4.
         /// 20: Minispiel-Art Erklaerbaer (M35 C6) - derselbe Grund wie bei 4.
         /// 21: Minispiel-Art Bluff (M35 C6) - derselbe Grund wie bei 4.
+        /// 22: Minispiel-Art Heisse Kartoffel (M35 C6) - derselbe Grund wie bei 4.
         /// </summary>
-        public const int CurrentFormatVersion = 21;
+        public const int CurrentFormatVersion = 22;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

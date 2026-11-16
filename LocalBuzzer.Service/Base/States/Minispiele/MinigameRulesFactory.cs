@@ -36,6 +36,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             MinigameKind.WordScramble => new WordScrambleRules(setup, kontext),
             MinigameKind.ExplainIt => new ExplainItRules(setup, kontext),
             MinigameKind.Bluff => new BluffRules(setup, kontext),
+            MinigameKind.HotPotato => new HotPotatoRules(setup, kontext),
             _ => null,
         };
     }

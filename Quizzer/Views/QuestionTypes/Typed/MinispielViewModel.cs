@@ -135,6 +135,11 @@ namespace Quizzer.Views.QuestionTypes.Typed
                     return $"{optionen} Aussagen, davon {Zeilen.Count(z => !z.IstLeer && z.IstRichtig)} wahr (mindestens "
                            + $"{mindestens}). Am Telefon kommen sie einzeln und gemischt; richtig +1, falsch −1.";
 
+                if (Art?.Kind == MinigameKind.HotPotato)
+                    return $"{optionen} Aussagen, davon {Zeilen.Count(z => !z.IstLeer && z.IstRichtig)} wahr (mindestens "
+                           + $"{mindestens}). Wer die Kartoffel hält, bekommt sie einzeln und gemischt; sind alle durch, kommen "
+                           + "sie neu gemischt wieder.";
+
                 if (Art?.Kind == MinigameKind.WordScramble)
                     return $"{Zeilen.Count(z => !z.IstLeer && Art.CountsAsOption(z.Text))} Begriffe (mindestens {mindestens}). Der "
                            + "Server verwürfelt die Buchstaben; wer einen zuerst richtig eintippt, löst ihn. Begriffe aus "

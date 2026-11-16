@@ -192,3 +192,74 @@
     flex-direction: column;
     gap: var(--space-xs);
 }
+
+/* Heisse Kartoffel - wer haelt, steht gross oben; nur der Halter sieht Aussage, Knoepfe und Ziele. Keine Uhr: der Zuender ist geheim. */
+.kartoffel-inhalt {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.kartoffel-halter {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.kartoffel-hinweis,
+.kartoffel-ergebnis {
+    margin: 0;
+    font-size: 18px;
+    color: var(--text-soft);
+    overflow-wrap: anywhere;
+}
+
+.kartoffel-aussage {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.kartoffel-tasten {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xs);
+}
+
+.kartoffel-taste {
+    min-height: calc(var(--input-height) * 1.6);
+    border-radius: var(--radius-md);
+    font-size: 24px;
+    font-weight: 800;
+    touch-action: manipulation;
+}
+
+.kartoffel-wahr {
+    background: var(--success);
+}
+
+.kartoffel-falsch {
+    background: var(--secondary);
+    border: 2px dashed var(--border-input);
+}
+
+.kartoffel-ziele,
+.kartoffel-liste {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.kartoffel-ziel {
+    min-height: var(--input-height);
+    border-radius: var(--radius-lg);
+    font-size: 22px;
+    font-weight: 800;
+    background: var(--primary);
+    touch-action: manipulation;
+}

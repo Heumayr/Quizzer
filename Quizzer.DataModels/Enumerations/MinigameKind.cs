@@ -53,5 +53,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Bluff: erst schreibt jeder eine falsche Antwort, dann waehlen alle unter Bluffs und der echten (M35 C6).</summary>
         Bluff = 15,
+
+        /// <summary>Heisse Kartoffel: der Halter beantwortet Aussagen, nach einer richtigen gibt er weiter; der Zuender ist geheim (M35 C6).</summary>
+        HotPotato = 16,
     }
 }

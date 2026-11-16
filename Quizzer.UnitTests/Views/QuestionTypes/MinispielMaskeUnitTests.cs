@@ -228,6 +228,37 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
                 + string.Join(" | ", vm.Issues.Where(i => i.IsError).Select(i => i.Code)));
         }
 
+        /// <summary>
+        /// M35 C6: die Heisse Kartoffel nennt ihre Zeilen „Aussagen" mit Haken „wahr", fragt nach Zuendschnur und Anteil, nicht
+        /// nach Runden; mit weniger als sechs Aussagen nicht speicherbar.
+        /// </summary>
+        [TestMethod]
+        public void TheHotPotatoAsksForSixStatementsWithATruthTick()
+        {
+            var (vm, maske) = Neu();
+
+            maske.Art = MinigameProfiles.For(MinigameKind.HotPotato);
+
+            Assert.AreEqual("Aussagen (Haken = wahr)", maske.ZeilenTitel);
+            Assert.AreEqual(Visibility.Visible, maske.RichtigVisibility, "Der Haken „wahr“ fehlt.");
+            Assert.AreEqual(Visibility.Collapsed, maske.RundenVisibility, "Die Kartoffel fragt nach Runden.");
+            Assert.AreEqual("Längste Zündschnur (Sekunden)", maske.DauerBeschriftung);
+
+            while (maske.Zeilen.Count < 6)
+                maske.AddRowCommand.Execute(null);
+
+            for (var i = 0; i < 5; i++)
+                maske.Zeilen[i].Text = $"Aussage {i + 1}";
+            maske.Zeilen[1].IstRichtig = true;
+
+            StringAssert.Contains(maske.Zeilenhinweis, "5 Aussagen, davon 1 wahr (mindestens 6)");
+            Assert.IsFalse(vm.CanSave, "Mit fünf Aussagen speicherbar.");
+
+            maske.Zeilen[5].Text = "Aussage 6";
+            Assert.IsTrue(vm.CanSave, "Mit sechs Aussagen nicht speicherbar. Offen: "
+                + string.Join(" | ", vm.Issues.Where(i => i.IsError).Select(i => i.Code)));
+        }
+
         /// <summary>M35 C6: der Erklaerbaer braucht je Runde einen eigenen Begriff - mehr Runden als Begriffe sind nicht speicherbar.</summary>
         [TestMethod]
         public void TheExplainItAsksForOneTermPerRound()

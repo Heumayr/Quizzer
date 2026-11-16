@@ -8,7 +8,7 @@ namespace Quizzer.Logic.Demo
     /// <summary>
     /// Die Minispiele der Typenschau (M35 B2) - eigene Teildatei, weil die Typenschau sonst ueber die
     /// Groessen-Obergrenze wuechse. Mehrheit und Reaktion im Raster; Minderheit (B3), Tippsprint und
-    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen, Memory, Blitzrunde und Buchstabensalat (C5), Erklärbär und Bluff (C6) im Vorrat - das Raster hat zwei Zeilen.
+    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen, Memory, Blitzrunde und Buchstabensalat (C5), Erklärbär, Bluff und Heiße Kartoffel (C6) im Vorrat - das Raster hat zwei Zeilen.
     /// </summary>
     public static partial class DemoDataSeeder
     {
@@ -100,6 +100,19 @@ namespace Quizzer.Logic.Demo
                 [
                     ("eine Friedenspfeife", false),
                     ("Friedenspfeife", false),
+                ]);
+
+            yield return MitZeilen(kat, "Typenschau: Heiße Kartoffel", "MIN-17", 300, Difficulty.Level2,
+                "Wer sie hält, muss richtig antworten, um sie loszuwerden – bevor sie platzt!", MinigameKind.HotPotato,
+                [
+                    ("Der Mond ist ein Planet.", false),
+                    ("Spinnen haben acht Beine.", true),
+                    ("Wale sind Säugetiere.", true),
+                    ("Der Rhein mündet ins Schwarze Meer.", false),
+                    ("Tomaten sind botanisch gesehen Beeren.", true),
+                    ("Der Eiffelturm steht in Rom.", false),
+                    ("Pinguine leben am Nordpol.", false),
+                    ("Bienen können tanzen, um den Weg zu zeigen.", true),
                 ]);
         }
 

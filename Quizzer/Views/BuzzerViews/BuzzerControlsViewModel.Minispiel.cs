@@ -87,6 +87,8 @@ namespace Quizzer.Views.BuzzerViews
                     BuchstabensalatVersuch versuch => versuch.Richtig ? $"Begriff {versuch.Begriff} gelöst" : "daneben",
                     ErklaerbaerVersuch versuch => versuch.Richtig ? "Begriff erraten" : "daneben",
                     BluffAbgabe bluff => bluff.Phase == 1 ? "Bluff abgegeben" : "gewählt",
+                    KartoffelAntwort antwort => antwort.Richtig ? "richtig – gibt gleich weiter" : "daneben",
+                    KartoffelWeitergabe => "hat weitergegeben",
                     MemoryZug zug => $"{zug.Stand.Paare} {(zug.Stand.Paare == 1 ? "Paar" : "Paare")}" + (zug.Stand.Fertig != null ? " – fertig" : string.Empty),
 
                     // M35 C2: geheime Wahlen bleiben auch hier „abgegeben" - der Beamer loest sie auf.
