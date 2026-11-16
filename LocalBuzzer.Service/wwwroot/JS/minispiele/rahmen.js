@@ -1,4 +1,4 @@
-import { MinigameKinds, MinigamePhases, SpecialRules } from "../constants.js";
+import { MinigameKinds, MinigamePhases, SpecialRules, PrePhases } from "../constants.js";
 import { ReaktionModul } from "./reaktion.js";
 import { TippsprintModul } from "./tippsprint.js";
 import { StoppuhrModul } from "./stoppuhr.js";
@@ -18,11 +18,13 @@ import { EinsatzModul } from "../sonderregeln/einsatz.js";
 import { RisikoModul } from "../sonderregeln/risiko.js";
 import { AuktionModul } from "../sonderregeln/auktion.js";
 import { WahlModul } from "../sonderregeln/wahl.js";
+import { JokerModul } from "../joker/joker.js";
 
 // Der Rahmen der Minispiele am Telefon (M35 B3): Ueberschrift, Runde n von m, Warten,
 // Countdown und Ergebnis. Was eine Art ausmacht, steckt in ihrem Modul unter minispiele/.
-// Abgegeben wird ueber den einen Hub-Eingang SpielAktion: { kind, specialRule, durchgang, payload }.
-// Die Vorphase einer Sonderregel (M35 C3) laeuft im selben Rahmen, ihr Modul liegt unter sonderregeln/.
+// Abgegeben wird ueber den einen Hub-Eingang SpielAktion: { kind, specialRule, prePhase, durchgang, payload }.
+// Die Vorphase einer Sonderregel (M35 C3) laeuft im selben Rahmen, ihr Modul liegt unter sonderregeln/;
+// ebenso die Joker-Runde (M35 C7b) unter joker/.
 
 const MODULE = new Map([
     [MinigameKinds.Reaction, (optionen) => new ReaktionModul(optionen)],
@@ -59,6 +61,11 @@ export function rundenText(serverInfo) {
     return runde > 0 ? `Runde ${runde} von ${gesamt}` : `${gesamt} ${gesamt === 1 ? "Runde" : "Runden"}`;
 }
 
+// Sonderregel oder Joker-Runde: die Vorphase vor einer gewoehnlichen Frage, keine Minispiel-Runde.
+function vorDerFrage(serverInfo) {
+    return !!serverInfo.specialRule || serverInfo.prePhase === PrePhases.Joker;
+}
+
 export class MinigameLayout {
     constructor(actions, optionen = {}) {
         this.actions = actions;
@@ -66,6 +73,7 @@ export class MinigameLayout {
         this.now = optionen.now;
         this.module = optionen.module ?? MODULE;
         this.sonderregeln = optionen.sonderregeln ?? SONDERREGELN;
+        this.joker = optionen.joker ?? (() => new JokerModul());
         this.root = null;
         this.titel = null;
         this.runde = null;
@@ -108,7 +116,7 @@ export class MinigameLayout {
         const artInfo = serverInfo.kindInfo ?? {};
 
         this.titel.textContent = serverInfo.title || "Minispiel";
-        this.runde.textContent = serverInfo.specialRule ? "Vor der Frage" : rundenText(serverInfo);
+        this.runde.textContent = vorDerFrage(serverInfo) ? "Vor der Frage" : rundenText(serverInfo);
 
         // Neu aufbauen nur, wenn sich Durchgang, Phase, eigene Abgabe oder Sperre aendern - sonst
         // startete ein Update mitten in der Wartezeit die Uhr neu.
@@ -151,6 +159,7 @@ export class MinigameLayout {
             case MinigamePhases.Finished:
                 this.status.textContent = serverInfo.aborted
                     ? "Der Spielleiter hat das Minispiel beendet."
+                    : serverInfo.prePhase === PrePhases.Joker ? "Joker-Runde zu – gleich kommt die Frage."
                     : serverInfo.specialRule ? "Abgegeben ist abgegeben – gleich kommt die Frage." : "Minispiel vorbei.";
                 modul?.zeigeEnde(artInfo);
                 break;
@@ -165,14 +174,15 @@ export class MinigameLayout {
     countdown(serverInfo, artInfo, modul) {
         const kind = serverInfo.kind;
         const specialRule = serverInfo.specialRule ?? SpecialRules.None;
+        const prePhase = serverInfo.prePhase ?? PrePhases.None;
         const durchgang = serverInfo.durchgang;
-        const senden = (payload) => this.actions.submitAction({ kind, specialRule, durchgang, payload });
+        const senden = (payload) => this.actions.submitAction({ kind, specialRule, prePhase, durchgang, payload });
         let rest = Math.max(0, serverInfo.countdownSeconds ?? 0);
 
         const tick = () => {
             if (rest <= 0) {
                 this.countdownUhr = null;
-                this.status.textContent = specialRule ? (serverInfo.rulesText || "Los!") : "Los!";
+                this.status.textContent = specialRule || prePhase ? (serverInfo.rulesText || "Los!") : "Los!";
                 modul?.starte(artInfo, senden);
                 return;
             }
@@ -186,10 +196,11 @@ export class MinigameLayout {
         tick();
     }
 
-    // Eine Sonderregel (M35 C3) hat Vorrang vor der Art - ihre Vorphase traegt keine.
+    // Joker-Runde (M35 C7b) und Sonderregel (M35 C3) haben Vorrang vor der Art - ihre Vorphase traegt keine.
     modulFuer(serverInfo) {
         const regel = serverInfo.specialRule ?? SpecialRules.None;
-        const schluessel = regel ? `regel-${regel}` : serverInfo.kind;
+        const joker = serverInfo.prePhase === PrePhases.Joker;
+        const schluessel = joker ? "joker" : regel ? `regel-${regel}` : serverInfo.kind;
         if (this.modulArt === schluessel && this.modul) return this.modul;
 
         this.modul?.dispose?.();
@@ -197,7 +208,7 @@ export class MinigameLayout {
         this.modul = null;
         this.modulArt = schluessel;
 
-        const fabrik = regel ? this.sonderregeln.get(regel) : this.module.get(serverInfo.kind);
+        const fabrik = joker ? this.joker : regel ? this.sonderregeln.get(regel) : this.module.get(serverInfo.kind);
         if (!fabrik) {
             this.feld.innerHTML = `<div class="layout-empty">Dieses Minispiel kennt das Telefon noch nicht.</div>`;
             return null;

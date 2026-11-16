@@ -57,6 +57,16 @@ spur.length = 0;
 manager.update({ host: wurzel, currentLayout: 1, excluded: true, currentLayoutLocked: true });
 pruefe(spur.includes("dispose") && satz() != null && knopf() == null, "Die Sperre mitten in der Frage zeigt den Satz nicht: " + spur.join(", "));
 
+// --- M35 C7b: mit eigenem Satz vom Server (Joker-Sperre) steht dieser, nicht der allgemeine ---
+const grund = "Anna hat dich per Joker gesperrt – du schaust zu.";
+spur.length = 0;
+manager.update({ host: wurzel, currentLayout: 1, excluded: true, excludedReason: grund, currentLayoutLocked: true });
+pruefe(satz()?.textContent === grund, "Der Satz des Servers steht nicht da: " + satz()?.textContent);
+manager.update({ host: wurzel, currentLayout: 1, excluded: true, excludedReason: grund, currentLayoutLocked: true });
+pruefe(spur.length === 0 && satz()?.textContent === grund, "Derselbe Satz baute neu auf: " + spur.join(", "));
+manager.update({ host: wurzel, currentLayout: 1, excluded: true, currentLayoutLocked: true });
+pruefe((satz()?.textContent ?? "").includes(EXCLUDED_TEXT), "Ohne Satz des Servers kommt der allgemeine nicht zurueck: " + satz()?.textContent);
+
 if (fehler > 0) {
     console.error(`${fehler} Zusicherung(en) rot.`);
     process.exit(1);

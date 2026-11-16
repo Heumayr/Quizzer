@@ -107,13 +107,15 @@ namespace LocalBuzzer.Service.Base
 
         /// <summary>
         /// Nur diese duerfen die gewoehnliche Frage beantworten (M35 C3b); <c>null</c>: alle. Die Telefone der
-        /// anderen sind gesperrt und sagen es, auch nach dem Wiederverbinden.
+        /// anderen sind gesperrt und sagen es, auch nach dem Wiederverbinden - mit <paramref name="saetze"/> je Gesperrtem
+        /// eigens, etwa wer ihn per Joker gesperrt hat (M35 C7b).
         /// </summary>
-        public async Task SetAnswerersAsync(IEnumerable<Guid>? antwortende, CancellationToken ct = default)
+        public async Task SetAnswerersAsync(
+            IEnumerable<Guid>? antwortende, IReadOnlyDictionary<Guid, string>? saetze = null, CancellationToken ct = default)
         {
             CheckServerRunning();
 
-            StateManager.AnswerLock.Restrict(antwortende);
+            StateManager.AnswerLock.Restrict(antwortende, saetze);
 
             await SendStateAsync(ct);
         }

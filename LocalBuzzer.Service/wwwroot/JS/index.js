@@ -21,6 +21,7 @@ const state = {
     allLocked: false,
     zeitAbgelaufen: false,
     excluded: false,
+    excludedReason: null,
     winner: null,
     replaced: false,
     conn: null
@@ -39,6 +40,7 @@ function buildContext() {
         currentLayoutLocked: state.currentLayoutLocked,
         allLocked: state.allLocked,
         excluded: state.excluded,
+        excludedReason: state.excludedReason,
         winner: state.winner
     };
 }
@@ -87,6 +89,7 @@ function applyServerState(serverState) {
     state.allLocked = serverState.allLocked ?? false;
     state.zeitAbgelaufen = serverState.zeitAbgelaufen ?? false;
     state.excluded = serverState.excludedFromQuestion ?? false;
+    state.excludedReason = serverState.excludedReason ?? null;
     state.winner = serverState.winner ?? null;
 
     if (state.zeitAbgelaufen && !warAbgelaufen) {

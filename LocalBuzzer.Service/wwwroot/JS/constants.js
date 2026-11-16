@@ -45,6 +45,12 @@ export const SpecialRules = Object.freeze({
     Bounty: 7
 });
 
+// M35 C7b: die Zahlen von MinigamePrePhase am Server - die Joker-Runde laeuft im Minispiel-Rahmen.
+export const PrePhases = Object.freeze({
+    None: 0,
+    Joker: 1
+});
+
 export const ReactionOutcomes = Object.freeze({
     Valid: 1,
     FalseStart: 2,

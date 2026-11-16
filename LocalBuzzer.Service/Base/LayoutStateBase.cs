@@ -121,6 +121,7 @@ namespace LocalBuzzer.Service.Base
                 CurrentLayoutLocked = (CurrentState?.IsLockedFor(player) ?? true) || ZeitAbgelaufen || ausgeschlossen,
                 ZeitAbgelaufen = ZeitAbgelaufen,
                 ExcludedFromQuestion = ausgeschlossen,
+                ExcludedReason = ausgeschlossen && player != null ? AnswerLock.ReasonFor(player.Id) : null,
                 AllLocked = AllLocked,
                 LayoutInfo = CurrentState?.InfoFor(player),
                 Winner = BuzzerState.Winner?.CalculatedDisplayName

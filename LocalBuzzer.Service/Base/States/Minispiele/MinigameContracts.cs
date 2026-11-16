@@ -1,3 +1,4 @@
+using LocalBuzzer.Service.Base.States.Joker;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Questions.Minispiele;
@@ -36,6 +37,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         /// <summary>Die Sonderregel, deren Vorphase das Telefon sah (M35 C3) - eine andere als die laufende wird verworfen.</summary>
         public CellSpecialRule SpecialRule { get; set; }
 
+        /// <summary>Die Vorphase, die das Telefon sah (M35 C7b, Joker-Runde) - eine andere als die laufende wird verworfen.</summary>
+        public MinigamePrePhase PrePhase { get; set; }
+
         /// <summary>Die Abgabe selbst; ihr Aufbau haengt an der Art.</summary>
         public JsonElement Payload { get; set; }
     }
@@ -47,6 +51,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
         /// <summary>Gesetzt, wenn der Rahmen die Vorphase einer Sonderregel spielt (M35 C3) - dann zaehlt sie, nicht die Art.</summary>
         public CellSpecialRule SpecialRule { get; set; }
+
+        /// <summary>Gesetzt, wenn der Rahmen die Joker-Runde spielt (M35 C7b) - dann zaehlt sie, nicht Art oder Regel.</summary>
+        public MinigamePrePhase PrePhase { get; set; }
 
         /// <summary>„Reaktion" - die Ueberschrift am Telefon.</summary>
         public string Title { get; set; } = string.Empty;
@@ -104,11 +111,16 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
     /// <param name="Balances">Kontostand je Spieler beim Einstellen - beim Einsatz Teil der Obergrenze.</param>
     /// <param name="Share">Anteil der Sonderregel in Prozent der Feldpunkte (M35 C3b) - die Wette zeigt daraus den Einsatz.</param>
     /// <param name="Content">Die Zeilen der Frage - Aussagen samt Wahrheit, Begriffe (M35 C5); sie bleiben am Server.</param>
+    /// <param name="Jokers">Gesetzt: statt einer Art die Joker-Runde (M35 C7b) - je Spieler seine offenen Joker.</param>
     public sealed record MinigameSetup(
         MinigameKind Kind, string Title, string RulesText, int TotalRounds, int CountdownSeconds = 3, int DurationSeconds = 0,
         Guid? TriggerPlayerId = null, int Variant = 0, CellSpecialRule SpecialRule = CellSpecialRule.None,
         int FieldPoints = 0, IReadOnlyDictionary<Guid, int>? Balances = null, int Share = 0,
-        IReadOnlyList<MinispielZeile>? Content = null);
+        IReadOnlyList<MinispielZeile>? Content = null, IReadOnlyDictionary<Guid, IReadOnlyList<JokerOffer>>? Jokers = null)
+    {
+        /// <summary>Die Vorphase, die der Rahmen spielt - einzig aus <see cref="Jokers"/> abgeleitet.</summary>
+        public MinigamePrePhase PrePhase => Jokers != null ? MinigamePrePhase.Joker : MinigamePrePhase.None;
+    }
 
     /// <summary>
     /// Die Regeln einer Art am Server: was eine gueltige Abgabe ist und was ein Spieler sieht. Der

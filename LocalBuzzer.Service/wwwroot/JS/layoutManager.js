@@ -8,6 +8,7 @@ export class LayoutManager {
         this.activeLayout = null;
         this.activeLayoutId = null;
         this.excluded = false;
+        this.excludedReason = null;
     }
 
     register(layoutId, layout) {
@@ -18,10 +19,12 @@ export class LayoutManager {
         this.clear(context.host);
         this.activeLayoutId = layoutId;
         this.excluded = !!context.excluded;
+        this.excludedReason = context.excludedReason ?? null;
 
         // Gesperrt fuer diese Frage: statt des Layouts der Satz, wer antwortet - nie nur ein grauer Knopf.
+        // Mit eigenem Satz vom Server (M35 C7b: wer per Joker gesperrt hat) steht dieser.
         if (this.excluded) {
-            this.showExcluded(context.host);
+            this.showExcluded(context.host, this.excludedReason);
             return;
         }
 
@@ -57,13 +60,13 @@ export class LayoutManager {
         host.appendChild(root);
     }
 
-    showExcluded(host) {
+    showExcluded(host, reason = null) {
         const root = document.createElement("div");
         root.className = "layout layout-ausgeschlossen";
 
         const message = document.createElement("p");
         message.className = "ausgeschlossen-text";
-        message.textContent = `${EXCLUDED_TEXT} – du schaust zu.`;
+        message.textContent = reason || `${EXCLUDED_TEXT} – du schaust zu.`;
 
         root.appendChild(message);
         host.appendChild(root);
@@ -80,8 +83,8 @@ export class LayoutManager {
     }
 
     update(context) {
-        // Die Sperre fuer diese Frage kam oder ging: neu aufbauen, nicht nur sperren.
-        if (!!context.excluded !== this.excluded) {
+        // Die Sperre fuer diese Frage kam, ging oder bekam einen anderen Satz: neu aufbauen, nicht nur sperren.
+        if (!!context.excluded !== this.excluded || (this.excluded && (context.excludedReason ?? null) !== this.excludedReason)) {
             this.switchTo(context.currentLayout ?? this.activeLayoutId, context);
             return;
         }

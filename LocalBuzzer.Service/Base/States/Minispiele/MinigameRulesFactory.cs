@@ -16,11 +16,12 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         public TimeSpan Jetzt() => Uhr?.Invoke() ?? TimeProvider.System.GetElapsedTime(0);
     }
 
-    /// <summary>Die Regeln zur Art - die einzige Stelle am Server, die nach der Art verzweigt; Sonderregeln (M35 C3) eigens.</summary>
+    /// <summary>Die Regeln zur Art - die einzige Stelle am Server, die nach der Art verzweigt; Sonderregeln (M35 C3) und Joker-Runde (C7b) eigens.</summary>
     internal static class MinigameRulesFactory
     {
         public static IMinigameRules? For(MinigameSetup setup, MinigameRulesContext kontext)
-            => setup.SpecialRule != CellSpecialRule.None ? Sonderregeln.SpecialRuleRulesFactory.For(setup, kontext) : setup.Kind switch
+            => setup.PrePhase == Joker.MinigamePrePhase.Joker ? new Joker.JokerRules(setup, kontext)
+            : setup.SpecialRule != CellSpecialRule.None ? Sonderregeln.SpecialRuleRulesFactory.For(setup, kontext) : setup.Kind switch
         {
             MinigameKind.Reaction => new ReactionRules(kontext.Zufall, kontext.NameVon),
             MinigameKind.TapSprint => new TapSprintRules(setup.DurationSeconds, kontext.NameVon),

@@ -227,5 +227,9 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// <summary>M35 C3b: Wette, Experte, Allianz - die Frage des Servers, genau eine Wahl, die eigene als Satz.</summary>
         [TestMethod]
         public void TheSpecialRuleChoiceSendsOneIdAndShowsItAsText() => LaufeMit("wahl.test.mjs");
+
+        /// <summary>M35 C7b: Joker-Runde - nur eigene Joker, Sperre mit Ziel, genau einmal, prePhase im Rahmen, Ende fuer alle.</summary>
+        [TestMethod]
+        public void TheJokerRoundSendsOwnJokerOnceAndShowsWhoUsedWhat() => LaufeMit("joker.test.mjs");
     }
 }

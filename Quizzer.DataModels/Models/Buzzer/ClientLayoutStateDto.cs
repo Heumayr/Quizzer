@@ -47,6 +47,9 @@ namespace Quizzer.DataModels.Models.Buzzer
         /// </summary>
         public bool ExcludedFromQuestion { get; set; }
 
+        /// <summary>Warum gerade dieses Telefon gesperrt ist, etwa „Anna hat dich per Joker gesperrt" (M35 C7b); sonst leer.</summary>
+        public string? ExcludedReason { get; set; }
+
         /// <summary>
         /// Layout-spezifische Zusatzinformationen (z.B. Antwort-Optionen bei KeySelect).
         /// Der Typ hängt vom aktiven <see cref="Layout"/> ab und wird client-seitig deserialisiert.

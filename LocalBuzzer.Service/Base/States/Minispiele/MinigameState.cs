@@ -92,6 +92,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
                 {
                     Kind = setup.Kind,
                     SpecialRule = setup.SpecialRule,
+                    PrePhase = setup.PrePhase,
                     Title = setup.Title,
                     RulesText = setup.RulesText,
                     Phase = Phase,
@@ -242,8 +243,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
                 if (rules == null || Locked || Phase != MinigamePhase.Running)
                     return MinigameSubmitResult.Rejected;
 
-                // Fremde Art oder Sonderregel, alter Durchgang, gesperrter Spieler, Zuschauer, zweite Abgabe: verworfen.
-                if (action.Kind != setup.Kind || action.SpecialRule != setup.SpecialRule || action.Durchgang != durchgang
+                // Fremde Art, Sonderregel oder Vorphase, alter Durchgang, gesperrter Spieler, Zuschauer, zweite Abgabe: verworfen.
+                if (action.Kind != setup.Kind || action.SpecialRule != setup.SpecialRule || action.PrePhase != setup.PrePhase
+                    || action.Durchgang != durchgang
                     || gesperrt.Contains(player.Id) || !rules.Plays(player.Id) || rules.HasSubmitted(player.Id))
                     return MinigameSubmitResult.Rejected;
 
