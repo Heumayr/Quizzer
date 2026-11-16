@@ -109,7 +109,9 @@ namespace Quizzer.Server.Tests
             var created = await admin.PostAsJsonAsync("/api/v1/accounts", new CreateAccountRequest(name, "Zweiter-Admin-Kennwort-1", AccountRole.Admin, null, "Zweiter"));
             var second = (await created.Content.ReadFromJsonAsync<AccountListItem>())!;
 
-            var secondClient = ServerTestHost.Authorized(factory, await ServerTestHost.LoginAsync(factory.CreateClient(), name, "Zweiter-Admin-Kennwort-1"));
+            // Seit M36 A5 darf ein Admin erst mit eingerichtetem TOTP etwas.
+            var restricted = ServerTestHost.Authorized(factory, await ServerTestHost.LoginAsync(factory.CreateClient(), name, "Zweiter-Admin-Kennwort-1"));
+            var secondClient = ServerTestHost.Authorized(factory, (await ServerTestHost.EnableTotpAsync(restricted)).Confirmed.Tokens);
             Assert.AreEqual(HttpStatusCode.OK, (await secondClient.GetAsync("/api/v1/accounts")).StatusCode);
 
             await admin.PutAsJsonAsync($"/api/v1/accounts/{second.AccountId}", new UpdateAccountRequest(null, AccountRole.Member, null));

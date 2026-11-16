@@ -10,7 +10,12 @@ namespace Quizzer.Server.Auth
 
         public const string RoleClaim = "role";
 
+        /// <summary>Ob das Konto beim Ausstellen TOTP eingeschaltet hatte (M36 A5).</summary>
+        public const string TotpClaim = "totp";
+
         public bool IsAdmin => Role == AccountRole.Admin;
+
+        public static bool HasTotp(ClaimsPrincipal user) => user.FindFirstValue(TotpClaim) == "true";
 
         public static CurrentAccount From(ClaimsPrincipal user)
         {

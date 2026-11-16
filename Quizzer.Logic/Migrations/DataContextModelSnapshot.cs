@@ -63,6 +63,16 @@ namespace Quizzer.Logic.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<bool>("TotpEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("TotpLastStep")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("TotpSecretProtected")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -77,6 +87,34 @@ namespace Quizzer.Logic.Migrations
                         .IsUnique();
 
                     b.ToTable("Account", "auth");
+                });
+
+            modelBuilder.Entity("Quizzer.DataModels.Models.Auth.AccountRecoveryCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId", "CodeHash")
+                        .IsUnique();
+
+                    b.ToTable("AccountRecoveryCode", "auth");
                 });
 
             modelBuilder.Entity("Quizzer.DataModels.Models.Auth.RefreshToken", b =>
@@ -717,6 +755,17 @@ namespace Quizzer.Logic.Migrations
                         .IsRequired();
 
                     b.Navigation("Player");
+                });
+
+            modelBuilder.Entity("Quizzer.DataModels.Models.Auth.AccountRecoveryCode", b =>
+                {
+                    b.HasOne("Quizzer.DataModels.Models.Auth.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("Quizzer.DataModels.Models.Auth.RefreshToken", b =>

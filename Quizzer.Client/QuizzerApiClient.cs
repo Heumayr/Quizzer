@@ -105,9 +105,11 @@ namespace Quizzer.Client
         public async Task<VersionResponse> GetVersionAsync(CancellationToken ct = default)
             => await SendAsync<VersionResponse>(HttpMethod.Get, "version", null, authorized: false, ct);
 
-        public async Task<TokenResponse> LoginAsync(string userName, string password, CancellationToken ct = default)
+        /// <summary>Wirft <see cref="TotpRequiredException"/>, wenn das Konto einen Code verlangt und keiner mitkam.</summary>
+        public async Task<TokenResponse> LoginAsync(string userName, string password, string? totpCode = null, CancellationToken ct = default)
         {
-            var tokens = await SendAsync<TokenResponse>(HttpMethod.Post, "auth/login", new LoginRequest(userName, password), authorized: false, ct);
+            var request = new LoginRequest(userName, password, string.IsNullOrWhiteSpace(totpCode) ? null : totpCode.Trim());
+            var tokens = await SendAsync<TokenResponse>(HttpMethod.Post, "auth/login", request, authorized: false, ct);
             Accept(tokens);
             return tokens;
         }
@@ -149,8 +151,41 @@ namespace Quizzer.Client
         public Task<AccountInfo> GetMeAsync(CancellationToken ct = default)
             => SendAsync<AccountInfo>(HttpMethod.Get, "me", null, authorized: true, ct);
 
-        public Task ChangePasswordAsync(string current, string next, CancellationToken ct = default)
-            => SendAsync<object>(HttpMethod.Post, "me/password", new ChangePasswordRequest(current, next), authorized: true, ct);
+        /// <summary>
+        /// <c>true</c>, wenn der Server gleich neue Ausweise mitgab (seit M36 A5); sonst muss der
+        /// Aufrufer sich neu anmelden, denn das Aendern beendet alle Sitzungen.
+        /// </summary>
+        public async Task<bool> ChangePasswordAsync(string current, string next, CancellationToken ct = default)
+        {
+            var tokens = await SendAsync<TokenResponse?>(HttpMethod.Post, "me/password", new ChangePasswordRequest(current, next), authorized: true, ct);
+            if (tokens == null)
+                return false;
+
+            Accept(tokens);
+            return true;
+        }
+
+        // M36 A5: Zwei-Faktor-Anmeldung. Bestaetigen liefert neue Ausweise, die den Stand tragen.
+        public Task<TotpSetupResponse> BeginTotpSetupAsync(CancellationToken ct = default)
+            => SendAsync<TotpSetupResponse>(HttpMethod.Post, "me/totp/setup", null, authorized: true, ct);
+
+        public async Task<IReadOnlyList<string>> ConfirmTotpAsync(string code, CancellationToken ct = default)
+        {
+            var result = await SendAsync<TotpConfirmResponse>(HttpMethod.Post, "me/totp/confirm", new TotpConfirmRequest(code.Trim()), authorized: true, ct);
+            Accept(result.Tokens);
+            return result.RecoveryCodes;
+        }
+
+        public async Task DisableTotpAsync(string password, string code, CancellationToken ct = default)
+        {
+            await SendAsync<object>(HttpMethod.Post, "me/totp/disable", new TotpDisableRequest(password, code.Trim()), authorized: true, ct);
+            if (Account != null)
+                Account = Account with { TotpEnabled = false };
+        }
+
+        /// <summary>Nur fuer den Admin: TOTP eines anderen Kontos zuruecksetzen (verlorenes Handy).</summary>
+        public Task ResetTotpAsync(Guid accountId, CancellationToken ct = default)
+            => SendAsync<object>(HttpMethod.Delete, $"accounts/{accountId}/totp", null, authorized: true, ct);
 
         public Task<StatisticsResponse> GetStatisticsAsync(CancellationToken ct = default)
             => SendAsync<StatisticsResponse>(HttpMethod.Get, "me/statistics", null, authorized: true, ct);
@@ -354,17 +389,24 @@ namespace Quizzer.Client
                 return;
 
             string message;
+            string? code = null;
             try
             {
                 var error = await response.Content.ReadFromJsonAsync<ApiError>(Json, ct);
                 message = string.IsNullOrWhiteSpace(error?.Message) ? DefaultMessage(response.StatusCode) : error.Message;
+                code = error?.Code;
             }
             catch (Exception)
             {
                 message = DefaultMessage(response.StatusCode);
             }
 
-            throw new ApiException(response.StatusCode, message);
+            throw code switch
+            {
+                ApiErrorCodes.TotpRequired => new TotpRequiredException(message),
+                ApiErrorCodes.TotpSetupRequired => new TotpSetupRequiredException(message),
+                _ => new ApiException(response.StatusCode, message),
+            };
         }
 
         private static string DefaultMessage(HttpStatusCode status) => status switch

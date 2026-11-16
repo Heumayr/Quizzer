@@ -239,7 +239,8 @@ namespace Quizzer.Server.Tests
 
             var (zweiter, ki) = Server(ordner, Convert.ToBase64String(Enumerable.Range(0, 32).Select(i => (byte)(255 - i)).ToArray()));
             await using var _ = zweiter;
-            var admin = await AdminAsync(zweiter);
+            // Der neue Schluessel macht auch das TOTP-Geheimnis unlesbar (M36 A5) - bleibt ein Wiederherstellungscode.
+            var admin = await ServerTestHost.AdminWithRecoveryCodeAsync(zweiter);
 
             var status = (await admin.GetFromJsonAsync<KiStatusDto>("/api/v1/ki/status"))!;
             Assert.IsFalse(status.Verfuegbar);
@@ -257,7 +258,7 @@ namespace Quizzer.Server.Tests
             ki.Antwort = _ => Entwurf(QuestionType.Appreciate);
 
             using var api = new Quizzer.Client.QuizzerApiClient(new Uri("https://localhost/api/v1/"), new Quizzer.Client.MemoryTokenStore(), handler: factory.Server.CreateHandler());
-            await api.LoginAsync(ServerTestHost.AdminUser, ServerTestHost.AdminPassword);
+            await api.LoginAsync(ServerTestHost.AdminUser, ServerTestHost.AdminPassword, ServerTestHost.NextAdminCode());
 
             await api.PutKiEinstellungenAsync(new KiEinstellungenDto { Anbieter = KiAnbieter.OpenAiKompatibel, Adresse = "http://ollama:11434/v1", Modell = "llama3.1", Tageslimit = 5 });
             var gelesen = await api.GetKiEinstellungenAsync();

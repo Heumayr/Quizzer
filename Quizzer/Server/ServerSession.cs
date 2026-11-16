@@ -52,6 +52,9 @@ namespace Quizzer.Server
         /// <summary>Der Datenbankname der lokalen Zwischendatenbank eines Kontos.</summary>
         public static string CacheDatabaseName(Guid accountId) => "Quizzer_Server_" + accountId.ToString("N")[..12];
 
+        /// <summary>Nur fuer Tests: ein Client gegen einen Ersatzserver statt aus den Einstellungen.</summary>
+        internal static void UseApiForTests(QuizzerApiClient? api) => Api = api;
+
         /// <summary>Baut den Client aus den Einstellungen. Wirft bei einer ungueltigen Adresse.</summary>
         public static QuizzerApiClient CreateApi()
         {
@@ -206,6 +209,10 @@ namespace Quizzer.Server
             }
 
             if (api.Account is not { } account || account.AccountId != offline.AccountId)
+                return WiederverbindungsErgebnis.AnmeldungNoetig;
+
+            // Ein Admin ohne Zwei-Faktor-Anmeldung darf nichts abgleichen (M36 A5) - erst anmelden und einrichten.
+            if (account is { Role: DataModels.Enumerations.AccountRole.Admin, TotpEnabled: false })
                 return WiederverbindungsErgebnis.AnmeldungNoetig;
 
             Sync = new ClientSyncService(api, () => new SyncStore(cache), new FileSyncStateStore(StatePath(api.BaseAddress, account.AccountId)), Settings.FilePathQuizzer);

@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:base="clr-namespace:Quizzer.Base"
         xmlns:local="clr-namespace:Quizzer.Server"
-        Title="Anmelden" Height="460" Width="560"
+        Title="Anmelden" Height="520" Width="560"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize">
     <base:WindowBase.DataContext>
@@ -37,6 +37,12 @@
 
                 <TextBlock Text="Kennwort" Style="{StaticResource SectionHeader}" Margin="0,12,0,0" />
                 <PasswordBox x:Name="Kennwortfeld" PasswordChanged="Kennwortfeld_PasswordChanged" Height="34" />
+
+                <StackPanel Visibility="{Binding CodeVisibility}">
+                    <TextBlock Text="Code aus der Authenticator-App" Style="{StaticResource SectionHeader}" Margin="0,12,0,0" />
+                    <TextBox Text="{Binding Code, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center"
+                             ToolTip="Sechs Ziffern aus der App auf deinem Handy - oder einer deiner Wiederherstellungscodes." />
+                </StackPanel>
 
                 <TextBlock Text="{Binding Error}" Visibility="{Binding ErrorVisibility}"
                            Foreground="#FF8A80" Margin="0,10,0,0" TextWrapping="Wrap" />

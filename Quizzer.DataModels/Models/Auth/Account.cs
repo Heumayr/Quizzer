@@ -50,6 +50,18 @@ namespace Quizzer.DataModels.Models.Auth
 
         public DateTimeOffset? LastLoginAt { get; set; }
 
+        /// <summary>
+        /// TOTP-Geheimnis, AES-GCM-verschluesselt (M36 A5). Gesetzt, aber <see cref="TotpEnabled"/>
+        /// noch aus: die Einrichtung ist begonnen und nicht bestaetigt.
+        /// </summary>
+        [MaxLength(200)]
+        public string? TotpSecretProtected { get; set; }
+
+        public bool TotpEnabled { get; set; }
+
+        /// <summary>Der zuletzt angenommene Zeitschritt - ein Code darf nur einmal gelten.</summary>
+        public long? TotpLastStep { get; set; }
+
         [Timestamp]
         public byte[]? RowVersion { get; set; }
 
