@@ -374,14 +374,37 @@ namespace Quizzer.Client
             }
             catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
             {
-                throw new ServerUnreachableException("Der Server antwortet nicht (Zeitüberschreitung).", ex);
+                // Gemessen (M36 A6): die Verbindungsfrist des Handlers kommt mit TimeoutException innen,
+                // die eigene Antwortfrist ohne - dann ist der Server da, nur langsam.
+                throw new ServerUnreachableException(
+                    ex.InnerException is TimeoutException ? ServerDown + " (keine Antwort)" : "Der Server antwortet nicht (Zeitüberschreitung).", ex);
             }
         }
 
+        /// <summary>Server aus, Rechner aus, Tunnel ohne Gegenstelle - so liest es der Nutzer (M36 A6).</summary>
+        public const string Unreachable = "Der Quizzer-Server ist gerade nicht erreichbar.";
+
+        public const string ServerDown = Unreachable + " Läuft der Rechner, auf dem er steht?";
+
         private static string DescribeUnreachable(HttpRequestException ex)
-            => ex.InnerException is System.Security.Authentication.AuthenticationException
-                ? "Das Zertifikat des Servers wurde nicht angenommen. Ist die Adresse richtig, oder gehört ein Fingerabdruck in die Einstellungen?"
-                : "Der Server ist nicht erreichbar: " + ex.Message;
+        {
+            if (ex.InnerException is System.Security.Authentication.AuthenticationException)
+                return "Das Zertifikat des Servers wurde nicht angenommen. Ist die Adresse richtig, oder gehört ein Fingerabdruck in die Einstellungen?";
+
+            return ex.HttpRequestError switch
+            {
+                HttpRequestError.ConnectionError => ServerDown + " (Verbindung abgelehnt)",
+                HttpRequestError.NameResolutionError => Unreachable + " Die Adresse ist unbekannt - stimmt sie, und hat dieser Rechner Netz?",
+                _ => "Der Server ist nicht erreichbar: " + ex.Message,
+            };
+        }
+
+        /// <summary>
+        /// Antworten eines Tunnels oder Proxys, wenn hinter ihm niemand antwortet (Cloudflare 52x/530,
+        /// Caddy 502). Traegt der Rumpf eine eigene Meldung des Servers, ist es keine.
+        /// </summary>
+        private static bool IsGatewayStatus(HttpStatusCode status)
+            => (int)status is 502 or 503 or 504 or (>= 520 and <= 530);
 
         private static async Task EnsureSuccessAsync(HttpResponseMessage response, CancellationToken ct)
         {
@@ -390,15 +413,24 @@ namespace Quizzer.Client
 
             string message;
             string? code = null;
+            var fromServer = false;
             try
             {
                 var error = await response.Content.ReadFromJsonAsync<ApiError>(Json, ct);
-                message = string.IsNullOrWhiteSpace(error?.Message) ? DefaultMessage(response.StatusCode) : error.Message;
+                fromServer = !string.IsNullOrWhiteSpace(error?.Message);
+                message = fromServer ? error!.Message : DefaultMessage(response.StatusCode);
                 code = error?.Code;
             }
             catch (Exception)
             {
                 message = DefaultMessage(response.StatusCode);
+            }
+
+            if (!fromServer && IsGatewayStatus(response.StatusCode))
+            {
+                var status = (int)response.StatusCode;
+                throw new ServerUnreachableException($"{ServerDown} (Antwort {status} vom Tunnel oder Proxy)",
+                    new HttpRequestException($"HTTP {status}", null, response.StatusCode));
             }
 
             throw code switch
