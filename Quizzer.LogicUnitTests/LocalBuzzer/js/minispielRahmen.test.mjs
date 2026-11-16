@@ -121,6 +121,12 @@ pruefe(status().includes("schaust zu"), "Ein gesperrter Spieler erfaehrt nicht, 
 uhr.vor(10000);
 pruefe(!flaeche().classList.contains("reaktion-jetzt"), "Beim gesperrten Spieler laeuft die Reaktion trotzdem.");
 
+// M35 C2: sagt die Art, wer gerade spielt, steht das statt des allgemeinen Satzes da.
+const zuschauer = zustand(1, 13, { currentRound: 1, watcherText: "Anna wählt einen Gegner …" }, {});
+zuschauer.currentLayoutLocked = true;
+neuAufbauen(zuschauer);
+pruefe(status() === "Anna wählt einen Gegner …", "Der Zuschauertext der Art kommt nicht an: " + status());
+
 // --- Ende ---
 rahmen.update(zustand(3, 9, { currentRound: 3 },
     { isWinner: false, winnerNames: ["Bert"], winnerMilliseconds: 199, bestMilliseconds: 250 }));

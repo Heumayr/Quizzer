@@ -152,5 +152,24 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// </summary>
         [TestMethod]
         public void TheStopwatchMeasuresOnThePhone() => LaufeMit("stoppuhr.test.mjs");
+
+        /// <summary>M35 C2: Spielerwahl - je Mitspieler eine Taste, genau eine Wahl, gesperrt keine.</summary>
+        [TestMethod]
+        public void ThePlayerChoiceSendsOneChosenId() => LaufeMit("spielerwahl.test.mjs");
+
+        /// <summary>
+        /// M35 C2: Duell - Gegnerwahl, ein Zug Schere-Stein-Papier, der fremde Zug nur vom Server,
+        /// die Reaktion aus B3 als zweite Disziplin.
+        /// </summary>
+        [TestMethod]
+        public void TheDuelChoosesAnOpponentAndKeepsTheMoveSecret() => LaufeMit("duell.test.mjs");
+
+        /// <summary>M35 C2: Raeuber und Waechter - Schild oder Opfer, genau eine Wahl, Aufloesung vom Server.</summary>
+        [TestMethod]
+        public void TheRobberChoosesShieldOrVictim() => LaufeMit("raeuber.test.mjs");
+
+        /// <summary>M35 C2: Teilen oder Nehmen - Partnerwahl, eine Entscheidung, die vier Ausgaenge.</summary>
+        [TestMethod]
+        public void ShareOrTakeDecidesOnceAndShowsTheOutcome() => LaufeMit("teilen.test.mjs");
     }
 }

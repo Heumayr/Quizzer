@@ -25,6 +25,9 @@ namespace Quizzer.UnitTests.Views.GameViews
         [DataRow(MinigameKind.Reaction, "ReaktionStepTemplate")]
         [DataRow(MinigameKind.TapSprint, "ReaktionStepTemplate")]
         [DataRow(MinigameKind.Stopwatch, "ReaktionStepTemplate")]
+        [DataRow(MinigameKind.Duel, "ReaktionStepTemplate")]
+        [DataRow(MinigameKind.RobberAndGuard, "ReaktionStepTemplate")]
+        [DataRow(MinigameKind.ShareOrTake, "ReaktionStepTemplate")]
         public void EachKindGetsItsBeamerView(MinigameKind art, string erwartet)
         {
             UiTestHost.Run(() =>

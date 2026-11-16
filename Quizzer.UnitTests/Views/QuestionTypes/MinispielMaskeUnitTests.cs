@@ -147,5 +147,34 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
             Assert.AreEqual(zuKurz, frage.DurationSeconds);
             Assert.IsFalse(vm.CanSave, $"{zuKurz} Sekunden sind speicherbar.");
         }
+
+        /// <summary>
+        /// M35 C2: Duell fragt nach Runden, Spielweise und Anteil, Raeuber nur nach dem Anteil, Teilen nach
+        /// nichts. Ein Anteil von 0 ist nicht speicherbar, wo die Art ihn liest.
+        /// </summary>
+        [TestMethod]
+        [DataRow(MinigameKind.Duel, true, true, true)]
+        [DataRow(MinigameKind.RobberAndGuard, false, true, false)]
+        [DataRow(MinigameKind.ShareOrTake, false, false, false)]
+        public void ThePlayerChoiceKindsAskForWhatTheyRead(MinigameKind art, bool runden, bool anteil, bool spielweise)
+        {
+            var (vm, maske) = Neu();
+
+            maske.Art = MinigameProfiles.For(art);
+            var frage = (MinigameQuestion)vm.Question!;
+
+            Visibility Soll(bool sichtbar) => sichtbar ? Visibility.Visible : Visibility.Collapsed;
+
+            Assert.AreEqual(BuzzerControlsLayout.Minigame, frage.BuzzerControlsLayout);
+            Assert.AreEqual(Soll(runden), maske.RundenVisibility, "Runden");
+            Assert.AreEqual(Soll(anteil), maske.AnteilVisibility, "Anteil");
+            Assert.AreEqual(Soll(spielweise), maske.VarianteVisibility, "Spielweise");
+            Assert.AreEqual(Visibility.Collapsed, maske.DauerVisibility, "Eine Art ohne Uhr fragt nach Sekunden.");
+            Assert.IsTrue(vm.CanSave, "Mit den Vorgaben nicht speicherbar. Offen: "
+                + string.Join(" | ", vm.Issues.Where(i => i.IsError).Select(i => i.Code)));
+
+            maske.Anteil = 0;
+            Assert.AreEqual(!anteil, vm.CanSave, anteil ? "Ein Anteil von 0 ist speicherbar." : "Ein ungelesener Anteil sperrt das Speichern.");
+        }
     }
 }

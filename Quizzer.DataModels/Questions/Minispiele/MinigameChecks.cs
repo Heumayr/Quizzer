@@ -18,6 +18,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         public const string TooFewPlayers = "minigame-too-few-players";
         public const string RoundsOutOfRange = "minigame-rounds-out-of-range";
         public const string DurationOutOfRange = "minigame-duration-out-of-range";
+        public const string ShareOutOfRange = "minigame-share-out-of-range";
 
         /// <summary>Prueft den Inhalt: bekannte Art, bekannte Spielweise, genug Zeilen.</summary>
         public static IEnumerable<ValidationIssue> Content(MinigameQuestion frage)
@@ -47,6 +48,12 @@ namespace Quizzer.DataModels.Questions.Minispiele
                 yield return new(DurationOutOfRange, ValidationSeverity.Error,
                     $"Minispiel {art.DisplayName}: {art.DurationLabel} {art.MinDurationSeconds} bis "
                     + $"{art.MaxDurationSeconds}, eingetragen sind {frage.DurationSeconds}.", nameof(frage.DurationSeconds));
+
+            // Ein Anteil von 0 bewegt nichts - das Spiel liefe ins Leere (M35 C2).
+            if (art.ShowShare && (frage.Share < 1 || frage.Share > 100))
+                yield return new(ShareOutOfRange, ValidationSeverity.Error,
+                    $"Minispiel {art.DisplayName}: Anteil 1 bis 100 Prozent, eingetragen sind {frage.Share}.",
+                    nameof(frage.Share));
 
             var zeilen = (frage.Steps ?? []).Count(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly);
 

@@ -20,5 +20,14 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Stoppuhr: Uhr starten, sie verschwindet nach 3 s, bei der Zielzeit stoppen (M35 C1).</summary>
         Stopwatch = 4,
+
+        /// <summary>Duell: der Ausloeser waehlt einen Gegner, nur die beiden spielen - Schere-Stein-Papier oder Reaktion (M35 C2).</summary>
+        Duel = 5,
+
+        /// <summary>Raeuber und Waechter: alle waehlen geheim „bestehlen: Spieler X" oder „Schild" (M35 C2).</summary>
+        RobberAndGuard = 6,
+
+        /// <summary>Teilen oder Nehmen: Ausloeser und gewaehlter Partner entscheiden geheim um den Topf (M35 C2).</summary>
+        ShareOrTake = 7,
     }
 }

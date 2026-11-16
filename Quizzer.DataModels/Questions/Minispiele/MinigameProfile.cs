@@ -84,6 +84,15 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// <summary>So viele Mitspieler braucht das Spiel - geprueft erst beim Spielstart.</summary>
         public int MinPlayers { get; init; } = 1;
 
+        /// <summary>
+        /// Wie der gewaehlte Mitspieler heisst („Gegner", „Partner"), wo der Ausloeser am Telefon einen
+        /// waehlt (M35 C2); <c>null</c> bei Arten ohne Spielerwahl.
+        /// </summary>
+        public string? PartnerLabel { get; init; }
+
+        /// <summary>Ob der Ausloeser einen Mitspieler waehlt - dann zeigt das Fragefenster die Paarwahl des Spielleiters.</summary>
+        public bool ChoosesPartner => PartnerLabel != null;
+
         /// <summary>Die Spielweise zum gespeicherten Index; ein unbekannter faellt auf die Vorgabe.</summary>
         public MinigameVariant VariantFor(int variant)
             => variant >= 0 && variant < Variants.Count ? Variants[variant] : Variants[0];

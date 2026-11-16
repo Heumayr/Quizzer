@@ -248,6 +248,20 @@
                                 ToolTip="Spielt die laufende oder zuletzt gespielte Runde neu. Ihre bisherigen Zeiten zählen nicht mehr." />
                         <Button Content="Minispiel abbrechen" Command="{Binding AbortMinigameCommand}" Margin="4,6,4,0"
                                 ToolTip="Beendet das Minispiel sofort. Die laufende Runde zählt nicht, gespielte Runden bleiben als Vorschlag." />
+
+                        <!-- M35 C2: wer spielt - der Ausloeser waehlt am Telefon; fehlt er, waehlt hier der Spielleiter (E1). -->
+                        <StackPanel Visibility="{Binding MinispielPaarVisibility}" Margin="4,10,4,0">
+                            <TextBlock Text="Wer fordert (Auslöser)" FontSize="12" Margin="0,0,0,2" />
+                            <ComboBox ItemsSource="{Binding PaarSpieler}" SelectedItem="{Binding PaarWaehler}"
+                                      DisplayMemberPath="CalculatedDisplayName"
+                                      ToolTip="Wer das Feld aufgedeckt hat. Er wählt am Telefon sein Gegenüber – fehlt er, hier wählen." />
+                            <TextBlock Text="{Binding PaarPartnerBeschriftung}" FontSize="12" Margin="0,6,0,2" />
+                            <ComboBox ItemsSource="{Binding PaarSpieler}" SelectedItem="{Binding PaarPartner}"
+                                      DisplayMemberPath="CalculatedDisplayName"
+                                      ToolTip="Leer lassen: der Auslöser wählt am Telefon. Gesetzt: der Spielleiter legt fest, wer mitspielt." />
+                            <Button Content="Paar festlegen" Command="{Binding SetMinigamePairCommand}" Margin="0,6,0,0"
+                                    ToolTip="Legt fest, wer spielt. Mitten in der Runde zählt, was schon abgegeben war, nicht mehr." />
+                        </StackPanel>
                     </StackPanel>
 
                     <!-- V5: Countdown auf dem Beamer. Ein Buzzer haelt ihn an. -->

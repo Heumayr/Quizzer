@@ -63,7 +63,9 @@ namespace Quizzer.Views.GameViews
             var runden = art is { ShowRounds: false } ? 1 : Math.Max(1, frage.Rounds);
 
             BuzzerControlsViewModel.SetMinigameInfo(new MinigameSetup(
-                frage.Kind, titel, MinigameProfiles.RulesFor(frage), runden, DurationSeconds: frage.DurationSeconds));
+                frage.Kind, titel, MinigameProfiles.RulesFor(frage), runden, DurationSeconds: frage.DurationSeconds,
+                TriggerPlayerId: Ausloeser, Variant: frage.Variant));
+            BereitePaarVor();
             BuzzerControlsViewModel.MinigameRoundClosed = OnMinigameRoundClosedAsync;
             BuzzerControlsViewModel.MinigameSubmitted = OnMinigameSubmittedAsync;
             BuzzerControlsViewModel.MinigameReset = OnMinigameReset;
@@ -83,6 +85,9 @@ namespace Quizzer.Views.GameViews
 
         internal async Task StartMinispielRundeAsync()
         {
+            if (!PaarBereit())
+                return;
+
             if (BuzzerControlsViewModel == null || !await BuzzerControlsViewModel.StartMinigameRoundAsync())
                 return;
 

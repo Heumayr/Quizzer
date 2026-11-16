@@ -27,6 +27,13 @@ namespace LocalBuzzer.Service.Hubs
             if (ergebnis.Accepted)
                 _bus.OnMinigameSubmitted(new MinigameSubmission(player, spiel.Round, ergebnis.Value!));
 
+            // Eine Spielerwahl oeffnet die naechste Stufe - jedes Telefon sieht danach etwas anderes (M35 C2).
+            if (ergebnis.Restarted)
+            {
+                await SendStateToEachAsync();
+                return;
+            }
+
             if (ergebnis.Closed != null)
             {
                 _bus.OnMinigameRoundClosed(ergebnis.Closed);

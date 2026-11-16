@@ -38,6 +38,10 @@ namespace Quizzer.Views.BuzzerViews
         public Task AbortMinigameAsync()
             => BuzzerController?.AbortMinigameAsync() ?? Task.CompletedTask;
 
+        /// <summary>Der Spielleiter legt fest, wer spielt (M35 C2, E1).</summary>
+        public Task<bool> SetMinigamePairAsync(Guid chooserId, Guid? partnerId)
+            => BuzzerController?.SetMinigamePairAsync(chooserId, partnerId) ?? Task.FromResult(false);
+
         internal void SubscribeMinigameEvents(BuzzerController? ctrl)
         {
             if (ctrl == null)
@@ -66,6 +70,9 @@ namespace Quizzer.Views.BuzzerViews
                     ReactionAttempt versuch => ReaktionEvaluator.Describe(versuch),
                     TippsprintStand stand => TippsprintEvaluator.Describe(stand.Tipps),
                     StoppuhrVersuch stopp => StoppuhrEvaluator.Describe(stopp),
+
+                    // M35 C2: geheime Wahlen bleiben auch hier „abgegeben" - der Beamer loest sie auf.
+                    PlayerChosen => "hat gewählt",
                     _ => "abgegeben",
                 });
 

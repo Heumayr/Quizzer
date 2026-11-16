@@ -8,7 +8,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
     /// <param name="Accepted">Ob sie zaehlt.</param>
     /// <param name="Value">Was die Art daraus gemacht hat.</param>
     /// <param name="Closed">Gesetzt, wenn die Abgabe die Runde geschlossen hat.</param>
-    public sealed record MinigameSubmitResult(bool Accepted, object? Value = null, MinigameRoundClosed? Closed = null)
+    /// <param name="Restarted">Die Abgabe hat eine neue Stufe geoeffnet (Spielerwahl, M35 C2) - alle bekommen ihren Zustand.</param>
+    public sealed record MinigameSubmitResult(
+        bool Accepted, object? Value = null, MinigameRoundClosed? Closed = null, bool Restarted = false)
     {
         public static readonly MinigameSubmitResult Rejected = new(false);
     }
@@ -71,13 +73,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             lock (gate)
             {
                 setup = neu with { TotalRounds = Math.Max(1, neu.TotalRounds) };
-                rules = neu.Kind switch
-                {
-                    MinigameKind.Reaction => new ReactionRules((a, b) => Zufall(a, b), NameVon),
-                    MinigameKind.TapSprint => new TapSprintRules(neu.DurationSeconds, NameVon),
-                    MinigameKind.Stopwatch => new StopwatchRules(neu.DurationSeconds, NameVon),
-                    _ => null,
-                };
+                rules = MinigameRulesFactory.For(setup, new((a, b) => Zufall(a, b), NameVon, Mitspieler));
                 ClearLocked();
             }
         }
@@ -101,6 +97,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
                     Aborted = Aborted,
                     OwnSubmitted = player != null && rules?.HasSubmitted(player.Id) == true,
                     KindInfo = rules?.InfoFor(player, Phase),
+                    WatcherText = rules?.WatcherText,
                 };
             }
         }
@@ -113,6 +110,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
                     || Locked
                     || Phase != MinigamePhase.Running
                     || gesperrt.Contains(player.Id)
+                    || rules?.Plays(player.Id) == false
                     || rules?.HasSubmitted(player.Id) == true;
             }
         }
@@ -132,6 +130,24 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         public bool IsPlayerLocked(Guid playerId)
         {
             lock (gate) return gesperrt.Contains(playerId);
+        }
+
+        /// <summary>
+        /// Der Spielleiter legt fest, wer spielt (E1, M35 C2) - wenn der Ausloeser fehlt oder er ueberschreibt.
+        /// Mitten in der Runde gilt ein neuer Durchgang, eine Abgabe davor zaehlt nicht mehr.
+        /// </summary>
+        public bool SetPair(Guid chooserId, Guid? partnerId)
+        {
+            lock (gate)
+            {
+                if (rules is not IMinigamePairRules paar || !paar.SetPair(chooserId, partnerId))
+                    return false;
+
+                if (Phase == MinigamePhase.Running)
+                    durchgang++;
+
+                return true;
+            }
         }
 
         // --- Der Spielleiter ---
@@ -174,7 +190,8 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
                 var abgaben = rules.CurrentSubmissions;
                 rules.CloseRound();
 
-                var letzte = Round >= setup.TotalRounds;
+                // Best of n (Duell, M35 C2): entschieden ist auch vor der letzten Runde zu Ende.
+                var letzte = Round >= setup.TotalRounds || rules.IsDecided;
                 Phase = letzte ? MinigamePhase.Finished : MinigamePhase.RoundOver;
                 Locked = true;
 
@@ -212,15 +229,22 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
                 if (rules == null || Locked || Phase != MinigamePhase.Running)
                     return MinigameSubmitResult.Rejected;
 
-                // Fremde Art, alter Durchgang, gesperrter Spieler, zweite Abgabe: verworfen.
+                // Fremde Art, alter Durchgang, gesperrter Spieler, Zuschauer, zweite Abgabe: verworfen.
                 if (action.Kind != setup.Kind || action.Durchgang != durchgang
-                    || gesperrt.Contains(player.Id) || rules.HasSubmitted(player.Id))
+                    || gesperrt.Contains(player.Id) || !rules.Plays(player.Id) || rules.HasSubmitted(player.Id))
                     return MinigameSubmitResult.Rejected;
 
                 var wert = rules.Accept(player, action.Payload);
 
                 if (wert == null)
                     return MinigameSubmitResult.Rejected;
+
+                // Eine Spielerwahl oeffnet die naechste Stufe: neuer Durchgang, eine Abgabe davor zaehlt nicht mehr.
+                if (wert is IMinigameStageChange)
+                {
+                    durchgang++;
+                    return new(true, wert, Restarted: true);
+                }
 
                 return new(true, wert, AlleHabenAbgegeben() ? CloseRound() : null);
             }
@@ -287,7 +311,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         private bool AlleHabenAbgegeben()
         {
             var offen = (gameAccessor.GetGame?.Invoke()?.Players ?? [])
-                .Where(p => p.ConnectionState == PlayerConnection.Connected && !gesperrt.Contains(p.Id))
+                .Where(p => p.ConnectionState == PlayerConnection.Connected && !gesperrt.Contains(p.Id) && rules!.Plays(p.Id))
                 .ToList();
 
             return offen.Count > 0 && offen.All(p => rules!.HasSubmitted(p.Id));
@@ -295,5 +319,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
         private string? NameVon(Guid id)
             => gameAccessor.GetGame?.Invoke()?.Players?.FirstOrDefault(p => p.Id == id)?.CalculatedDisplayName;
+
+        /// <summary>Die Mitspieler des laufenden Spiels - nur sie darf eine Spielerwahl treffen (E4).</summary>
+        private IReadOnlyList<Player> Mitspieler()
+            => gameAccessor.GetGame?.Invoke()?.Players?.ToList() ?? [];
     }
 }

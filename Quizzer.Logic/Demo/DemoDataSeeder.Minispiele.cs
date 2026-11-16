@@ -8,7 +8,7 @@ namespace Quizzer.Logic.Demo
     /// <summary>
     /// Die Minispiele der Typenschau (M35 B2) - eigene Teildatei, weil die Typenschau sonst ueber die
     /// Groessen-Obergrenze wuechse. Mehrheit und Reaktion im Raster; Minderheit (B3), Tippsprint und
-    /// Stoppuhr (C1) im Vorrat - das Raster hat zwei Zeilen.
+    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2) im Vorrat - das Raster hat zwei Zeilen.
     /// </summary>
     public static partial class DemoDataSeeder
     {
@@ -36,6 +36,16 @@ namespace Quizzer.Logic.Demo
 
             yield return OhneZeilen(kat, "Typenschau: Stoppuhr", "MIN-5", 200, Difficulty.Level2,
                 "Wer hat das beste Zeitgefühl? Stoppt nach genau zehn Sekunden!", MinigameKind.Stopwatch);
+
+            // M35 C2, ebenfalls nur im Vorrat: die Spiele mit Spielerwahl.
+            yield return OhneZeilen(kat, "Typenschau: Duell", "MIN-6", 200, Difficulty.Level2,
+                "Wer das Feld aufgedeckt hat, fordert jemanden heraus: Schere, Stein, Papier!", MinigameKind.Duel);
+
+            yield return OhneZeilen(kat, "Typenschau: Räuber und Wächter", "MIN-7", 200, Difficulty.Level2,
+                "Bestehlen oder Schild? Alle wählen geheim und gleichzeitig.", MinigameKind.RobberAndGuard);
+
+            yield return OhneZeilen(kat, "Typenschau: Teilen oder Nehmen", "MIN-8", 200, Difficulty.Level2,
+                "Teilen oder nehmen? Zwei entscheiden geheim über die Punkte des Felds.", MinigameKind.ShareOrTake);
         }
 
         /// <summary>Arten im Telefonrahmen (Reaktion B3, Tippsprint und Stoppuhr C1): keine Zeilen, nur Art und Parameter.</summary>

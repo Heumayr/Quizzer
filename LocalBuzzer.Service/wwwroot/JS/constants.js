@@ -11,7 +11,10 @@ export const MinigameKinds = Object.freeze({
     Majority: 1,
     Reaction: 2,
     TapSprint: 3,
-    Stopwatch: 4
+    Stopwatch: 4,
+    Duel: 5,
+    RobberAndGuard: 6,
+    ShareOrTake: 7
 });
 
 export const MinigamePhases = Object.freeze({
@@ -25,6 +28,18 @@ export const ReactionOutcomes = Object.freeze({
     Valid: 1,
     FalseStart: 2,
     TooSlow: 3
+});
+
+// M35 C2: die Zuege von SchereSteinPapier und die Disziplinen des Duells (DuellEvaluator) am Server.
+export const SchereSteinPapier = Object.freeze({
+    Schere: 1,
+    Stein: 2,
+    Papier: 3
+});
+
+export const DuelDisciplines = Object.freeze({
+    RockPaperScissors: 0,
+    Reaction: 1
 });
 
 // Seit der Sicherheitspruefung 2026-10-21 der Zugangsschluessel, nicht mehr die Spieler-Id.

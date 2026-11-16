@@ -199,6 +199,9 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
                 [MinigameKind.Reaction] = 4,
                 [MinigameKind.TapSprint] = 5,
                 [MinigameKind.Stopwatch] = 5,
+                [MinigameKind.Duel] = 6,
+                [MinigameKind.RobberAndGuard] = 6,
+                [MinigameKind.ShareOrTake] = 6,
             };
 
             var ohne = Enum.GetValues<MinigameKind>().Where(k => !seitFormat.ContainsKey(k)).ToList();

@@ -90,14 +90,20 @@ namespace Quizzer.UnitTests.Views.GameViews
             => OeffneMinispielAsync(MinigameKind.Reaction, f => f.Rounds = runden);
 
         /// <summary>Server, zwei verbundene Telefone und das Fragefenster - fuer jede Art im Rahmen (M35 C1).</summary>
-        private async Task<TestableCurrentQuestionViewModel> OeffneMinispielAsync(MinigameKind art, Action<MinigameQuestion> einstellen)
+        /// <param name="spielerzahl">Raeuber und Waechter braucht drei (M35 C2).</param>
+        /// <param name="ausloeser">Wer das Feld aufgedeckt hat, als Index in den Spielern - Duell und Teilen (M35 C2).</param>
+        private async Task<TestableCurrentQuestionViewModel> OeffneMinispielAsync(
+            MinigameKind art, Action<MinigameQuestion> einstellen, int spielerzahl = 2, int? ausloeser = null)
         {
-            world = await TestGameBuilder.CreateAsync(QuestionType.Minigame, normalStepCount: 2, playerCount: 2,
+            world = await TestGameBuilder.CreateAsync(QuestionType.Minigame, normalStepCount: 2, playerCount: spielerzahl,
                 adjustQuestion: f =>
                 {
                     MinigameProfiles.For(art).ApplyDefaults((MinigameQuestion)f);
                     einstellen((MinigameQuestion)f);
                 });
+
+            if (ausloeser is { } index)
+                world.Game.CurrentChoosingPlayerId = world.Players[index].Id;
 
             serverVm = StaticManager.BuzzerServerViewModel;
             serverVm.Game = world.Game;

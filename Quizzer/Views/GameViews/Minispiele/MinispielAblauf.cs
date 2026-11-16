@@ -1,6 +1,7 @@
 using LocalBuzzer.Service.Base.States.Minispiele;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.QuestionTypes;
+using Quizzer.DataModels.Questions.Minispiele;
 using Quizzer.Views.GameViews.Sub;
 
 namespace Quizzer.Views.GameViews.Minispiele
@@ -34,11 +35,29 @@ namespace Quizzer.Views.GameViews.Minispiele
 
         protected List<(Guid Id, string Name)> Spieler() => Fenster.MinispielSpieler();
 
+        /// <summary>Der Anzeigename zu einer Id - fuer Gruende und Tafel.</summary>
+        protected string Name(Guid id) => Spieler().FirstOrDefault(s => s.Id == id).Name ?? "?";
+
+        /// <summary>Was „richtig" in diesem Feld bringt - Topf und Grundlage des Anteils (M35 C2).</summary>
+        protected int Feldpunkte => PlayerResultContext.PunkteJetzt(Fenster.Coordinate, Fenster);
+
+        /// <summary>Kontostaende von den Karten und die Einstellung des Spiels - fuer die Kappung (E2).</summary>
+        protected Kontostaende Konten()
+            => new((Karten?.PlayerResultContextList ?? []).ToDictionary(k => k.Player.Id, k => k.Kontostand),
+                Fenster.Coordinate?.Game?.AllowNegativeScore ?? true);
+
+        /// <summary>Das Paar der Spielerwahl, wie es der Server fuehrt; <c>null</c>, solange keiner gewaehlt ist.</summary>
+        protected (Guid A, Guid B)? Paar
+            => Zustand?.Rules is IMinigamePairRules { ChooserId: { } a, PartnerId: { } b } ? (a, b) : null;
+
         /// <summary>Die Strategie zur Art; eine unbekannte spielt wie die Reaktion (Bestand vor C2).</summary>
         public static MinispielAblauf Fuer(MinigameKind? art, CurrentQuestionViewModel fenster) => art switch
         {
             MinigameKind.TapSprint => new TippsprintAblauf(fenster),
             MinigameKind.Stopwatch => new StoppuhrAblauf(fenster),
+            MinigameKind.Duel => new DuellAblauf(fenster),
+            MinigameKind.RobberAndGuard => new RaeuberAblauf(fenster),
+            MinigameKind.ShareOrTake => new TeilenAblauf(fenster),
             _ => new ReaktionAblauf(fenster, art),
         };
 

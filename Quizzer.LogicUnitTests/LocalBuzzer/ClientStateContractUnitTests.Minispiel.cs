@@ -32,6 +32,11 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [DataRow(typeof(ReactionClientInfo), "reaktion.js", "artInfo")]
         [DataRow(typeof(TapSprintClientInfo), "tippsprint.js", "artInfo")]
         [DataRow(typeof(StopwatchClientInfo), "stoppuhr.js", "artInfo")]
+        [DataRow(typeof(DuelClientInfo), "duell.js", "artInfo")]
+        [DataRow(typeof(RobberClientInfo), "raeuber.js", "artInfo")]
+        [DataRow(typeof(ShareOrTakeClientInfo), "teilen.js", "artInfo")]
+        [DataRow(typeof(MinigamePlayerOption), "spielerwahl.js", "spieler")]
+        [DataRow(typeof(MinigamePlayerOption), "raeuber.js", "spieler")]
         public void TheMinigameModulesReadExactlyTheFieldsTheServerSends(Type typ, string datei, string variable)
         {
             var skript = ReadScript("minispiele", datei);
@@ -55,6 +60,10 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [DataRow(typeof(ReactionPayload), "reaktion.js")]
         [DataRow(typeof(TapSprintPayload), "tippsprint.js")]
         [DataRow(typeof(StopwatchPayload), "stoppuhr.js")]
+        [DataRow(typeof(PlayerChoicePayload), "spielerwahl.js")]
+        [DataRow(typeof(DuelPayload), "duell.js")]
+        [DataRow(typeof(RobberPayload), "raeuber.js")]
+        [DataRow(typeof(ShareOrTakePayload), "teilen.js")]
         public void ThePhoneSendsTheFieldsTheServerReads(Type typ, string datei)
         {
             var skript = ReadScript("minispiele", datei);
@@ -92,6 +101,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [DataRow(typeof(MinigameKind), "MinigameKinds")]
         [DataRow(typeof(MinigamePhase), "MinigamePhases")]
         [DataRow(typeof(ReactionOutcome), "ReactionOutcomes")]
+        [DataRow(typeof(SchereSteinPapier), "SchereSteinPapier")]
         public void TheConstantsMirrorTheServerEnums(Type aufzaehlung, string name)
         {
             var konstanten = ReadScript("constants.js");
@@ -108,6 +118,23 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             CollectionAssert.AreEquivalent(cs.ToList(), js.ToList(),
                 $"{name} in constants.js weicht von {aufzaehlung.Name} ab - JS: "
                 + string.Join(", ", js.Select(e => $"{e.Key}={e.Value}")));
+        }
+
+        /// <summary>Die Disziplinen des Duells sind keine Aufzaehlung, sondern Spielweisen - dieselbe Probe von Hand (M35 C2).</summary>
+        [TestMethod]
+        public void TheDuelDisciplinesMirrorTheVariants()
+        {
+            var block = Regex.Match(ReadScript("constants.js"), @"export const DuelDisciplines = Object\.freeze\(\{(?<inhalt>[^}]*)\}\)");
+
+            Assert.IsTrue(block.Success, "DuelDisciplines steht nicht in constants.js.");
+
+            var js = Regex.Matches(block.Groups["inhalt"].Value, @"(\w+)\s*:\s*(\d+)")
+                .ToDictionary(m => m.Groups[1].Value, m => int.Parse(m.Groups[2].Value));
+
+            Assert.AreEqual(DuellEvaluator.SchereSteinPapierVariant, js.GetValueOrDefault("RockPaperScissors", -1));
+            Assert.AreEqual(DuellEvaluator.ReaktionVariant, js.GetValueOrDefault("Reaction", -1));
+            Assert.AreEqual("Reaktion", MinigameProfiles.For(MinigameKind.Duel).Variants[DuellEvaluator.ReaktionVariant].Name,
+                "Die Spielweise Reaktion steht im Profil nicht dort, wo DuellEvaluator sie erwartet.");
         }
     }
 }

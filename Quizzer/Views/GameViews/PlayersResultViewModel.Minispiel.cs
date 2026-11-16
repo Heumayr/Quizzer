@@ -69,5 +69,15 @@ namespace Quizzer.Views.GameViews
 
             OnPropertyChanged(nameof(ReaktionErgebnis));
         }
+
+        /// <summary>
+        /// Spiele um Punkte (M35 C2): je Karte ihr Vorschlag mit Grund - Plus und Minus, gekappt nach E2 -
+        /// und ein Satz, was der Spieler gewaehlt hat. Wer keinen Vorschlag hat, bekommt keinen.
+        /// </summary>
+        internal void WerteVorschlaege(IReadOnlyDictionary<Guid, Punktevorschlag> vorschlaege, Func<Guid, string> satz)
+        {
+            foreach (var ctx in PlayerResultContextList)
+                ctx.UebernimmVorschlag(vorschlaege.GetValueOrDefault(ctx.Player.Id), satz(ctx.Player.Id));
+        }
     }
 }

@@ -722,3 +722,57 @@ body {
     .reaktion-ergebnis .reaktion-text {
         font-size: 24px;
     }
+
+/* ===== Spielerwahl, Duell, Raeuber und Waechter, Teilen oder Nehmen (M35 C2) =====
+   Nie nur Farbe: die gewaehlte Taste bekommt einen Rahmen, der Satz darunter nennt die Wahl. */
+.duell-inhalt,
+.raeuber-inhalt,
+.teilen-inhalt {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    overflow-y: auto;
+}
+
+.duell-kopf,
+.teilen-kopf {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.duell-text,
+.raeuber-text,
+.teilen-text,
+.spielerwahl-frage,
+.raeuber-ergebnis {
+    margin: 0;
+    font-size: 20px;
+    overflow-wrap: break-word;
+}
+
+.spielerwahl-taste,
+.duell-zug,
+.raeuber-schild,
+.raeuber-opfer,
+.teilen-taste {
+    min-height: var(--input-height);
+    border-radius: var(--radius-lg);
+    font-size: 22px;
+    font-weight: 800;
+    background: var(--primary);
+    touch-action: manipulation;
+}
+
+.raeuber-schild {
+    background: var(--secondary);
+}
+
+.spielerwahl-aktiv,
+.duell-zug-aktiv,
+.raeuber-aktiv,
+.teilen-aktiv {
+    outline: 4px solid var(--text);
+    outline-offset: 2px;
+}

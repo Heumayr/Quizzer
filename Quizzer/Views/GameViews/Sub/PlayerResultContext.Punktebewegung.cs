@@ -1,4 +1,6 @@
 using Quizzer.DataModels.Helpers;
+using Quizzer.DataModels.Questions.Minispiele;
+using System.Windows;
 
 namespace Quizzer.Views.GameViews.Sub
 {
@@ -29,6 +31,32 @@ namespace Quizzer.Views.GameViews.Sub
             Grund = grund;
             OnPropertyChanged(nameof(Grund));
             OnPropertyChanged(nameof(SuggestionText));
+        }
+
+        /// <summary>Was ein Spiel um Punkte (M35 C2) dieser Karte zuletzt vorgeschlagen hat.</summary>
+        private Punktevorschlag? letzterVorschlag;
+
+        /// <summary>
+        /// Uebernimmt den Vorschlag eines Spiels um Punkte (Duell, Raeuber, Teilen) samt Satz. Nur ein
+        /// <b>Wechsel</b> setzt neu - was der Spielleiter danach von Hand setzt, bleibt stehen (E1).
+        /// </summary>
+        internal void UebernimmVorschlag(Punktevorschlag? vorschlag, string satz)
+        {
+            istZuordnung = false;
+            Reihenfolge = null;
+
+            // Nie allein ueber Farbe: der Satz sagt, was der Spieler gewaehlt hat und was daraus wurde.
+            ZeigeMehrheit([], Visibility.Collapsed, satz);
+
+            if (vorschlag == letzterVorschlag)
+                return;
+
+            if (vorschlag != null)
+                SchlageVor(vorschlag.Punkte, vorschlag.Grund);
+            else if (letzterVorschlag != null)
+                Suggestion = ScoreSuggestion.None;
+
+            letzterVorschlag = vorschlag;
         }
     }
 }

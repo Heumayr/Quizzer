@@ -2,6 +2,9 @@ import { MinigameKinds, MinigamePhases } from "../constants.js";
 import { ReaktionModul } from "./reaktion.js";
 import { TippsprintModul } from "./tippsprint.js";
 import { StoppuhrModul } from "./stoppuhr.js";
+import { DuellModul } from "./duell.js";
+import { RaeuberModul } from "./raeuber.js";
+import { TeilenModul } from "./teilen.js";
 
 // Der Rahmen der Minispiele am Telefon (M35 B3): Ueberschrift, Runde n von m, Warten,
 // Countdown und Ergebnis. Was eine Art ausmacht, steckt in ihrem Modul unter minispiele/.
@@ -10,7 +13,10 @@ import { StoppuhrModul } from "./stoppuhr.js";
 const MODULE = new Map([
     [MinigameKinds.Reaction, (optionen) => new ReaktionModul(optionen)],
     [MinigameKinds.TapSprint, (optionen) => new TippsprintModul(optionen)],
-    [MinigameKinds.Stopwatch, (optionen) => new StoppuhrModul(optionen)]
+    [MinigameKinds.Stopwatch, (optionen) => new StoppuhrModul(optionen)],
+    [MinigameKinds.Duel, (optionen) => new DuellModul(optionen)],
+    [MinigameKinds.RobberAndGuard, () => new RaeuberModul()],
+    [MinigameKinds.ShareOrTake, () => new TeilenModul()]
 ]);
 
 export function rundenText(serverInfo) {
@@ -92,8 +98,8 @@ export class MinigameLayout {
                     this.status.textContent = "Abgegeben – warte auf die anderen.";
                     modul?.zeigeErgebnis(artInfo);
                 } else if (gesperrt) {
-                    // Sperre je Spieler: diese Runde spielen andere.
-                    this.status.textContent = "Diese Runde spielen andere – du schaust zu.";
+                    // Sperre je Spieler bzw. Zuschauer der Art (M35 C2): diese Runde spielen andere.
+                    this.status.textContent = serverInfo.watcherText || "Diese Runde spielen andere – du schaust zu.";
                     modul?.leeren();
                 } else {
                     this.countdown(serverInfo, artInfo, modul);

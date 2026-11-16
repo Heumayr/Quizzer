@@ -45,6 +45,22 @@ namespace LocalBuzzer.Service.Base
             return MeldeUndSendeAsync(StateManager.MinigameState.Abort(), ct);
         }
 
+        /// <summary>
+        /// Der Spielleiter legt fest, wer spielt (E1, M35 C2) - wenn der Ausloeser fehlt oder er ueberschreibt;
+        /// ohne Partner waehlt danach der Ausloeser am Telefon. <c>false</c> bei einer Art ohne Spielerwahl
+        /// oder wenn einer kein Mitspieler ist.
+        /// </summary>
+        public async Task<bool> SetMinigamePairAsync(Guid chooserId, Guid? partnerId, CancellationToken ct = default)
+        {
+            CheckServerRunning();
+
+            if (!StateManager.MinigameState.SetPair(chooserId, partnerId))
+                return false;
+
+            await SendStateAsync(ct);
+            return true;
+        }
+
         private async Task MeldeUndSendeAsync(MinigameRoundClosed? geschlossen, CancellationToken ct)
         {
             if (geschlossen != null)

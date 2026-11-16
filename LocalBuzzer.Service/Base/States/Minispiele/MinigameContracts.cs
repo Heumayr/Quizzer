@@ -68,6 +68,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
         /// <summary>Was die Art diesem Spieler zeigt - bei der Reaktion <see cref="ReactionClientInfo"/>.</summary>
         public object? KindInfo { get; set; }
+
+        /// <summary>Was ein Zuschauer sieht, wenn die Art nur einige spielen laesst (M35 C2) - sonst <c>null</c>.</summary>
+        public string? WatcherText { get; set; }
     }
 
     /// <summary>Eine angenommene Abgabe, gemeldet an die Spielleiterseite.</summary>
@@ -87,8 +90,11 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
     /// <summary>Was die Spielleiterseite vor der ersten Runde einstellt.</summary>
     /// <param name="DurationSeconds">Dauer des Tippsprints bzw. Zielzeit der Stoppuhr (M35 C1); sonst ungenutzt.</param>
+    /// <param name="TriggerPlayerId">Der Ausloeser - wer das Feld aufgedeckt hat; beim Duell und bei Teilen oder Nehmen waehlt er (M35 C2).</param>
+    /// <param name="Variant">Die Spielweise der Art, beim Duell die Disziplin (M35 C2).</param>
     public sealed record MinigameSetup(
-        MinigameKind Kind, string Title, string RulesText, int TotalRounds, int CountdownSeconds = 3, int DurationSeconds = 0);
+        MinigameKind Kind, string Title, string RulesText, int TotalRounds, int CountdownSeconds = 3, int DurationSeconds = 0,
+        Guid? TriggerPlayerId = null, int Variant = 0);
 
     /// <summary>
     /// Die Regeln einer Art am Server: was eine gueltige Abgabe ist und was ein Spieler sieht. Der
@@ -120,5 +126,38 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
         /// <summary>Was dieser Spieler in dieser Phase sieht; <c>null</c> fuer den Blick von aussen.</summary>
         object? InfoFor(Player? player, MinigamePhase phase);
+
+        // --- Spiele, in denen nur einige spielen (M35 C2); die Vorgaben passen fuer alle uebrigen ---
+
+        /// <summary>Ob dieser Spieler gerade abgeben darf - beim Duell nur die beiden, vor der Wahl nur der Ausloeser.</summary>
+        bool Plays(Guid playerId) => true;
+
+        /// <summary>Ob das Spiel vor der letzten Runde entschieden ist (Best of n) - dann endet es.</summary>
+        bool IsDecided => false;
+
+        /// <summary>Was die Zuschauer am Telefon lesen; <c>null</c>: der Rahmen sagt es allgemein.</summary>
+        string? WatcherText => null;
+    }
+
+    /// <summary>
+    /// Eine Abgabe, die nicht zaehlt, sondern die naechste Stufe der Runde oeffnet (M35 C2): der Rahmen
+    /// gibt einen neuen Durchgang aus, und jedes Telefon bekommt seinen Zustand.
+    /// </summary>
+    public interface IMinigameStageChange
+    {
+    }
+
+    /// <summary>Der Ausloeser hat seinen Gegner oder Partner gewaehlt - geprueft am Server (E4).</summary>
+    public sealed record PlayerChosen(Guid ChooserId, Guid ChosenId) : IMinigameStageChange;
+
+    /// <summary>Arten mit Spielerwahl (Duell, Teilen oder Nehmen): der Spielleiter kann das Paar festlegen (E1).</summary>
+    public interface IMinigamePairRules : IMinigameRules
+    {
+        Guid? ChooserId { get; }
+
+        Guid? PartnerId { get; }
+
+        /// <summary>Legt das Paar fest; <c>false</c>, wenn einer kein Mitspieler ist oder beide derselbe.</summary>
+        bool SetPair(Guid chooserId, Guid? partnerId);
     }
 }
