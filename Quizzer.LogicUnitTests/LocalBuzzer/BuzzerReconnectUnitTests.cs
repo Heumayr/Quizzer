@@ -177,6 +177,13 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         public async Task ClosingTheReplacedConnectionLeavesThePlayerConnected()
         {
             var erstes = await ConnectAsync(anna);
+
+            // Die zweite muss nach der ersten eingetragen werden, sonst loest die erste die zweite ab.
+            Assert.IsTrue(await WaitForAsync(() =>
+            {
+                lock (erstes.Assigned) return erstes.Assigned.Count > 0;
+            }), "Die erste Verbindung kam nicht zustande.");
+
             var zweites = await ConnectAsync(anna);
 
             try

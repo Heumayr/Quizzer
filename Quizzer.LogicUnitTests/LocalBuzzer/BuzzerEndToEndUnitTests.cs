@@ -78,12 +78,19 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
                 .WithUrl($"http://127.0.0.1:{TestPort}/hub?key={server.AccessKeys.SchluesselFuer(player.Id)}")
                 .Build();
 
+            var assigned = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
             connection.On<ClientLayoutStateDto>("StateChanged", dto =>
             {
                 lock (states) states.Add(dto);
             });
+            connection.On<ClientLayoutStateDto>("Assigned", _ => assigned.TrySetResult());
 
             await connection.StartAsync();
+
+            // StartAsync endet nach dem Handschlag, eingetragen ist die Verbindung erst mit "Assigned" - ein
+            // Zuruecksetzen davor erreicht das Telefon nur ueber "Assigned" (gemessen 2026-11-16, M35 C4).
+            Assert.IsTrue(await WaitForAsync(() => assigned.Task.IsCompleted), $"{player.Designation} bekam keine Zuordnung.");
 
             return (connection, states);
         }

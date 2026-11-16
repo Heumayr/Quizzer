@@ -50,8 +50,14 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
                 .WithUrl($"http://127.0.0.1:{TestPort}/hub?key={server.AccessKeys.SchluesselFuer(player.Id)}")
                 .Build();
 
+            var zugeordnet = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
             verbindung.On<ClientLayoutStateDto>("StateChanged", dto => { lock (zustaende) zustaende.Add(dto); });
+            verbindung.On<ClientLayoutStateDto>("Assigned", _ => zugeordnet.TrySetResult());
             await verbindung.StartAsync();
+
+            // Erst mit "Assigned" ist die Verbindung am Server eingetragen (siehe BuzzerEndToEndUnitTests.ConnectAsync).
+            Assert.IsTrue(await WarteAsync(() => zugeordnet.Task.IsCompleted), $"{player.Designation} bekam keine Zuordnung.");
             return (verbindung, zustaende);
         }
 
