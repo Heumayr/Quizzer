@@ -160,6 +160,24 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             Assert.IsTrue(Gib(spiel, anna, new { card = 11 }).Accepted, "Nach der Sekunde geht es nicht weiter.");
         }
 
+        /// <summary>Die Grenze gilt je Spieler: wer schnell umdreht, bremst niemand anderen aus.</summary>
+        [TestMethod]
+        public void TheLimitCountsPerPlayer()
+        {
+            Starte();
+            uhr.Vor(Vorlauf);
+
+            foreach (var spieler in new[] { anna, bert })
+            {
+                for (var i = 0; i < MemoryEvaluator.MaxUmdrehenJeSekunde; i++)
+                {
+                    uhr.Vor(TimeSpan.FromMilliseconds(10));
+                    Assert.IsTrue(Gib(spiel, spieler, new { card = 2 * i }).Accepted,
+                        $"Umdrehen {i + 1} von {spieler.Designation} wurde verworfen - die Grenze zaehlt alle zusammen.");
+                }
+            }
+        }
+
         [TestMethod]
         public void WhoFinishesIsLockedAtTheServerClockAndTheLastOneClosesTheRound()
         {

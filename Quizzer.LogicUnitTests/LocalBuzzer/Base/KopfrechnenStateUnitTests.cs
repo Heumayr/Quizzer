@@ -166,6 +166,25 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             Assert.IsTrue(Gib(anna, new { taskNumber = naechste, answer = Loesung(naechste) }).Accepted, "Nach der Sekunde geht es nicht weiter.");
         }
 
+        /// <summary>Die Grenze gilt je Spieler: wer schnell antwortet, bremst niemand anderen aus.</summary>
+        [TestMethod]
+        public void TheLimitCountsPerPlayer()
+        {
+            Starte();
+            uhr.Vor(Vorlauf);
+
+            foreach (var spieler in new[] { anna, bert })
+            {
+                for (var i = 0; i < KopfrechnenEvaluator.MaxAntwortenJeSekunde; i++)
+                {
+                    uhr.Vor(TimeSpan.FromMilliseconds(10));
+                    var nummer = Art(spieler).TaskNumber;
+                    Assert.IsTrue(Gib(spieler, new { taskNumber = nummer, answer = Loesung(nummer) }).Accepted,
+                        $"Antwort {i + 1} von {spieler.Designation} wurde verworfen - die Grenze zaehlt alle zusammen.");
+                }
+            }
+        }
+
         [TestMethod]
         public void EveryoneGetsTheSameSequence()
         {
