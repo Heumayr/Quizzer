@@ -121,6 +121,19 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             Assert.IsTrue(Waehle(spiel, carl, Nummer(spiel, "Paris")).Accepted, "Wer nichts schrieb, darf nicht waehlen.");
         }
 
+        /// <summary>Ein Bluff ist kurz: was ein Telefon schickt, wird gekuerzt, bevor es auf allen Telefonen und am Beamer steht.</summary>
+        [TestMethod]
+        public void ALongBluffIsCutBeforeAnyoneSeesIt()
+        {
+            Starte(spiel);
+            Assert.IsTrue(Bluffe(spiel, anna, new string('x', BluffEvaluator.MaxZeichen + 500)).Accepted);
+            ZurWahl(spiel);
+
+            CollectionAssert.Contains(Art(spiel, bert).Options.Select(o => o.Text).ToList(), new string('x', BluffEvaluator.MaxZeichen),
+                "Der lange Bluff steht nicht gekuerzt zur Wahl.");
+            Assert.IsTrue(Art(spiel, null).Options.All(o => o.Text.Length <= BluffEvaluator.MaxZeichen), "Ein Bluff ueber der Grenze steht zur Wahl.");
+        }
+
         /// <summary>Was der echten gleicht, ist von selbst gestrichen und bleibt es; der Spielleiter streicht nur zwischen den Phasen.</summary>
         [TestMethod]
         public void StruckBluffsAreNotOfferedAndTheMasterStrikesOnlyBetweenThePhases()
