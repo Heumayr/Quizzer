@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:base="clr-namespace:Quizzer.Base"
         xmlns:local="clr-namespace:Quizzer.Server"
-        Title="Meine Statistik" Height="520" Width="900"
+        Title="Meine Statistik" Height="760" Width="900"
         WindowStartupLocation="CenterOwner">
     <base:WindowBase.DataContext>
         <local:StatisticsViewModel />
@@ -13,6 +13,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="{Binding Summary}" FontSize="15" TextWrapping="Wrap" Margin="0,0,0,12" />
@@ -30,5 +32,35 @@
                 <DataGridTextColumn Header="Gespielt" Binding="{Binding Gespielt}" Width="Auto" />
             </DataGrid.Columns>
         </DataGrid>
+
+        <!-- M35 C9: Bestenliste über die Spiele dieser Statistik, je Art mit Bestwert eine Kachel. -->
+        <TextBlock Grid.Row="2" Text="Bestenliste über alle Abende" Style="{StaticResource SectionHeader}" Margin="0,16,0,6" />
+
+        <ScrollViewer Grid.Row="3" MaxHeight="260" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Bestenliste}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{StaticResource PanelBgBrush}" BorderBrush="{StaticResource BtnBorderBrush}"
+                                BorderThickness="1" Padding="10,6" Margin="0,0,8,8" Width="275">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Titel}" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,4" />
+                                <ItemsControl ItemsSource="{Binding Zeilen}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="12" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
     </Grid>
 </base:WindowBase>

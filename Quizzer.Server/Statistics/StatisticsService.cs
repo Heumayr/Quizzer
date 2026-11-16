@@ -1,13 +1,16 @@
 using Microsoft.EntityFrameworkCore;
+using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Transfer.Server;
 using Quizzer.Logic.Context;
+using Quizzer.Logic.Statistics;
 using Quizzer.Server.Auth;
 
 namespace Quizzer.Server.Statistics
 {
     /// <summary>
     /// Die Statistik eines Kontos (M9: „seine spiele und statistiken sehen"): jedes Spiel, in dem
-    /// es mitgespielt oder das es als Gamemaster angelegt hat, mit Platz und Punkten.
+    /// es mitgespielt oder das es als Gamemaster angelegt hat, mit Platz und Punkten. Die Bestenliste (M35 C9) rechnet
+    /// ueber genau diese Spiele - eine Liste, die zeigt, was der Einzelabruf verweigert, waere der Rechtefehler A01.
     /// </summary>
     public sealed class StatisticsService
     {
@@ -85,7 +88,28 @@ namespace Quizzer.Server.Statistics
                 played.Count(g => g.Rank == 1 && g.PlayedCells > 0),
                 played.Sum(g => g.FinalScore),
                 list.Count(g => g.IsGameMaster),
-                list.OrderBy(g => g.GameName).ToList());
+                list.OrderBy(g => g.GameName).ToList(),
+                await LeaderboardAsync(context, gameIds, ct));
+        }
+
+        /// <summary>Die Bestenliste ueber die Spiele, die die Statistik zeigt - nur Zeilen mit Rohwert oder Klau.</summary>
+        private static async Task<Leaderboard> LeaderboardAsync(DataContext context, List<Guid> gameIds, CancellationToken ct)
+        {
+            var rows = await context.QuestionResults.AsNoTracking()
+                .Where(r => gameIds.Contains(r.GameId) && (r.RecordValue != null || r.Steals > 0))
+                .Select(r => new LeaderboardRow(
+                    r.Id,
+                    r.PlayerId,
+                    r.Player.DisplayName != "" ? r.Player.DisplayName : r.Player.Designation,
+                    r.GameId,
+                    r.Game.Designation,
+                    context.MinigameQuestions.Where(q => q.Id == r.QuestionBaseId).Select(q => (MinigameKind?)q.Kind).FirstOrDefault(),
+                    r.RecordValue,
+                    r.RecordedAt,
+                    r.Steals))
+                .ToListAsync(ct);
+
+            return LeaderboardCalculator.Calculate(rows);
         }
     }
 }

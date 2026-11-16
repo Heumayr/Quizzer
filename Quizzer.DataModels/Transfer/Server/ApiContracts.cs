@@ -115,7 +115,28 @@ namespace Quizzer.DataModels.Transfer.Server
         int GamesWon,
         int TotalScore,
         int GamesAsGameMaster,
-        IReadOnlyList<GameStatistic> Games);
+        IReadOnlyList<GameStatistic> Games,
+        Leaderboard Leaderboard);
+
+    /// <summary>
+    /// Die Bestenliste ueber Abende (M35 C9) - nur aus den Spielen, die <see cref="StatisticsResponse.Games"/> zeigt.
+    /// </summary>
+    /// <param name="Categories">Je Minispiel-Art mit Bestwert eine Liste, auch wenn sie noch leer ist.</param>
+    /// <param name="MostSteals">Die meisten Klaus, summiert ueber die Spiele.</param>
+    public sealed record Leaderboard(IReadOnlyList<LeaderboardCategory> Categories, IReadOnlyList<StealsEntry> MostSteals);
+
+    /// <param name="Title">„Schnellste Reaktion".</param>
+    /// <param name="KindName">Der Name der Art, „Reaktion".</param>
+    /// <param name="Unit">Die Einheit des Rohwerts, „ms" - der Klartext je Eintrag traegt sie schon.</param>
+    public sealed record LeaderboardCategory(
+        MinigameKind Kind, string Title, string KindName, string Unit, bool LowerIsBetter, IReadOnlyList<LeaderboardEntry> Entries);
+
+    /// <summary>Ein Platz: wer, wie gut (Rohwert und Klartext mit Einheit), in welchem Spiel, wann.</summary>
+    /// <param name="Rank">Gleichstand teilt den Platz.</param>
+    public sealed record LeaderboardEntry(
+        int Rank, Guid PlayerId, string PlayerName, int Value, string ValueText, Guid GameId, string GameName, DateTimeOffset? RecordedAt);
+
+    public sealed record StealsEntry(int Rank, Guid PlayerId, string PlayerName, int Steals);
 
     public sealed record MediaFileInfo(string Path, long Size, string Sha256);
 

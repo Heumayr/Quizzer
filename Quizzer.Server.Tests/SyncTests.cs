@@ -198,5 +198,57 @@ namespace Quizzer.Server.Tests
             Assert.AreEqual(1, game.Rank);
             Assert.IsTrue(game.IsGameMaster);
         }
+
+        /// <summary>
+        /// M35 C9, A01: die Bestenliste rechnet ueber dieselben Spiele wie die Statistik. Ein Rekord aus einem Spiel, in dem
+        /// das Konto weder leitet noch mitspielt, steht nirgends - weder als Platz noch als Klau; mit Platz im Spiel schon.
+        /// Steht hier und nicht bei den Bestenliste-Tests: jedes Konto sieht alle Mitspieler, und <c>ClientSafetyTests</c>
+        /// rechnet mit wenigen davon (laeuft davor).
+        /// </summary>
+        [TestMethod]
+        public async Task TheLeaderboardShowsARecordOnlyOnceTheAccountPlaysInItsGame()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var (gina, ginaTokens) = await ServerTestHost.NewMemberAsync(factory, "GinaRekord");
+            var (bob, bobTokens) = await ServerTestHost.NewMemberAsync(factory, "BobRekord");
+            var ginaId = ginaTokens.Account.PlayerId;
+
+            var set = SyncTestData.NewGame("Rekordabend");
+            var reaktion = new Quizzer.DataModels.Models.QuestionTypes.MinigameQuestion
+            {
+                Id = Guid.NewGuid(), Designation = "Reaktion", CategoryId = set.Category.Id, Points = 100,
+            };
+            Quizzer.DataModels.Questions.Minispiele.MinigameProfiles.For(Quizzer.DataModels.Enumerations.MinigameKind.Reaction).ApplyDefaults(reaktion);
+            var zelle = new GameGridCoordinate { Id = Guid.NewGuid(), GameId = set.Game.Id, QuestionBaseId = reaktion.Id, X = 1, Y = 0 };
+            var rekord = new QuestionResult
+            {
+                Id = Guid.NewGuid(), GameId = set.Game.Id, PlayerId = ginaId, QuestionBaseId = reaktion.Id, GameGridCoordinateId = zelle.Id,
+                Score = 100, RightCount = 1, RecordValue = 187, RecordedAt = DateTimeOffset.UtcNow, Steals = 2,
+            };
+            var push = set.AsNewPush();
+            push.Upserts.AddRange([SyncTestData.New(reaktion), SyncTestData.New(zelle),
+                SyncTestData.New(new PlayerXGame { Id = Guid.NewGuid(), GameId = set.Game.Id, PlayerId = ginaId }), SyncTestData.New(rekord)]);
+            var angelegt = await PushAsync(gina, push);
+            Assert.AreEqual(0, angelegt.Rejected.Count, string.Join("; ", angelegt.Rejected.Select(r => r.Message)));
+
+            static async Task<Leaderboard> BestenlisteAsync(HttpClient client)
+                => (await client.GetFromJsonAsync<StatisticsResponse>("/api/v1/me/statistics"))!.Leaderboard;
+
+            var fremd = await BestenlisteAsync(bob);
+            Assert.AreEqual(0, fremd.Categories.Sum(c => c.Entries.Count), "Bob sieht einen Platz aus Ginas Spiel.");
+            Assert.AreEqual(0, fremd.MostSteals.Count, "Bob sieht Klaus aus Ginas Spiel.");
+
+            var platz = await PushAsync(gina, new SyncPushRequest
+            {
+                Upserts = [SyncTestData.New(new PlayerXGame { Id = Guid.NewGuid(), GameId = set.Game.Id, PlayerId = bobTokens.Account.PlayerId })],
+            });
+            Assert.AreEqual(0, platz.Rejected.Count, string.Join("; ", platz.Rejected.Select(r => r.Message)));
+
+            var mitspieler = await BestenlisteAsync(bob);
+            var eintrag = mitspieler.Categories.Single(c => c.Kind == Quizzer.DataModels.Enumerations.MinigameKind.Reaction).Entries.Single();
+            Assert.AreEqual((ginaId, 187, "Spiel Rekordabend"), (eintrag.PlayerId, eintrag.Value, eintrag.GameName),
+                "Mit Platz im Spiel fehlt der Rekord - die Kontrolle misst sonst nichts.");
+            Assert.AreEqual((ginaId, 2), (mitspieler.MostSteals.Single().PlayerId, mitspieler.MostSteals.Single().Steals));
+        }
     }
 }
