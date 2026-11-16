@@ -180,6 +180,10 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         public void MentalArithmeticSendsOneAnswerPerTask() => LaufeMit("kopfrechnen.test.mjs");
 
+        /// <summary>M35 C5: Memory - das Feld zeigt nur, was der Server schickt; gefundene und die offene Karte fragen ihn nicht.</summary>
+        [TestMethod]
+        public void MemoryShowsOnlyWhatTheServerSent() => LaufeMit("memory.test.mjs");
+
         /// <summary>M35 C4: Gluecksrad - nur der Dreher waehlt ein Ziel, genau einmal; die Aufloesung vom Server.</summary>
         [TestMethod]
         public void TheWheelLetsOnlyTheSpinnerChooseOnce() => LaufeMit("gluecksrad.test.mjs");

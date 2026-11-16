@@ -31,6 +31,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             MinigameKind.Crash => new CrashRules(setup, kontext),
             MinigameKind.WheelOfFortune => new WheelOfFortuneRules(setup, kontext),
             MinigameKind.MentalArithmetic => new MentalArithmeticRules(setup, kontext),
+            MinigameKind.Memory => new MemoryRules(setup, kontext),
             _ => null,
         };
     }

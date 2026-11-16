@@ -50,8 +50,9 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// 14: Minispiel-Art Zocker (M35 C4) - derselbe Grund wie bei 4.
         /// 15: Minispiel-Art Gluecksrad (M35 C4) - derselbe Grund wie bei 4.
         /// 16: Minispiel-Art Kopfrechnen (M35 C5) - derselbe Grund wie bei 4.
+        /// 17: Minispiel-Art Memory (M35 C5) - derselbe Grund wie bei 4.
         /// </summary>
-        public const int CurrentFormatVersion = 16;
+        public const int CurrentFormatVersion = 17;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

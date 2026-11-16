@@ -205,6 +205,7 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
                 [MinigameKind.Crash] = 14,
                 [MinigameKind.WheelOfFortune] = 15,
                 [MinigameKind.MentalArithmetic] = 16,
+                [MinigameKind.Memory] = 17,
             };
 
             var ohne = Enum.GetValues<MinigameKind>().Where(k => !seitFormat.ContainsKey(k)).ToList();

@@ -8,6 +8,7 @@ import { TeilenModul } from "./teilen.js";
 import { ZockerModul } from "./zocker.js";
 import { GluecksradModul } from "./gluecksrad.js";
 import { KopfrechnenModul } from "./kopfrechnen.js";
+import { MemoryModul } from "./memory.js";
 import { EinsatzModul } from "../sonderregeln/einsatz.js";
 import { RisikoModul } from "../sonderregeln/risiko.js";
 import { AuktionModul } from "../sonderregeln/auktion.js";
@@ -27,7 +28,8 @@ const MODULE = new Map([
     [MinigameKinds.ShareOrTake, () => new TeilenModul()],
     [MinigameKinds.Crash, () => new ZockerModul()],
     [MinigameKinds.WheelOfFortune, () => new GluecksradModul()],
-    [MinigameKinds.MentalArithmetic, (optionen) => new KopfrechnenModul(optionen)]
+    [MinigameKinds.MentalArithmetic, (optionen) => new KopfrechnenModul(optionen)],
+    [MinigameKinds.Memory, (optionen) => new MemoryModul(optionen)]
 ]);
 
 const SONDERREGELN = new Map([

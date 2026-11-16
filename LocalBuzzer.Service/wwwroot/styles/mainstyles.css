@@ -917,3 +917,48 @@ body {
 .kopfrechnen-senden {
     background: var(--primary);
 }
+
+/* M35 C5: Memory - vier Spalten; verdeckt "?", offen und gefunden das Motiv. Gefunden ist zusaetzlich
+   gestrichelt umrandet und blasser - der Unterschied haengt nie allein an der Farbe. */
+.memory-inhalt {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.memory-stand,
+.memory-hinweis {
+    margin: 0;
+    font-size: 18px;
+    color: var(--text-soft);
+}
+
+.memory-raster {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-xs);
+}
+
+.memory-karte {
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    font-size: 34px;
+    line-height: 1;
+    touch-action: manipulation;
+}
+
+.memory-verdeckt {
+    background: var(--secondary);
+    font-weight: 800;
+}
+
+.memory-offen {
+    background: var(--primary);
+}
+
+.memory-gefunden {
+    background: transparent;
+    border: 2px dashed var(--border-soft);
+    opacity: 0.6;
+}

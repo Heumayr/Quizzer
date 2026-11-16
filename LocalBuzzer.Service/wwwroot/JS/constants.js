@@ -17,7 +17,8 @@ export const MinigameKinds = Object.freeze({
     ShareOrTake: 7,
     Crash: 8,
     WheelOfFortune: 9,
-    MentalArithmetic: 10
+    MentalArithmetic: 10,
+    Memory: 11
 });
 
 export const MinigamePhases = Object.freeze({

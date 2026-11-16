@@ -79,6 +79,7 @@ namespace Quizzer.Views.BuzzerViews
                     StoppuhrVersuch stopp => StoppuhrEvaluator.Describe(stopp),
                     ZockerAusstieg aus => $"bei {ZockerEvaluator.Text(aus.Multiplikator)} ausgestiegen",
                     KopfrechnenAntwort antwort => KopfrechnenEvaluator.Describe(antwort.Stand),
+                    MemoryZug zug => $"{zug.Stand.Paare} {(zug.Stand.Paare == 1 ? "Paar" : "Paare")}" + (zug.Stand.Fertig != null ? " – fertig" : string.Empty),
 
                     // M35 C2: geheime Wahlen bleiben auch hier „abgegeben" - der Beamer loest sie auf.
                     PlayerChosen or WheelTargetChosen => "hat gewählt",

@@ -128,6 +128,7 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
         [DataRow(MinigameKind.TapSprint, "Dauer (Sekunden)", 2)]
         [DataRow(MinigameKind.Stopwatch, "Zielzeit (Sekunden)", 4)]
         [DataRow(MinigameKind.MentalArithmetic, "Dauer (Sekunden)", 14)]
+        [DataRow(MinigameKind.Memory, "Höchstdauer (Sekunden)", 19)]
         public void TheTimedKindsAskForSecondsNamedByTheKind(MinigameKind art, string beschriftung, int zuKurz)
         {
             var (vm, maske) = Neu();
@@ -180,9 +181,10 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
             Assert.AreEqual(!anteil, vm.CanSave, anteil ? "Ein Anteil von 0 ist speicherbar." : "Ein ungelesener Anteil sperrt das Speichern.");
         }
 
-        /// <summary>M35 C5: Kopfrechnen waehlt die Schwierigkeit ueber die Spielweise - drei Stufen, ohne Runden und Anteil.</summary>
+        /// <summary>M35 C5: Kopfrechnen und Memory waehlen Schwierigkeit bzw. Feldgroesse ueber die Spielweise - drei Stufen, ohne Runden und Anteil.</summary>
         [TestMethod]
         [DataRow(MinigameKind.MentalArithmetic, 3)]
+        [DataRow(MinigameKind.Memory, 3)]
         public void TheLevelKindsOfferTheirLevels(MinigameKind art, int stufen)
         {
             var (vm, maske) = Neu();

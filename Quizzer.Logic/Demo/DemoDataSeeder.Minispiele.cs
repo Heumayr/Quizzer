@@ -8,7 +8,7 @@ namespace Quizzer.Logic.Demo
     /// <summary>
     /// Die Minispiele der Typenschau (M35 B2) - eigene Teildatei, weil die Typenschau sonst ueber die
     /// Groessen-Obergrenze wuechse. Mehrheit und Reaktion im Raster; Minderheit (B3), Tippsprint und
-    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen (C5) im Vorrat - das Raster hat zwei Zeilen.
+    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen und Memory (C5) im Vorrat - das Raster hat zwei Zeilen.
     /// </summary>
     public static partial class DemoDataSeeder
     {
@@ -58,6 +58,9 @@ namespace Quizzer.Logic.Demo
             // M35 C5, ebenfalls nur im Vorrat.
             yield return OhneZeilen(kat, "Typenschau: Kopfrechnen", "MIN-11", 200, Difficulty.Level2,
                 "Wer rechnet am schnellsten? Eine Minute, so viele Aufgaben wie möglich!", MinigameKind.MentalArithmetic);
+
+            yield return OhneZeilen(kat, "Typenschau: Memory", "MIN-12", 200, Difficulty.Level2,
+                "Wer findet zuerst alle Paare? Jeder auf seinem Telefon, alle dieselbe Belegung.", MinigameKind.Memory);
         }
 
         /// <summary>Arten im Telefonrahmen (Reaktion B3, Tippsprint und Stoppuhr C1): keine Zeilen, nur Art und Parameter.</summary>

@@ -276,6 +276,41 @@ namespace Quizzer.DataModels.Questions.Minispiele
             MinPlayers = 2,
         };
 
+        private const string MemoryRegeltext =
+            $"Memory! Findet auf eurem Telefon alle Paare – wer zuerst fertig ist, gewinnt. Höchstens {DurationPlaceholder} Sekunden.";
+
+        private static readonly MinigameProfile Memory = new()
+        {
+            Kind = MinigameKind.Memory,
+            DisplayName = "Memory",
+            Description = "Jeder spielt auf seinem Telefon ein eigenes Memory mit derselben Belegung. Jede umgedrehte Karte "
+                        + "fragt den Server – die Belegung bleibt dort, das Telefon kennt nur die offenen Karten und seine "
+                        + "gefundenen Paare. Zwei Karten, die kein Paar sind, bleiben offen, bis die nächste umgedreht wird. "
+                        + "Wer zuerst alle Paare hat (gemessen an der Uhr des Servers), bekommt den Vorschlag mit den Punkten "
+                        + "des Felds; läuft die Zeit vorher ab, wer die meisten Paare hat. Bei Gleichstand alle. Mehr als "
+                        + $"{MemoryEvaluator.MaxUmdrehenJeSekunde} Karten je Sekunde nimmt der Server nicht an.",
+
+            // Der Index ist MinigameQuestion.Variant - MemoryBelegung.PaareFuer.
+            Variants =
+            [
+                new("Klein – 6 Paare", MemoryRegeltext),
+                new("Mittel – 8 Paare", MemoryRegeltext),
+                new("Groß – 10 Paare", MemoryRegeltext),
+            ],
+            Layout = BuzzerControlsLayout.Minigame,
+            ShowDurationSeconds = true,
+            DefaultDurationSeconds = 120,
+            MinDurationSeconds = 20,
+            MaxDurationSeconds = 300,
+            DurationLabel = "Höchstdauer (Sekunden)",
+            DurationToolTip = "So lange läuft die Runde höchstens – sie endet früher, wenn alle fertig sind.",
+            MinOptions = 0,
+            OptionsName = "Zeilen",
+
+            // Wie der Tippsprint: allein gewaenne man immer.
+            MinPlayers = 2,
+        };
+
         /// <summary>Steht im Regeltext fuer <see cref="MinigameQuestion.DurationSeconds"/> - <see cref="RulesFor"/> setzt die Zahl ein.</summary>
         public const string DurationPlaceholder = "{Dauer}";
 
@@ -287,7 +322,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
         /// <summary>Alle Profile in der Reihenfolge, in der sie angeboten werden.</summary>
         public static IReadOnlyList<MinigameProfile> All { get; } =
-            [Majority, Reaction, TapSprint, Stopwatch, Duel, RobberAndGuard, ShareOrTake, Crash, WheelOfFortune, MentalArithmetic];
+            [Majority, Reaction, TapSprint, Stopwatch, Duel, RobberAndGuard, ShareOrTake, Crash, WheelOfFortune, MentalArithmetic, Memory];
 
         /// <summary>Liefert das Profil zu einer Art.</summary>
         /// <exception cref="ArgumentOutOfRangeException">Bei einer unbekannten Art.</exception>

@@ -38,5 +38,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Kopfrechnen: alle rechnen dieselbe Aufgabenfolge, der Server prueft jede Antwort (M35 C5).</summary>
         MentalArithmetic = 10,
+
+        /// <summary>Memory: jeder sein Feld mit derselben Belegung, jedes Umdrehen fragt den Server (M35 C5).</summary>
+        Memory = 11,
     }
 }
