@@ -1,3 +1,4 @@
+using Quizzer.DataModels.Questions.Sonderregeln;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -138,6 +139,14 @@ namespace Quizzer.DataModels.Transfer
                     throw new InvalidDataException(
                         $"Die Zelle {zelle.X}/{zelle.Y} trägt eine unbekannte Sonderregel ({(int)zelle.SpecialRule}). "
                         + "Vermutlich stammt das Bündel aus einer neueren Fassung.");
+
+                if (zelle.SpecialRuleShare < 0 || zelle.SpecialRuleShare > SpecialRuleProfiles.MaxShare)
+                    throw new InvalidDataException(
+                        $"Die Zelle {zelle.X}/{zelle.Y} trägt einen Anteil von {zelle.SpecialRuleShare} % – erlaubt sind 0 bis {SpecialRuleProfiles.MaxShare}.");
+
+                if (zelle.SpecialRuleVariant < 0)
+                    throw new InvalidDataException(
+                        $"Die Zelle {zelle.X}/{zelle.Y} trägt eine ungültige Spielweise ({zelle.SpecialRuleVariant}).");
             }
 
             foreach (var textur in dokument.Design?.Texturen ?? new Dictionary<string, string>())

@@ -64,10 +64,40 @@ namespace Quizzer.LogicUnitTests.DataModels.Sonderregeln
             var zelle = Zelle(0, Frage());
             zelle.SpecialRule = CellSpecialRule.Stake;
             zelle.SpecialRuleAnnounced = true;
+            zelle.SpecialRuleShare = 30;
+            zelle.SpecialRuleVariant = 1;
 
             Assert.AreEqual(1, Sonderregelraster.Entferne([zelle, Zelle(1, Frage())]).Count);
             Assert.AreEqual(CellSpecialRule.None, zelle.SpecialRule);
             Assert.IsFalse(zelle.SpecialRuleAnnounced);
+            Assert.AreEqual(0, zelle.SpecialRuleShare, "Der Anteil der alten Regel bleibt stehen.");
+            Assert.AreEqual(0, zelle.SpecialRuleVariant, "Die Spielweise der alten Regel bleibt stehen.");
+        }
+
+        /// <summary>Anteil und Spielweise (M35 C3b): die Zelle schlaegt die Vorgabe, 0 heisst Vorgabe; der Regeltext traegt beides.</summary>
+        [TestMethod]
+        public void TheRulesTextCarriesTheShareAndTheVariantOfTheCell()
+        {
+            var profil = new SpecialRuleProfile(CellSpecialRule.Stake, "Probe", "ohne Spielweise")
+            {
+                DefaultShare = 50,
+                Variants = [new("Eins", "Erste: {Anteil} %"), new("Zwei", "Zweite: {Anteil} %")],
+            };
+
+            Assert.AreEqual("Zweite: 20 %", profil.RulesTextFor(1, 20));
+            Assert.AreEqual("Erste: 20 %", profil.RulesTextFor(7, 20), "Eine unbekannte Spielweise liest sich nicht wie die erste.");
+            Assert.AreEqual("Erste: 20 %", profil.RulesTextFor(-1, 20));
+            Assert.AreEqual("ohne {Anteil}".Replace("{Anteil}", "5"),
+                new SpecialRuleProfile(CellSpecialRule.Risk, "P", "ohne {Anteil}").RulesTextFor(0, 5));
+            Assert.IsTrue(profil.ShowShare && profil.ShowVariant);
+
+            var zelle = Zelle(0, Frage());
+            zelle.SpecialRule = CellSpecialRule.Stake;
+            Assert.AreEqual(0, SpecialRuleProfiles.ShareOf(zelle), "Einsatz kennt keinen Anteil - die Vorgabe ist 0.");
+            zelle.SpecialRuleShare = 35;
+            Assert.AreEqual(35, SpecialRuleProfiles.ShareOf(zelle), "Der eigene Anteil der Zelle zaehlt nicht.");
+            zelle.SpecialRule = (CellSpecialRule)99;
+            Assert.AreEqual(string.Empty, SpecialRuleProfiles.RulesTextOf(zelle));
         }
 
         [TestMethod]

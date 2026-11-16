@@ -110,6 +110,32 @@ namespace Quizzer.UnitTests.Views
             Assert.IsTrue(gewoehnlich.SpecialRuleAnnounced);
         }
 
+        /// <summary>M35 C3b: eine andere Regel beginnt mit ihrer Vorgabe - Anteil und Spielweise gehoerten der alten.</summary>
+        [TestMethod]
+        public void AnotherRuleStartsWithItsDefaultsButKeepsTheAnnouncement()
+        {
+            var vm = new QuestionSelectorViewModel();
+            var zelle = new GameGridCoordinate
+            {
+                Id = Guid.NewGuid(), QuestionBase = new DefaultQuestion { Id = Guid.NewGuid() },
+                SpecialRule = CellSpecialRule.Stake, SpecialRuleAnnounced = true, SpecialRuleShare = 30, SpecialRuleVariant = 1,
+            };
+            vm.SetDependencys(new Game(), zelle);
+
+            vm.GewaehlteSonderregel = vm.SonderregelOptionen.Single(o => o.Regel == CellSpecialRule.Risk);
+
+            Assert.AreEqual(CellSpecialRule.Risk, zelle.SpecialRule);
+            Assert.IsTrue(zelle.SpecialRuleAnnounced, "Der Wechsel der Regel nimmt die Ankuendigung.");
+            Assert.AreEqual(0, zelle.SpecialRuleShare, "Der Anteil der alten Regel bleibt stehen.");
+            Assert.AreEqual(0, zelle.SpecialRuleVariant, "Die Spielweise der alten Regel bleibt stehen.");
+
+            // Risiko kennt weder Anteil noch Spielweise: beides bleibt verborgen, ein Wert von aussen wird nicht genommen.
+            Assert.AreEqual(Visibility.Collapsed, vm.SonderregelAnteilVisibility);
+            Assert.AreEqual(Visibility.Collapsed, vm.SonderregelSpielweiseVisibility);
+            vm.SonderregelAnteil = 40;
+            Assert.AreEqual(0, zelle.SpecialRuleShare, "Eine Regel ohne Anteil nahm einen.");
+        }
+
         /// <summary>Am selben Zell-ViewModel: das Steuerelement entscheidet, ob eine verdeckte Regel zu sehen ist.</summary>
         [TestMethod]
         public void TheBeamerCellHidesWhatTheMasterCellShows()

@@ -101,10 +101,11 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
     /// <param name="SpecialRule">Statt einer Art die Vorphase dieser Sonderregel (M35 C3).</param>
     /// <param name="FieldPoints">Was „richtig" in der Zelle bringt - beim Einsatz Teil der Obergrenze.</param>
     /// <param name="Balances">Kontostand je Spieler beim Einstellen - beim Einsatz Teil der Obergrenze.</param>
+    /// <param name="Share">Anteil der Sonderregel in Prozent der Feldpunkte (M35 C3b) - die Wette zeigt daraus den Einsatz.</param>
     public sealed record MinigameSetup(
         MinigameKind Kind, string Title, string RulesText, int TotalRounds, int CountdownSeconds = 3, int DurationSeconds = 0,
         Guid? TriggerPlayerId = null, int Variant = 0, CellSpecialRule SpecialRule = CellSpecialRule.None,
-        int FieldPoints = 0, IReadOnlyDictionary<Guid, int>? Balances = null);
+        int FieldPoints = 0, IReadOnlyDictionary<Guid, int>? Balances = null, int Share = 0);
 
     /// <summary>
     /// Die Regeln einer Art am Server: was eine gueltige Abgabe ist und was ein Spieler sieht. Der

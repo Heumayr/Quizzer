@@ -29,6 +29,9 @@ namespace Quizzer.UnitTests.Views.GameViews
         /// <summary>Der Port gehoert allein der abgeleiteten Klasse.</summary>
         protected abstract int Port { get; }
 
+        /// <summary>Richtet die Zelle vor dem Oeffnen ein - Anteil, Spielweise (M35 C3b).</summary>
+        protected Action<GameGridCoordinate>? ZelleEinrichten { get; set; }
+
         [TestInitialize]
         public void SetUpBasis()
         {
@@ -83,6 +86,7 @@ namespace Quizzer.UnitTests.Views.GameViews
         {
             world = await TestGameBuilder.CreateAsync(typ, normalStepCount: 3, playerCount: spieler);
             world.Coordinate.SpecialRule = regel;
+            ZelleEinrichten?.Invoke(world.Coordinate);
 
             if (kontostaende != null)
                 SetzeKontostaende(kontostaende);

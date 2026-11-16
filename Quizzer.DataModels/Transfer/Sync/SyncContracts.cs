@@ -41,8 +41,9 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// 5: Minispiel-Arten Tippsprint und Stoppuhr (M35 C1) - derselbe Grund wie bei 4.
         /// 6: Minispiel-Arten Duell, Raeuber und Waechter, Teilen oder Nehmen (M35 C2) - derselbe Grund wie bei 4.
         /// 7: Sonderregel an der Zelle - Spalten GameGridCoordinate.SpecialRule und SpecialRuleAnnounced (M35 C3).
+        /// 8: Anteil und Spielweise der Sonderregel - Spalten SpecialRuleShare und SpecialRuleVariant (M35 C3b).
         /// </summary>
-        public const int CurrentFormatVersion = 7;
+        public const int CurrentFormatVersion = 8;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

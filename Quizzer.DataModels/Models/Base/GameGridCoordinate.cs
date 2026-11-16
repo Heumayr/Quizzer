@@ -43,6 +43,12 @@ namespace Quizzer.DataModels.Models.Base
         /// <summary>Ob die Sonderregel am Beamer-Raster angekuendigt ist (V3) - sonst bleibt sie verdeckt.</summary>
         public bool SpecialRuleAnnounced { get; set; }
 
+        /// <summary>Anteil der Sonderregel in Prozent der Feldpunkte (M35 C3b); 0: die Vorgabe ihres Profils.</summary>
+        public int SpecialRuleShare { get; set; }
+
+        /// <summary>Spielweise der Sonderregel (M35 C3b), Index in ihrem Profil; 0: die erste.</summary>
+        public int SpecialRuleVariant { get; set; }
+
         /// <summary>
         /// Rechnet die Punkte dieser Zelle neu. <see cref="CurrentPoints"/> und
         /// <see cref="CurrentMinusPoints"/> sind gespeicherte Spalten, keine Anzeigewerte - was
@@ -163,6 +169,8 @@ namespace Quizzer.DataModels.Models.Base
                 CurrentMinusPoints = CurrentMinusPoints,
                 SpecialRule = SpecialRule,
                 SpecialRuleAnnounced = SpecialRuleAnnounced,
+                SpecialRuleShare = SpecialRuleShare,
+                SpecialRuleVariant = SpecialRuleVariant,
                 QuestionBase = null,
                 QuestionResults = new List<QuestionResult>(),
                 Game = null!

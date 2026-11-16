@@ -10,8 +10,17 @@ namespace Quizzer.Views.GameViews.Sonderregeln
     /// <param name="Kontostaende">Kontostand je Spieler beim Oeffnen.</param>
     /// <param name="Namen">Anzeigename je Spieler - fuer Beamer und Spielerkarte.</param>
     /// <param name="Ausloeser">Wer das Feld aufgedeckt hat, wenn er mitspielt (Allianz).</param>
+    /// <param name="Anteil">Anteil der Zelle in Prozent, Vorgabe schon eingesetzt (M35 C3b).</param>
+    /// <param name="Spielweise">Spielweise der Zelle, Index im Profil (M35 C3b).</param>
     internal sealed record VorphaseGrundlage(
-        int Feldpunkte, IReadOnlyDictionary<Guid, int> Kontostaende, IReadOnlyDictionary<Guid, string>? Namen = null, Guid? Ausloeser = null);
+        int Feldpunkte, IReadOnlyDictionary<Guid, int> Kontostaende, IReadOnlyDictionary<Guid, string>? Namen = null, Guid? Ausloeser = null,
+        int Anteil = 0, int Spielweise = 0)
+    {
+        public static VorphaseGrundlage Leer { get; } = new(0, new Dictionary<Guid, int>());
+
+        /// <summary>Der Name zu einer Id - fuer Gruende und Abgabetexte.</summary>
+        public string NameVon(Guid spieler) => Namen?.GetValueOrDefault(spieler) ?? "?";
+    }
 
     /// <summary>
     /// Eine Sonderregel im Fragefenster (M35 C3): stellt die Vorphase ein, merkt sich deren Abgaben und
@@ -35,13 +44,26 @@ namespace Quizzer.Views.GameViews.Sonderregeln
         public virtual IReadOnlyCollection<Guid>? Antwortende => null;
 
         /// <summary>Ob die Regel eine Vorphase am Telefon spielt (M35 C3b) - das Kopfgeld nicht, es steht beim Oeffnen fest.</summary>
-        public virtual bool HatVorphase => true;
+        public virtual bool HatVorphase => Profil.HasPrePhase;
 
         /// <summary>Was Beamer und Spielleiter waehrend der Frage dazu lesen, etwa „Kopfgeld auf Anna"; leer: nichts.</summary>
         public virtual string Hinweis => string.Empty;
 
-        /// <summary>Die Zelle ist offen: die Regel merkt sich, was sie spaeter braucht (Kontostaende, Namen, Ausloeser).</summary>
-        public virtual void Oeffne(VorphaseGrundlage grundlage)
+        /// <summary>Was die Regel beim Oeffnen der Zelle bekam - Kontostaende, Namen, Ausloeser, Anteil.</summary>
+        public VorphaseGrundlage Grundlage { get; private set; } = VorphaseGrundlage.Leer;
+
+        /// <summary>Der Regeltext fuer Beamer und Telefon - Spielweise und Anteil der Zelle eingesetzt.</summary>
+        public string Regeltext => Profil.RulesTextFor(Grundlage.Spielweise, Grundlage.Anteil);
+
+        /// <summary>Die Zelle ist offen: die Regel merkt sich, was sie spaeter braucht.</summary>
+        public void Oeffne(VorphaseGrundlage grundlage)
+        {
+            Grundlage = grundlage;
+            BeimOeffnen();
+        }
+
+        /// <summary>Was eine Regel beim Oeffnen selbst festlegt - das Kopfgeld seine Gesuchten.</summary>
+        protected virtual void BeimOeffnen()
         {
         }
 
@@ -58,8 +80,9 @@ namespace Quizzer.Views.GameViews.Sonderregeln
 
         /// <summary>Wie der Server die Vorphase einstellt - eine Runde, ohne Countdown.</summary>
         public virtual MinigameSetup Setup(VorphaseGrundlage grundlage)
-            => new(default, Titel, Profil.RulesText, 1, CountdownSeconds: 0, SpecialRule: Profil.Rule,
-                FieldPoints: grundlage.Feldpunkte, Balances: grundlage.Kontostaende);
+            => new(default, Titel, Regeltext, 1, CountdownSeconds: 0, TriggerPlayerId: grundlage.Ausloeser,
+                Variant: grundlage.Spielweise, SpecialRule: Profil.Rule, FieldPoints: grundlage.Feldpunkte,
+                Balances: grundlage.Kontostaende, Share: grundlage.Anteil);
 
         /// <summary>Die Vorphase ist zu: wer nichts abgegeben hat, fuer den greift die Regel nicht.</summary>
         public void Schliesse(IReadOnlyDictionary<Guid, object> abgaben)

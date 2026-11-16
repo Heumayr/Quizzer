@@ -118,6 +118,12 @@ namespace Quizzer.DataModels.Transfer
 
             /// <summary>Ob sie am Beamer-Raster angekuendigt ist (V3).</summary>
             public bool SpecialRuleAnnounced { get; set; }
+
+            /// <summary>Anteil der Regel in Prozent (M35 C3b); 0: die Vorgabe ihres Profils.</summary>
+            public int SpecialRuleShare { get; set; }
+
+            /// <summary>Spielweise der Regel (M35 C3b), Index in ihrem Profil.</summary>
+            public int SpecialRuleVariant { get; set; }
         }
 
         /// <summary>Eine Frage samt ihren Schritten.</summary>

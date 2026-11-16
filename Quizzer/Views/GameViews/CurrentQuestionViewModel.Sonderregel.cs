@@ -110,7 +110,9 @@ namespace Quizzer.Views.GameViews
             return new(Coordinate?.CurrentPoints ?? 0,
                 karten.ToDictionary(k => k.Player.Id, k => k.Kontostand),
                 karten.ToDictionary(k => k.Player.Id, k => k.Player.CalculatedDisplayName),
-                Ausloeser);
+                Ausloeser,
+                Coordinate is { } zelle ? SpecialRuleProfiles.ShareOf(zelle) : 0,
+                Coordinate?.SpecialRuleVariant ?? 0);
         }
 
         /// <summary>Der Spielleiter schliesst die Vorphase (E1) - wer nichts abgegeben hat, fuer den greift die Regel nicht.</summary>
@@ -180,7 +182,7 @@ namespace Quizzer.Views.GameViews
                 : VorphaseLaeuft ? $"Vorphase: {abgegeben} von {gesamt} haben abgegeben"
                 : $"Vorphase zu: {abgegeben} von {gesamt} haben abgegeben";
 
-            Sonderregel.Zeige(sonderregel.Titel, sonderregel.Profil.RulesText, stand, VorphaseLaeuft, sonderregel.Hinweis);
+            Sonderregel.Zeige(sonderregel.Titel, sonderregel.Regeltext, stand, VorphaseLaeuft, sonderregel.Hinweis);
         }
 
         private void LoeseVorphase()

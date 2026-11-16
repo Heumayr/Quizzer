@@ -302,6 +302,12 @@ namespace Quizzer.Logic.Migrations
                     b.Property<bool>("SpecialRuleAnnounced")
                         .HasColumnType("bit");
 
+                    b.Property<int>("SpecialRuleShare")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SpecialRuleVariant")
+                        .HasColumnType("int");
+
                     b.Property<int>("X")
                         .HasColumnType("int");
 

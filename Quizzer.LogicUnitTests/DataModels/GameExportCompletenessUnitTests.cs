@@ -174,6 +174,9 @@ namespace Quizzer.LogicUnitTests.DataModels
             var zelle = new GameGridCoordinate { Id = Guid.NewGuid() };
             Fuelle(zelle, ref streuung);
             zelle.QuestionBaseId = frage.Id;
+
+            // Der Pruefer laesst nur 0 bis 100 Prozent durch (M35 C3b) - ein abweichender Wert bleibt es trotzdem.
+            zelle.SpecialRuleShare = 42;
             spiel.GameGridCoordinates.Add(zelle);
 
             // Hin und zurueck, ueber den echten Text.

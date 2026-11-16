@@ -37,11 +37,30 @@
                 <Label MinWidth="120" Content="Sonderregel:" VerticalAlignment="Center" />
                 <ComboBox ItemsSource="{Binding SonderregelOptionen}" SelectedItem="{Binding GewaehlteSonderregel}"
                           DisplayMemberPath="Name" MinWidth="140" IsEnabled="{Binding SonderregelMoeglich}"
-                          ToolTip="Umhüllt die Frage dieser Zelle: erst eine Vorphase am Telefon (setzen oder doppelt spielen), dann die Frage." />
+                          ToolTip="Umhüllt die Frage dieser Zelle: meist erst eine Vorphase am Telefon (setzen, bieten, wählen), dann die Frage." />
                 <CheckBox Content="angekündigt" VerticalAlignment="Center" Margin="10,0,0,0"
                           IsChecked="{Binding SonderregelAngekuendigt}" IsEnabled="{Binding SonderregelMoeglich}"
                           ToolTip="Angekündigt sehen die Gäste die Regel schon im Raster. Sonst bleibt sie verdeckt, bis die Zelle aufgedeckt wird." />
                 <TextBlock Text="{Binding SonderregelHinweis}" VerticalAlignment="Center" Margin="10,0,0,0" Opacity="0.8" />
+            </StackPanel>
+            <!-- M35 C3b: Anteil und Spielweise - nur, wenn die gewaehlte Regel sie kennt. -->
+            <StackPanel Orientation="Horizontal" Margin="5,0,5,5">
+                <StackPanel Orientation="Horizontal" Visibility="{Binding SonderregelAnteilVisibility}">
+                    <Label MinWidth="120" Content="Anteil %:" VerticalAlignment="Center"
+                           ToolTip="Welcher Anteil der Feldpunkte bei dieser Regel bewegt wird." />
+                    <TextBox MinWidth="60" VerticalContentAlignment="Center" IsEnabled="{Binding SonderregelMoeglich}"
+                             Text="{Binding SonderregelAnteil, UpdateSourceTrigger=LostFocus}"
+                             ToolTip="1 bis 100 Prozent der Feldpunkte. Leer oder 0: die Vorgabe der Regel." />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Visibility="{Binding SonderregelSpielweiseVisibility}" Margin="10,0,0,0">
+                    <Label Content="Spielweise:" VerticalAlignment="Center"
+                           ToolTip="Wie die Regel gespielt wird; der Regeltext am Beamer passt sich an." />
+                    <ComboBox ItemsSource="{Binding SonderregelSpielweisen}" SelectedIndex="{Binding SonderregelSpielweise}"
+                              DisplayMemberPath="Name" MinWidth="140" IsEnabled="{Binding SonderregelMoeglich}"
+                              ToolTip="Wie die Regel gespielt wird; der Regeltext am Beamer passt sich an." />
+                </StackPanel>
+                <TextBlock Text="{Binding SonderregelRegeltext}" VerticalAlignment="Center" Margin="10,0,0,0" Opacity="0.8"
+                           TextWrapping="Wrap" MaxWidth="520" />
             </StackPanel>
             <DataGrid ItemsSource="{Binding AvailableQuestions}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" SelectionMode="Single" IsReadOnly="True" SelectedItem="{Binding SelectedQuestion}"
                         base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding SelectAndCloseCommand}">

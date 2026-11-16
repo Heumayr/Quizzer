@@ -37,23 +37,29 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
                 || (zelle.HatFrage && zelle.QuestionBase?.Typ != QuestionType.Minigame))
                 return false;
 
-            zelle.SpecialRule = CellSpecialRule.None;
-            zelle.SpecialRuleAnnounced = false;
+            Leere(zelle);
             return true;
         }
 
         /// <summary>Nimmt jede Regel vom Raster; liefert die Zellen, die eine trugen.</summary>
         public static IReadOnlyList<GameGridCoordinate> Entferne(IEnumerable<GameGridCoordinate> zellen)
         {
-            var belegt = zellen.Where(z => z.SpecialRule != CellSpecialRule.None || z.SpecialRuleAnnounced).ToList();
+            var belegt = zellen.Where(z => z.SpecialRule != CellSpecialRule.None || z.SpecialRuleAnnounced
+                || z.SpecialRuleShare != 0 || z.SpecialRuleVariant != 0).ToList();
 
             foreach (var zelle in belegt)
-            {
-                zelle.SpecialRule = CellSpecialRule.None;
-                zelle.SpecialRuleAnnounced = false;
-            }
+                Leere(zelle);
 
             return belegt;
+        }
+
+        /// <summary>Keine Regel - und damit weder Ankuendigung noch Anteil noch Spielweise (M35 C3b).</summary>
+        public static void Leere(GameGridCoordinate zelle)
+        {
+            zelle.SpecialRule = CellSpecialRule.None;
+            zelle.SpecialRuleAnnounced = false;
+            zelle.SpecialRuleShare = 0;
+            zelle.SpecialRuleVariant = 0;
         }
 
         /// <summary>
@@ -75,6 +81,7 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
                 var zelle = frei[auftrag.Zufall(0, frei.Count)];
                 frei.Remove(zelle);
 
+                Leere(zelle);
                 zelle.SpecialRule = auftrag.Regeln[auftrag.Zufall(0, auftrag.Regeln.Count)];
                 zelle.SpecialRuleAnnounced = auftrag.Angekuendigt;
                 belegt.Add(zelle);
