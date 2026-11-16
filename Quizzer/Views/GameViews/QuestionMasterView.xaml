@@ -255,12 +255,20 @@
                             <ComboBox ItemsSource="{Binding PaarSpieler}" SelectedItem="{Binding PaarWaehler}"
                                       DisplayMemberPath="CalculatedDisplayName"
                                       ToolTip="Wer das Feld aufgedeckt hat. Er wählt am Telefon sein Gegenüber – fehlt er, hier wählen." />
-                            <TextBlock Text="{Binding PaarPartnerBeschriftung}" FontSize="12" Margin="0,6,0,2" />
+                            <TextBlock Text="{Binding PaarPartnerBeschriftung}" FontSize="12" Margin="0,6,0,2"
+                                       Visibility="{Binding PaarPartnerVisibility}" />
                             <ComboBox ItemsSource="{Binding PaarSpieler}" SelectedItem="{Binding PaarPartner}"
+                                      Visibility="{Binding PaarPartnerVisibility}"
                                       DisplayMemberPath="CalculatedDisplayName"
                                       ToolTip="Leer lassen: der Auslöser wählt am Telefon. Gesetzt: der Spielleiter legt fest, wer mitspielt." />
                             <Button Content="Paar festlegen" Command="{Binding SetMinigamePairCommand}" Margin="0,6,0,0"
                                     ToolTip="Legt fest, wer spielt. Mitten in der Runde zählt, was schon abgegeben war, nicht mehr." />
+                        </StackPanel>
+                        <!-- M35 C6: Erklaerbaer - den Begriff sieht nur der Spielleiter, damit er „Verraten" werten kann. -->
+                        <StackPanel Visibility="{Binding ErklaerbaerVisibility}" Margin="4,10,4,0">
+                            <TextBlock Text="{Binding ErklaerbaerBegriff}" FontWeight="Bold" TextWrapping="Wrap" />
+                            <Button Content="Verraten" Command="{Binding VerratenCommand}" Margin="0,6,0,0"
+                                    ToolTip="Der Erklärer hat das Wort gesagt: diese Runde bringt niemandem Punkte. Läuft sie noch, endet sie; ist sie vorbei, zählt die letzte nachträglich nicht." />
                         </StackPanel>
                     </StackPanel>
 

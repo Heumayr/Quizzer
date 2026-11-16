@@ -11,6 +11,7 @@ import { KopfrechnenModul } from "./kopfrechnen.js";
 import { MemoryModul } from "./memory.js";
 import { BlitzrundeModul } from "./blitzrunde.js";
 import { BuchstabensalatModul } from "./buchstabensalat.js";
+import { ErklaerbaerModul } from "./baer.js";
 import { EinsatzModul } from "../sonderregeln/einsatz.js";
 import { RisikoModul } from "../sonderregeln/risiko.js";
 import { AuktionModul } from "../sonderregeln/auktion.js";
@@ -33,7 +34,8 @@ const MODULE = new Map([
     [MinigameKinds.MentalArithmetic, (optionen) => new KopfrechnenModul(optionen)],
     [MinigameKinds.Memory, (optionen) => new MemoryModul(optionen)],
     [MinigameKinds.LightningRound, (optionen) => new BlitzrundeModul(optionen)],
-    [MinigameKinds.WordScramble, (optionen) => new BuchstabensalatModul(optionen)]
+    [MinigameKinds.WordScramble, (optionen) => new BuchstabensalatModul(optionen)],
+    [MinigameKinds.ExplainIt, (optionen) => new ErklaerbaerModul(optionen)]
 ]);
 
 const SONDERREGELN = new Map([

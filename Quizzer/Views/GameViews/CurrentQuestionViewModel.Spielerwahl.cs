@@ -25,7 +25,7 @@ namespace Quizzer.Views.GameViews
         public Player? PaarPartner { get; set; }
 
         private MinigameProfile? SpielerwahlArt
-            => Minispiel is { } frage && MinigameProfiles.TryFor(frage.Kind, out var art) && art.ChoosesPartner ? art : null;
+            => Minispiel is { } frage && MinigameProfiles.TryFor(frage.Kind, out var art) && art.ShowsPairChoice ? art : null;
 
         public Visibility MinispielPaarVisibility
             => MinispielSteuerungVisibility == Visibility.Visible && SpielerwahlArt != null ? Visibility.Visible : Visibility.Collapsed;
@@ -58,8 +58,7 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(PaarWaehler));
             OnPropertyChanged(nameof(PaarPartner));
             OnPropertyChanged(nameof(MinispielPaarVisibility));
-            OnPropertyChanged(nameof(PaarPartnerBeschriftung));
-            OnPropertyChanged(nameof(PaarWaehlerBeschriftung));
+            PaarwahlGeaendert();
         }
 
         internal async Task SetzePaarAsync()

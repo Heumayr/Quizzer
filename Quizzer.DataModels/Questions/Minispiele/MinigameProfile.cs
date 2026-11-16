@@ -87,6 +87,9 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// <summary>Ob eine Zeile mit diesem Text gespielt wird und darum als Zeile zaehlt - beim Buchstabensalat nur verwuerfelbare (M35 C5).</summary>
         public Func<string, bool> CountsAsOption { get; init; } = _ => true;
 
+        /// <summary>Ob jede Runde eine eigene Zeile braucht (Erklaerbaer: je Runde ein Begriff, M35 C6) - dann mindestens so viele wie Runden.</summary>
+        public bool OptionPerRound { get; init; }
+
         /// <summary>So viele Mitspieler braucht das Spiel - geprueft erst beim Spielstart.</summary>
         public int MinPlayers { get; init; } = 1;
 
@@ -101,6 +104,12 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
         /// <summary>Wie der Waehlende in der Paarwahl des Spielleiters heisst - beim Gluecksrad dreht er (M35 C4).</summary>
         public string ChooserLabel { get; init; } = "Wer fordert";
+
+        /// <summary>Ob der Spielleiter nur festlegt, wer an der Reihe ist, ohne Gegenueber - beim Erklaerbaer der Erklaerer (M35 C6).</summary>
+        public bool ChooserOnly { get; init; }
+
+        /// <summary>Ob das Fragefenster die Paarwahl des Spielleiters zeigt - mit Gegenueber oder nur den Waehlenden.</summary>
+        public bool ShowsPairChoice => ChoosesPartner || ChooserOnly;
 
         /// <summary>Die Spielweise zum gespeicherten Index; ein unbekannter faellt auf die Vorgabe.</summary>
         public MinigameVariant VariantFor(int variant)

@@ -367,6 +367,44 @@ namespace Quizzer.DataModels.Questions.Minispiele
             CountsAsOption = BuchstabensalatBegriffe.Verwuerfelbar,
         };
 
+        private static readonly MinigameProfile ExplainIt = new()
+        {
+            Kind = MinigameKind.ExplainIt,
+            DisplayName = "Erklärbär",
+            Description = "Je Runde ein Begriff aus den Zeilen: nur das Telefon des Erklärers zeigt ihn, er beschreibt ihn laut, "
+                        + "ohne ihn zu sagen. Die anderen tippen ihre Rateversuche ins Telefon; wer zuerst richtig liegt "
+                        + "(gemessen an der Uhr des Servers), und der Erklärer bekommen je die Punkte des Felds geteilt durch die "
+                        + "Runden. Groß und klein zählt nicht, ä gilt wie ae, ö wie oe, ü wie ue, ß wie ss. Sagt der Erklärer das "
+                        + "Wort, wertet der Spielleiter „Verraten“ – dann bringt die Runde niemandem etwas. Erklärer ist, wer das "
+                        + "Feld aufgedeckt hat; fehlt er, wählt ihn der Spielleiter. Mehr als "
+                        + $"{ErklaerbaerEvaluator.MaxVersucheJeFenster} Versuche in {ErklaerbaerEvaluator.FensterSekunden} Sekunden "
+                        + "nimmt der Server nicht an.",
+            Variants =
+            [
+                new("Begriffe erklären",
+                    $"Erklärbär! Einer erklärt, alle anderen raten am Telefon – {RoundsPlaceholder} Begriffe, je "
+                    + $"{DurationPlaceholder} Sekunden. Das Wort selbst ist verboten!"),
+            ],
+            Layout = BuzzerControlsLayout.Minigame,
+            ShowRounds = true,
+            DefaultRounds = 3,
+            ShowDurationSeconds = true,
+            DefaultDurationSeconds = 60,
+            MinDurationSeconds = 15,
+            MaxDurationSeconds = 300,
+            DurationLabel = "Höchstdauer je Begriff (Sekunden)",
+            DurationToolTip = "So lange darf je Begriff geraten werden – die Runde endet früher, sobald jemand richtig liegt.",
+            MinOptions = 1,
+            OptionsName = "Begriffe",
+            OptionPerRound = true,
+            CountsAsOption = t => t.Any(char.IsLetterOrDigit),
+
+            // Einer erklaert, mindestens einer raet.
+            MinPlayers = 2,
+            ChooserOnly = true,
+            ChooserLabel = "Wer erklärt",
+        };
+
         /// <summary>Steht im Regeltext fuer <see cref="MinigameQuestion.DurationSeconds"/> - <see cref="RulesFor"/> setzt die Zahl ein.</summary>
         public const string DurationPlaceholder = "{Dauer}";
 
@@ -379,7 +417,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// <summary>Alle Profile in der Reihenfolge, in der sie angeboten werden.</summary>
         public static IReadOnlyList<MinigameProfile> All { get; } =
             [Majority, Reaction, TapSprint, Stopwatch, Duel, RobberAndGuard, ShareOrTake, Crash, WheelOfFortune, MentalArithmetic, Memory,
-             LightningRound, WordScramble];
+             LightningRound, WordScramble, ExplainIt];
 
         /// <summary>Liefert das Profil zu einer Art.</summary>
         /// <exception cref="ArgumentOutOfRangeException">Bei einer unbekannten Art.</exception>

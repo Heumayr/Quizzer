@@ -58,9 +58,11 @@ namespace Quizzer.DataModels.Questions.Minispiele
             var zeilen = (frage.Steps ?? []).Count(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly
                 && art.CountsAsOption((string.IsNullOrWhiteSpace(s.StepText) ? s.Designation : s.StepText) ?? string.Empty));
 
-            if (zeilen < art.MinOptions)
+            var mindestens = art.OptionPerRound ? Math.Max(art.MinOptions, frage.Rounds) : art.MinOptions;
+
+            if (zeilen < mindestens)
                 yield return new(TooFewOptions, ValidationSeverity.Error,
-                    $"Minispiel {art.DisplayName}: mindestens {art.MinOptions} {art.OptionsName} nötig, "
+                    $"Minispiel {art.DisplayName}: mindestens {mindestens} {art.OptionsName} nötig, "
                     + $"vorhanden sind {zeilen}.", nameof(frage.Steps));
         }
 

@@ -53,8 +53,9 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// 17: Minispiel-Art Memory (M35 C5) - derselbe Grund wie bei 4.
         /// 18: Minispiel-Art Blitzrunde (M35 C5) - derselbe Grund wie bei 4.
         /// 19: Minispiel-Art Buchstabensalat (M35 C5) - derselbe Grund wie bei 4.
+        /// 20: Minispiel-Art Erklaerbaer (M35 C6) - derselbe Grund wie bei 4.
         /// </summary>
-        public const int CurrentFormatVersion = 19;
+        public const int CurrentFormatVersion = 20;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

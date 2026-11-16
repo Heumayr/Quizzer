@@ -47,5 +47,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Buchstabensalat: verwuerfelte Begriffe aus den Zeilen, wer zuerst richtig tippt, loest ihn (M35 C5).</summary>
         WordScramble = 13,
+
+        /// <summary>Erklaerbaer: nur der Erklaerer sieht den Begriff, die anderen raten am Telefon - wer zuerst richtig liegt (M35 C6).</summary>
+        ExplainIt = 14,
     }
 }

@@ -8,7 +8,7 @@ namespace Quizzer.Logic.Demo
     /// <summary>
     /// Die Minispiele der Typenschau (M35 B2) - eigene Teildatei, weil die Typenschau sonst ueber die
     /// Groessen-Obergrenze wuechse. Mehrheit und Reaktion im Raster; Minderheit (B3), Tippsprint und
-    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen, Memory, Blitzrunde und Buchstabensalat (C5) im Vorrat - das Raster hat zwei Zeilen.
+    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen, Memory, Blitzrunde und Buchstabensalat (C5), Erklärbär (C6) im Vorrat - das Raster hat zwei Zeilen.
     /// </summary>
     public static partial class DemoDataSeeder
     {
@@ -85,9 +85,18 @@ namespace Quizzer.Logic.Demo
                     ("Regenbogen", false),
                     ("Eichhörnchen", false),
                 ]);
+
+            yield return MitZeilen(kat, "Typenschau: Erklärbär", "MIN-15", 300, Difficulty.Level2,
+                "Einer erklärt, alle anderen raten – aber das Wort selbst ist verboten!", MinigameKind.ExplainIt,
+                [
+                    ("Leuchtturm", false),
+                    ("Zahnbürste", false),
+                    ("Achterbahn", false),
+                    ("Kaffeemaschine", false),
+                ]);
         }
 
-        /// <summary>Arten mit Inhalt (Blitzrunde, Buchstabensalat, M35 C5): je Zeile ein Schritt, bei der Blitzrunde heisst der Haken „wahr".</summary>
+        /// <summary>Arten mit Inhalt (Blitzrunde, Buchstabensalat, M35 C5; Erklärbär, C6): je Zeile ein Schritt, bei der Blitzrunde heisst der Haken „wahr".</summary>
         private static QuestionBase MitZeilen(
             Guid kategorieId, string bezeichnung, string kurz, int punkte, Difficulty stufe, string frageText,
             MinigameKind art, (string Text, bool Wahr)[] zeilen)

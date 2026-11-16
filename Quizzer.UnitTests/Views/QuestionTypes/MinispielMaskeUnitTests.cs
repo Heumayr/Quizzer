@@ -210,6 +210,31 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
                 + string.Join(" | ", vm.Issues.Where(i => i.IsError).Select(i => i.Code)));
         }
 
+        /// <summary>M35 C6: der Erklaerbaer braucht je Runde einen eigenen Begriff - mehr Runden als Begriffe sind nicht speicherbar.</summary>
+        [TestMethod]
+        public void TheExplainItAsksForOneTermPerRound()
+        {
+            var (vm, maske) = Neu();
+
+            maske.Art = MinigameProfiles.For(MinigameKind.ExplainIt);
+
+            Assert.AreEqual("Begriffe", maske.ZeilenTitel);
+            Assert.AreEqual(Visibility.Collapsed, maske.RichtigVisibility, "Der Erklärbär zeigt einen Haken.");
+            Assert.AreEqual(Visibility.Visible, maske.RundenVisibility, "Der Erklärbär fragt nicht nach den Runden.");
+
+            maske.Runden = 3;
+            maske.Zeilen[0].Text = "Käse";
+            maske.Zeilen[1].Text = "Regenbogen";
+            maske.Zeilen[2].Text = "";
+
+            StringAssert.Contains(maske.Zeilenhinweis, "2 Begriffe (mindestens 3");
+            Assert.IsFalse(vm.CanSave, "Mit zwei Begriffen fuer drei Runden speicherbar.");
+
+            maske.Runden = 2;
+            Assert.IsTrue(vm.CanSave, "Mit zwei Begriffen fuer zwei Runden nicht speicherbar. Offen: "
+                + string.Join(" | ", vm.Issues.Where(i => i.IsError).Select(i => i.Code)));
+        }
+
         /// <summary>
         /// M35 C2: Duell fragt nach Runden, Spielweise und Anteil, Raeuber nur nach dem Anteil, Teilen nach
         /// nichts. Ein Anteil von 0 ist nicht speicherbar, wo die Art ihn liest.

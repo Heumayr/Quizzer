@@ -140,6 +140,11 @@ namespace Quizzer.Views.QuestionTypes.Typed
                            + "Server verwürfelt die Buchstaben; wer einen zuerst richtig eintippt, löst ihn. Begriffe aus "
                            + "einem Buchstaben oder lauter gleichen werden nicht gespielt.";
 
+                if (Art?.Kind == MinigameKind.ExplainIt)
+                    return $"{Zeilen.Count(z => !z.IstLeer && Art.CountsAsOption(z.Text))} Begriffe (mindestens "
+                           + $"{Math.Max(mindestens, minispiel?.Rounds ?? 0)} – je Runde einer). Nur das Telefon des Erklärers "
+                           + "zeigt ihn; wer ihn zuerst richtig eintippt, gewinnt die Runde.";
+
                 return $"{optionen} Optionen (mindestens {mindestens}). Jeder wählt am Telefon geheim "
                        + "genau eine. Die Punkte sind ein Vorschlag auf der Spielerkarte; Minuspunkte "
                        + "gibt es keine.";

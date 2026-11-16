@@ -192,6 +192,10 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         public void WordScrambleSendsOneGuessAndFollowsTheServer() => LaufeMit("buchstabensalat.test.mjs");
 
+        /// <summary>M35 C6: Erklaerbaer - nur das Telefon des Erklaerers zeigt den Begriff und sendet nie; die anderen raten.</summary>
+        [TestMethod]
+        public void ExplainItShowsTheTermOnlyToTheExplainer() => LaufeMit("baer.test.mjs");
+
         /// <summary>M35 C4: Gluecksrad - nur der Dreher waehlt ein Ziel, genau einmal; die Aufloesung vom Server.</summary>
         [TestMethod]
         public void TheWheelLetsOnlyTheSpinnerChooseOnce() => LaufeMit("gluecksrad.test.mjs");

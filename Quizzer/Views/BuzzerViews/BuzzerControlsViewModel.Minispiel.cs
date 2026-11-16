@@ -38,6 +38,10 @@ namespace Quizzer.Views.BuzzerViews
         public Task AbortMinigameAsync()
             => BuzzerController?.AbortMinigameAsync() ?? Task.CompletedTask;
 
+        /// <summary>Schliesst die laufende Runde - beim Erklaerbaer nach „Verraten" (M35 C6).</summary>
+        public Task CloseMinigameRoundAsync()
+            => BuzzerController?.CloseMinigameRoundAsync() ?? Task.CompletedTask;
+
         /// <summary>Nur diese duerfen die gewoehnliche Frage beantworten (M35 C3b); <c>null</c>: alle.</summary>
         public Task SetAnswerersAsync(IReadOnlyCollection<Guid>? antwortende)
             => BuzzerController?.SetAnswerersAsync(antwortende) ?? Task.CompletedTask;
@@ -81,6 +85,7 @@ namespace Quizzer.Views.BuzzerViews
                     KopfrechnenAntwort antwort => KopfrechnenEvaluator.Describe(antwort.Stand),
                     BlitzrundeFortschritt fortschritt => $"{fortschritt.Beantwortet} beantwortet",
                     BuchstabensalatVersuch versuch => versuch.Richtig ? $"Begriff {versuch.Begriff} gelöst" : "daneben",
+                    ErklaerbaerVersuch versuch => versuch.Richtig ? "Begriff erraten" : "daneben",
                     MemoryZug zug => $"{zug.Stand.Paare} {(zug.Stand.Paare == 1 ? "Paar" : "Paare")}" + (zug.Stand.Fertig != null ? " – fertig" : string.Empty),
 
                     // M35 C2: geheime Wahlen bleiben auch hier „abgegeben" - der Beamer loest sie auf.
