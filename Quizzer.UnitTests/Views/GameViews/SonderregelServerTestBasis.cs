@@ -77,7 +77,7 @@ namespace Quizzer.UnitTests.Views.GameViews
         }
 
         /// <summary>Spiel mit <paramref name="spieler"/> Spielern, Kontostaende vorweg, Server, Telefone, Frage offen.</summary>
-        protected async Task<TestableCurrentQuestionViewModel> OeffneAsync(
+        private protected async Task<TestableCurrentQuestionViewModel> OeffneAsync(
             CellSpecialRule regel, int spieler = 3, int[]? kontostaende = null, Func<CellSpecialRule, SonderregelAblauf?>? fabrik = null,
             QuestionType typ = QuestionType.Default)
         {
