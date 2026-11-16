@@ -45,12 +45,15 @@ namespace Quizzer.Logic.Controller.TypedControllers
 
         /// <summary>
         /// Vor dem Löschen: Sperren gegen diesen Mitspieler gehen mit (M35 C7). Seine eigenen Joker nimmt
-        /// die Kaskade, die Sperren anderer hängen mit NO ACTION an ihm.
+        /// die Kaskade, die Sperren anderer hängen mit NO ACTION an ihm. Das Aufräumen steht sofort in der
+        /// Datenbank; die Klammer bindet es an das Speichern des Löschens (V16, wie V05 beim Spiel).
         /// </summary>
         protected override async Task<Player> BeforeActionAsync(Player entity, Actions action)
         {
             if ((action & Actions.DeleteActions) > 0)
             {
+                await CurrentContext.EnsureTransactionUntilSaveAsync();
+
                 using var ctrlJoker = new PlayerJokersController(this);
                 await ctrlJoker.DeleteTargetingPlayerAsync(entity.Id);
             }

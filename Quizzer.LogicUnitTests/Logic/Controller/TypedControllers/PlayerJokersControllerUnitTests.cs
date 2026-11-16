@@ -199,6 +199,36 @@ namespace Quizzer.LogicUnitTests.Logic.Controller.TypedControllers
             CollectionAssert.DoesNotContain(uebrig, vonBen.Id, "Der Joker des gelöschten Mitspielers steht noch da.");
         }
 
+        /// <summary>
+        /// V16 (M37 D3), wie V05 beim Spiel: scheitert das Speichern nach dem Aufräumen, steht die Sperre gegen ihn noch.
+        /// Die Störung ist eine Zelle zu einem Spiel, das es nicht gibt - ihr Fremdschlüssel scheitert im selben Speichern.
+        /// </summary>
+        [TestMethod]
+        public async Task AFailedPlayerDeleteLeavesTheBlockAgainstHimInPlace()
+        {
+            var gegenBen = await EingeloestAsync(anna.Id, ziel: ben.Id);
+
+            using (var ctrl = new PlayersController())
+            using (var stoerung = new GameGridCoordinatesController(ctrl))
+            {
+                await ctrl.DeleteAsync(ben.Id);
+                await stoerung.InsertAsync(new GameGridCoordinate { Id = Guid.NewGuid(), GameId = Guid.NewGuid(), Phase = 1 });
+
+                await Assert.ThrowsExactlyAsync<Microsoft.EntityFrameworkCore.DbUpdateException>(
+                    async () => await ctrl.SaveChangesAsync(),
+                    "Die Störung hätte das Speichern scheitern lassen müssen - sonst misst dieser Test nichts.");
+            }
+
+            TestDatabase.ClearDiscardedChanges();
+
+            using var spieler = new PlayersController();
+            Assert.IsNotNull(await spieler.GetAsync(ben.Id), "Ben ist weg.");
+
+            using var pruefer = new PlayerJokersController();
+            CollectionAssert.Contains((await pruefer.GetForGameAsync(spiel.Id)).Select(j => j.Id).ToList(), gegenBen.Id,
+                "Die Sperre gegen Ben ist weg, Ben steht noch.");
+        }
+
         [TestMethod]
         public void JokersCameWithFormat23()
         {
