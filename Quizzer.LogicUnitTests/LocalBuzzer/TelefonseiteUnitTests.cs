@@ -196,6 +196,10 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         public void ExplainItShowsTheTermOnlyToTheExplainer() => LaufeMit("baer.test.mjs");
 
+        /// <summary>M35 C6: Bluff - ein Bluff je Abgabe, in Phase 2 die Nummern des Servers; Urheber und echte kennt das Telefon nicht.</summary>
+        [TestMethod]
+        public void BluffSendsOneBluffThenOneServerNumber() => LaufeMit("bluff.test.mjs");
+
         /// <summary>M35 C4: Gluecksrad - nur der Dreher waehlt ein Ziel, genau einmal; die Aufloesung vom Server.</summary>
         [TestMethod]
         public void TheWheelLetsOnlyTheSpinnerChooseOnce() => LaufeMit("gluecksrad.test.mjs");

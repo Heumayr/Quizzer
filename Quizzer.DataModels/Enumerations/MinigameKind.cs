@@ -50,5 +50,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Erklaerbaer: nur der Erklaerer sieht den Begriff, die anderen raten am Telefon - wer zuerst richtig liegt (M35 C6).</summary>
         ExplainIt = 14,
+
+        /// <summary>Bluff: erst schreibt jeder eine falsche Antwort, dann waehlen alle unter Bluffs und der echten (M35 C6).</summary>
+        Bluff = 15,
     }
 }

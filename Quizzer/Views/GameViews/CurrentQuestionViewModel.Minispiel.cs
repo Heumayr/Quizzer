@@ -60,8 +60,8 @@ namespace Quizzer.Views.GameViews
 
             var titel = MinigameProfiles.TryFor(frage.Kind, out var art) ? art.DisplayName : MinispielCaption;
 
-            // Eine Art ohne Runden spielt genau eine, was auch immer in der Spalte steht.
-            var runden = art is { ShowRounds: false } ? 1 : Math.Max(1, frage.Rounds);
+            // Eine Art ohne Runden spielt ihre feste Zahl (meist eine, der Bluff zwei Phasen), was auch immer in der Spalte steht.
+            var runden = art is { ShowRounds: false } ? art.FixedRounds : Math.Max(1, frage.Rounds);
 
             BuzzerControlsViewModel.SetMinigameInfo(new MinigameSetup(
                 frage.Kind, titel, MinigameProfiles.RulesFor(frage), runden, DurationSeconds: frage.DurationSeconds,

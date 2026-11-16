@@ -35,6 +35,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             MinigameKind.LightningRound => new LightningRoundRules(setup, kontext),
             MinigameKind.WordScramble => new WordScrambleRules(setup, kontext),
             MinigameKind.ExplainIt => new ExplainItRules(setup, kontext),
+            MinigameKind.Bluff => new BluffRules(setup, kontext),
             _ => null,
         };
     }

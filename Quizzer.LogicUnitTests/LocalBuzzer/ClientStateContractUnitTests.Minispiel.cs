@@ -43,6 +43,8 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [DataRow(typeof(LightningRoundClientInfo), "blitzrunde.js", "artInfo")]
         [DataRow(typeof(WordScrambleClientInfo), "buchstabensalat.js", "artInfo")]
         [DataRow(typeof(ExplainItClientInfo), "baer.js", "artInfo")]
+        [DataRow(typeof(BluffClientInfo), "bluff.js", "artInfo")]
+        [DataRow(typeof(BluffOptionInfo), "bluff.js", "option")]
         [DataRow(typeof(MinigamePlayerOption), "spielerwahl.js", "spieler")]
         [DataRow(typeof(MinigamePlayerOption), "raeuber.js", "spieler")]
         public void TheMinigameModulesReadExactlyTheFieldsTheServerSends(Type typ, string datei, string variable)
@@ -78,6 +80,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [DataRow(typeof(LightningRoundPayload), "blitzrunde.js")]
         [DataRow(typeof(WordScramblePayload), "buchstabensalat.js")]
         [DataRow(typeof(ExplainItPayload), "baer.js")]
+        [DataRow(typeof(BluffPayload), "bluff.js")]
         public void ThePhoneSendsTheFieldsTheServerReads(Type typ, string datei)
         {
             var skript = ReadScript("minispiele", datei);

@@ -12,6 +12,7 @@ import { MemoryModul } from "./memory.js";
 import { BlitzrundeModul } from "./blitzrunde.js";
 import { BuchstabensalatModul } from "./buchstabensalat.js";
 import { ErklaerbaerModul } from "./baer.js";
+import { BluffModul } from "./bluff.js";
 import { EinsatzModul } from "../sonderregeln/einsatz.js";
 import { RisikoModul } from "../sonderregeln/risiko.js";
 import { AuktionModul } from "../sonderregeln/auktion.js";
@@ -35,7 +36,8 @@ const MODULE = new Map([
     [MinigameKinds.Memory, (optionen) => new MemoryModul(optionen)],
     [MinigameKinds.LightningRound, (optionen) => new BlitzrundeModul(optionen)],
     [MinigameKinds.WordScramble, (optionen) => new BuchstabensalatModul(optionen)],
-    [MinigameKinds.ExplainIt, (optionen) => new ErklaerbaerModul(optionen)]
+    [MinigameKinds.ExplainIt, (optionen) => new ErklaerbaerModul(optionen)],
+    [MinigameKinds.Bluff, (optionen) => new BluffModul(optionen)]
 ]);
 
 const SONDERREGELN = new Map([

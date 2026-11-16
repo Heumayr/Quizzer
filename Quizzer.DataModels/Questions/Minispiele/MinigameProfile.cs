@@ -71,6 +71,9 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
         public int DefaultRounds { get; init; } = 1;
 
+        /// <summary>So viele Runden spielt eine Art ohne <see cref="ShowRounds"/> - der Bluff zwei Phasen (M35 C6).</summary>
+        public int FixedRounds { get; init; } = 1;
+
         public int DefaultShare { get; init; } = 100;
 
         // --- Was die Art mindestens braucht (V2): gelesen von MinigameChecks ---

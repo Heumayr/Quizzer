@@ -405,6 +405,39 @@ namespace Quizzer.DataModels.Questions.Minispiele
             ChooserLabel = "Wer erklärt",
         };
 
+        private static readonly MinigameProfile Bluff = new()
+        {
+            Kind = MinigameKind.Bluff,
+            DisplayName = "Bluff",
+            Description = "Zwei Phasen. Zuerst tippt jeder am Telefon eine falsche Antwort auf die Frage, die echt klingt. Dann "
+                        + "wählt jeder unter allen Bluffs und der echten Antwort, gemischt – den eigenen Bluff sieht er nicht. Wer "
+                        + "die echte findet, bekommt die Punkte des Felds; für jeden, der auf den eigenen Bluff hereinfällt, die "
+                        + "Hälfte. Die echte Antwort ist die erste Zeile, weitere Zeilen gelten als gleichwertige Schreibweisen; "
+                        + "ein Bluff, der einer davon gleicht, ist von selbst gestrichen. Zwischen den Phasen streicht der "
+                        + "Spielleiter weitere, die der echten zu nah sind. Gleiche Bluffs stehen einmal da und zählen für jeden, "
+                        + "der sie schrieb. Wer keinen Bluff schreibt, wählt trotzdem.",
+            Variants =
+            [
+                new("Bluffen und entlarven",
+                    "Bluff! Tippt eine falsche Antwort, die echt klingt. Dann wählt jeder die echte – wer sie findet, bekommt "
+                    + "die Punkte; für jeden, der auf deinen Bluff hereinfällt, gibt es die Hälfte."),
+            ],
+            Layout = BuzzerControlsLayout.Minigame,
+            FixedRounds = 2,
+            ShowDurationSeconds = true,
+            DefaultDurationSeconds = 60,
+            MinDurationSeconds = 20,
+            MaxDurationSeconds = 300,
+            DurationLabel = "Höchstdauer je Phase (Sekunden)",
+            DurationToolTip = "So lange dauert jede der beiden Phasen höchstens – sie endet früher, wenn alle abgegeben haben.",
+            MinOptions = 1,
+            OptionsName = "Antworten",
+            CountsAsOption = t => t.Any(char.IsLetterOrDigit),
+
+            // Mit zweien gaebe es nur einen fremden Bluff - die Wahl waere ein Muenzwurf (Annahme C6a).
+            MinPlayers = 3,
+        };
+
         /// <summary>Steht im Regeltext fuer <see cref="MinigameQuestion.DurationSeconds"/> - <see cref="RulesFor"/> setzt die Zahl ein.</summary>
         public const string DurationPlaceholder = "{Dauer}";
 
@@ -417,7 +450,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// <summary>Alle Profile in der Reihenfolge, in der sie angeboten werden.</summary>
         public static IReadOnlyList<MinigameProfile> All { get; } =
             [Majority, Reaction, TapSprint, Stopwatch, Duel, RobberAndGuard, ShareOrTake, Crash, WheelOfFortune, MentalArithmetic, Memory,
-             LightningRound, WordScramble, ExplainIt];
+             LightningRound, WordScramble, ExplainIt, Bluff];
 
         /// <summary>Liefert das Profil zu einer Art.</summary>
         /// <exception cref="ArgumentOutOfRangeException">Bei einer unbekannten Art.</exception>

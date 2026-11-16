@@ -270,6 +270,23 @@
                             <Button Content="Verraten" Command="{Binding VerratenCommand}" Margin="0,6,0,0"
                                     ToolTip="Der Erklärer hat das Wort gesagt: diese Runde bringt niemandem Punkte. Läuft sie noch, endet sie; ist sie vorbei, zählt die letzte nachträglich nicht." />
                         </StackPanel>
+                        <!-- M35 C6: Bluff - zwischen den Phasen streicht der Spielleiter, was der echten Antwort zu nah ist. -->
+                        <StackPanel Visibility="{Binding BluffStreichenVisibility}" Margin="4,10,4,0">
+                            <TextBlock Text="Bluffs prüfen" FontWeight="Bold" />
+                            <TextBlock Text="{Binding BluffEchteAntwort}" TextWrapping="Wrap" Margin="0,2,0,4" />
+                            <ItemsControl ItemsSource="{Binding BluffEintraege}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding Gestrichen}" IsEnabled="{Binding Aenderbar}" Margin="0,2"
+                                                  ToolTip="Angehakt: dieser Bluff steht in Phase 2 nicht zur Wahl und bringt seinem Urheber nichts.">
+                                            <TextBlock Text="{Binding Beschriftung}" TextWrapping="Wrap" />
+                                        </CheckBox>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="Angehakt heißt gestrichen. Danach startet „Runde starten“ die Wahl." FontSize="12"
+                                       TextWrapping="Wrap" Opacity="0.8" Margin="0,4,0,0" />
+                        </StackPanel>
                     </StackPanel>
 
                     <!-- M35 C3: Sonderregel der Zelle - erst die Vorphase am Telefon, dann die Frage. -->

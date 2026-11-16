@@ -145,6 +145,11 @@ namespace Quizzer.Views.QuestionTypes.Typed
                            + $"{Math.Max(mindestens, minispiel?.Rounds ?? 0)} – je Runde einer). Nur das Telefon des Erklärers "
                            + "zeigt ihn; wer ihn zuerst richtig eintippt, gewinnt die Runde.";
 
+                if (Art?.Kind == MinigameKind.Bluff)
+                    return $"{Zeilen.Count(z => !z.IstLeer && Art.CountsAsOption(z.Text))} Antworten (mindestens {mindestens}). Die "
+                           + "erste ist die echte, weitere gelten als gleichwertige Schreibweisen – ein Bluff, der einer davon gleicht, "
+                           + "ist von selbst gestrichen.";
+
                 return $"{optionen} Optionen (mindestens {mindestens}). Jeder wählt am Telefon geheim "
                        + "genau eine. Die Punkte sind ein Vorschlag auf der Spielerkarte; Minuspunkte "
                        + "gibt es keine.";

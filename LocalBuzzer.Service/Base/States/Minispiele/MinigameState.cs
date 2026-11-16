@@ -157,6 +157,14 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
         // --- Der Spielleiter ---
 
+        /// <summary>Ein Zugriff des Spielleiters auf die Regeln der Art, unter der Sperre des Rahmens (Bluff: streichen, M35 C6).</summary>
+        public T Lenke<T>(Func<IMinigameRules?, T> zugriff)
+        {
+            ArgumentNullException.ThrowIfNull(zugriff);
+
+            lock (gate) return zugriff(rules);
+        }
+
         /// <summary>Startet die naechste Runde; <c>false</c>, wenn keine mehr aussteht oder eine laeuft.</summary>
         public bool StartNextRound()
         {

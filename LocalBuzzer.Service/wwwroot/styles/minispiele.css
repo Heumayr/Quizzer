@@ -144,3 +144,51 @@
     background: var(--primary);
     touch-action: manipulation;
 }
+
+/* Bluff - Phase 1 Eingabe und Abgeben, Phase 2 je Antwort eine grosse Taste; der Hinweis sagt alles in Worten. */
+.bluff-inhalt {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.bluff-stand,
+.bluff-hinweis {
+    margin: 0;
+    font-size: 18px;
+    color: var(--text-soft);
+}
+
+.bluff-zeile {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-xs);
+}
+
+.bluff-eingabe {
+    min-height: var(--input-height);
+    padding: 0 var(--space-sm);
+    font-size: 22px;
+    color: var(--text);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-md);
+    background: var(--input-bg);
+}
+
+.bluff-senden,
+.bluff-option {
+    min-height: var(--input-height);
+    padding: 0 var(--space-sm);
+    border-radius: var(--radius-md);
+    font-size: 20px;
+    font-weight: 700;
+    background: var(--primary);
+    touch-action: manipulation;
+}
+
+.bluff-liste {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}

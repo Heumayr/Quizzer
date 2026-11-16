@@ -8,7 +8,7 @@ namespace Quizzer.Logic.Demo
     /// <summary>
     /// Die Minispiele der Typenschau (M35 B2) - eigene Teildatei, weil die Typenschau sonst ueber die
     /// Groessen-Obergrenze wuechse. Mehrheit und Reaktion im Raster; Minderheit (B3), Tippsprint und
-    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen, Memory, Blitzrunde und Buchstabensalat (C5), Erklärbär (C6) im Vorrat - das Raster hat zwei Zeilen.
+    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen, Memory, Blitzrunde und Buchstabensalat (C5), Erklärbär und Bluff (C6) im Vorrat - das Raster hat zwei Zeilen.
     /// </summary>
     public static partial class DemoDataSeeder
     {
@@ -93,6 +93,13 @@ namespace Quizzer.Logic.Demo
                     ("Zahnbürste", false),
                     ("Achterbahn", false),
                     ("Kaffeemaschine", false),
+                ]);
+
+            yield return MitZeilen(kat, "Typenschau: Bluff", "MIN-16", 300, Difficulty.Level3,
+                "Was ist ein „Kalumet“? Erfindet eine Antwort, die echt klingt!", MinigameKind.Bluff,
+                [
+                    ("eine Friedenspfeife", false),
+                    ("Friedenspfeife", false),
                 ]);
         }
 

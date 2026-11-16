@@ -210,6 +210,24 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
                 + string.Join(" | ", vm.Issues.Where(i => i.IsError).Select(i => i.Code)));
         }
 
+        /// <summary>M35 C6: der Bluff fragt nach keiner Runde - er spielt zwei Phasen; die erste Zeile ist die echte Antwort.</summary>
+        [TestMethod]
+        public void TheBluffAsksForTheRealAnswer()
+        {
+            var (vm, maske) = Neu();
+
+            maske.Art = MinigameProfiles.For(MinigameKind.Bluff);
+
+            Assert.AreEqual("Antworten", maske.ZeilenTitel);
+            Assert.AreEqual(Visibility.Collapsed, maske.RundenVisibility, "Der Bluff fragt nach Runden.");
+            Assert.AreEqual("Höchstdauer je Phase (Sekunden)", maske.DauerBeschriftung);
+
+            maske.Zeilen[0].Text = "eine Friedenspfeife";
+            StringAssert.Contains(maske.Zeilenhinweis, "erste ist die echte");
+            Assert.IsTrue(vm.CanSave, "Mit der echten Antwort nicht speicherbar. Offen: "
+                + string.Join(" | ", vm.Issues.Where(i => i.IsError).Select(i => i.Code)));
+        }
+
         /// <summary>M35 C6: der Erklaerbaer braucht je Runde einen eigenen Begriff - mehr Runden als Begriffe sind nicht speicherbar.</summary>
         [TestMethod]
         public void TheExplainItAsksForOneTermPerRound()

@@ -21,7 +21,8 @@ export const MinigameKinds = Object.freeze({
     Memory: 11,
     LightningRound: 12,
     WordScramble: 13,
-    ExplainIt: 14
+    ExplainIt: 14,
+    Bluff: 15
 });
 
 export const MinigamePhases = Object.freeze({

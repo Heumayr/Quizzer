@@ -66,6 +66,7 @@ namespace Quizzer.Views.GameViews.Minispiele
             MinigameKind.LightningRound => new BlitzrundeAblauf(fenster),
             MinigameKind.WordScramble => new BuchstabensalatAblauf(fenster),
             MinigameKind.ExplainIt => new ErklaerbaerAblauf(fenster),
+            MinigameKind.Bluff => new BluffAblauf(fenster),
             _ => new ReaktionAblauf(fenster, art),
         };
 
