@@ -90,7 +90,9 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
         [TestMethod]
         public void TheRecordColumnsCameWithFormat24()
         {
-            Assert.IsTrue(SyncSnapshot.CurrentFormatVersion >= 24,
+            // Ueber eine Variable wie bei den Jokern - die Konstante direkt meldet MSTEST0032 („immer wahr").
+            var format = SyncSnapshot.CurrentFormatVersion;
+            Assert.IsTrue(format >= 24,
                 "Rohwert und Klaus am Ergebnis ohne neues Abgleichformat - ein altes WPF setzte beim Push null und 0 ein.");
         }
     }
