@@ -86,6 +86,8 @@ namespace Quizzer.Logic.Context
                 .HasForeignKey(q => q.OwnerPlayerId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            ConfigurePlayerJoker(modelBuilder);
+
             // M9: ein Konto haengt an genau einem Mitspieler. Restrict statt Cascade - ein
             // Mitspieler mit Konto laesst sich nicht nebenbei loeschen, erst das Konto.
             modelBuilder.Entity<Account>()
@@ -109,6 +111,21 @@ namespace Quizzer.Logic.Context
             base.OnModelCreating(modelBuilder);
         }
 
+        /// <summary>
+        /// M35 C7: Joker loeschen wie <see cref="QuestionResult"/> - mit dem Spieler CASCADE, an Spiel,
+        /// Zelle und Ziel NO ACTION. Riegel je NO-ACTION-Weg: Spiel <c>GamesController.BeforeActionAsync</c>,
+        /// Zelle <c>GridBuilder.CountPlayedAsync</c>, Ziel <c>PlayersController.BeforeActionAsync</c>.
+        /// </summary>
+        private static void ConfigurePlayerJoker(ModelBuilder modelBuilder)
+        {
+            var joker = modelBuilder.Entity<PlayerJoker>();
+
+            joker.HasOne<Player>().WithMany().HasForeignKey(j => j.PlayerId).OnDelete(DeleteBehavior.Cascade);
+            joker.HasOne<Player>().WithMany().HasForeignKey(j => j.TargetPlayerId).OnDelete(DeleteBehavior.NoAction);
+            joker.HasOne<Game>().WithMany().HasForeignKey(j => j.GameId).OnDelete(DeleteBehavior.NoAction);
+            joker.HasOne<GameGridCoordinate>().WithMany().HasForeignKey(j => j.GameGridCoordinateId).OnDelete(DeleteBehavior.NoAction);
+        }
+
         public DbSet<Category> Categories { get; set; }
         public DbSet<Game> Games { get; set; }
         public DbSet<GameTheme> GameThemes { get; set; }
@@ -118,6 +135,7 @@ namespace Quizzer.Logic.Context
         public DbSet<PlayerXGame> PlayerXGames { get; set; }
 
         public DbSet<QuestionResult> QuestionResults { get; set; }
+        public DbSet<PlayerJoker> PlayerJokers { get; set; }
         public DbSet<QuestionStepResource> QuestionStepResources { get; set; }
 
         public DbSet<QuestionBase> QuestionBases { get; set; }

@@ -56,6 +56,7 @@ namespace Quizzer.LogicUnitTests.DataModels
                 || kern == typeof(string)
                 || kern == typeof(Guid)
                 || kern == typeof(DateTime)
+                || kern == typeof(DateTimeOffset)
                 || kern == typeof(decimal)
                 || kern == typeof(byte[]);
         }
@@ -92,6 +93,7 @@ namespace Quizzer.LogicUnitTests.DataModels
             if (kern == typeof(Guid)) return Guid.NewGuid();
             if (kern == typeof(bool)) return aktuell is bool b ? !b : true;
             if (kern == typeof(DateTime)) return new DateTime(2026, 9, 6).AddDays(seed);
+            if (kern == typeof(DateTimeOffset)) return new DateTimeOffset(2026, 11, 16, 0, 0, 0, TimeSpan.Zero).AddDays(seed);
             if (kern == typeof(byte[])) return new byte[] { (byte)(seed + 1), 2, 3 };
 
             // Zahlen: der Reihe nach ausweichen, bis der Wert nicht mehr dem Ist-Zustand

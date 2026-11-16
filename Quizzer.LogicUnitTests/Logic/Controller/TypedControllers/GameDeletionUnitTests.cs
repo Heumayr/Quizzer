@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.QuestionTypes;
@@ -206,6 +207,40 @@ namespace Quizzer.LogicUnitTests.Logic.Controller.TypedControllers
 
             Assert.IsNotNull(await ctrlSpieler.GetAsync(spieler.Id),
                 "Mit dem Spiel verschwand auch der Mitspieler.");
+        }
+
+        /// <summary>
+        /// M35 C7: ein Spiel mit offenem und eingelöstem Joker lässt sich löschen. Beide hängen mit NO ACTION
+        /// an Spiel bzw. Zelle - ohne den Aufräumschritt scheiterte schon das Löschen der Zellen.
+        /// </summary>
+        [TestMethod]
+        public async Task AGameWithOpenAndRedeemedJokersCanBeDeleted()
+        {
+            var offen = new PlayerJoker { Id = Guid.NewGuid(), GameId = spiel.Id, PlayerId = spieler.Id, Kind = JokerKind.Double, Reason = "offen" };
+            var eingeloest = new PlayerJoker
+            {
+                Id = Guid.NewGuid(), GameId = spiel.Id, PlayerId = spieler.Id, Kind = JokerKind.Shield, Reason = "eingelöst",
+                GameGridCoordinateId = zelle.Id, RedeemedAt = DateTimeOffset.Now,
+            };
+
+            using (var ctrl = new PlayerJokersController())
+            {
+                await ctrl.InsertAsync(offen);
+                await ctrl.InsertAsync(eingeloest);
+                await ctrl.SaveChangesAsync();
+            }
+
+            using (var ctrl = new GamesController())
+            {
+                await ctrl.DeleteAsync(spiel.Id);
+                await ctrl.SaveChangesAsync();
+            }
+
+            using var spiele = new GamesController();
+            using var pruefer = new PlayerJokersController();
+
+            Assert.IsNull(await spiele.GetAsync(spiel.Id), "Das Spiel steht noch da.");
+            Assert.AreEqual(0, (await pruefer.GetForGameAsync(spiel.Id)).Count, "Joker des gelöschten Spiels sind übrig.");
         }
     }
 }

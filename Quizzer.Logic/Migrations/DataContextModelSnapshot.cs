@@ -436,6 +436,60 @@ namespace Quizzer.Logic.Migrations
                     b.ToTable("Player", "base");
                 });
 
+            modelBuilder.Entity("Quizzer.DataModels.Models.Base.PlayerJoker", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Designation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("GameGridCoordinateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("GameId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("GrantedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTimeOffset?>("RedeemedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<Guid?>("TargetPlayerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GameGridCoordinateId");
+
+                    b.HasIndex("GameId");
+
+                    b.HasIndex("PlayerId");
+
+                    b.HasIndex("TargetPlayerId");
+
+                    b.ToTable("PlayerJoker", "base");
+                });
+
             modelBuilder.Entity("Quizzer.DataModels.Models.Base.PlayerXGame", b =>
                 {
                     b.Property<Guid>("Id")
@@ -857,6 +911,31 @@ namespace Quizzer.Logic.Migrations
                         .IsRequired();
 
                     b.Navigation("Game");
+                });
+
+            modelBuilder.Entity("Quizzer.DataModels.Models.Base.PlayerJoker", b =>
+                {
+                    b.HasOne("Quizzer.DataModels.Models.Base.GameGridCoordinate", null)
+                        .WithMany()
+                        .HasForeignKey("GameGridCoordinateId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Quizzer.DataModels.Models.Base.Game", null)
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Quizzer.DataModels.Models.Base.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Quizzer.DataModels.Models.Base.Player", null)
+                        .WithMany()
+                        .HasForeignKey("TargetPlayerId")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("Quizzer.DataModels.Models.Base.PlayerXGame", b =>

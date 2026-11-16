@@ -48,6 +48,7 @@ namespace Quizzer.Logic.Sync
             await AddAsync(rows, context.GameGridCoordinates, cancellationToken);
             await AddAsync(rows, context.PlayerXGames, cancellationToken);
             await AddAsync(rows, context.QuestionResults, cancellationToken);
+            await AddAsync(rows, context.PlayerJokers, cancellationToken);
 
             return rows;
         }
@@ -87,6 +88,10 @@ namespace Quizzer.Logic.Sync
 
                     if (value == null && !property.IsNullable)
                         return $"'{row.Type}.{name}' darf nicht leer sein.";
+
+                    // Sonst scheiterte erst die Datenbank, und mit ihr der ganze Push (M35 C7, Joker-Grund).
+                    if (value is string text && property.GetMaxLength() is int max && text.Length > max)
+                        return $"'{row.Type}.{name}' ist länger als {max} Zeichen.";
                 }
                 catch (System.Text.Json.JsonException)
                 {

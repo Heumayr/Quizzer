@@ -43,9 +43,19 @@ namespace Quizzer.Logic.Controller.TypedControllers
             return base.SetQueryAttributes(query, action);
         }
 
-        protected override Task<Player> BeforeActionAsync(Player entity, Actions action)
+        /// <summary>
+        /// Vor dem Löschen: Sperren gegen diesen Mitspieler gehen mit (M35 C7). Seine eigenen Joker nimmt
+        /// die Kaskade, die Sperren anderer hängen mit NO ACTION an ihm.
+        /// </summary>
+        protected override async Task<Player> BeforeActionAsync(Player entity, Actions action)
         {
-            return base.BeforeActionAsync(entity, action);
+            if ((action & Actions.DeleteActions) > 0)
+            {
+                using var ctrlJoker = new PlayerJokersController(this);
+                await ctrlJoker.DeleteTargetingPlayerAsync(entity.Id);
+            }
+
+            return await base.BeforeActionAsync(entity, action);
         }
 
         protected override Task<Player> AfterActionAsync(Player entity, Actions action)

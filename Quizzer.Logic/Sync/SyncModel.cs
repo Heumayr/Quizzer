@@ -41,6 +41,7 @@ namespace Quizzer.Logic.Sync
             new(typeof(GameGridCoordinate), 5, typeof(GameGridCoordinate)),
             new(typeof(PlayerXGame), 5, typeof(PlayerXGame)),
             new(typeof(QuestionResult), 6, typeof(QuestionResult)),
+            new(typeof(PlayerJoker), 6, typeof(PlayerJoker)),
         ];
 
         private static readonly Dictionary<string, Entry> ByName =

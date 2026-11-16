@@ -297,6 +297,49 @@ namespace Quizzer.Server.Tests
             Assert.IsFalse(await laptopDb.GameGridCoordinates.AnyAsync(c => c.Id == set.Cell.Id));
         }
 
+        /// <summary>M35 C7: ein Joker geht vom PC zum Laptop, das Zurücknehmen am Laptop wieder zum PC.</summary>
+        [TestMethod]
+        public async Task AJokerTravelsToTheOtherMachineAndSoDoesItsWithdrawal()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var (pc, laptop, me) = await SignedInPairAsync(factory);
+            await using var _ = pc;
+            await using var __ = laptop;
+
+            var set = await PrepareGameLocallyAsync(pc, me);
+            var joker = new PlayerJoker
+            {
+                Id = Guid.NewGuid(), GameId = set.Game.Id, PlayerId = me, Kind = JokerKind.Shield,
+                Reason = "Kopfrechnen gewonnen", GrantedAt = DateTimeOffset.UtcNow,
+            };
+            await using (var local = pc.Local())
+            {
+                local.PlayerJokers.Add(joker);
+                await local.SaveChangesAsync();
+            }
+
+            var pushed = await pc.Sync.PushAsync();
+            Assert.AreEqual(0, pushed.Rejected.Count, string.Join("; ", pushed.Rejected.Select(r => r.Message)));
+
+            await laptop.Sync.PullAsync();
+            await using (var local = laptop.Local())
+            {
+                var angekommen = await local.PlayerJokers.SingleAsync(j => j.Id == joker.Id);
+                Assert.AreEqual((JokerKind.Shield, "Kopfrechnen gewonnen", me), (angekommen.Kind, angekommen.Reason, angekommen.PlayerId));
+                Assert.AreEqual(joker.GrantedAt, angekommen.GrantedAt);
+
+                local.PlayerJokers.Remove(angekommen);
+                await local.SaveChangesAsync();
+            }
+
+            var zurueck = await laptop.Sync.PushAsync();
+            Assert.AreEqual(1, zurueck.Deleted);
+
+            await pc.Sync.PullAsync();
+            await using var pcDb = pc.Local();
+            Assert.IsFalse(await pcDb.PlayerJokers.AnyAsync(j => j.Id == joker.Id), "Das Zurücknehmen ist am PC nicht angekommen.");
+        }
+
         [TestMethod]
         public async Task AQuestionThatChangedItsTypeArrivesAsTheNewType()
         {

@@ -141,6 +141,7 @@ namespace Quizzer.Server
             "QuestionStepResource" => "Frageschritt",
             "GameGridCoordinate" => "Spielfeld-Zelle",
             "QuestionResult" => "Ergebnis",
+            "PlayerJoker" => "Joker",
             "Player" => "Mitspieler",
             "PlayerXGame" => "Teilnahme",
             "GameTheme" => "Design",

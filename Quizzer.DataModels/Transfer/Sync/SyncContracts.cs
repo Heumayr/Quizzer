@@ -56,8 +56,9 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// 20: Minispiel-Art Erklaerbaer (M35 C6) - derselbe Grund wie bei 4.
         /// 21: Minispiel-Art Bluff (M35 C6) - derselbe Grund wie bei 4.
         /// 22: Minispiel-Art Heisse Kartoffel (M35 C6) - derselbe Grund wie bei 4.
+        /// 23: Joker (M35 C7) - neuer Zeilentyp PlayerJoker, den ein altes WPF nicht kennt.
         /// </summary>
-        public const int CurrentFormatVersion = 22;
+        public const int CurrentFormatVersion = 23;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

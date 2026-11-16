@@ -163,7 +163,8 @@ namespace Quizzer.Server.Sync
     /// <list type="bullet">
     /// <item><b>Spiel</b>: nur der Gamemaster - wer es angelegt hat. Ein neues Spiel bekommt den
     /// Anlegenden als Gamemaster, egal was der Client schickt.</item>
-    /// <item><b>Kopfzeilen, Zellen, Mitspieler im Spiel, Ergebnisse</b>: wer das Spiel schreiben darf.</item>
+    /// <item><b>Kopfzeilen, Zellen, Mitspieler im Spiel, Ergebnisse, Joker</b>: wer das Spiel schreiben darf;
+    /// Joker nur für Mitspieler des Spiels (<see cref="CheckJokerAsync"/>).</item>
     /// <item><b>Frage samt Schritten</b>: nur der Besitzer; eine besitzerlose Frage nimmt, wer sie
     /// aendert (wie <c>QuestionOwnership.ClaimIfUnowned</c> lokal).</item>
     /// <item><b>Mitspieler</b>: neue Gaeste darf jeder anlegen; aendern darf man sich selbst und
@@ -264,7 +265,12 @@ namespace Quizzer.Server.Sync
                     if (row.Values.ContainsKey(nameof(QuestionResult.GameGridCoordinateId))
                         && GetNullableGuid(row, nameof(QuestionResult.GameGridCoordinateId)) is { } cellId
                         && !await CellBelongsToGameAsync(cellId, newGame, ct))
-                        return "Das Ergebnis verweist auf eine Zelle eines anderen Spiels.";
+                        return row.Type == nameof(PlayerJoker)
+                            ? "Der Joker verweist auf eine Zelle eines anderen Spiels."
+                            : "Das Ergebnis verweist auf eine Zelle eines anderen Spiels.";
+
+                    if (row.Type == nameof(PlayerJoker))
+                        return await CheckJokerAsync(row, newGame, ct);
 
                     return null;
             }
@@ -325,6 +331,8 @@ namespace Quizzer.Server.Sync
 
             keys.AddRange((await context.QuestionResults.Where(r => gameIds.Contains(r.GameId)).Select(r => r.Id).ToListAsync(ct))
                 .Select(id => new SyncKey(nameof(QuestionResult), id)));
+            keys.AddRange((await context.PlayerJokers.Where(j => gameIds.Contains(j.GameId)).Select(j => j.Id).ToListAsync(ct))
+                .Select(id => new SyncKey(nameof(PlayerJoker), id)));
             keys.AddRange((await context.PlayerXGames.Where(x => gameIds.Contains(x.GameId)).Select(x => x.Id).ToListAsync(ct))
                 .Select(id => new SyncKey(nameof(PlayerXGame), id)));
             keys.AddRange((await context.GameGridCoordinates.Where(c => gameIds.Contains(c.GameId)).Select(c => c.Id).ToListAsync(ct))
@@ -453,6 +461,36 @@ namespace Quizzer.Server.Sync
             return request.Upserts.Any(u => u.Row.Type == nameof(GameGridCoordinate)
                 && u.Row.Id == cellId
                 && GetGuid(u.Row, "GameId") == gameId);
+        }
+
+        /// <summary>
+        /// M35 C7: ein Joker gehört einem Mitspieler des Spiels, eine Sperre trifft nur einen Mitspieler,
+        /// und die Art ist eine bekannte - eine fremde Zahl spielte C7b sonst als irgendetwas.
+        /// </summary>
+        private async Task<string?> CheckJokerAsync(SyncRow row, Guid gameId, CancellationToken ct)
+        {
+            if (!row.Values.TryGetValue(nameof(PlayerJoker.Kind), out var kind)
+                || !kind.TryGetInt32(out var art) || !Enum.IsDefined((DataModels.Enumerations.JokerKind)art))
+                return "Unbekannte Joker-Art.";
+
+            if (!await IsMemberAsync(GetGuid(row, nameof(PlayerJoker.PlayerId)), gameId, ct))
+                return "Der Joker gehört keinem Mitspieler dieses Spiels.";
+
+            if (GetNullableGuid(row, nameof(PlayerJoker.TargetPlayerId)) is { } target && !await IsMemberAsync(target, gameId, ct))
+                return "Die Sperre trifft keinen Mitspieler dieses Spiels.";
+
+            return null;
+        }
+
+        /// <summary>Ob der Spieler im Spiel mitspielt - am Server oder neu in diesem Push.</summary>
+        private async Task<bool> IsMemberAsync(Guid playerId, Guid gameId, CancellationToken ct)
+        {
+            if (await context.PlayerXGames.AsNoTracking().AnyAsync(x => x.GameId == gameId && x.PlayerId == playerId, ct))
+                return true;
+
+            return request.Upserts.Any(u => u.Row.Type == nameof(PlayerXGame)
+                && GetGuid(u.Row, nameof(PlayerXGame.GameId)) == gameId
+                && GetGuid(u.Row, nameof(PlayerXGame.PlayerId)) == playerId);
         }
 
         private static Guid? GetNullableGuid(SyncRow row, string name)

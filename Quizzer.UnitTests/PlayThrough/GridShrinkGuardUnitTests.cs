@@ -119,5 +119,31 @@ namespace Quizzer.UnitTests.PlayThrough
 
             Assert.IsNull(geblieben, "Die leere Zelle haette wegfallen muessen.");
         }
+
+        /// <summary>
+        /// M35 C7: ein eingelöster Joker hängt ebenfalls mit NO ACTION an der Zelle - auch ohne Ergebnis
+        /// sperrt er das Verkleinern, statt in einen Fremdschlüsselfehler zu laufen.
+        /// </summary>
+        [TestMethod]
+        public async Task ARedeemedJokerAloneAlsoBlocksTheShrink()
+        {
+            using (var ctrl = new PlayerJokersController())
+            {
+                await ctrl.InsertAsync(new PlayerJoker
+                {
+                    Id = Guid.NewGuid(), GameId = world.Game.Id, PlayerId = world.Players[0].Id, Kind = JokerKind.Double,
+                    Reason = "eingelöst", GameGridCoordinateId = world.Coordinate.Id, RedeemedAt = DateTimeOffset.Now,
+                });
+                await ctrl.SaveChangesAsync();
+            }
+
+            world.Game.Width = 0;
+            world.Game.Height = 0;
+
+            var fehler = await Assert.ThrowsExactlyAsync<GridShrinkBlockedException>(
+                () => GridBuilder.RebuildCells(world.Game, CellView.Build));
+
+            Assert.AreEqual(1, fehler.PlayedCells);
+        }
     }
 }

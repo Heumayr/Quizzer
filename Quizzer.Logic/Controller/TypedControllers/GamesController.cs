@@ -66,7 +66,10 @@ namespace Quizzer.Logic.Controller.TypedControllers
                 using var ctrlPlayerXGame = new PlayerXGamesController(this);
                 using var ctrlResults = new QuestionResultsController(this);
                 using var ctrlCoordinate = new GameGridCoordinatesController(this);
+                using var ctrlJoker = new PlayerJokersController(this);
 
+                // Joker vor den Zellen: sie haengen mit NO ACTION an Spiel und Zelle (M35 C7).
+                await ctrlJoker.DeleteByGameIdAsync(entity.Id);
                 await ctrlPlayerXGame.DeleteByGameIdAsync(entity.Id);
                 await ctrlResults.DeleteByGameIdAsync(entity.Id);
                 await ctrlCoordinate.DeleteByGameIdAsync(entity.Id);

@@ -40,7 +40,8 @@ namespace Quizzer.Views.HelperViewModels
         }
 
         /// <summary>
-        /// Zaehlt, in wie vielen der uebergebenen Zellen schon gespielt wurde.
+        /// Zaehlt, in wie vielen der uebergebenen Zellen schon gespielt wurde - Ergebnis oder
+        /// eingeloester Joker, beide haengen mit NO ACTION an der Zelle (M35 C7).
         /// </summary>
         private static async Task<int> CountPlayedAsync(List<GameGridCoordinate> coordinates)
         {
@@ -48,6 +49,7 @@ namespace Quizzer.Views.HelperViewModels
                 return 0;
 
             using var ctrlResults = new QuestionResultsController();
+            using var ctrlJoker = new PlayerJokersController(ctrlResults);
 
             var gespielt = 0;
 
@@ -55,7 +57,7 @@ namespace Quizzer.Views.HelperViewModels
             {
                 var ergebnisse = await ctrlResults.GetAllResultsForCoordinate(coord.Id);
 
-                if (ergebnisse != null && ergebnisse.Count > 0)
+                if ((ergebnisse != null && ergebnisse.Count > 0) || await ctrlJoker.AnyRedeemedAtAsync([coord.Id]))
                     gespielt++;
             }
 
