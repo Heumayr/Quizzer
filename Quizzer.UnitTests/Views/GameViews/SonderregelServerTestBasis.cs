@@ -32,6 +32,9 @@ namespace Quizzer.UnitTests.Views.GameViews
         /// <summary>Richtet die Zelle vor dem Oeffnen ein - Anteil, Spielweise (M35 C3b).</summary>
         protected Action<GameGridCoordinate>? ZelleEinrichten { get; set; }
 
+        /// <summary>Schreibt vor dem Oeffnen in die Datenbank - Joker (M35 C7b).</summary>
+        private protected Func<TestGameBuilder, Task>? VorDemOeffnen { get; set; }
+
         [TestInitialize]
         public void SetUpBasis()
         {
@@ -90,6 +93,9 @@ namespace Quizzer.UnitTests.Views.GameViews
 
             if (kontostaende != null)
                 SetzeKontostaende(kontostaende);
+
+            if (VorDemOeffnen != null)
+                await VorDemOeffnen(world);
 
             serverVm = StaticManager.BuzzerServerViewModel;
             serverVm.Game = world.Game;

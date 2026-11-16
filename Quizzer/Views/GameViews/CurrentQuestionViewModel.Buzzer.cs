@@ -61,6 +61,10 @@ namespace Quizzer.Views.GameViews
             if (await StarteVorphaseAsync())
                 return;
 
+            // Joker-Runde (M35 C7b): nur ohne Sonderregel und Minispiel - die Frage kommt, wenn sie zu ist.
+            if (await StarteJokerRundeAsync())
+                return;
+
             // Auktion, Experte, Allianz (M35 C3b): nur einige duerfen antworten - am Server geprueft.
             await SetzeAntwortendeAsync();
 
@@ -160,6 +164,9 @@ namespace Quizzer.Views.GameViews
 
         private async Task ClearBuzzerLayouts()
         {
+            // M35 C7b: ohne Wertung gehen die Joker dieser Frage wieder auf - auch ohne laufenden Server.
+            await RaeumeJokerAufAsync();
+
             if (BuzzerControlsViewModel != null)
             {
                 //buzzer

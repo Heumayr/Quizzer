@@ -42,9 +42,9 @@ namespace Quizzer.Views.BuzzerViews
         public Task CloseMinigameRoundAsync()
             => BuzzerController?.CloseMinigameRoundAsync() ?? Task.CompletedTask;
 
-        /// <summary>Nur diese duerfen die gewoehnliche Frage beantworten (M35 C3b); <c>null</c>: alle.</summary>
-        public Task SetAnswerersAsync(IReadOnlyCollection<Guid>? antwortende)
-            => BuzzerController?.SetAnswerersAsync(antwortende) ?? Task.CompletedTask;
+        /// <summary>Nur diese duerfen die gewoehnliche Frage beantworten (M35 C3b); <c>null</c>: alle. Mit Satz je Gesperrtem (C7b).</summary>
+        public Task SetAnswerersAsync(IReadOnlyCollection<Guid>? antwortende, IReadOnlyDictionary<Guid, string>? saetze = null)
+            => BuzzerController?.SetAnswerersAsync(antwortende, saetze) ?? Task.CompletedTask;
 
         /// <summary>Hebt die Sperre auf, ohne zu senden - das tut das Zuruecksetzen danach.</summary>
         public void ClearAnswerers() => BuzzerController?.StateManager.AnswerLock.Clear();

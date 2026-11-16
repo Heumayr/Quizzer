@@ -292,7 +292,7 @@
                     <!-- M35 C3: Sonderregel der Zelle - erst die Vorphase am Telefon, dann die Frage. -->
                     <StackPanel Visibility="{Binding Sonderregel.SpielleiterVisibility}">
                         <Separator Margin="4,18,4,2" />
-                        <TextBlock Style="{StaticResource SectionHeader}" Text="Sonderregel" Margin="4,0,4,4" />
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{Binding Sonderregel.Bereich}" Margin="4,0,4,4" />
                         <TextBlock Text="{Binding Sonderregel.Titel}" FontWeight="Bold" TextWrapping="Wrap" Margin="4,0,4,2" />
                         <TextBlock Text="{Binding Sonderregel.Hinweis}" Visibility="{Binding Sonderregel.HinweisVisibility}"
                                    TextWrapping="Wrap" Margin="4,0,4,2" />
@@ -301,6 +301,10 @@
                         <Button Content="Vorphase schließen" Command="{Binding CloseVorphaseCommand}" FontWeight="Bold"
                                 Visibility="{Binding Sonderregel.SchliessenVisibility}"
                                 ToolTip="Schließt die Vorphase, auch wenn noch nicht alle abgegeben haben. Für wen nichts kam, gilt die Regel nicht – danach geht die Frage auf die Telefone." />
+                        <!-- M35 C7b: eine Joker-Sperre hebt der Spielleiter auf (E1). -->
+                        <Button Content="Joker-Sperre aufheben" Command="{Binding JokerSperreAufhebenCommand}" Margin="0,6,0,0"
+                                Visibility="{Binding JokerSperreVisibility}"
+                                ToolTip="Wer per Joker gesperrt ist, darf diese Frage doch beantworten – sein Telefon wird sofort wieder frei." />
                         <!-- M35 C3b: Experte - bei Gleichstand waehlt der Spielleiter unter den Meistgewaehlten (E1). -->
                         <StackPanel Visibility="{Binding SonderregelKandidatVisibility}" Margin="4,6,4,0">
                             <TextBlock Text="Wer antwortet (Gleichstand)" FontSize="12" Margin="0,0,0,2" />

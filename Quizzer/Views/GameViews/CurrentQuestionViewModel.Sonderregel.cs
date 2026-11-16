@@ -39,11 +39,11 @@ namespace Quizzer.Views.GameViews
         /// </summary>
         internal void WerteSonderregel()
         {
-            if (sonderregel is not { VorphaseZu: true } regel || PlayersResultViewModel?.PlayerResultContextList is not { } karten)
+            if (ZellenWertung() is not { } werte || PlayersResultViewModel?.PlayerResultContextList is not { } karten)
                 return;
 
             var eingaenge = karten.Where(k => k.Player != null).ToDictionary(k => k.Player.Id, k => k.SonderregelEingang);
-            var vorschlaege = regel.WerteAlle(eingaenge);
+            var vorschlaege = werte(eingaenge);
 
             foreach (var karte in karten.Where(k => k.Player != null))
                 karte.UebernimmSonderregel(vorschlaege.GetValueOrDefault(karte.Player.Id));
@@ -57,7 +57,7 @@ namespace Quizzer.Views.GameViews
         }
 
         /// <summary>Was der Spieler in der Vorphase abgegeben hat - fuer seine Karte.</summary>
-        internal string SonderregelAbgabe(Guid spieler) => sonderregel?.Abgabe(spieler) ?? string.Empty;
+        internal string SonderregelAbgabe(Guid spieler) => sonderregel?.Abgabe(spieler) ?? joker?.Abgabe(spieler) ?? string.Empty;
 
         /// <summary>
         /// Startet die Vorphase, wenn die Zelle eine gespielte Regel traegt. <c>true</c>: die Frage geht

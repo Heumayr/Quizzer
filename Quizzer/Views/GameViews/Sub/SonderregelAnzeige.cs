@@ -10,6 +10,11 @@ namespace Quizzer.Views.GameViews.Sub
     /// </summary>
     public sealed class SonderregelAnzeige : UcViewModelBase
     {
+        /// <summary>Die Ueberschrift des Bereichs beim Spielleiter - „Sonderregel" oder „Joker" (M35 C7b).</summary>
+        public string Bereich { get; private set; } = SonderregelBereich;
+
+        internal const string SonderregelBereich = "Sonderregel";
+
         /// <summary>„Sonderregel: Einsatz".</summary>
         public string Titel { get; private set; } = string.Empty;
 
@@ -36,8 +41,9 @@ namespace Quizzer.Views.GameViews.Sub
 
         public Visibility SchliessenVisibility => VorphaseLaeuft ? Visibility.Visible : Visibility.Collapsed;
 
-        internal void Zeige(string titel, string regeltext, string stand, bool vorphaseLaeuft, string hinweis = "")
+        internal void Zeige(string titel, string regeltext, string stand, bool vorphaseLaeuft, string hinweis = "", string bereich = SonderregelBereich)
         {
+            Bereich = bereich;
             Hinweis = hinweis.Length > 0 ? $"{Quizzer.DataModels.Questions.Sonderregeln.SpecialRuleProfiles.Symbol} {hinweis}" : string.Empty;
             Titel = titel;
             Regeltext = regeltext;
@@ -56,6 +62,7 @@ namespace Quizzer.Views.GameViews.Sub
 
         private void Melde()
         {
+            OnPropertyChanged(nameof(Bereich));
             OnPropertyChanged(nameof(Titel));
             OnPropertyChanged(nameof(Regeltext));
             OnPropertyChanged(nameof(Stand));
