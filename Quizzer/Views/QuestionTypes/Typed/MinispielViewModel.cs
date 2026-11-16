@@ -1,3 +1,4 @@
+using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.DataModels.Questions.Minispiele;
@@ -98,6 +99,17 @@ namespace Quizzer.Views.QuestionTypes.Typed
 
         public override bool DarfSortieren => true;
 
+        /// <summary>Die Art benennt ihre Zeilen („Aussagen", M35 C5); ohne Mindestzahl gilt die Ueberschrift des Typs.</summary>
+        public override string ZeilenTitel
+            => Art is { MinOptions: > 0 } art
+                ? art.OptionsName + (art.ShowTruePerRow ? " (Haken = wahr)" : string.Empty)
+                : base.ZeilenTitel;
+
+        /// <summary>Der Haken je Zeile nur, wo die Art ihn liest - bei der Blitzrunde heisst er „wahr".</summary>
+        public override bool ZeigtRichtig => Art?.ShowTruePerRow == true;
+
+        public override string RichtigBeschriftung => "wahr";
+
         public override string Tastenerklaerung
             => "Diese Taste liegt im Spiel auf dieser Option - am Telefon und am Beamer.";
 
@@ -118,6 +130,10 @@ namespace Quizzer.Views.QuestionTypes.Typed
                 if (Art is { MinOptions: 0 } ohneZeilen)
                     return $"{ohneZeilen.DisplayName} braucht keine Zeilen – gespielt wird am Telefon."
                            + (optionen > 0 ? " Was hier noch steht, wird nicht gespielt." : string.Empty);
+
+                if (Art?.Kind == MinigameKind.LightningRound)
+                    return $"{optionen} Aussagen, davon {Zeilen.Count(z => !z.IstLeer && z.IstRichtig)} wahr (mindestens "
+                           + $"{mindestens}). Am Telefon kommen sie einzeln und gemischt; richtig +1, falsch −1.";
 
                 return $"{optionen} Optionen (mindestens {mindestens}). Jeder wählt am Telefon geheim "
                        + "genau eine. Die Punkte sind ein Vorschlag auf der Spielerkarte; Minuspunkte "
@@ -144,6 +160,8 @@ namespace Quizzer.Views.QuestionTypes.Typed
             OnPropertyChanged(nameof(Beschreibung));
             OnPropertyChanged(nameof(Regelzeile));
             OnPropertyChanged(nameof(ZeilenVisibility));
+            OnPropertyChanged(nameof(ZeilenTitel));
+            OnPropertyChanged(nameof(RichtigVisibility));
         }
 
         private void Setze(int wert, Func<MinigameQuestion, int> lies, Action<MinigameQuestion, int> schreib)

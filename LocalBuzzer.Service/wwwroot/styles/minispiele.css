@@ -1,0 +1,47 @@
+/* Minispiele ab M35 C5b - eigene Datei, weil mainstyles.css nicht weiter wachsen soll. */
+
+/* Blitzrunde - eine Aussage gross, zwei Knoepfe; wahr und falsch tragen Zeichen und Wort, nie nur die Farbe. */
+.blitzrunde-inhalt {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.blitzrunde-stand,
+.blitzrunde-hinweis {
+    margin: 0;
+    font-size: 18px;
+    color: var(--text-soft);
+}
+
+.blitzrunde-aussage {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.blitzrunde-tasten {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xs);
+}
+
+.blitzrunde-taste {
+    min-height: calc(var(--input-height) * 1.6);
+    border-radius: var(--radius-md);
+    font-size: 24px;
+    font-weight: 800;
+    touch-action: manipulation;
+}
+
+.blitzrunde-wahr {
+    background: var(--success);
+}
+
+.blitzrunde-falsch {
+    background: var(--secondary);
+    border: 2px dashed var(--border-input);
+}

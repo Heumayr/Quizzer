@@ -20,8 +20,33 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         private static IEnumerable<string> ScriptFiles() =>
             Directory.EnumerateFiles(Path.Combine(WwwRoot, "JS"), "*.js", SearchOption.AllDirectories);
 
+        private static IEnumerable<string> StyleFiles() =>
+            Directory.EnumerateFiles(Path.Combine(WwwRoot, "styles"), "*.css", SearchOption.AllDirectories);
+
+        /// <summary>Alle Stilvorlagen zusammen - neue Regeln kommen seit M35 C5b in eigene Dateien.</summary>
         private static string ReadStyles() =>
-            File.ReadAllText(Path.Combine(WwwRoot, "styles", "mainstyles.css"));
+            string.Join(Environment.NewLine, StyleFiles().Select(File.ReadAllText));
+
+        /// <summary>
+        /// Jede Stilvorlage unter <c>styles/</c> ist in <c>index.html</c> verlinkt (M35 C5b) - eine vergessene
+        /// Datei liesse die Klassenpruefung gruen, und am Telefon stuende alles unformatiert.
+        /// </summary>
+        [TestMethod]
+        public void EveryStylesheetIsLinkedFromTheIndexPage()
+        {
+            var seite = File.ReadAllText(Path.Combine(WwwRoot, "index.html"));
+            var verlinkt = Regex.Matches(seite, @"<link[^>]*rel=""stylesheet""[^>]*href=""/?([^""]+)""")
+                .Select(m => m.Groups[1].Value)
+                .ToList();
+
+            var dateien = StyleFiles()
+                .Select(d => Path.GetRelativePath(WwwRoot, d).Replace(Path.DirectorySeparatorChar, '/'))
+                .ToList();
+
+            Assert.IsTrue(dateien.Count > 1, "Weniger als zwei Stilvorlagen - die Zusicherung misst nichts.");
+            CollectionAssert.IsSubsetOf(dateien, verlinkt,
+                "Nicht jede Stilvorlage ist in index.html verlinkt: " + string.Join(", ", dateien.Except(verlinkt)));
+        }
 
         [TestMethod]
         public void TheDeliveredFolderCarriesTheWholePage()

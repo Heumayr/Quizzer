@@ -311,6 +311,33 @@ namespace Quizzer.DataModels.Questions.Minispiele
             MinPlayers = 2,
         };
 
+        private static readonly MinigameProfile LightningRound = new()
+        {
+            Kind = MinigameKind.LightningRound,
+            DisplayName = "Blitzrunde",
+            Description = "Alle beurteilen am Telefon dieselben Aussagen, eine nach der anderen: wahr oder falsch? Die nächste "
+                        + "kommt erst nach der Antwort; die Reihenfolge wird je Runde gemischt und ist für alle gleich. Wahr ist "
+                        + "eine Aussage mit Haken. Richtig zählt +1, falsch −1, keine Antwort 0; der Vorschlag ist dieser Anteil "
+                        + "der Punkte des Felds – alle richtig bringt sie ganz, mehr falsche als richtige ein Minus. Ob eine Antwort "
+                        + "stimmte, erfährt das Telefon erst nach der Runde. Mehr als "
+                        + $"{BlitzrundeEvaluator.MaxAntwortenJeSekunde} Antworten je Sekunde nimmt der Server nicht an.",
+            Variants =
+            [
+                new("Wahr oder falsch",
+                    $"Blitzrunde! Wahr oder falsch? Richtig +1, falsch −1 – ihr habt {DurationPlaceholder} Sekunden."),
+            ],
+            Layout = BuzzerControlsLayout.Minigame,
+            ShowDurationSeconds = true,
+            DefaultDurationSeconds = 60,
+            MinDurationSeconds = 15,
+            MaxDurationSeconds = 300,
+
+            // Mit weniger als vier Aussagen entscheidet ein einziger Muenzwurf ueber die halben Feldpunkte (Annahme C5b).
+            MinOptions = 4,
+            OptionsName = "Aussagen",
+            ShowTruePerRow = true,
+        };
+
         /// <summary>Steht im Regeltext fuer <see cref="MinigameQuestion.DurationSeconds"/> - <see cref="RulesFor"/> setzt die Zahl ein.</summary>
         public const string DurationPlaceholder = "{Dauer}";
 
@@ -322,7 +349,8 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
         /// <summary>Alle Profile in der Reihenfolge, in der sie angeboten werden.</summary>
         public static IReadOnlyList<MinigameProfile> All { get; } =
-            [Majority, Reaction, TapSprint, Stopwatch, Duel, RobberAndGuard, ShareOrTake, Crash, WheelOfFortune, MentalArithmetic, Memory];
+            [Majority, Reaction, TapSprint, Stopwatch, Duel, RobberAndGuard, ShareOrTake, Crash, WheelOfFortune, MentalArithmetic, Memory,
+             LightningRound];
 
         /// <summary>Liefert das Profil zu einer Art.</summary>
         /// <exception cref="ArgumentOutOfRangeException">Bei einer unbekannten Art.</exception>

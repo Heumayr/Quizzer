@@ -8,7 +8,7 @@ namespace Quizzer.Logic.Demo
     /// <summary>
     /// Die Minispiele der Typenschau (M35 B2) - eigene Teildatei, weil die Typenschau sonst ueber die
     /// Groessen-Obergrenze wuechse. Mehrheit und Reaktion im Raster; Minderheit (B3), Tippsprint und
-    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen und Memory (C5) im Vorrat - das Raster hat zwei Zeilen.
+    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen, Memory und Blitzrunde (C5) im Vorrat - das Raster hat zwei Zeilen.
     /// </summary>
     public static partial class DemoDataSeeder
     {
@@ -61,6 +61,32 @@ namespace Quizzer.Logic.Demo
 
             yield return OhneZeilen(kat, "Typenschau: Memory", "MIN-12", 200, Difficulty.Level2,
                 "Wer findet zuerst alle Paare? Jeder auf seinem Telefon, alle dieselbe Belegung.", MinigameKind.Memory);
+
+            yield return MitZeilen(kat, "Typenschau: Blitzrunde", "MIN-13", 200, Difficulty.Level2,
+                "Wahr oder falsch? Eine Minute, eine Aussage nach der anderen!", MinigameKind.LightningRound,
+                [
+                    ("Der Mount Everest ist der höchste Berg der Erde.", true),
+                    ("Spinnen haben sechs Beine.", false),
+                    ("Die Donau fließt durch Wien.", true),
+                    ("Ein Marathon ist genau 40 Kilometer lang.", false),
+                    ("Kängurus leben in Australien.", true),
+                    ("Gold ist schwerer als Blei.", true),
+                    ("Der Mond leuchtet aus eigener Kraft.", false),
+                    ("Ein Schaltjahr hat 366 Tage.", true),
+                ]);
+        }
+
+        /// <summary>Arten mit Inhalt (Blitzrunde, M35 C5): je Zeile ein Schritt, der Haken heisst „wahr".</summary>
+        private static QuestionBase MitZeilen(
+            Guid kategorieId, string bezeichnung, string kurz, int punkte, Difficulty stufe, string frageText,
+            MinigameKind art, (string Text, bool Wahr)[] zeilen)
+        {
+            var frage = OhneZeilen(kategorieId, bezeichnung, kurz, punkte, stufe, frageText, art);
+
+            for (var i = 0; i < zeilen.Length; i++)
+                frage.Steps.Add(Schritt(frage.Id, (i + 1) * 10, zeilen[i].Text, istLoesung: zeilen[i].Wahr));
+
+            return frage;
         }
 
         /// <summary>Arten im Telefonrahmen (Reaktion B3, Tippsprint und Stoppuhr C1): keine Zeilen, nur Art und Parameter.</summary>

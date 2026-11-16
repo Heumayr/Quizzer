@@ -63,6 +63,7 @@ namespace Quizzer.Views.GameViews.Minispiele
             MinigameKind.WheelOfFortune => new GluecksradAblauf(fenster),
             MinigameKind.MentalArithmetic => new KopfrechnenAblauf(fenster),
             MinigameKind.Memory => new MemoryAblauf(fenster),
+            MinigameKind.LightningRound => new BlitzrundeAblauf(fenster),
             _ => new ReaktionAblauf(fenster, art),
         };
 

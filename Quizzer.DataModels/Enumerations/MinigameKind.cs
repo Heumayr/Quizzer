@@ -41,5 +41,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Memory: jeder sein Feld mit derselben Belegung, jedes Umdrehen fragt den Server (M35 C5).</summary>
         Memory = 11,
+
+        /// <summary>Blitzrunde: Aussagen aus den Zeilen, je Spieler einzeln nachgereicht - wahr oder falsch (M35 C5).</summary>
+        LightningRound = 12,
     }
 }

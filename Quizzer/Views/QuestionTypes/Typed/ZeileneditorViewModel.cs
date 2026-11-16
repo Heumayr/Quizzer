@@ -72,7 +72,7 @@ namespace Quizzer.Views.QuestionTypes.Typed
                 : Visibility.Collapsed;
 
         /// <summary>Die Überschrift über der Zeilenliste.</summary>
-        public string ZeilenTitel => composer.ZeilenTitel;
+        public virtual string ZeilenTitel => composer.ZeilenTitel;
 
         /// <summary>Die Überschrift über dem Abschlussfeld.</summary>
         public string AbschlussTitel => composer.AbschlussTitel;

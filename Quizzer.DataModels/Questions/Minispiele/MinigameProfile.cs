@@ -81,6 +81,9 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// <summary>Wie die Zeilen in Meldungen heissen.</summary>
         public string OptionsName { get; init; } = "Antwortoptionen";
 
+        /// <summary>Ob je Zeile ein Haken „wahr" steht (Blitzrunde, M35 C5) - die Maske zeigt ihn nur dann.</summary>
+        public bool ShowTruePerRow { get; init; }
+
         /// <summary>So viele Mitspieler braucht das Spiel - geprueft erst beim Spielstart.</summary>
         public int MinPlayers { get; init; } = 1;
 

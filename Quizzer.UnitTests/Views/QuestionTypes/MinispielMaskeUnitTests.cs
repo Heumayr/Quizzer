@@ -151,6 +151,39 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
         }
 
         /// <summary>
+        /// M35 C5: die Blitzrunde nennt ihre Zeilen „Aussagen" und zeigt je Zeile den Haken „wahr"; mit weniger als
+        /// vier Aussagen nicht speicherbar. Zurueck zur Mehrheit verschwindet der Haken wieder.
+        /// </summary>
+        [TestMethod]
+        public void TheLightningRoundAsksForStatementsWithATruthTick()
+        {
+            var (vm, maske) = Neu();
+            Assert.AreEqual(Visibility.Collapsed, maske.RichtigVisibility, "Die Mehrheit zeigt einen Haken.");
+
+            maske.Art = MinigameProfiles.For(MinigameKind.LightningRound);
+
+            Assert.AreEqual("Aussagen (Haken = wahr)", maske.ZeilenTitel);
+            Assert.AreEqual(Visibility.Visible, maske.RichtigVisibility, "Der Haken „wahr“ fehlt.");
+            Assert.AreEqual("wahr", maske.RichtigBeschriftung);
+            Assert.AreEqual(Visibility.Visible, maske.DauerVisibility, "Die Sekunden sind nicht einstellbar.");
+            Assert.IsFalse(vm.CanSave, "Eine Blitzrunde ohne Aussagen ist speicherbar.");
+
+            maske.AddRowCommand.Execute(null);
+            string[] aussagen = ["Der Mond ist ein Planet.", "Berlin liegt an der Spree.", "Spinnen haben acht Beine.", "Eis ist schwerer als Wasser."];
+            for (var i = 0; i < aussagen.Length; i++)
+                maske.Zeilen[i].Text = aussagen[i];
+            maske.Zeilen[1].IstRichtig = true;
+
+            StringAssert.Contains(maske.Zeilenhinweis, "4 Aussagen, davon 1 wahr");
+            Assert.IsTrue(vm.CanSave, "Mit vier Aussagen nicht speicherbar. Offen: "
+                + string.Join(" | ", vm.Issues.Where(i => i.IsError).Select(i => i.Code)));
+
+            maske.Art = MinigameProfiles.For(MinigameKind.Majority);
+            Assert.AreEqual(Visibility.Collapsed, maske.RichtigVisibility, "Nach dem Wechsel zur Mehrheit steht der Haken noch da.");
+            Assert.AreEqual("Antwortoptionen", maske.ZeilenTitel);
+        }
+
+        /// <summary>
         /// M35 C2: Duell fragt nach Runden, Spielweise und Anteil, Raeuber nur nach dem Anteil, Teilen nach
         /// nichts. Ein Anteil von 0 ist nicht speicherbar, wo die Art ihn liest.
         /// </summary>

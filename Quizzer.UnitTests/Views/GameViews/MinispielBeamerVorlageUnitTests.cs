@@ -32,6 +32,7 @@ namespace Quizzer.UnitTests.Views.GameViews
         [DataRow(MinigameKind.WheelOfFortune, "ReaktionStepTemplate")]
         [DataRow(MinigameKind.MentalArithmetic, "ReaktionStepTemplate")]
         [DataRow(MinigameKind.Memory, "ReaktionStepTemplate")]
+        [DataRow(MinigameKind.LightningRound, "ReaktionStepTemplate")]
         public void EachKindGetsItsBeamerView(MinigameKind art, string erwartet)
         {
             UiTestHost.Run(() =>

@@ -184,6 +184,10 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         public void MemoryShowsOnlyWhatTheServerSent() => LaufeMit("memory.test.mjs");
 
+        /// <summary>M35 C5: Blitzrunde - eine Antwort je Aussage, die naechste kommt vom Server, richtig/falsch erst nach der Runde.</summary>
+        [TestMethod]
+        public void LightningRoundSendsOneVerdictPerStatement() => LaufeMit("blitzrunde.test.mjs");
+
         /// <summary>M35 C4: Gluecksrad - nur der Dreher waehlt ein Ziel, genau einmal; die Aufloesung vom Server.</summary>
         [TestMethod]
         public void TheWheelLetsOnlyTheSpinnerChooseOnce() => LaufeMit("gluecksrad.test.mjs");
