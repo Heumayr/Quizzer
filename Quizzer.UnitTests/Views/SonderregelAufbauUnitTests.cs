@@ -82,7 +82,9 @@ namespace Quizzer.UnitTests.Views
             UserPrompt.Current = new RecordingUserPrompt(answer: true);
             await vm.VerteileSonderregelnAsync();
 
-            Assert.AreEqual(CellSpecialRule.Risk, mitFrage.SpecialRule, "Mit Zustimmung nicht ersetzt.");
+            // Der Wurf bis - 1 trifft die letzte Regel der Profile - seit M35 C3b nicht mehr Risiko.
+            Assert.AreEqual(Quizzer.DataModels.Questions.Sonderregeln.SpecialRuleProfiles.All[^1].Rule, mitFrage.SpecialRule,
+                "Mit Zustimmung nicht ersetzt.");
         }
 
         [TestMethod]
@@ -134,6 +136,28 @@ namespace Quizzer.UnitTests.Views
             Assert.AreEqual(Visibility.Collapsed, vm.SonderregelSpielweiseVisibility);
             vm.SonderregelAnteil = 40;
             Assert.AreEqual(0, zelle.SpecialRuleShare, "Eine Regel ohne Anteil nahm einen.");
+        }
+
+        /// <summary>M35 C3b: die Auktion bietet Hoechst- und Zweitpreis an; der Regeltext im Dialog folgt der Wahl.</summary>
+        [TestMethod]
+        public void TheAuctionOffersItsVariantsAndTheRulesTextFollows()
+        {
+            var vm = new QuestionSelectorViewModel();
+            var zelle = new GameGridCoordinate { Id = Guid.NewGuid(), QuestionBase = new DefaultQuestion { Id = Guid.NewGuid() } };
+            vm.SetDependencys(new Game(), zelle);
+
+            vm.GewaehlteSonderregel = vm.SonderregelOptionen.Single(o => o.Regel == CellSpecialRule.Auction);
+
+            Assert.AreEqual(Visibility.Visible, vm.SonderregelSpielweiseVisibility, "Die Auktion bietet keine Spielweise an.");
+            Assert.AreEqual(2, vm.SonderregelSpielweisen.Count);
+            StringAssert.Contains(vm.SonderregelRegeltext, "zahlt sein Gebot");
+
+            vm.SonderregelSpielweise = 1;
+            Assert.AreEqual(1, zelle.SpecialRuleVariant, "Die Spielweise kommt nicht an die Zelle.");
+            StringAssert.Contains(vm.SonderregelRegeltext, "zweithöchste", "Der Regeltext folgt der Spielweise nicht.");
+
+            vm.SonderregelSpielweise = 5;
+            Assert.AreEqual(1, zelle.SpecialRuleVariant, "Eine Spielweise, die es nicht gibt, wurde genommen.");
         }
 
         /// <summary>Am selben Zell-ViewModel: das Steuerelement entscheidet, ob eine verdeckte Regel zu sehen ist.</summary>

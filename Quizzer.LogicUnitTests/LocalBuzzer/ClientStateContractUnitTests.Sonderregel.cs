@@ -15,6 +15,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         [DataRow(typeof(StakeClientInfo), "einsatz.js", "artInfo")]
         [DataRow(typeof(RiskClientInfo), "risiko.js", "artInfo")]
+        [DataRow(typeof(AuctionClientInfo), "einsatz.js", "artInfo")] // die Auktion erbt das Modul, nur die Texte sind eigen
         public void TheSpecialRuleModulesReadExactlyTheFieldsTheServerSends(Type typ, string datei, string variable)
         {
             var zugriffe = Zugriffe(ReadScript("sonderregeln", datei), variable);
@@ -28,6 +29,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         [DataRow(typeof(StakePayload), "einsatz.js")]
         [DataRow(typeof(RiskPayload), "risiko.js")]
+        [DataRow(typeof(AuctionPayload), "einsatz.js")]
         public void TheSpecialRulePhoneSendsTheFieldsTheServerReads(Type typ, string datei)
         {
             // Ohne Kommentare: ein Feldname im Kommentar hielte die Zusicherung sonst gruen (gemessen am Rahmen, M35 C3).

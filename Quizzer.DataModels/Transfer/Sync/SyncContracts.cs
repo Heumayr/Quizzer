@@ -42,8 +42,9 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// 6: Minispiel-Arten Duell, Raeuber und Waechter, Teilen oder Nehmen (M35 C2) - derselbe Grund wie bei 4.
         /// 7: Sonderregel an der Zelle - Spalten GameGridCoordinate.SpecialRule und SpecialRuleAnnounced (M35 C3).
         /// 8: Anteil und Spielweise der Sonderregel - Spalten SpecialRuleShare und SpecialRuleVariant (M35 C3b).
+        /// 9: Sonderregel Auktion (M35 C3b) - ein altes WPF kennt den Wert nicht und spielte die Zelle ohne Regel.
         /// </summary>
-        public const int CurrentFormatVersion = 8;
+        public const int CurrentFormatVersion = 9;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

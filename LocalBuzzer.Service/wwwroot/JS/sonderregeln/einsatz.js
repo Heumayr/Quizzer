@@ -30,12 +30,12 @@ export class EinsatzModul {
         const eingabe = document.createElement("input");
         eingabe.className = "einsatz-eingabe";
         eingabe.setAttribute("inputmode", "numeric");
-        eingabe.setAttribute("aria-label", "Einsatz in Punkten");
+        eingabe.setAttribute("aria-label", this.eingabeName());
 
         const taste = document.createElement("button");
         taste.type = "button";
         taste.className = "einsatz-taste";
-        taste.textContent = "Setzen";
+        taste.textContent = this.tastenText();
         taste.addEventListener("click", () => this.setze());
 
         const text = document.createElement("p");
@@ -51,7 +51,7 @@ export class EinsatzModul {
         this.gesendet = false;
         this.senden = senden;
         this.max = artInfo?.max ?? 0;
-        this.kopf.textContent = `Setze 0 bis ${this.max} Punkte.`;
+        this.kopf.textContent = this.kopfText(this.max);
         this.eingabe.value = "";
         this.eingabe.disabled = false;
         this.taste.disabled = false;
@@ -71,7 +71,7 @@ export class EinsatzModul {
         this.gesendet = true;
         this.eingabe.disabled = true;
         this.taste.disabled = true;
-        this.text.textContent = `Dein Einsatz: ${geprueft.wert} – warte auf die anderen.`;
+        this.text.textContent = `${this.ergebnisText(geprueft.wert)} – warte auf die anderen.`;
 
         try {
             await this.senden({ amount: geprueft.wert });
@@ -83,9 +83,18 @@ export class EinsatzModul {
     zeigeErgebnis(artInfo) {
         this.eingabe.disabled = true;
         this.taste.disabled = true;
-        this.text.textContent = artInfo?.ownAmount != null
-            ? `Dein Einsatz: ${artInfo.ownAmount}`
-            : "Kein Einsatz – du spielst um die Feldpunkte.";
+        this.text.textContent = this.ergebnisText(artInfo?.ownAmount);
+    }
+
+    // Die Texte - die Auktion (M35 C3b) erbt das Modul und ersetzt nur sie.
+    tastenText() { return "Setzen"; }
+
+    eingabeName() { return "Einsatz in Punkten"; }
+
+    kopfText(max) { return `Setze 0 bis ${max} Punkte.`; }
+
+    ergebnisText(wert) {
+        return wert != null ? `Dein Einsatz: ${wert}` : "Kein Einsatz – du spielst um die Feldpunkte.";
     }
 
     zeigeEnde(artInfo) {

@@ -65,7 +65,22 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
             new(CellSpecialRule.Risk, "Risiko",
                 "Vor der Frage entscheidet jeder am Telefon: doppelt spielen? Wer ja wählt, bekommt Plus und "
                 + "Minus doppelt. Wer nein wählt oder nichts, spielt wie immer."),
+            new(CellSpecialRule.Auction, "Auktion", AuktionText("zahlt sein Gebot"))
+            {
+                // Der Index ist GameGridCoordinate.SpecialRuleVariant - AuktionRegel.ZweitpreisSpielweise zeigt auf den zweiten.
+                Variants =
+                [
+                    new("Höchstpreis", AuktionText("zahlt sein Gebot")),
+                    new("Zweitpreis", AuktionText("zahlt nur das zweithöchste Gebot (allein geboten: nichts)")),
+                ],
+            },
         ];
+
+        private static string AuktionText(string preis)
+            => "Vor der Frage bietet jeder geheim am Telefon – höchstens seinen Kontostand oder die Feldpunkte, "
+               + $"0 heißt passen. Das höchste Gebot gewinnt (bei Gleichstand das frühere) und {preis}. Nur der "
+               + "Gewinner antwortet: richtig bringt die doppelten Feldpunkte, falsch kostet nur den Preis. "
+               + "Bietet niemand, spielen alle wie immer.";
 
         public static bool TryFor(CellSpecialRule rule, out SpecialRuleProfile profile)
         {

@@ -75,6 +75,7 @@ namespace Quizzer.Views.GameViews.Sonderregeln
         {
             CellSpecialRule.Stake => new EinsatzAblauf(),
             CellSpecialRule.Risk => new RisikoAblauf(),
+            CellSpecialRule.Auction => new AuktionAblauf(),
             _ => null,
         };
 
@@ -134,6 +135,9 @@ namespace Quizzer.Views.GameViews.Sonderregeln
         }
 
         protected T? Von(Guid spieler) => abgaben.TryGetValue(spieler, out var wert) ? wert : null;
+
+        /// <summary>Alle Abgaben der Vorphase - fuer Regeln, die ueber alle rechnen (Auktion, Experte).</summary>
+        protected IReadOnlyDictionary<Guid, T> Abgaben => abgaben;
 
         protected override void Uebernimm(IReadOnlyDictionary<Guid, object> neu)
             => abgaben = neu.Where(e => e.Value is T).ToDictionary(e => e.Key, e => (T)e.Value);

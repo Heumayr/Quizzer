@@ -49,6 +49,12 @@ namespace LocalBuzzer.Service.Base.States.Sonderregeln
         public object? InfoFor(Player? player, MinigamePhase phase)
             => Info(player, player != null && laufend.TryGetValue(player.Id, out var eigene) ? eigene : null);
 
+        /// <summary>Wer in der Vorphase abgibt - bei der Allianz nur der Ausloeser (M35 C3b).</summary>
+        public virtual bool Plays(Guid playerId) => true;
+
+        /// <summary>Was die Zuschauer der Vorphase lesen; <c>null</c>: der Rahmen sagt es allgemein.</summary>
+        public virtual string? WatcherText => null;
+
         /// <summary>Prueft die Abgabe; <c>null</c> heisst verworfen.</summary>
         protected abstract T? Read(Player player, JsonElement payload);
 
@@ -59,10 +65,12 @@ namespace LocalBuzzer.Service.Base.States.Sonderregeln
     /// <summary>Die Vorphase zur Regel - die einzige Stelle am Server, die nach der Sonderregel verzweigt.</summary>
     internal static class SpecialRuleRulesFactory
     {
-        public static IMinigameRules? For(MinigameSetup setup) => setup.SpecialRule switch
+        /// <summary>Die Vorphase zur Regel; <c>null</c> bei einer unbekannten und bei einer ohne Vorphase (Kopfgeld).</summary>
+        public static IMinigameRules? For(MinigameSetup setup, MinigameRulesContext kontext) => setup.SpecialRule switch
         {
             CellSpecialRule.Stake => new StakeRules(setup),
             CellSpecialRule.Risk => new RiskRules(),
+            CellSpecialRule.Auction => new AuctionRules(setup),
             _ => null,
         };
     }

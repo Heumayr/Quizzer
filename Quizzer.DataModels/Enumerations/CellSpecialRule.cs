@@ -18,5 +18,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Risiko: wer „doppelt spielen" waehlt, bekommt Plus und Minus verdoppelt.</summary>
         Risk = 2,
+
+        /// <summary>Auktion (M35 C3b): geheime Gebote; der Hoechstbietende antwortet allein und zahlt.</summary>
+        Auction = 3,
     }
 }

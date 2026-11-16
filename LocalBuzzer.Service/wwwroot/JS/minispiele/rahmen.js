@@ -7,6 +7,7 @@ import { RaeuberModul } from "./raeuber.js";
 import { TeilenModul } from "./teilen.js";
 import { EinsatzModul } from "../sonderregeln/einsatz.js";
 import { RisikoModul } from "../sonderregeln/risiko.js";
+import { AuktionModul } from "../sonderregeln/auktion.js";
 
 // Der Rahmen der Minispiele am Telefon (M35 B3): Ueberschrift, Runde n von m, Warten,
 // Countdown und Ergebnis. Was eine Art ausmacht, steckt in ihrem Modul unter minispiele/.
@@ -24,7 +25,8 @@ const MODULE = new Map([
 
 const SONDERREGELN = new Map([
     [SpecialRules.Stake, () => new EinsatzModul()],
-    [SpecialRules.Risk, () => new RisikoModul()]
+    [SpecialRules.Risk, () => new RisikoModul()],
+    [SpecialRules.Auction, () => new AuktionModul()]
 ]);
 
 export function rundenText(serverInfo) {

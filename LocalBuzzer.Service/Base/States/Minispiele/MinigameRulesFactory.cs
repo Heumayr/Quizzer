@@ -14,7 +14,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
     internal static class MinigameRulesFactory
     {
         public static IMinigameRules? For(MinigameSetup setup, MinigameRulesContext kontext)
-            => setup.SpecialRule != CellSpecialRule.None ? Sonderregeln.SpecialRuleRulesFactory.For(setup) : setup.Kind switch
+            => setup.SpecialRule != CellSpecialRule.None ? Sonderregeln.SpecialRuleRulesFactory.For(setup, kontext) : setup.Kind switch
         {
             MinigameKind.Reaction => new ReactionRules(kontext.Zufall, kontext.NameVon),
             MinigameKind.TapSprint => new TapSprintRules(setup.DurationSeconds, kontext.NameVon),

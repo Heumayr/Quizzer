@@ -183,5 +183,9 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// <summary>M35 C3b: wer die Frage nicht beantworten darf, sieht den Satz statt des Layouts - und bekommt es zurueck.</summary>
         [TestMethod]
         public void AnExcludedPhoneSaysThatOthersAnswer() => LaufeMit("antwortsperre.test.mjs");
+
+        /// <summary>M35 C3b: Auktion - das Modul des Einsatzes mit eigenen Texten, 0 heisst passen, genau einmal.</summary>
+        [TestMethod]
+        public void TheAuctionBidsSecretlyOnceAndZeroPasses() => LaufeMit("auktion.test.mjs");
     }
 }
