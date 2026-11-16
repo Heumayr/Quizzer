@@ -41,6 +41,8 @@ gehört ins `.harness`-Submodul (dort committen und pushen), nirgendwo sonst —
 
 ```powershell
 git submodule update --init
+git config core.hooksPath .githooks   # Pre-Push-Hook: Bau + Logiktests (V01)
+dotnet tool restore                   # dotnet-ef in der Fassung von EF Core (dotnet-tools.json)
 ```
 
 <!-- Wartungsnotiz: Diese Datei traegt nur Zeiger und Build-Kommandos. Fallstricke gehoeren in
