@@ -42,7 +42,7 @@ $adresse = "https://127.0.0.1:$port"
 function Anmeldeversuche([string]$von, [string]$cfIp, [int]$anzahl) {
     $rumpf = '{\"userName\":\"probe-gibt-es-nicht\",\"password\":\"falsch-falsch-falsch\"}'
     $skript = "for i in `$(seq 1 $anzahl); do wget --no-check-certificate -qO /dev/null -S " +
-        "--header 'Cf-Connecting-Ip: $cfIp' --header 'Content-Type: application/json' " +
+        "--header 'Cf-Connecting-Ip: $cfIp' --header 'Content-Type: application/json' --header 'X-Quizzer-Sync-Format: $format' " +
         "--post-data `"$rumpf`" https://caddy:8443/api/v1/auth/login 2>&1 | grep -m1 'HTTP/' | awk '{print `$2}'; done"
     return @(docker run --rm --network "$($projekt)_edge" --ip $von --entrypoint sh caddy:2.10.0-alpine -c $skript)
 }
@@ -61,12 +61,14 @@ switch ($Befehl) {
     'absender' {
         # Gemessen wird am Verhalten der Anmeldebremse (10 je Adresse und Minute), nicht am Log:
         # Nur wenn die API die weitergereichte Adresse sieht, trennt sie A von B.
+        # Ohne das aktuelle Abgleichformat antwortet der Versionsriegel (A4) mit 426, bevor die Bremse zaehlt.
+        $format = (Invoke-RestMethod -SkipCertificateCheck "$adresse/api/v1/version").syncFormatVersion
         $a = "203.0.113.$(Get-Random -Minimum 1 -Maximum 127)"
         $b = "203.0.113.$(Get-Random -Minimum 128 -Maximum 254)"
         $tunnelA = @(Anmeldeversuche '172.30.78.11' $a 11)
         $tunnelB = @(Anmeldeversuche '172.30.78.11' $b 1)
         $fremd = @(Anmeldeversuche '172.30.78.12' $a 1)
-        $lokal = curl.exe -sk -o NUL -w '%{http_code}' -H "Cf-Connecting-Ip: $a" -H 'Content-Type: application/json' `
+        $lokal = curl.exe -sk -o NUL -w '%{http_code}' -H "Cf-Connecting-Ip: $a" -H "X-Quizzer-Sync-Format: $format" -H 'Content-Type: application/json' `
             -d '{"userName":"probe-gibt-es-nicht","password":"x"}' "$adresse/api/v1/auth/login"
         Write-Host "Tunnel, Absender $a (11x): $($tunnelA -join ' ')"
         Write-Host "Tunnel, Absender $b (1x):  $($tunnelB -join ' ')"

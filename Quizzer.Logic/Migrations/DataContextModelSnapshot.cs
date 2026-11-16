@@ -182,6 +182,9 @@ namespace Quizzer.Logic.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("AllowNegativeScore")
+                        .HasColumnType("bit");
+
                     b.Property<double>("CellHeight")
                         .HasColumnType("float");
 

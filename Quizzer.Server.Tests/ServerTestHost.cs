@@ -17,6 +17,20 @@ using System.Net.Http.Json;
 namespace Quizzer.Server.Tests
 {
     /// <summary>
+    /// Jeder Test-Client nennt das aktuelle Abgleichformat wie ein aktuelles WPF; ohne Kopf gilt er seit
+    /// Format 2 als altes Programm und bekaeme 426 (Versionsriegel M36 A4). Wer etwas anderes will, entfernt den Kopf.
+    /// </summary>
+    public sealed class AktuellesWpfFactory : WebApplicationFactory<Program>
+    {
+        protected override void ConfigureClient(HttpClient client)
+        {
+            base.ConfigureClient(client);
+            client.DefaultRequestHeaders.Add(ApiInfo.SyncFormatHeader,
+                Quizzer.DataModels.Transfer.Sync.SyncSnapshot.CurrentFormatVersion.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+    }
+
+    /// <summary>
     /// Der Server im Testlauf - gegen eine <b>eigene</b> Datenbank, die am Anfang des Laufs neu
     /// entsteht.
     /// <para>
@@ -117,7 +131,7 @@ namespace Quizzer.Server.Tests
 
         public static WebApplicationFactory<Program> CreateFactory(int authRequestsPerMinute = 1000,
             IDictionary<string, string?>? extra = null, Action<Microsoft.Extensions.DependencyInjection.IServiceCollection>? services = null)
-            => new WebApplicationFactory<Program>().WithWebHostBuilder(web =>
+            => new AktuellesWpfFactory().WithWebHostBuilder(web =>
             {
                 web.UseEnvironment("Development");
                 web.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>

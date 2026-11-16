@@ -44,5 +44,21 @@ namespace Quizzer.LogicUnitTests.DataModels
         {
             Assert.IsTrue(new Game().AllowNegativeScore);
         }
+
+        /// <summary>
+        /// Bestehende Spiele behalten ihr Verhalten: die Migration fuellt die neue Spalte mit „erlaubt".
+        /// Erzeugt war false - ein Neu-Erzeugen der Migration wuerde das still zurueckdrehen.
+        /// </summary>
+        [TestMethod]
+        public void ExistingGamesKeepAllowingANegativeBalanceAfterTheMigration()
+        {
+            var migration = new Quizzer.Logic.Migrations.M35_KontostandUnterNull { ActiveProvider = "Microsoft.EntityFrameworkCore.SqlServer" };
+
+            var spalte = migration.UpOperations
+                .OfType<Microsoft.EntityFrameworkCore.Migrations.Operations.AddColumnOperation>()
+                .Single(o => o.Name == nameof(Game.AllowNegativeScore));
+
+            Assert.AreEqual(true, spalte.DefaultValue);
+        }
     }
 }

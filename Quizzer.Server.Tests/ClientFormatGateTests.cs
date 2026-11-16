@@ -22,7 +22,10 @@ namespace Quizzer.Server.Tests
         private static async Task<HttpResponseMessage> LoginWithFormatAsync(HttpClient client, string? format)
         {
             if (format != null)
+            {
+                client.DefaultRequestHeaders.Remove(ApiInfo.SyncFormatHeader);
                 client.DefaultRequestHeaders.Add(ApiInfo.SyncFormatHeader, format);
+            }
 
             return await client.PostAsJsonAsync("/api/v1/auth/login",
                 new LoginRequest(ServerTestHost.AdminUser, ServerTestHost.AdminPassword, ServerTestHost.NextAdminCode()));
@@ -66,9 +69,24 @@ namespace Quizzer.Server.Tests
         {
             await using var factory = ServerTestHost.CreateFactory();
             var client = factory.CreateClient();
+            client.DefaultRequestHeaders.Remove(ApiInfo.SyncFormatHeader);
             client.DefaultRequestHeaders.Add(ApiInfo.SyncFormatHeader, Format(SyncSnapshot.CurrentFormatVersion - 1));
 
             Assert.AreEqual(HttpStatusCode.OK, (await client.GetAsync("/api/v1/version")).StatusCode);
+        }
+
+        /// <summary>Seit Format 2 ist ein Programm ohne Kopf zu alt - so sehen die WPF von vor dem Riegel aus.</summary>
+        [TestMethod]
+        public async Task AProgramWithoutTheHeaderIsAnOldProgram()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var client = factory.CreateClient();
+            client.DefaultRequestHeaders.Remove(ApiInfo.SyncFormatHeader);
+
+            var antwort = await client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequest(ServerTestHost.AdminUser, ServerTestHost.AdminPassword));
+
+            Assert.IsTrue(SyncSnapshot.CurrentFormatVersion > ClientFormatGate.LegacyFormat);
+            Assert.AreEqual(HttpStatusCode.UpgradeRequired, antwort.StatusCode);
         }
 
         /// <summary>Die WPF von vor dem Riegel schicken keinen Kopf; sie sprechen Format 1.</summary>
