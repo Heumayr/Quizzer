@@ -26,6 +26,9 @@
             <Button Content="Frage entfernen"
                     ToolTip="Löscht die gewählte Frage. Zellen, auf denen sie liegt, werden leer." Command="{Binding RemoveQuestionCommand}"
                     Style="{StaticResource DangerButton}" MinWidth="150" Margin="0,4,0,0" />
+            <!-- M35 C8 (V4): die inhaltsfreien Minispiele als geteilte Fragen fuer alle Konten. -->
+            <Button Content="Minispiel-Vorrat anlegen" Command="{Binding VorratAnlegenCommand}" MinWidth="150" Margin="0,12,0,0"
+                    ToolTip="Legt je Minispiel, das ohne eigenen Inhalt auskommt, eine fertige Frage an – geteilt mit allen Konten. Was schon da ist, bleibt unverändert." />
             <!-- M32: KI-Entwuerfe, deren Fakten noch niemand bestaetigt hat. -->
             <CheckBox Content="{Binding UngeprueftText}" IsChecked="{Binding NurUngepruefte}" Margin="0,12,0,0"
                       ToolTip="Zeigt nur KI-Entwürfe, bei denen im Editor noch nicht „Fakten geprüft“ angehakt ist." />

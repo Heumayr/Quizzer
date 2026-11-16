@@ -1,5 +1,6 @@
 ﻿using Quizzer.DataModels;
 using Quizzer.Logic.Demo;
+using Quizzer.Logic.Vorrat;
 
 // Startprojekt fuer die EF-Werkzeuge - und ein schmaler Weg, Demodaten anzulegen oder wieder
 // zu entfernen, ohne die Oberflaeche zu bemuehen.
@@ -17,6 +18,7 @@ if (args.Length == 0)
     Console.WriteLine("  demo-anlegen     legt den Demo-Quizabend, 'Alle Fragetypen' und den Minispielabend an");
     Console.WriteLine("  demo-typen       legt nur das Spiel 'Alle Fragetypen' an (je Typ eine Spalte)");
     Console.WriteLine("  demo-minispiele  legt nur den Minispielabend an (jede Minispiel-Art und Sonderregel)");
+    Console.WriteLine("  demo-vorrat      legt den Vorrat geteilter Minispiele an - echter Bestand, ohne Marke");
     Console.WriteLine("  demo-design      legt ein zweites Design mit eigenen Texturen an");
     Console.WriteLine("  demo-entfernen   entfernt alles mit der Marke " + DemoDataSeeder.Marke);
     return 0;
@@ -53,6 +55,16 @@ switch (args[0])
 
     case "demo-minispiele":
         return await MinispielabendAsync();
+
+    case "demo-vorrat":
+        {
+            // Ohne Anmeldung gibt es keinen Besitzer - wie QuestionOwnership.ClaimIfUnowned.
+            var v = await MinispielVorrat.CreateAsync(besitzer: null);
+
+            Console.WriteLine($"Minispiel-Vorrat: {v.Neu} neu angelegt, {v.Vorhanden} schon vorhanden (unverändert).");
+            Console.WriteLine("  Er bleibt bei demo-entfernen stehen - Spiele dürfen darauf verweisen.");
+            return 0;
+        }
 
     case "demo-design":
         {
