@@ -223,6 +223,17 @@ git pull
 docker compose up -d --build    # der Migrator bringt das Schema mit
 ```
 
+**Das WPF der Freunde (M36 A7)** holt sich neue Versionen selbst über den Server: das Anmeldefenster
+bietet ein neueres Paket an, auch wenn der Server das Programm als zu alt abweist. Bereitstellen:
+
+```powershell
+.\wpf-paket.ps1 -Bereitstellen                    # Betriebsstapel; Prüfstapel: -Projekt quizzer-pruef
+```
+
+Das Paket liegt dann als `client/Quizzer-<Version>.zip` im Medien-Volume; ältere dort werden
+entfernt. Installiert wird nach `%LOCALAPPDATA%\Quizzer\app\<Version>\`, und die erste
+Installation startet beim Start von selbst die neueste. Die erste ZIP geht weiter von Hand.
+
 ## Unter Linux
 
 Statt der `.ps1`-Skripte `new-secrets.sh`, `backup.sh`, `restore.sh`, `zertifikat-erneuern.sh`.

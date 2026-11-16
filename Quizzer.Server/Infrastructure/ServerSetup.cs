@@ -38,6 +38,7 @@ namespace Quizzer.Server.Infrastructure
             services.AddSingleton<PushService>();
             services.AddSingleton<MediaService>();
             services.AddSingleton<StatisticsService>();
+            services.AddSingleton<Updates.ClientPackageStore>();
 
             // M31: KI-Entwürfe. Die Fabrik ist austauschbar, damit Tests ohne echte KI laufen.
             services.AddHttpClient(nameof(Ki.OpenAiModell), c => c.Timeout = TimeSpan.FromMinutes(5));

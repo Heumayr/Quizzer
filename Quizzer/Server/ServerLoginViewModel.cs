@@ -13,7 +13,7 @@ namespace Quizzer.Server
     /// gelingt das nicht, fragt die Maske nach Name und Kennwort. Ist der Server nicht
     /// erreichbar, kann man mit dem Stand der letzten Anmeldung offline weiterarbeiten.
     /// </summary>
-    public sealed class ServerLoginViewModel : ViewModelBase
+    public sealed partial class ServerLoginViewModel : ViewModelBase
     {
         private string userName = string.Empty;
         private string password = string.Empty;
@@ -112,11 +112,18 @@ namespace Quizzer.Server
             // nachgesehen, ob der Server da ist, damit „Ohne Server weiterarbeiten" am Spielort ohne
             // Netz gleich dasteht und nicht erst nach einem vergeblichen Anmelden. Ohne Busy: das
             // Formular bleibt bedienbar, auch wenn die Suche dauert.
+            await ProbeAsync(api);
+        }
+
+        /// <summary>Ist der Server da - und hat er ein neueres Paket (M36 A7)? Getrennt, damit Tests es ohne Einstellungen erreichen.</summary>
+        internal async Task ProbeAsync(QuizzerApiClient api)
+        {
             serverUnreachable = false;
             Error = string.Empty;
             try
             {
                 await api.GetVersionAsync();
+                await CheckForUpdateAsync(api);
             }
             catch (ServerUnreachableException ex)
             {
@@ -169,6 +176,12 @@ namespace Quizzer.Server
             catch (ServerUnreachableException ex)
             {
                 SetUnreachable(ex.Message);
+            }
+            catch (ApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.UpgradeRequired)
+            {
+                // Zu alt fuer den Server (M36 A4): gerade dann die Aktualisierung anbieten (A7).
+                Error = ex.Message;
+                await CheckForUpdateAsync(ServerSession.Api);
             }
             catch (ApiException ex)
             {

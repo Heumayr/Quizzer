@@ -17,6 +17,13 @@ namespace Quizzer
         {
             base.OnStartup(e);
 
+            // M36 A7: die Verknuepfung zeigt auf die erste Installation - eine neuere uebernimmt.
+            if (Server.ClientUpdate.TryStartNewerInstalled(e.Args))
+            {
+                Shutdown();
+                return;
+            }
+
             FensterModusFuerAnmeldungSetzen();
 
             CatchWhatWouldEndTheEvening();

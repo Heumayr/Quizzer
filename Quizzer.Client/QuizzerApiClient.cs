@@ -20,7 +20,7 @@ namespace Quizzer.Client
     /// Schalter „Zertifikat nicht pruefen".
     /// </para>
     /// </summary>
-    public sealed class QuizzerApiClient : IDisposable
+    public sealed partial class QuizzerApiClient : IDisposable
     {
         public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 

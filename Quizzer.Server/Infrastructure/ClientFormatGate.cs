@@ -18,8 +18,13 @@ namespace Quizzer.Server.Infrastructure
         internal const string TooNew = "Der Server ist älter als dieses Quizzer-Programm. Bitte den Server aktualisieren lassen.";
         internal const string Unreadable = "Die Angabe des Abgleichformats ist ungültig.";
 
-        /// <summary>Was jedes Programm erreichen muss, auch ein zu altes: die Versionsabfrage selbst.</summary>
-        private static readonly string[] Exempt = [ApiInfo.BasePath + "/version"];
+        /// <summary>Was jedes Programm erreichen muss, auch ein zu altes: die Versionsabfrage und die Aktualisierung (M36 A7).</summary>
+        private static readonly string[] Exempt =
+        [
+            ApiInfo.BasePath + "/version",
+            Updates.ClientPackageEndpoints.LatestPath,
+            Updates.ClientPackageEndpoints.PackagePath,
+        ];
 
         public static void UseClientFormatGate(this WebApplication app) => app.Use(async (context, next) =>
         {

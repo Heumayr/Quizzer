@@ -118,4 +118,10 @@ namespace Quizzer.DataModels.Transfer.Server
         IReadOnlyList<GameStatistic> Games);
 
     public sealed record MediaFileInfo(string Path, long Size, string Sha256);
+
+    /// <summary>
+    /// Das bereitgestellte WPF-Paket (M36 A7), ohne Anmeldung abrufbar. <see cref="Version"/> im
+    /// Muster von <see cref="PackageVersion"/>, <see cref="Sha256"/> als Hex.
+    /// </summary>
+    public sealed record ClientPackageInfo(string Version, long Size, string Sha256);
 }

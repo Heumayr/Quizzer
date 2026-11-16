@@ -11,7 +11,7 @@ using System.Reflection;
 namespace Quizzer.Server
 {
     /// <summary>
-    /// Alle Endpunkte unter <c>/api/v1</c>. Anonym sind <b>nur</b> die drei in
+    /// Alle Endpunkte unter <c>/api/v1</c>. Anonym sind <b>nur</b> die in
     /// <see cref="AnonymousRoutes"/> - ein Deckungstest haelt diese Liste gegen die tatsaechlichen
     /// Routen (standards-sicherheit A01).
     /// </summary>
@@ -22,6 +22,8 @@ namespace Quizzer.Server
             "GET /api/v1/version",
             "POST /api/v1/auth/login",
             "POST /api/v1/auth/refresh",
+            "GET /api/v1/client/latest",
+            "GET /api/v1/client/package",
         };
 
         /// <summary>
@@ -49,6 +51,8 @@ namespace Quizzer.Server
                     SyncSnapshot.CurrentFormatVersion,
                     typeof(Endpoints).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "?"))
                 .AllowAnonymous();
+
+            Updates.ClientPackageEndpoints.Map(api);
 
             var auth = api.MapGroup("/auth");
 

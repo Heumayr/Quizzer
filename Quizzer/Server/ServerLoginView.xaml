@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:base="clr-namespace:Quizzer.Base"
         xmlns:local="clr-namespace:Quizzer.Server"
-        Title="Anmelden" Height="520" Width="560"
+        Title="Anmelden" Height="560" Width="560"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize">
     <base:WindowBase.DataContext>
@@ -51,6 +51,12 @@
                         Command="{Binding OfflineCommand}" Visibility="{Binding OfflineVisibility}"
                         Margin="0,12,0,0" Height="32" HorizontalAlignment="Left" Padding="12,0"
                         ToolTip="Öffnet die Daten deiner letzten Anmeldung auf diesem Rechner. Änderungen gehen beim nächsten Anmelden an den Server." />
+
+                <Button Command="{Binding UpdateCommand}" Visibility="{Binding UpdateVisibility}"
+                        Margin="0,12,0,0" MinHeight="32" HorizontalAlignment="Left" Padding="12,4"
+                        ToolTip="Lädt die neue Version vom Server, prüft sie und startet sie. Deine Daten und Einstellungen bleiben, wo sie sind.">
+                    <TextBlock Text="{Binding UpdateText}" TextWrapping="Wrap" />
+                </Button>
             </StackPanel>
 
             <StackPanel Visibility="{Binding BusyVisibility}" VerticalAlignment="Center">
