@@ -171,7 +171,7 @@ namespace Quizzer.Server.Sync
     /// Gaeste ohne Konto.</item>
     /// <item><b>Kategorien, Designs</b>: jeder anlegen und aendern, loeschen nur der Admin.</item>
     /// </list>
-    /// Der Admin darf alles.
+    /// Dem Admin entfallen die Rechte, nicht der Zusammenhang (<see cref="CheckCoherenceAsync"/>, V09).
     /// </summary>
     internal sealed partial class WriteRules(DataContext context, CurrentAccount account, SyncPushRequest request)
     {
@@ -194,9 +194,12 @@ namespace Quizzer.Server.Sync
         {
             var denied = await CheckUpsertCoreAsync(row, serverEntity, ct);
 
-            // Der Admin darf alles - aber erst nach der Pruefung, denn sie merkt sich den
-            // bisherigen Besitzer und Gamemaster, die Enforce bewahren muss.
-            return account.IsAdmin ? null : denied;
+            // Dem Admin entfallen die Rechte - aber erst nach der Pruefung, denn sie merkt sich den
+            // bisherigen Besitzer und Gamemaster, die Enforce bewahren muss. Den Zusammenhang wahrt auch er (V09).
+            if (denied != null && !account.IsAdmin)
+                return denied;
+
+            return await CheckCoherenceAsync(row, ct);
         }
 
         private async Task<string?> CheckUpsertCoreAsync(SyncRow row, object? serverEntity, CancellationToken ct)
@@ -259,19 +262,7 @@ namespace Quizzer.Server.Sync
                             return "Auf diese Frage darf das Spiel nicht verweisen.";
                     }
 
-                    // Ein Ergebnis gehoert zu einer Zelle DESSELBEN Spiels. Sonst haengte ein
-                    // fremdes Ergebnis (NO ACTION) an Bobs Zelle, und Bob koennte sein Spiel nie
-                    // mehr loeschen (Sicherheitspruefung 2026-10-21).
-                    if (row.Values.ContainsKey(nameof(QuestionResult.GameGridCoordinateId))
-                        && GetNullableGuid(row, nameof(QuestionResult.GameGridCoordinateId)) is { } cellId
-                        && !await CellBelongsToGameAsync(cellId, newGame, ct))
-                        return row.Type == nameof(PlayerJoker)
-                            ? "Der Joker verweist auf eine Zelle eines anderen Spiels."
-                            : "Das Ergebnis verweist auf eine Zelle eines anderen Spiels.";
-
-                    if (row.Type == nameof(PlayerJoker))
-                        return await CheckJokerAsync(row, newGame, ct);
-
+                    // Zelle aus demselben Spiel und die Joker-Regeln: CheckCoherenceAsync, auch fuer den Admin.
                     return null;
             }
         }
