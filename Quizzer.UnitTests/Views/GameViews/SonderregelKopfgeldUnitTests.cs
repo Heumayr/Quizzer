@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Questions.Minispiele;
 using Quizzer.DataModels.Questions.Sonderregeln;
+using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.Logic.Spielablauf;
 using System.Windows;
 using static Quizzer.Views.GameViews.Sub.PlayerResultContext;
@@ -61,6 +62,27 @@ namespace Quizzer.UnitTests.Views.GameViews
                 merk.Aenderungen().ToList(), "Die Ruecknahme sieht das Kopfgeld nicht auf allen Karten.");
             await merk.NimmZurueckAsync(world.Game);
             Assert.IsTrue(world.Coordinate.QuestionResults.All(r => r.FinalScore == 0), "Nach der Ruecknahme steht noch ein Teil des Kopfgelds.");
+        }
+
+        /// <summary>M35 C9: ein gespeichertes Kopfgeld ist ein Klau des Jaegers - je Gesuchtem, bei dem er kassiert.</summary>
+        [TestMethod]
+        public async Task ASavedBountyIsAStealOfTheHunter()
+        {
+            ZelleEinrichten = z => z.SpecialRuleShare = 50;
+            var vm = await OeffneAsync(CellSpecialRule.Bounty, spieler: 3, kontostaende: [70, 20, 20]);
+            var (anna, bert, clara) = (Karte(vm, 0), Karte(vm, 1), Karte(vm, 2));
+
+            bert.Suggestion = ScoreSuggestion.Right;
+            clara.Suggestion = ScoreSuggestion.Wrong;
+            StringAssert.Contains(bert.SuggestionText, "Kopfgeld von", "Ohne Kopfgeld auf der Karte misst der Test nichts.");
+
+            Assert.IsTrue(await vm.PlayersResultViewModel!.TrySaveAsync(), "Das Speichern scheiterte.");
+
+            using var ctrl = new QuestionResultsController();
+            var zeilen = await ctrl.GetAllResultsForCoordinate(world!.Coordinate.Id) ?? new();
+            CollectionAssert.AreEqual(new[] { 0, 1, 0 },
+                new[] { anna, bert, clara }.Select(k => zeilen.Single(r => r.PlayerId == k.Player.Id).Steals).ToList(),
+                "Nur der Jaeger, der kassiert, hat einen Klau.");
         }
 
         [TestMethod]

@@ -100,6 +100,7 @@ namespace Quizzer.Views.GameViews.Minispiele
 
             ergebnis = null;
             Karten?.WerteVorschlaege(new Dictionary<Guid, Punktevorschlag>(), _ => string.Empty);
+            Karten?.MerkeMesswerte(new Dictionary<Guid, int>());
         }
 
         public override void Beende() => takt?.Stop();
@@ -136,6 +137,7 @@ namespace Quizzer.Views.GameViews.Minispiele
                 new ZockerWertung(Feldpunkte, einsatz, Konten()));
 
             Karten?.WerteVorschlaege(wertung.Vorschlaege, id => ZockerEvaluator.Describe(wertung, id));
+            Karten?.MerkeMesswerte(Messwerte.Zocker(wertung));
             return wertung;
         }
 

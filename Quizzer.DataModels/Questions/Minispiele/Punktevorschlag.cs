@@ -6,7 +6,11 @@ namespace Quizzer.DataModels.Questions.Minispiele
     /// <summary>Eine Punktebewegung fuer die Spielerkarte (E1): schon gekappt (E2), samt Grund im Klartext.</summary>
     /// <param name="Punkte">Plus oder Minus; gebucht wird erst mit der Bestaetigung des Spielleiters.</param>
     /// <param name="Grund">Steht auf der Karte hinter dem Wert, etwa „Duell gegen Bert gewonnen".</param>
-    public sealed record Punktevorschlag(int Punkte, string Grund);
+    /// <param name="Klaus">
+    /// Wie viele Klaus mit Gewinn fuer diesen Spieler darin stecken (M35 C9: Raub, Klauen am Gluecksrad, Kopfgeld) -
+    /// gezaehlt erst, wenn der Spielleiter den Vorschlag speichert.
+    /// </param>
+    public sealed record Punktevorschlag(int Punkte, string Grund, int Klaus = 0);
 
     /// <summary>Was die Kappung (E2) braucht: die Kontostaende und ob das Spiel ein Minus erlaubt.</summary>
     /// <param name="Stand">Je Spieler sein Kontostand; wer fehlt, steht bei 0.</param>

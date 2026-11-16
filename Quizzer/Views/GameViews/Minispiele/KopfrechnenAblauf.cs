@@ -46,6 +46,7 @@ namespace Quizzer.Views.GameViews.Minispiele
 
                 ergebnis = KopfrechnenEvaluator.Werte(endstaende, Feldpunkte, Konten());
                 Karten?.WerteVorschlaege(ergebnis.Vorschlaege, id => KopfrechnenEvaluator.Describe(ergebnis, id));
+                Karten?.MerkeMesswerte(Messwerte.Kopfrechnen(ergebnis, Frage?.DurationSeconds ?? 0));
             }
 
             if (ergebnis == null)
@@ -71,6 +72,7 @@ namespace Quizzer.Views.GameViews.Minispiele
 
             ergebnis = null;
             Karten?.WerteVorschlaege(new Dictionary<Guid, Punktevorschlag>(), _ => string.Empty);
+            Karten?.MerkeMesswerte(new Dictionary<Guid, int>());
         }
     }
 }

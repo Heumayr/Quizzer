@@ -136,7 +136,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
                     buchung.Bewege(dreher, -anteil, "hat Pech");
                     break;
                 case WheelSegment.Steal when wurf.Ziel is { } ziel && ziel != dreher:
-                    buchung.Bewege(dreher, anteil, $"beklaut {name(ziel)}");
+                    buchung.Bewege(dreher, anteil, $"beklaut {name(ziel)}", klaus: 1);
                     buchung.Bewege(ziel, -anteil, $"von {name(dreher)} beklaut");
                     break;
                 case WheelSegment.Gift when wurf.Ziel is { } ziel && ziel != dreher:
@@ -174,13 +174,14 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
             public Dictionary<Guid, string> Rollen { get; } = new();
 
-            public void Bewege(Guid spieler, int punkte, string rolle)
+            // klaus: nur beim Klauen 1 (M35 C9) - Robin Hood nimmt, aber kein Spieler klaut.
+            public void Bewege(Guid spieler, int punkte, string rolle, int klaus = 0)
             {
                 var gekappt = konten.Kappe(spieler, punkte);
 
                 Rollen[spieler] = rolle;
                 Vorschlaege[spieler] = new(gekappt, $"Glücksrad ({feld}): {rolle} {Punkteanteil.Text(gekappt)}"
-                                                    + (gekappt != punkte ? Punkteanteil.GekapptText : string.Empty));
+                                                    + (gekappt != punkte ? Punkteanteil.GekapptText : string.Empty), klaus);
             }
         }
     }

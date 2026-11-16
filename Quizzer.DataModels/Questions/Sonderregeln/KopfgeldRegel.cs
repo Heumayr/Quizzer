@@ -45,8 +45,9 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
                 return vorschlaege;
 
             var beute = opfer.Count * kopfgeld;
+            // Je Gesuchter, bei dem der Jaeger kassiert, ein Klau (M35 C9).
             foreach (var id in jaeger)
-                vorschlaege[id] = new(eingaenge[id].Grundwert + beute, $"Kopfgeld von {Namen(opfer, nameVon)} ({Punkteanteil.Text(beute)})");
+                vorschlaege[id] = new(eingaenge[id].Grundwert + beute, $"Kopfgeld von {Namen(opfer, nameVon)} ({Punkteanteil.Text(beute)})", opfer.Count);
 
             var verlust = jaeger.Count * kopfgeld;
             foreach (var id in opfer)

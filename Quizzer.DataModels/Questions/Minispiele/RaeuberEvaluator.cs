@@ -73,18 +73,20 @@ namespace Quizzer.DataModels.Questions.Minispiele
                 }
             }
 
-            var vorschlaege = teile.ToDictionary(t => t.Key, t => Vorschlag(t.Key, t.Value, konten));
+            var vorschlaege = teile.ToDictionary(t => t.Key,
+                t => Vorschlag(t.Key, t.Value, konten, zuege.Count(z => z.Dieb == t.Key && !z.Abgewehrt)));
 
             return new(gueltig, zuege, vorschlaege);
         }
 
-        private static Punktevorschlag Vorschlag(Guid spieler, List<(int Punkte, string Text)> teile, Kontostaende konten)
+        /// <summary>Ein gelungener Raub ist ein Klau (M35 C9); am Schild gescheitert nicht.</summary>
+        private static Punktevorschlag Vorschlag(Guid spieler, List<(int Punkte, string Text)> teile, Kontostaende konten, int klaus)
         {
             var summe = teile.Sum(t => t.Punkte);
             var gekappt = konten.Kappe(spieler, summe);
 
             return new(gekappt, "Räuber und Wächter: " + string.Join(", ", teile.Select(t => t.Text))
-                                + (gekappt != summe ? Punkteanteil.GekapptText : string.Empty));
+                                + (gekappt != summe ? Punkteanteil.GekapptText : string.Empty), klaus);
         }
 
         /// <summary>Was ein Spieler gewaehlt hat und was daraus wurde - fuer Beamer und Spielerkarte dieselben Worte.</summary>

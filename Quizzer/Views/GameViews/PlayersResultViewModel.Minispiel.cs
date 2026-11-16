@@ -50,6 +50,8 @@ namespace Quizzer.Views.GameViews
         {
             foreach (var ctx in PlayerResultContextList)
                 ctx.UebernimmTippsprint(ergebnis);
+
+            MerkeMesswerte(Messwerte.Tippsprint(ergebnis, (Coordinate?.QuestionBase as MinigameQuestion)?.DurationSeconds ?? 0));
         }
 
         /// <summary>Stoppuhr (M35 C1): naechste an der Zielzeit „richtig", sonst keiner, nie Minus (E1).</summary>
@@ -57,6 +59,8 @@ namespace Quizzer.Views.GameViews
         {
             foreach (var ctx in PlayerResultContextList)
                 ctx.UebernimmStoppuhr(ergebnis);
+
+            MerkeMesswerte(Messwerte.Stoppuhr(ergebnis));
         }
 
         /// <summary>Verteilt die Vorschlaege der Reaktion: beste Zeit „richtig", sonst keiner, nie Minus (E1).</summary>
@@ -67,7 +71,18 @@ namespace Quizzer.Views.GameViews
             foreach (var ctx in PlayerResultContextList)
                 ctx.UebernimmReaktion(ergebnis);
 
+            MerkeMesswerte(Messwerte.Reaktion(ergebnis));
             OnPropertyChanged(nameof(ReaktionErgebnis));
+        }
+
+        /// <summary>
+        /// Verteilt die Messwerte der Runde auf die Karten (M35 C9); wer fehlt, hat keinen. Jede Wertung meldet neu -
+        /// eine verworfene Runde nimmt ihren Wert also mit.
+        /// </summary>
+        internal void MerkeMesswerte(IReadOnlyDictionary<Guid, int> werte)
+        {
+            foreach (var ctx in PlayerResultContextList)
+                ctx.UebernimmMesswert(werte.TryGetValue(ctx.Player.Id, out var wert) ? wert : null);
         }
 
         /// <summary>

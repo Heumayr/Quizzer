@@ -223,6 +223,7 @@ namespace Quizzer.Views.GameViews
                 using var ctrl = new QuestionResultsController();
                 foreach (var ctx in PlayerResultContextList)
                 {
+                    ctx.SchreibeBestwerte(DateTimeOffset.Now);
                     ctx.SetManipulationToResult();
 
                     await ctrl.UpsertAsync(ctx.Result);
