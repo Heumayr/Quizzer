@@ -101,6 +101,9 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             Assert.IsTrue(await WarteAsync(() => Letzter(bertStaende).Layout == BuzzerControlsLayout.Buzzer));
             Assert.IsTrue(Letzter(bertStaende).ExcludedFromQuestion, "Berts Telefon sagt nicht, dass andere antworten.");
             Assert.IsTrue(Letzter(bertStaende).CurrentLayoutLocked, "Berts Telefon ist nicht gesperrt.");
+
+            // Annas Runde kommt über ihre eigene Verbindung - nicht unbedingt vor Berts. Ihr Stand davor ist gesperrt (V08).
+            Assert.IsTrue(await WarteAsync(() => Letzter(annaStaende).Layout == BuzzerControlsLayout.Buzzer), "Annas Telefon bekam die Runde nicht.");
             Assert.IsFalse(Letzter(annaStaende).ExcludedFromQuestion, "Anna ist ausgeschlossen, obwohl sie antwortet.");
             Assert.IsFalse(Letzter(annaStaende).CurrentLayoutLocked, "Annas Buzzer ist gesperrt.");
 
