@@ -17,7 +17,8 @@ namespace Quizzer.Server.Sync
     internal static class ResultRecordCheck
     {
         /// <summary>Die Beanstandung oder <c>null</c>; Zeilen anderer Typen gehen unbesehen durch.</summary>
-        public static async Task<string?> CheckAsync(SyncRow row, DataContext context, SyncPushRequest request, CancellationToken ct)
+        /// <param name="accepted">Die bisher angenommenen Zeilen dieses Pushs - der Client schickt Fragen vor Ergebnissen.</param>
+        public static async Task<string?> CheckAsync(SyncRow row, DataContext context, IReadOnlyList<SyncRow> accepted, CancellationToken ct)
         {
             if (row.Type != nameof(QuestionResult))
                 return null;
@@ -29,7 +30,7 @@ namespace Quizzer.Server.Sync
                 return null;
 
             var frage = GuidOf(row, nameof(QuestionResult.QuestionBaseId));
-            var art = frage == null ? null : await KindOfAsync(frage.Value, context, request, ct);
+            var art = frage == null ? null : await KindOfAsync(frage.Value, context, accepted, ct);
 
             if (art == null || !MinigameProfiles.TryFor(art.Value, out var profil) || profil.Record is not { } record)
                 return "Ein Rohwert an einer Frage, deren Art keine Bestenliste führt.";
@@ -39,10 +40,15 @@ namespace Quizzer.Server.Sync
                 : $"Der Rohwert {wert} liegt außerhalb des Bereichs der Art „{profil.DisplayName}“ ({record.Min} bis {record.Max}).";
         }
 
-        /// <summary>Die Art der Frage - aus demselben Push, sonst vom Server; <c>null</c>, wenn sie kein Minispiel ist.</summary>
-        private static async Task<MinigameKind?> KindOfAsync(Guid frage, DataContext context, SyncPushRequest request, CancellationToken ct)
+        /// <summary>
+        /// Die Art der Frage - aus einer schon angenommenen Zeile desselben Pushs, sonst vom Server; <c>null</c>, wenn sie
+        /// kein Minispiel ist. Eine abgewiesene Frage zählt nicht (V07): ihre Art galt sonst, obwohl die Frage am Server
+        /// eine andere blieb. Die Serverart vorzuziehen ginge auch nicht - eine erlaubte Umdeutung im selben Push machte
+        /// dann das Ergebnis ungültig.
+        /// </summary>
+        private static async Task<MinigameKind?> KindOfAsync(Guid frage, DataContext context, IReadOnlyList<SyncRow> accepted, CancellationToken ct)
         {
-            if (request.Upserts.FirstOrDefault(u => u.Row.Id == frage && u.Row.Type != nameof(QuestionResult))?.Row is { } neu)
+            if (accepted.FirstOrDefault(r => r.Id == frage && r.Type != nameof(QuestionResult)) is { } neu)
                 return neu.Type == nameof(MinigameQuestion) && IntOf(neu, nameof(MinigameQuestion.Kind)) is { } kind ? (MinigameKind)kind : null;
 
             return await context.MinigameQuestions.AsNoTracking()
