@@ -60,7 +60,7 @@ namespace Quizzer.UnitTests.Views.GameViews
 
             Assert.IsTrue(await WarteAsync(() => vm.Reaktion.Kopfzeile.Contains("abgestürzt bei ×2,40")),
                 "Der Absturz erreicht den Beamer nicht: " + vm.Reaktion.Kopfzeile);
-            Assert.IsTrue(Gespielt("Absturz"), "Zum Absturz kam nicht sein Ton.");
+            Assert.IsTrue(await WarteAsync(() => Gespielt("Absturz")), "Zum Absturz kam nicht sein Ton.");
 
             var gewinn = (int)Math.Round(einsatz * 28 / 100.0, MidpointRounding.AwayFromZero);
             Assert.AreEqual(ScoreSuggestion.Correction, Karte(anna).Suggestion);
@@ -70,7 +70,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.IsNull(Karte(bert).Messwert, "Wer abstuerzte, hat einen Ausstieg.");
             Assert.AreEqual(-einsatz, Karte(bert).CurrentScoreManipulation, "Der Absturz kostet nicht den Einsatz.");
             StringAssert.Contains(Karte(bert).SuggestionText, "Einsatz verloren");
-            Assert.IsTrue(vm.ShowResultWindowCalls > 0, "Nach dem Ende geht das Bewertungsfenster nicht auf.");
+            Assert.IsTrue(await WarteAsync(() => vm.ShowResultWindowCalls > 0), "Nach dem Ende geht das Bewertungsfenster nicht auf.");
         }
     }
 }

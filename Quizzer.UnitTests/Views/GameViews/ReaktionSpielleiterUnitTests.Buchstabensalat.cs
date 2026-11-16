@@ -48,7 +48,7 @@ namespace Quizzer.UnitTests.Views.GameViews
 
             Assert.IsTrue(await WarteAsync(() => vm.Reaktion.Kopfzeile.Contains("2 von 2 Begriffen gelöst")),
                 "Sind alle geloest, erreicht das Ende den Beamer nicht: " + vm.Reaktion.Kopfzeile);
-            Assert.IsTrue(Gespielt("Ende"), "Zum Ende kam kein Ton.");
+            Assert.IsTrue(await WarteAsync(() => Gespielt("Ende")), "Zum Ende kam kein Ton.");
 
             var anteil = BuchstabensalatEvaluator.Punkte(1, 2, Feldpunkte(vm));
             foreach (var p in new[] { anna, bert })
@@ -58,7 +58,7 @@ namespace Quizzer.UnitTests.Views.GameViews
                 StringAssert.Contains(Karte(p).SuggestionText, "1 gelöst von 2");
             }
 
-            Assert.IsTrue(vm.ShowResultWindowCalls > 0, "Nach dem Ende geht das Bewertungsfenster nicht auf.");
+            Assert.IsTrue(await WarteAsync(() => vm.ShowResultWindowCalls > 0), "Nach dem Ende geht das Bewertungsfenster nicht auf.");
         }
 
         /// <summary>Die Aufloesung (M35 C5): laeuft die Zeit ab, stehen die ungeloesten Begriffe am Beamer - vorher nicht.</summary>

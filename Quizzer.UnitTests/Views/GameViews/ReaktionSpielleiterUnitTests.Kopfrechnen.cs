@@ -49,7 +49,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.IsTrue(await WarteAsync(() => vm.Reaktion.Kopfzeile.Contains("die meisten richtigen")),
                 "Das Ende erreicht den Beamer nicht: " + vm.Reaktion.Kopfzeile);
             Assert.IsTrue(vm.Reaktion.Zeilen.Single(z => z.Name == anna.CalculatedDisplayName).Sieger, "Am Beamer ist der Sieger nicht markiert.");
-            Assert.IsTrue(Gespielt("Ende"), "Zum Ende kam kein Ton.");
+            Assert.IsTrue(await WarteAsync(() => Gespielt("Ende")), "Zum Ende kam kein Ton.");
 
             Assert.AreEqual(ScoreSuggestion.Correction, Karte(anna).Suggestion);
             Assert.AreEqual(Feldpunkte(vm), Karte(anna).CurrentScoreManipulation, "Der Sieger bekommt nicht die Feldpunkte.");
@@ -57,7 +57,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual(ScoreSuggestion.None, Karte(bert).Suggestion, "Wer nicht vorn ist, bekommt einen Vorschlag.");
             Assert.AreEqual(200, Karte(anna).Messwert, "1 richtige in 30 s sind 2,00 je Minute - nicht auf der Karte (M35 C9).");
             Assert.IsNull(Karte(bert).Messwert, "Null richtige sind ein Messwert.");
-            Assert.IsTrue(vm.ShowResultWindowCalls > 0, "Nach dem Ende geht das Bewertungsfenster nicht auf.");
+            Assert.IsTrue(await WarteAsync(() => vm.ShowResultWindowCalls > 0), "Nach dem Ende geht das Bewertungsfenster nicht auf.");
         }
     }
 }

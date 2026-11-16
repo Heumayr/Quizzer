@@ -59,8 +59,8 @@ namespace Quizzer.UnitTests.Views.GameViews
             StringAssert.Contains(Karte(bert).ReihenfolgeText, "40 Tipps");
             Assert.AreEqual(1040, Karte(anna).Messwert, "Die Tipps je Sekunde (Hundertstel) stehen nicht auf der Karte (M35 C9).");
             Assert.AreEqual(800, Karte(bert).Messwert);
-            Assert.IsTrue(Gespielt("Ende"), "Zum Ergebnis kam kein Ton.");
-            Assert.IsTrue(vm.ShowResultWindowCalls > 0, "Nach dem Ende geht das Bewertungsfenster nicht auf.");
+            Assert.IsTrue(await WarteAsync(() => Gespielt("Ende")), "Zum Ergebnis kam kein Ton.");
+            Assert.IsTrue(await WarteAsync(() => vm.ShowResultWindowCalls > 0), "Nach dem Ende geht das Bewertungsfenster nicht auf.");
             Assert.IsTrue(serverVm.BuzzerControlsViewModel.LivePlayers.Any(p => p.AnswerText == "52 Tipps"),
                 "Die Uebersicht des Spielleiters zeigt die Tipps nicht.");
 
@@ -102,7 +102,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual(100, Karte(bert).Messwert);
             Assert.IsTrue(serverVm!.BuzzerControlsViewModel!.LivePlayers.Any(p => p.AnswerText == "10,23 s"),
                 "Die Uebersicht des Spielleiters zeigt die Zeit nicht.");
-            Assert.IsTrue(Gespielt("Ende"), "Zum Ergebnis kam kein Ton.");
+            Assert.IsTrue(await WarteAsync(() => Gespielt("Ende")), "Zum Ergebnis kam kein Ton.");
         }
     }
 }

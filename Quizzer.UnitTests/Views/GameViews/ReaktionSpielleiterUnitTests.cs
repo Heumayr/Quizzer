@@ -183,7 +183,7 @@ namespace Quizzer.UnitTests.Views.GameViews
                 "Nach der Runde stehen keine Zeiten am Beamer: " + vm.Reaktion.Kopfzeile);
             Assert.AreEqual(bert.CalculatedDisplayName, vm.Reaktion.Zeilen[0].Name, "Die schnellste Zeit steht nicht oben.");
             Assert.AreEqual("250 ms", vm.Reaktion.Zeilen[0].Zeit);
-            Assert.IsTrue(Gespielt("Ende"), "Zum Ergebnis der Runde kam kein Ton.");
+            Assert.IsTrue(await WarteAsync(() => Gespielt("Ende")), "Zum Ergebnis der Runde kam kein Ton.");
             Assert.AreEqual(ScoreSuggestion.Right, Karte(bert).Suggestion, "Die bisher beste Zeit hat keinen Vorschlag.");
             Assert.AreEqual(ScoreSuggestion.None, Karte(anna).Suggestion);
 
@@ -202,7 +202,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual(ScoreSuggestion.None, Karte(bert).Suggestion, "Der Zweite behaelt seinen Vorschlag.");
             Assert.AreEqual(world.Coordinate.CurrentPoints, Karte(anna).CurrentScoreManipulation, "Nicht die Feldpunkte.");
             StringAssert.Contains(Karte(bert).ReihenfolgeText, "250 ms");
-            Assert.IsTrue(vm.ShowResultWindowCalls > 0, "Nach dem Ende geht das Bewertungsfenster nicht auf.");
+            Assert.IsTrue(await WarteAsync(() => vm.ShowResultWindowCalls > 0), "Nach dem Ende geht das Bewertungsfenster nicht auf.");
             Assert.IsTrue(serverVm!.BuzzerControlsViewModel!.LivePlayers.Any(p => p.AnswerText == "200 ms"),
                 "Die Uebersicht des Spielleiters zeigt die Zeit nicht.");
 

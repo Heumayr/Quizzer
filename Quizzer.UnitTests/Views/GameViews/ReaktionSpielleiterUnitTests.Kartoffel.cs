@@ -60,7 +60,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.IsTrue(await WarteAsync(() => spiel.Phase == MinigamePhase.Finished && vm.Reaktion.Kopfzeile.Contains("BUMM")),
                 "Der Knall erreicht den Beamer nicht: " + vm.Reaktion.Kopfzeile);
             StringAssert.Contains(vm.Reaktion.Kopfzeile, $"nach 20 s! Die Kartoffel ist bei {bert.CalculatedDisplayName} geplatzt");
-            Assert.IsTrue(Gespielt("Absturz"), "Zum Knall kam nicht sein Ton.");
+            Assert.IsTrue(await WarteAsync(() => Gespielt("Absturz")), "Zum Knall kam nicht sein Ton.");
 
             Assert.AreEqual(2, vm.Reaktion.Aufloesung.Count, "Nach dem Knall steht der Verlauf nicht am Beamer: " + string.Join(" | ", vm.Reaktion.Aufloesung));
             StringAssert.StartsWith(vm.Reaktion.Aufloesung[0], "✗ falsch – Hinweis");
@@ -73,7 +73,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual(ScoreSuggestion.Correction, Karte(anna).Suggestion);
             Assert.AreEqual(betrag, Karte(anna).CurrentScoreManipulation, "Wer zugeschoben hat, gewinnt nicht den Anteil.");
             Assert.IsTrue(vm.Reaktion.Zeilen.Single(z => z.Name == anna.CalculatedDisplayName).Sieger, "Am Beamer ist der Gewinner nicht markiert.");
-            Assert.IsTrue(vm.ShowResultWindowCalls > 0, "Nach dem Ende geht das Bewertungsfenster nicht auf.");
+            Assert.IsTrue(await WarteAsync(() => vm.ShowResultWindowCalls > 0), "Nach dem Ende geht das Bewertungsfenster nicht auf.");
         }
     }
 }

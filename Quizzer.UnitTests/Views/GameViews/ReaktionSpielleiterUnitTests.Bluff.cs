@@ -72,7 +72,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual(ScoreSuggestion.Correction, Karte(anna).Suggestion);
             Assert.AreEqual(BluffEvaluator.PunkteEcht(Feldpunkte(vm)) + 2 * BluffEvaluator.PunkteReinfall(Feldpunkte(vm)), Karte(anna).CurrentScoreManipulation, "Echte gefunden und zwei Reinfaelle bringen nicht das Doppelte.");
             Assert.AreNotEqual(ScoreSuggestion.Correction, Karte(bert).Suggestion, "Ein gestrichener Bluff ohne Treffer bringt einen Vorschlag.");
-            Assert.IsTrue(vm.ShowResultWindowCalls > 0, "Nach dem Ende geht das Bewertungsfenster nicht auf.");
+            Assert.IsTrue(await WarteAsync(() => vm.ShowResultWindowCalls > 0), "Nach dem Ende geht das Bewertungsfenster nicht auf.");
         }
     }
 }

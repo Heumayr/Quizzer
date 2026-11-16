@@ -49,7 +49,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             await AbgebenAsync(1, new { guess = "hinweis 1" }, MinigameKind.ExplainIt);
             Assert.IsTrue(await WarteAsync(() => vm.Reaktion.Kopfzeile.Contains("hat „Hinweis 1“ erraten")),
                 "Der Treffer erreicht den Beamer nicht: " + vm.Reaktion.Kopfzeile);
-            Assert.IsTrue(Gespielt("Ende"), "Zum Ende der Runde kam kein Ton.");
+            Assert.IsTrue(await WarteAsync(() => Gespielt("Ende")), "Zum Ende der Runde kam kein Ton.");
 
             var topf = ErklaerbaerEvaluator.Topf(Feldpunkte(vm), 2);
             foreach (var p in new[] { anna, bert })
@@ -72,7 +72,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.IsTrue(await WarteAsync(() => spiel.Phase == MinigamePhase.Finished && vm.Reaktion.Kopfzeile.Contains("„Hinweis 2“ – verraten")),
                 "Verraten mitten in der Runde schliesst sie nicht: " + vm.Reaktion.Kopfzeile);
             Assert.AreEqual(ScoreSuggestion.None, Karte(bert).Suggestion);
-            Assert.IsTrue(vm.ShowResultWindowCalls > 0, "Nach dem Ende geht das Bewertungsfenster nicht auf.");
+            Assert.IsTrue(await WarteAsync(() => vm.ShowResultWindowCalls > 0), "Nach dem Ende geht das Bewertungsfenster nicht auf.");
         }
     }
 }

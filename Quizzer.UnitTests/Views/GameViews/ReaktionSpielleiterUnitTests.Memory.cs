@@ -59,13 +59,13 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.IsTrue(await WarteAsync(() => vm.Reaktion.Kopfzeile.Contains("wer zuerst fertig ist")),
                 "Das Ende erreicht den Beamer nicht: " + vm.Reaktion.Kopfzeile);
             Assert.IsTrue(vm.Reaktion.Zeilen[0].Sieger && vm.Reaktion.Zeilen[0].Name == anna.CalculatedDisplayName, "Anna steht nicht als Siegerin vorn.");
-            Assert.IsTrue(Gespielt("Ende"), "Zum Ende kam kein Ton.");
+            Assert.IsTrue(await WarteAsync(() => Gespielt("Ende")), "Zum Ende kam kein Ton.");
 
             Assert.AreEqual(ScoreSuggestion.Correction, Karte(anna).Suggestion);
             Assert.AreEqual(Feldpunkte(vm), Karte(anna).CurrentScoreManipulation, "Wer zuerst fertig ist, bekommt nicht die Feldpunkte.");
             StringAssert.Contains(Karte(anna).SuggestionText, "alle 6 Paare in");
             Assert.AreEqual(ScoreSuggestion.None, Karte(bert).Suggestion, "Wer nicht vorn ist, bekommt einen Vorschlag.");
-            Assert.IsTrue(vm.ShowResultWindowCalls > 0, "Nach dem Ende geht das Bewertungsfenster nicht auf.");
+            Assert.IsTrue(await WarteAsync(() => vm.ShowResultWindowCalls > 0), "Nach dem Ende geht das Bewertungsfenster nicht auf.");
         }
     }
 }

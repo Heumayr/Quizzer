@@ -51,7 +51,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             StringAssert.Contains(Karte(anna).SuggestionText, $"Duell gegen {bert.CalculatedDisplayName} gewonnen");
             Assert.AreEqual(-einsatz, Karte(bert).CurrentScoreManipulation, "Der Verlierer verliert nicht denselben Wert.");
             StringAssert.Contains(Karte(bert).SuggestionText, $"Duell gegen {anna.CalculatedDisplayName} verloren");
-            Assert.IsTrue(vm.ShowResultWindowCalls > 0, "Nach dem Ende geht das Bewertungsfenster nicht auf.");
+            Assert.IsTrue(await WarteAsync(() => vm.ShowResultWindowCalls > 0), "Nach dem Ende geht das Bewertungsfenster nicht auf.");
         }
 
         [TestMethod]

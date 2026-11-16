@@ -52,7 +52,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual(ScoreSuggestion.Correction, Karte(bert).Suggestion);
             Assert.AreEqual(-anteil, Karte(bert).CurrentScoreManipulation, "Das Ziel verliert nicht den Anteil.");
             StringAssert.Contains(Karte(bert).SuggestionText, "Glücksrad (Klauen)");
-            Assert.IsTrue(Gespielt("Ende"), "Zum Ergebnis kam kein Ton.");
+            Assert.IsTrue(await WarteAsync(() => Gespielt("Ende")), "Zum Ergebnis kam kein Ton.");
         }
 
         [TestMethod]
@@ -72,7 +72,7 @@ namespace Quizzer.UnitTests.Views.GameViews
                 "Das Rad landet nicht an der Serveruhr: " + vm.Reaktion.Kopfzeile);
             Assert.AreEqual(2 * anteil, karten.Single(k => k.Player.Id == anna.Id).CurrentScoreManipulation,
                 "Verdoppeln bringt nicht den doppelten Anteil.");
-            Assert.IsTrue(vm.ShowResultWindowCalls > 0, "Nach dem Ende geht das Bewertungsfenster nicht auf.");
+            Assert.IsTrue(await WarteAsync(() => vm.ShowResultWindowCalls > 0), "Nach dem Ende geht das Bewertungsfenster nicht auf.");
         }
     }
 }
