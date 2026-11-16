@@ -153,5 +153,10 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
             frage.Steps.Add(new QuestionStepResource { Id = Guid.NewGuid(), SequenceNumber = 40, StepText = "Lampe" });
             Assert.IsFalse(MinigameChecks.Content(frage).Any(m => m.Code == MinigameChecks.TooFewOptions), "Drei spielbare Begriffe sind zu wenige.");
         }
+
+        [TestMethod]
+        public void TheResolutionListsTheUnsolvedTerms()
+            => CollectionAssert.AreEqual(new[] { "ungelöst – Käse", "ungelöst – Fußball" },
+                BuchstabensalatTafel.Aufloesung(["Käse", "Fußball"]).ToArray());
     }
 }

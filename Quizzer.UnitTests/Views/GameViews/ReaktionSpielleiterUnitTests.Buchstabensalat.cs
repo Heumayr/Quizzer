@@ -60,5 +60,29 @@ namespace Quizzer.UnitTests.Views.GameViews
 
             Assert.IsTrue(vm.ShowResultWindowCalls > 0, "Nach dem Ende geht das Bewertungsfenster nicht auf.");
         }
+
+        /// <summary>Die Aufloesung (M35 C5): laeuft die Zeit ab, stehen die ungeloesten Begriffe am Beamer - vorher nicht.</summary>
+        [TestMethod]
+        public async Task WordScrambleShowsTheUnsolvedTermsOnlyAfterTheRound()
+        {
+            var vm = await OeffneMinispielAsync(MinigameKind.WordScramble, f => f.DurationSeconds = 60);
+            var spiel = serverVm!.BuzzerControlsViewModel!.MinigameState!;
+            var uhr = new StellbareUhr();
+            spiel.Uhr = uhr;
+
+            await vm.StartMinispielRundeAsync();
+            uhr.Vor(TimeSpan.FromSeconds(3 + 1));
+            await AbgebenAsync(0, new { termNumber = 1, guess = "hinweis 1" }, MinigameKind.WordScramble);
+
+            Assert.IsTrue(await WarteAsync(() => vm.Reaktion.Kopfzeile.Contains("Begriff 2 von 2")), vm.Reaktion.Kopfzeile);
+            Assert.AreEqual(0, vm.Reaktion.Aufloesung.Count, "Waehrend der Runde steht die Aufloesung am Beamer.");
+
+            uhr.Vor(TimeSpan.FromSeconds(60));
+
+            Assert.IsTrue(await WarteAsync(() => vm.Reaktion.Kopfzeile.Contains("1 von 2 Begriffen gelöst")),
+                "Die Frist erreicht den Beamer nicht: " + vm.Reaktion.Kopfzeile);
+            CollectionAssert.AreEqual(new[] { "ungelöst – Hinweis 2" }, vm.Reaktion.Aufloesung.ToArray(),
+                "Nach der Runde steht der ungeloeste Begriff nicht am Beamer, oder ein geloester steht dabei.");
+        }
     }
 }

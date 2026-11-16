@@ -92,6 +92,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
         public bool IsDue => laeuft && Laufzeit >= dauer;
 
+        /// <summary>Fuer die Aufloesung am Beamer: die ungeloesten Begriffe - <b>solange die Runde laeuft, keiner</b>.</summary>
+        public IReadOnlyList<string> Ungeloest => laeuft ? [] : begriffe.Skip(offen).ToList();
+
         public void StartRound(int round)
         {
             wirrwarr = begriffe.Select(b => BuchstabensalatBegriffe.Verwuerfle(b, kontext.Zufall)!).ToArray();

@@ -45,7 +45,8 @@
 
         <Viewbox Grid.Row="3" Stretch="Uniform" StretchDirection="DownOnly" VerticalAlignment="Top" Margin="10,8"
                  Visibility="{Binding Reaktion.ZeilenVisibility}">
-            <ItemsControl ItemsSource="{Binding Reaktion.Zeilen}" Width="900">
+            <StackPanel Width="900">
+            <ItemsControl ItemsSource="{Binding Reaktion.Zeilen}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Grid Margin="0,4">
@@ -74,6 +75,22 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            <!-- Aufloesung nach der Runde (Blitzrunde, Buchstabensalat): „wahr"/„falsch" steht als Wort da, nie nur als Farbe. -->
+            <Border Margin="0,16,0,0" Padding="12,8" CornerRadius="8" Background="#33000000"
+                    Visibility="{Binding Reaktion.AufloesungVisibility}">
+                <StackPanel>
+                    <TextBlock Text="Auflösung" FontSize="36" FontWeight="Bold" Foreground="WhiteSmoke" />
+                    <ItemsControl ItemsSource="{Binding Reaktion.Aufloesung}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" FontSize="30" Foreground="WhiteSmoke" TextWrapping="Wrap" Margin="0,2" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+            </StackPanel>
         </Viewbox>
     </Grid>
 </local:UserControlStepViewBase>

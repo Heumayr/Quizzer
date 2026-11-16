@@ -74,7 +74,8 @@ namespace Quizzer.Views.GameViews.Minispiele
             Anzeige.Zeige(runde.Aborted
                     ? "Minispiel abgebrochen – der Stand"
                     : $"Ergebnis – {geloesteGesamt} von {ergebnis.Begriffe} Begriffen gelöst",
-                BuchstabensalatTafel.Ende(ergebnis, Spieler()));
+                BuchstabensalatTafel.Ende(ergebnis, Spieler()),
+                BuchstabensalatTafel.Aufloesung((Zustand?.Rules as WordScrambleRules)?.Ungeloest ?? []));
         }
 
         /// <summary>Eine Runde gibt es nur einmal - Wiederholen vergisst sie wie das Zuruecksetzen.</summary>

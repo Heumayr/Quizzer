@@ -40,6 +40,7 @@ namespace Quizzer.UnitTests.Views.GameViews
                 "Der Fortschritt erscheint nicht am Beamer.");
             Assert.IsFalse(vm.Reaktion.Zeilen.Any(z => z.Zeit.Contains("richtig") || z.Sieger),
                 "Waehrend der Runde verraet der Beamer, wer richtig lag.");
+            Assert.AreEqual(0, vm.Reaktion.Aufloesung.Count, "Waehrend der Runde steht die Aufloesung am Beamer.");
 
             uhr.Vor(TimeSpan.FromMilliseconds(400));
             await AbgebenAsync(0, new { statementNumber = 2, answer = false }, MinigameKind.LightningRound);
@@ -49,6 +50,8 @@ namespace Quizzer.UnitTests.Views.GameViews
                 "Haben alle alles beurteilt, erreicht das Ende den Beamer nicht: " + vm.Reaktion.Kopfzeile);
             Assert.IsTrue(vm.Reaktion.Zeilen.Single(z => z.Name == anna.CalculatedDisplayName).Sieger, "Am Beamer ist der Beste nicht markiert.");
             Assert.IsTrue(Gespielt("Ende"), "Zum Ende kam kein Ton.");
+            CollectionAssert.AreEqual(new[] { "✗ falsch – Hinweis 1", "✗ falsch – Hinweis 2" }, vm.Reaktion.Aufloesung.ToArray(),
+                "Nach der Runde steht die Aufloesung nicht am Beamer.");
 
             Assert.AreEqual(ScoreSuggestion.Correction, Karte(anna).Suggestion);
             Assert.AreEqual(Feldpunkte(vm), Karte(anna).CurrentScoreManipulation, "Alle richtig bringt nicht die Feldpunkte.");

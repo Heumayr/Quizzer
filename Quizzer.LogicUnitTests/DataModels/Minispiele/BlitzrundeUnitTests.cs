@@ -140,5 +140,14 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
                 new[] { new MinispielZeile("Erste", true), new MinispielZeile("Kurz", true), new MinispielZeile("Zweite", false) },
                 MinispielInhalt.Zeilen(frage).ToArray());
         }
+
+        /// <summary>Die Aufloesung nach der Runde: jede Aussage mit „wahr" oder „falsch" als Wort, nie nur als Farbe.</summary>
+        [TestMethod]
+        public void TheResolutionNamesTheTruthOfEveryStatementInWords()
+        {
+            CollectionAssert.AreEqual(
+                new[] { "✓ wahr – Paris ist die Hauptstadt", "✗ falsch – Der Mond ist ein Planet" },
+                BlitzrundeTafel.Aufloesung([new("Paris ist die Hauptstadt", true), new("Der Mond ist ein Planet", false)]).ToArray());
+        }
     }
 }

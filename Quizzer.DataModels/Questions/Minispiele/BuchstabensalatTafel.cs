@@ -43,5 +43,13 @@ namespace Quizzer.DataModels.Questions.Minispiele
                     ergebnis.Begriffe > 0 ? (double)(z.Stand?.Geloest ?? 0) / ergebnis.Begriffe : 0))
                 .ToList();
         }
+
+        /// <summary>Nach der Runde: die Begriffe, die keiner geloest hat.</summary>
+        public static IReadOnlyList<string> Aufloesung(IEnumerable<string> ungeloest)
+        {
+            ArgumentNullException.ThrowIfNull(ungeloest);
+
+            return ungeloest.Select(b => $"ungelöst – {b}").ToList();
+        }
     }
 }

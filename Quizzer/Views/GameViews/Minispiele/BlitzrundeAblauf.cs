@@ -57,8 +57,9 @@ namespace Quizzer.Views.GameViews.Minispiele
                 return;
             }
 
+            // Die Aufloesung erst hier - waehrend der Runde verriete sie die Aussagen, die andere noch vor sich haben.
             Anzeige.Zeige(runde.Aborted ? "Minispiel abgebrochen – der Stand" : "Ergebnis – richtig +1, falsch −1",
-                BlitzrundeTafel.Ende(ergebnis, Spieler()));
+                BlitzrundeTafel.Ende(ergebnis, Spieler()), BlitzrundeTafel.Aufloesung(Zustand?.Setup.Content ?? []));
         }
 
         /// <summary>Eine Runde gibt es nur einmal - Wiederholen vergisst sie wie das Zuruecksetzen.</summary>

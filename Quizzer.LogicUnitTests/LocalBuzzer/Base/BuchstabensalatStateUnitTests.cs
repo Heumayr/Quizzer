@@ -274,6 +274,24 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             Assert.IsTrue(art.RemainingMs is > 0 and < 90_000, "Die Restzeit fehlt oder kommt nicht von der Serveruhr: " + art.RemainingMs);
         }
 
+        /// <summary>Die Aufloesung fuer den Beamer (M35 C5): die ungeloesten Begriffe - waehrend der Runde keiner, danach genau sie.</summary>
+        [TestMethod]
+        public void TheUnsolvedTermsAreOnlyThereAfterTheRound()
+        {
+            Starte(spiel);
+            var regeln = (WordScrambleRules)spiel.Rules!;
+            Assert.AreEqual(0, regeln.Ungeloest.Count, "Im Vorlauf stehen die Begriffe schon in der Aufloesung.");
+
+            uhr.Vor(Vorlauf);
+            Rate(anna, "Käse");
+            Assert.AreEqual(0, regeln.Ungeloest.Count, "Waehrend der Runde stehen die offenen Begriffe in der Aufloesung.");
+
+            uhr.Vor(Dauer);
+            Assert.IsNotNull(spiel.CloseIfDue(), "Die Frist schliesst die Runde nicht.");
+            CollectionAssert.AreEqual(new[] { "Schmetterling", "Fußball" }, regeln.Ungeloest.ToArray(),
+                "Nach der Runde fehlen die ungeloesten Begriffe, oder ein geloester steht dabei.");
+        }
+
         /// <summary>
         /// Kein offener Begriff in irgendeinem Zustand - in keiner Schreibweise, fuer kein Telefon und nicht von
         /// aussen; kein kuenftiges Wirrwarr. Das laufende Wirrwarr aber schon, sonst misst die Probe nichts.

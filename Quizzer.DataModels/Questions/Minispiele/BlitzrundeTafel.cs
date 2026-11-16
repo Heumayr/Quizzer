@@ -42,5 +42,13 @@ namespace Quizzer.DataModels.Questions.Minispiele
                     ergebnis.Aussagen > 0 ? Math.Max(0, (double)(z.Stand?.Netto ?? 0) / ergebnis.Aussagen) : 0))
                 .ToList();
         }
+
+        /// <summary>Nach der Runde: jede Aussage mit ihrer Wahrheit als Wort und Symbol, in der Reihenfolge der Frage.</summary>
+        public static IReadOnlyList<string> Aufloesung(IEnumerable<MinispielZeile> aussagen)
+        {
+            ArgumentNullException.ThrowIfNull(aussagen);
+
+            return aussagen.Select(a => $"{(a.Wahr ? "✓ wahr" : "✗ falsch")} – {a.Text}").ToList();
+        }
     }
 }

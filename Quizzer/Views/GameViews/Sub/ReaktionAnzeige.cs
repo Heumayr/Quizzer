@@ -16,14 +16,22 @@ namespace Quizzer.Views.GameViews.Sub
 
         public Visibility ZeilenVisibility => Zeilen.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
-        internal void Zeige(string kopfzeile, IReadOnlyList<ReaktionTafelZeile>? zeilen = null)
+        /// <summary>Die Aufloesung nach der Runde (Blitzrunde, Buchstabensalat) - waehrend der Runde immer leer.</summary>
+        public IReadOnlyList<string> Aufloesung { get; private set; } = [];
+
+        public Visibility AufloesungVisibility => Aufloesung.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        internal void Zeige(string kopfzeile, IReadOnlyList<ReaktionTafelZeile>? zeilen = null, IReadOnlyList<string>? aufloesung = null)
         {
             Kopfzeile = kopfzeile;
             Zeilen = zeilen ?? [];
+            Aufloesung = aufloesung ?? [];
 
             OnPropertyChanged(nameof(Kopfzeile));
             OnPropertyChanged(nameof(Zeilen));
             OnPropertyChanged(nameof(ZeilenVisibility));
+            OnPropertyChanged(nameof(Aufloesung));
+            OnPropertyChanged(nameof(AufloesungVisibility));
         }
     }
 }
