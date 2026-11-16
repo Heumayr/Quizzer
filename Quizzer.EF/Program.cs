@@ -14,8 +14,9 @@ if (args.Length == 0)
 {
     Console.WriteLine("Quizzer.EF - Startprojekt fuer die EF-Werkzeuge.");
     Console.WriteLine();
-    Console.WriteLine("  demo-anlegen     legt den Demo-Quizabend und das Spiel 'Alle Fragetypen' an");
+    Console.WriteLine("  demo-anlegen     legt den Demo-Quizabend, 'Alle Fragetypen' und den Minispielabend an");
     Console.WriteLine("  demo-typen       legt nur das Spiel 'Alle Fragetypen' an (je Typ eine Spalte)");
+    Console.WriteLine("  demo-minispiele  legt nur den Minispielabend an (jede Minispiel-Art und Sonderregel)");
     Console.WriteLine("  demo-design      legt ein zweites Design mit eigenen Texturen an");
     Console.WriteLine("  demo-entfernen   entfernt alles mit der Marke " + DemoDataSeeder.Marke);
     return 0;
@@ -41,11 +42,17 @@ switch (args[0])
             Console.WriteLine($"  Belegte Zellen: {e.Zellen}");
             Console.WriteLine();
 
-            return await TypenschauAsync();
+            await TypenschauAsync();
+            Console.WriteLine();
+
+            return await MinispielabendAsync();
         }
 
     case "demo-typen":
         return await TypenschauAsync();
+
+    case "demo-minispiele":
+        return await MinispielabendAsync();
 
     case "demo-design":
         {
@@ -97,6 +104,17 @@ static async Task<int> TypenschauAsync()
     if (t.OhneBilder)
         Console.WriteLine("  Hinweis: der Ressourcenordner war nicht beschreibbar - Bilderfragen und "
             + "Aufdeckfragen fehlen. Pfad steht in appsettings.json (FilePathQuizzer).");
+
+    return 0;
+}
+
+static async Task<int> MinispielabendAsync()
+{
+    var m = await DemoDataSeeder.CreateMinispielabendAsync();
+
+    Console.WriteLine($"Angelegt: \"{m.Spiel.Designation}\"");
+    Console.WriteLine($"  Fragen:      {m.Fragen}");
+    Console.WriteLine($"  Joker:       {m.Joker.Count} offen (Grund \"{DemoDataSeeder.DemoJokerGrund}\")");
 
     return 0;
 }
