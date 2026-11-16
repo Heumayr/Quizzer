@@ -71,6 +71,22 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual((42, 300), (Von(zeilen, anna).FinalScore, Von(zeilen, anna).RecordValue));
         }
 
+        /// <summary>Wer die gespielte Zelle nur zum Nachkorrigieren wieder oeffnet, hat keine Runde gemessen - der Rekord bleibt.</summary>
+        [TestMethod]
+        public async Task ReopeningASavedCellWithoutARoundKeepsTheRecords()
+        {
+            var vm = await ReaktionsrundeAsync();
+            Assert.IsTrue(await vm.PlayersResultViewModel!.TrySaveAsync(), "Das Speichern scheiterte.");
+
+            var wieder = new TestableCurrentQuestionViewModel { Coordinate = world!.Coordinate };
+            await wieder.LoadForTestAsync();
+            Assert.IsTrue(await wieder.PlayersResultViewModel!.TrySaveAsync(), "Das zweite Speichern scheiterte.");
+
+            var zeilen = await GespeicherteErgebnisseAsync();
+            Assert.AreEqual((300, 250), (Von(zeilen, world.Players[0]).RecordValue, Von(zeilen, world.Players[1]).RecordValue),
+                "Speichern ohne gemessene Runde hat die Rekorde geloescht.");
+        }
+
         /// <summary>Anna bestiehlt Bert (gelingt), Bert bestiehlt Carl (Schild).</summary>
         private async Task<TestableCurrentQuestionViewModel> RaubzugAsync()
         {
