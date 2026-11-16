@@ -3,6 +3,7 @@ using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.DataModels.Questions.Minispiele;
+using Quizzer.Views.GameViews.Minispiele;
 using Quizzer.Views.GameViews.Sub;
 using System.Windows;
 using System.Windows.Input;
@@ -12,19 +13,24 @@ namespace Quizzer.Views.GameViews
     /// <summary>
     /// Minispiel-Teil des Spielablaufs (M35 B3): der Spielleiter startet, wiederholt und bricht ab
     /// (E1), die geschlossenen Runden werden gewertet und auf Beamer und Spielerkarte gebracht.
-    /// Tippsprint und Stoppuhr (C1) haben je eine Teildatei; hier wird nur nach der Art verteilt.
+    /// Was eine Art ausmacht, steht in ihrer Strategie unter <c>Minispiele/</c> (M35 C2).
     /// </summary>
     public partial class CurrentQuestionViewModel
     {
         private const string MinispielCaption = "Minispiel";
 
-        /// <summary>Die gezaehlten Runden der Reaktion; eine Wiederholung ersetzt ihre Runde.</summary>
-        private readonly SortedDictionary<int, IReadOnlyDictionary<Guid, ReactionAttempt>> reaktionsRunden = new();
-
         /// <summary>„Runde n von m", danach die Zeiten - fuer Beamer und Spielleiter dasselbe Objekt.</summary>
         public ReaktionAnzeige Reaktion { get; } = new();
 
         public MinigameQuestion? Minispiel => Question as MinigameQuestion;
+
+        private MinispielAblauf? ablauf;
+
+        /// <summary>Die Strategie der laufenden Art - wechselt die Frage die Art, gilt eine neue.</summary>
+        private MinispielAblauf Ablauf
+            => ablauf is { } bisher && bisher.Art == Minispiel?.Kind
+                ? bisher
+                : ablauf = MinispielAblauf.Fuer(Minispiel?.Kind, this);
 
         /// <summary>Die Knoepfe des Minispiels - nur, wenn die Frage im Minispiel-Rahmen laeuft.</summary>
         public Visibility MinispielSteuerungVisibility
@@ -46,8 +52,7 @@ namespace Quizzer.Views.GameViews
         /// <summary>Stellt den Rahmen am Server auf diese Frage ein - vor dem Ausspielen.</summary>
         private void PrepareMinigame()
         {
-            reaktionsRunden.Clear();
-            LeereZeitspiele();
+            ablauf = null;
 
             if (Minispiel is not { } frage || BuzzerControlsViewModel == null)
                 return;
@@ -72,12 +77,7 @@ namespace Quizzer.Views.GameViews
         /// <summary>"Runde zuruecksetzen" stellt das Minispiel am Server auf Anfang - hier ebenso.</summary>
         private void OnMinigameReset()
         {
-            if (!VergissZeitspiel() && reaktionsRunden.Count > 0)
-            {
-                reaktionsRunden.Clear();
-                WerteReaktion();
-            }
-
+            Ablauf.SetzeZurueck();
             Reaktion.Zeige(minispielBereit);
         }
 
@@ -98,11 +98,7 @@ namespace Quizzer.Views.GameViews
             if (BuzzerControlsViewModel == null || !await BuzzerControlsViewModel.RepeatMinigameRoundAsync())
                 return;
 
-            if (!VergissZeitspiel())
-            {
-                reaktionsRunden.Remove(runde);
-                WerteReaktion();
-            }
+            Ablauf.Wiederhole(runde);
 
             Klang.Buzzer();
             ZeigeLaeuft();
@@ -125,20 +121,7 @@ namespace Quizzer.Views.GameViews
         /// <summary>Eine Runde ist zu (oder abgebrochen): werten, Tafel an den Beamer, Ton.</summary>
         internal async Task OnMinigameRoundClosedAsync(MinigameRoundClosed runde)
         {
-            switch (Minispiel?.Kind)
-            {
-                case MinigameKind.TapSprint:
-                    TippsprintRundeZu(runde);
-                    break;
-
-                case MinigameKind.Stopwatch:
-                    StoppuhrRundeZu(runde);
-                    break;
-
-                default:
-                    ReaktionRundeZu(runde);
-                    break;
-            }
+            Ablauf.RundeZu(runde);
 
             Klang.Ende(); // V5: Ergebnis
 
@@ -146,92 +129,24 @@ namespace Quizzer.Views.GameViews
                 await OpenResultsAsync();
         }
 
-        private void ReaktionRundeZu(MinigameRoundClosed runde)
+        /// <summary>Eine Abgabe ist angenommen - der Tippsprint treibt damit sein Rennen am Beamer.</summary>
+        internal Task OnMinigameSubmittedAsync(MinigameSubmission abgabe)
         {
-            if (!runde.Aborted)
-            {
-                reaktionsRunden[runde.Round] = runde.Submissions
-                    .Where(a => a.Value is ReactionAttempt)
-                    .ToDictionary(a => a.Key, a => (ReactionAttempt)a.Value);
-            }
-
-            var ergebnis = WerteReaktion();
-            var spieler = MinispielSpieler();
-
-            if (runde.Aborted)
-                Reaktion.Zeige("Minispiel abgebrochen – die besten Zeiten", ReaktionTafel.Ende(ergebnis, spieler));
-            else if (runde.Finished)
-                Reaktion.Zeige("Ergebnis – die beste Zeit gewinnt", ReaktionTafel.Ende(ergebnis, spieler));
-            else
-                Reaktion.Zeige($"Runde {runde.Round} von {runde.TotalRounds} – die Zeiten",
-                    ReaktionTafel.Runde(reaktionsRunden[runde.Round], spieler));
-        }
-
-        private ReaktionErgebnis WerteReaktion()
-        {
-            var ergebnis = ReaktionEvaluator.Werte(reaktionsRunden.Values);
-            PlayersResultViewModel?.WerteReaktion(ergebnis);
-            return ergebnis;
+            Ablauf.Abgabe(abgabe);
+            return Task.CompletedTask;
         }
 
         /// <summary>Was waehrend der Runde am Beamer steht - je Art.</summary>
-        private void ZeigeLaeuft()
-        {
-            switch (Minispiel?.Kind)
-            {
-                case MinigameKind.TapSprint:
-                    ZeigeRennen();
-                    break;
+        private void ZeigeLaeuft() => Ablauf.ZeigeLaeuft();
 
-                case MinigameKind.Stopwatch:
-                    Reaktion.Zeige($"Stoppuhr läuft – stoppt nach genau {Minispiel.DurationSeconds} Sekunden!");
-                    break;
-
-                default:
-                    var zustand = BuzzerControlsViewModel?.MinigameState;
-                    Reaktion.Zeige($"Runde {zustand?.Round ?? 0} von {zustand?.Setup.TotalRounds ?? 0} – wartet auf Grün!");
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Tippsprint und Stoppuhr spielen eine Runde: Wiederholen und Zuruecksetzen vergessen sie, und war
-        /// sie gewertet, auch ihre Vorschlaege. <c>false</c> bei jeder anderen Art - dann gilt der Weg der Reaktion.
-        /// </summary>
-        private bool VergissZeitspiel()
-        {
-            switch (Minispiel?.Kind)
-            {
-                case MinigameKind.TapSprint:
-                    if (LeereTippsprint())
-                        WerteTippsprint();
-                    return true;
-
-                case MinigameKind.Stopwatch:
-                    if (LeereStoppuhr())
-                        WerteStoppuhr();
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
-
-        private void LeereZeitspiele()
-        {
-            LeereTippsprint();
-            LeereStoppuhr();
-        }
-
-        private List<(Guid Id, string Name)> MinispielSpieler()
+        internal List<(Guid Id, string Name)> MinispielSpieler()
             => PlayersResultViewModel?.PlayerResultContextList
                    .Select(k => (k.Player.Id, k.Player.CalculatedDisplayName)).ToList()
                ?? [];
 
         private void ClearMinigame()
         {
-            reaktionsRunden.Clear();
-            LeereZeitspiele();
+            ablauf = null;
             Reaktion.Zeige(string.Empty);
 
             if (BuzzerControlsViewModel == null)
