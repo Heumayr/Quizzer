@@ -59,7 +59,7 @@ namespace Quizzer.Views.QuestionTypes
         {
             frage.CategoryId = kategorie;
             frage.Points = punkte;
-            frage.MinusPoints = frage.Typ == QuestionType.Ordering ? 0 : minuspunkte;
+            frage.MinusPoints = frage.Typ is QuestionType.Ordering or QuestionType.Minigame ? 0 : minuspunkte;
             frage.Difficulty = schwierigkeit;
         }
 

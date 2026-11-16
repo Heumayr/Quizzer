@@ -146,6 +146,24 @@
         <DataTemplate x:Key="GridOnlyLayoutTemplate">
             <DockPanel LastChildFill="True">
 
+                <!-- Minispiel (M35 B2): der Regeltext ueber den Optionen. Sonst zusammengeklappt. -->
+                <Border DockPanel.Dock="Top"
+                        Visibility="{Binding MinispielRegelVisibility}"
+                        Margin="8,8,8,0"
+                        Padding="16,10"
+                        CornerRadius="12"
+                        Background="#D9101010">
+                    <Viewbox Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="90">
+                        <TextBlock Text="{Binding MinispielRegeltext}"
+                                   Width="1400"
+                                   FontSize="40"
+                                   FontWeight="SemiBold"
+                                   Foreground="WhiteSmoke"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center" />
+                    </Viewbox>
+                </Border>
+
                 <!-- Zuordnung: die festen Begriffe links, nummeriert; das Raster rechts traegt
                      die gemischten Gegenstuecke. Bei allen anderen Typen zusammengeklappt. -->
                 <Border DockPanel.Dock="Left"

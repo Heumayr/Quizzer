@@ -1,7 +1,10 @@
 ﻿using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
+using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.DataModels.Questions;
+using Quizzer.DataModels.Questions.Minispiele;
 using Quizzer.Logic.Controller.TypedControllers;
 
 namespace Quizzer.Views.GameViews
@@ -105,21 +108,34 @@ namespace Quizzer.Views.GameViews
                         continue;
                     }
 
-                    var geprueft = QuestionValidator.Validate(frage).ToList();
-
-                    var fehler = geprueft.Where(i => i.IsError).Select(i => i.Message).ToList();
-
-                    if (fehler.Count > 0)
-                        beanstandet.Add($"{frage.Designation}: {string.Join(" ", fehler)}");
-
-                    var warnungen = geprueft.Where(i => !i.IsError).Select(i => i.Message).ToList();
-
-                    if (warnungen.Count > 0)
-                        angemerkt.Add($"{frage.Designation}: {string.Join(" ", warnungen)}");
+                    Befunde(frage, dbGame.Players.Count(), beanstandet, angemerkt);
                 }
             }
 
             return StartFreigegeben(beanstandet, angemerkt);
+        }
+
+        /// <summary>
+        /// Was eine Frage zum Start beitraegt: die Pruefung der Frage selbst und, bei einem Minispiel,
+        /// was erst das Spiel weiss - die Zahl der Mitspieler (V2, M35 B2). Ohne Datenbank pruefbar.
+        /// </summary>
+        internal static void Befunde(
+            QuestionBase frage, int spielerzahl, List<string> beanstandet, List<string> angemerkt)
+        {
+            var geprueft = QuestionValidator.Validate(frage).ToList();
+
+            if (frage is MinigameQuestion minispiel)
+                geprueft.AddRange(MinigameChecks.ForPlayers(minispiel, spielerzahl));
+
+            var fehler = geprueft.Where(i => i.IsError).Select(i => i.Message).ToList();
+
+            if (fehler.Count > 0)
+                beanstandet.Add($"{frage.Designation}: {string.Join(" ", fehler)}");
+
+            var warnungen = geprueft.Where(i => !i.IsError).Select(i => i.Message).ToList();
+
+            if (warnungen.Count > 0)
+                angemerkt.Add($"{frage.Designation}: {string.Join(" ", warnungen)}");
         }
 
         /// <summary>

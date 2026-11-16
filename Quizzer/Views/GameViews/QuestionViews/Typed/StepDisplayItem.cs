@@ -100,10 +100,11 @@ namespace Quizzer.Views.GameViews.QuestionViews.Typed
                 : GridBackgroundBrush;
 
         // Bei der Reihenfolge bedeuten Haekchen nichts - eine umgewandelte Multiple-Choice-Frage
-        // traegt sie aber noch, und dann leuchteten zufaellige Felder als "richtig".
+        // traegt sie aber noch, und dann leuchteten zufaellige Felder als "richtig". Beim
+        // Minispiel ebenso: richtig ist, was die Gruppe waehlt.
         private bool ZeigtRichtig =>
             Step.IsResult
-            && owner.Question?.Typ is not (QuestionType.Ordering or QuestionType.Matching)
+            && owner.Question?.Typ is not (QuestionType.Ordering or QuestionType.Matching or QuestionType.Minigame)
             && (owner.IsMasterView || owner.Step?.IsFinish == true);
 
         /// <summary>

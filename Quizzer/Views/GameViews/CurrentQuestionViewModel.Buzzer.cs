@@ -87,10 +87,15 @@ namespace Quizzer.Views.GameViews
 
                     // Bei der Reihenfolge muessen alle Tasten gewaehlt werden - die Zahl kommt
                     // aus den Tasten selbst, nicht aus dem gespeicherten Wert, der hinter einer
-                    // umgewandelten Frage zuruecksein kann.
+                    // umgewandelten Frage zuruecksein kann. Minispiel Mehrheit: genau eine Option
+                    // (M35 B2) - fest, damit eine umgewandelte Frage keine Mehrfachstimme behaelt.
+                    var erlaubt = Question is MinigameQuestion ? 1
+                        : reihenfolge || wahrFalsch ? Math.Max(tasten?.Count ?? 1, 1)
+                        : Question?.BuzzerMaxAllowedKeySelect ?? 1;
+
                     await BuzzerControlsViewModel.SetKeySelectorDictionary(
                         tasten,
-                        reihenfolge || wahrFalsch ? Math.Max(tasten?.Count ?? 1, 1) : Question?.BuzzerMaxAllowedKeySelect ?? 1,
+                        erlaubt,
                         Question?.ShowTextOnKeySelect ?? true,
                         Question?.Id,
                         reihenfolge,

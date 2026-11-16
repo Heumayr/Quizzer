@@ -177,9 +177,34 @@ namespace Quizzer.DataModels.Questions
             AllowsMultipleResultSteps = true,
         };
 
+        private static readonly QuestionTypeProfile Minigame = new()
+        {
+            Typ = QuestionType.Minigame,
+            DisplayName = "Minispiel",
+            HelpText = "Statt einer Frage ein kleines Spiel für alle am Telefon. Die Art wählen Sie "
+                     + "in der Maske; was gewählt werden kann, steht in den Zeilen. Die Punkte "
+                     + "sind Vorschläge - gebucht wird erst, wenn Sie bestätigen.",
+            TableName = nameof(MinigameQuestion),
+
+            // Mehrheit laeuft auf der Tastenwahl wie Multiple Choice (M35 B2). Arten mit eigenem
+            // Telefon-Layout kommen mit B3 - dann traegt die Art das Layout, nicht der Typ.
+            BuzzerControlsLayout = BuzzerControlsLayout.KeySelect,
+            StepDisplayLayoutMode = StepDisplayLayoutMode.Grid,
+            QuestionViewKeyType = QuestionViewKeyType.Alphabetical,
+            UseRandomSequenceOnNoneFinishSteps = false,
+            UseProportionalScoreReductionOnStep = false,
+            ShowShowTextOnKeySelect = true,
+            ShowIsResultPerStep = false,
+
+            // Was die Art braucht, prueft MinigameChecks je Art - eine Reaktion hat gar keine Zeilen.
+            MinNormalSteps = 0,
+            RequiresResultStep = false,
+            AllowsMultipleResultSteps = true,
+        };
+
         /// <summary>Alle Profile in der Reihenfolge, in der sie angeboten werden.</summary>
         public static IReadOnlyList<QuestionTypeProfile> All { get; } =
-            [Default, MultipleChoice, Properties, Appreciate, Reveal, Ordering, Matching, TrueFalse];
+            [Default, MultipleChoice, Properties, Appreciate, Reveal, Ordering, Matching, TrueFalse, Minigame];
 
         /// <summary>Liefert das Profil zu einem Fragetyp.</summary>
         /// <exception cref="ArgumentOutOfRangeException">Bei einem unbekannten Typ.</exception>

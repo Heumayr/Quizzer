@@ -29,6 +29,7 @@ namespace Quizzer.Views.QuestionTypes.Typed
                 QuestionType.Ordering => new ReihenfolgeViewModel(composer, frage, melde),
                 QuestionType.Matching => new ZuordnungViewModel(composer, frage, melde),
                 QuestionType.TrueFalse => new WahrFalschViewModel(composer, frage, melde),
+                QuestionType.Minigame => new MinispielViewModel(composer, frage, melde),
                 _ => new HinweisleiterViewModel(composer, frage, melde),
             };
     }

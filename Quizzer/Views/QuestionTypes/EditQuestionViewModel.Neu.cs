@@ -55,7 +55,7 @@ namespace Quizzer.Views.QuestionTypes
             neu.CategoryId = alt.CategoryId;
             neu.Category = alt.Category;
             neu.Points = alt.Points;
-            neu.MinusPoints = typ == QuestionType.Ordering ? 0 : alt.MinusPoints;
+            neu.MinusPoints = typ is QuestionType.Ordering or QuestionType.Minigame ? 0 : alt.MinusPoints;
             neu.Difficulty = alt.Difficulty;
             neu.Notes = alt.Notes;
             neu.IsShared = alt.IsShared;

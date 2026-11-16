@@ -107,6 +107,11 @@ namespace Quizzer.DataModels.Transfer
                         $"Frage {i + 1} hat einen unbekannten Fragetyp ({(int)frage.Typ}). "
                         + "Vermutlich stammt das Bündel aus einer neueren Fassung.");
 
+                if (frage.Typeigen?.MinigameKind is { } art && !Enum.IsDefined(art))
+                    throw new InvalidDataException(
+                        $"Frage {i + 1} ist ein Minispiel unbekannter Art ({(int)art}). "
+                        + "Vermutlich stammt das Bündel aus einer neueren Fassung.");
+
                 foreach (var schritt in frage.Schritte)
                 {
                     if (schritt.MedienSchluessel != null

@@ -134,6 +134,8 @@ namespace Quizzer.Logic.Context
 
         public DbSet<TrueFalseQuestion> TrueFalseQuestions { get; set; }
 
+        public DbSet<MinigameQuestion> MinigameQuestions { get; set; }
+
         public DbSet<Account> Accounts { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<AccountRecoveryCode> AccountRecoveryCodes { get; set; }

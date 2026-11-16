@@ -150,7 +150,7 @@ namespace Quizzer.DataModels.Models
         /// </para>
         /// </summary>
         [NotMapped]
-        public string TypDisplayName => Questions.QuestionTypeProfiles.For(Typ).DisplayName;
+        public virtual string TypDisplayName => Questions.QuestionTypeProfiles.For(Typ).DisplayName;
 
         /// <summary>Für die Fragenliste (M32): „ungeprüft" bei einem KI-Entwurf ohne Bestätigung.</summary>
         [NotMapped]

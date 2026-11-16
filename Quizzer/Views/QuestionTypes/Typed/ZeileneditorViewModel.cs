@@ -90,6 +90,12 @@ namespace Quizzer.Views.QuestionTypes.Typed
         /// </summary>
         public virtual Visibility PartnerVisibility => Visibility.Collapsed;
 
+        /// <summary>
+        /// Was der Typ ueber den Zeilen zusaetzlich einstellt - <c>null</c> heisst nichts. Die Ansicht
+        /// sucht die Vorlage ueber den Datentyp; ohne Inhalt bleibt der Platz leer, ohne tote Bindung.
+        /// </summary>
+        public virtual object? Zusatzmaske => null;
+
         /// <summary>Ob die Zeilen von Hand umsortiert werden dürfen.</summary>
         public virtual bool DarfSortieren => true;
 

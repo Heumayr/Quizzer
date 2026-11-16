@@ -25,6 +25,10 @@ namespace Quizzer.Views.GameViews.QuestionViews
                 QuestionType.Ordering => fe.FindResource("MultipleChoiceStepTemplate") as DataTemplate,
                 QuestionType.Matching => fe.FindResource("MultipleChoiceStepTemplate") as DataTemplate,
                 QuestionType.TrueFalse => fe.FindResource("MultipleChoiceStepTemplate") as DataTemplate,
+
+                // Minispiel Mehrheit (M35 B2): die Optionen im Raster, darueber der Regeltext
+                // (QuestionStepViewContext.Minispiel). Eigene Live-Ansichten je Art kommen ab B3.
+                QuestionType.Minigame => fe.FindResource("MultipleChoiceStepTemplate") as DataTemplate,
                 QuestionType.Properties => fe.FindResource("PropertiesStepTemplate") as DataTemplate,
                 QuestionType.Appreciate => fe.FindResource("AppreciateStepTemplate") as DataTemplate,
                 QuestionType.Reveal => fe.FindResource("RevealStepTemplate") as DataTemplate,
