@@ -264,6 +264,18 @@
                         </StackPanel>
                     </StackPanel>
 
+                    <!-- M35 C3: Sonderregel der Zelle - erst die Vorphase am Telefon, dann die Frage. -->
+                    <StackPanel Visibility="{Binding Sonderregel.SpielleiterVisibility}">
+                        <Separator Margin="4,18,4,2" />
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Sonderregel" Margin="4,0,4,4" />
+                        <TextBlock Text="{Binding Sonderregel.Titel}" FontWeight="Bold" TextWrapping="Wrap" Margin="4,0,4,2" />
+                        <TextBlock Text="{Binding Sonderregel.Stand}" FontSize="12" Opacity="0.8"
+                                   TextWrapping="Wrap" Margin="4,0,4,6" />
+                        <Button Content="Vorphase schließen" Command="{Binding CloseVorphaseCommand}" FontWeight="Bold"
+                                Visibility="{Binding Sonderregel.SchliessenVisibility}"
+                                ToolTip="Schließt die Vorphase, auch wenn noch nicht alle abgegeben haben. Für wen nichts kam, gilt die Regel nicht – danach geht die Frage auf die Telefone." />
+                    </StackPanel>
+
                     <!-- V5: Countdown auf dem Beamer. Ein Buzzer haelt ihn an. -->
                     <Separator Margin="4,18,4,2" />
                     <TextBlock Style="{StaticResource SectionHeader}" Text="Countdown" Margin="4,0,4,4" />

@@ -24,6 +24,13 @@ export const MinigamePhases = Object.freeze({
     Finished: 3
 });
 
+// M35 C3: die Zahlen von CellSpecialRule am Server - die Vorphase einer Sonderregel laeuft im Minispiel-Rahmen.
+export const SpecialRules = Object.freeze({
+    None: 0,
+    Stake: 1,
+    Risk: 2
+});
+
 export const ReactionOutcomes = Object.freeze({
     Valid: 1,
     FalseStart: 2,

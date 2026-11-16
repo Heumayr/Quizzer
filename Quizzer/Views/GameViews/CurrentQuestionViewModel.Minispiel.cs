@@ -34,7 +34,7 @@ namespace Quizzer.Views.GameViews
 
         /// <summary>Die Knoepfe des Minispiels - nur, wenn die Frage im Minispiel-Rahmen laeuft.</summary>
         public Visibility MinispielSteuerungVisibility
-            => CurrentBuzzerLayout == BuzzerControlsLayout.Minigame ? Visibility.Visible : Visibility.Collapsed;
+            => !VorphaseLaeuft && CurrentBuzzerLayout == BuzzerControlsLayout.Minigame ? Visibility.Visible : Visibility.Collapsed;
 
         private AsyncRelayCommand? startMinigameRoundCommand;
         private AsyncRelayCommand? repeatMinigameRoundCommand;

@@ -32,6 +32,17 @@
                 <Button Content="Auswahl entfernen"
                         ToolTip="Nimmt die Frage von dieser Zelle. Die Zelle bleibt leer, die Frage bleibt bestehen." Command="{Binding DeselectCommand}" Style="{StaticResource DangerButton}" />
             </StackPanel>
+            <!-- M35 C3: Sonderregel dieser Zelle - nur fuer gewoehnliche Fragen. -->
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <Label MinWidth="120" Content="Sonderregel:" VerticalAlignment="Center" />
+                <ComboBox ItemsSource="{Binding SonderregelOptionen}" SelectedItem="{Binding GewaehlteSonderregel}"
+                          DisplayMemberPath="Name" MinWidth="140" IsEnabled="{Binding SonderregelMoeglich}"
+                          ToolTip="Umhüllt die Frage dieser Zelle: erst eine Vorphase am Telefon (setzen oder doppelt spielen), dann die Frage." />
+                <CheckBox Content="angekündigt" VerticalAlignment="Center" Margin="10,0,0,0"
+                          IsChecked="{Binding SonderregelAngekuendigt}" IsEnabled="{Binding SonderregelMoeglich}"
+                          ToolTip="Angekündigt sehen die Gäste die Regel schon im Raster. Sonst bleibt sie verdeckt, bis die Zelle aufgedeckt wird." />
+                <TextBlock Text="{Binding SonderregelHinweis}" VerticalAlignment="Center" Margin="10,0,0,0" Opacity="0.8" />
+            </StackPanel>
             <DataGrid ItemsSource="{Binding AvailableQuestions}" AutoGenerateColumns="False" Margin="5" CanUserAddRows="False" SelectionMode="Single" IsReadOnly="True" SelectedItem="{Binding SelectedQuestion}"
                         base:DataGridRowDoubleClickBehavior.DoubleClickCommand="{Binding SelectAndCloseCommand}">
                 <DataGrid.Columns>

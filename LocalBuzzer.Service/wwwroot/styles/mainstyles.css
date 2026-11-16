@@ -727,7 +727,8 @@ body {
    Nie nur Farbe: die gewaehlte Taste bekommt einen Rahmen, der Satz darunter nennt die Wahl. */
 .duell-inhalt,
 .raeuber-inhalt,
-.teilen-inhalt {
+.teilen-inhalt,
+.risiko-inhalt {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
@@ -736,7 +737,9 @@ body {
 }
 
 .duell-kopf,
-.teilen-kopf {
+.teilen-kopf,
+.einsatz-kopf,
+.risiko-kopf {
     margin: 0;
     font-size: 20px;
     font-weight: 800;
@@ -746,7 +749,9 @@ body {
 .raeuber-text,
 .teilen-text,
 .spielerwahl-frage,
-.raeuber-ergebnis {
+.raeuber-ergebnis,
+.einsatz-text,
+.risiko-text {
     margin: 0;
     font-size: 20px;
     overflow-wrap: break-word;
@@ -756,7 +761,9 @@ body {
 .duell-zug,
 .raeuber-schild,
 .raeuber-opfer,
-.teilen-taste {
+.teilen-taste,
+.einsatz-taste,
+.risiko-taste {
     min-height: var(--input-height);
     border-radius: var(--radius-lg);
     font-size: 22px;
@@ -772,7 +779,26 @@ body {
 .spielerwahl-aktiv,
 .duell-zug-aktiv,
 .raeuber-aktiv,
-.teilen-aktiv {
+.teilen-aktiv,
+.risiko-aktiv {
     outline: 4px solid var(--text);
     outline-offset: 2px;
 }
+
+/* M35 C3: Sonderregel Einsatz - dasselbe Eingabefeld wie die Schaetzfrage. */
+.einsatz-eingabe {
+    min-height: var(--input-height);
+    padding: 0 var(--space-xl);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-lg);
+    box-sizing: border-box;
+    font-size: 20px;
+    background: var(--input-bg);
+    color: var(--text);
+}
+
+    .einsatz-eingabe:disabled,
+    .einsatz-taste:disabled,
+    .risiko-taste:disabled {
+        opacity: 0.7;
+    }

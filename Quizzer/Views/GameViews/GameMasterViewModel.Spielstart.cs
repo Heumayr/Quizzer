@@ -109,6 +109,10 @@ namespace Quizzer.Views.GameViews
                     }
 
                     Befunde(frage, dbGame.Players.Count(), beanstandet, angemerkt);
+
+                    // M35 C3: eine Sonderregel, die nicht gespielt wird (Minispiel, unbekannt) - als Warnung.
+                    if (DataModels.Questions.Sonderregeln.Sonderregelraster.Startbefund(zelle, frage) is { } regel)
+                        angemerkt.Add(regel.Message);
                 }
             }
 

@@ -202,6 +202,18 @@ namespace Quizzer.ViewModels
 
         public string PointsDisplay => _coordinate != null ? $"{_coordinate?.CurrentPoints} / −{_coordinate?.CurrentMinusPoints} Punkte" : string.Empty;
 
+        // M35 C3: die Marke der Sonderregel. Spielleiter und Beamer teilen diese Instanz - welche Marke
+        // gilt, sagt das Steuerelement (UcCellViewPlay.ZeigtVerdeckteRegeln), nicht CellView.
+        public string SonderregelMarkeSpielleiter => DataModels.Questions.Sonderregeln.Sonderregelraster.MarkeSpielleiter(_coordinate);
+
+        public string SonderregelMarkeBeamer => DataModels.Questions.Sonderregeln.Sonderregelraster.MarkeBeamer(_coordinate);
+
+        public System.Windows.Visibility SonderregelSpielleiterVisibility
+            => SonderregelMarkeSpielleiter.Length > 0 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+
+        public System.Windows.Visibility SonderregelBeamerVisibility
+            => SonderregelMarkeBeamer.Length > 0 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+
         /// <summary>
         /// Call this if you changed the underlying model outside this VM and want to refresh bindings.
         /// </summary>

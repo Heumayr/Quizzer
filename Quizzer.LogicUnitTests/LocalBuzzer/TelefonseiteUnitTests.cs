@@ -171,5 +171,13 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// <summary>M35 C2: Teilen oder Nehmen - Partnerwahl, eine Entscheidung, die vier Ausgaenge.</summary>
         [TestMethod]
         public void ShareOrTakeDecidesOnceAndShowsTheOutcome() => LaufeMit("teilen.test.mjs");
+
+        /// <summary>M35 C3: Sonderregel Einsatz - eine Zahl bis zur Obergrenze, genau einmal, die eigene kommt zurueck.</summary>
+        [TestMethod]
+        public void TheStakeIsAWholeNumberUpToTheLimitSentOnce() => LaufeMit("einsatz.test.mjs");
+
+        /// <summary>M35 C3: Sonderregel Risiko - doppelt ja oder nein, genau einmal, als Satz.</summary>
+        [TestMethod]
+        public void TheRiskChoiceIsSentOnceAndShownAsText() => LaufeMit("risiko.test.mjs");
     }
 }

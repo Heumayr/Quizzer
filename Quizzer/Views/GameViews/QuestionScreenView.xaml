@@ -120,6 +120,26 @@
                                    HorizontalAlignment="Center" />
                     </Viewbox>
                 </Border>
+
+                <!-- M35 C3: Vorphase einer Sonderregel - deckend ueber allem, wie Bildschirm 1: die Frage
+                     darf noch nicht zu lesen sein. Gezeigt wird nur, wie viele abgegeben haben, nie was. -->
+                <Border Visibility="{Binding QuestionStepViewContext.Sonderregel.BeamerVisibility, FallbackValue=Collapsed}"
+                        Background="Black" Padding="40"
+                        base:Bewegung.Einblenden="True" base:Bewegung.Stil="Zoomen">
+                    <Viewbox Stretch="Uniform" MaxHeight="700" MaxWidth="1200">
+                        <StackPanel Width="1100">
+                            <TextBlock Text="{Binding QuestionStepViewContext.Sonderregel.Titel}"
+                                       Foreground="WhiteSmoke" FontWeight="Bold" FontSize="64"
+                                       TextWrapping="Wrap" TextAlignment="Center" />
+                            <TextBlock Text="{Binding QuestionStepViewContext.Sonderregel.Regeltext}"
+                                       Foreground="WhiteSmoke" FontSize="32" Margin="0,30,0,0"
+                                       TextWrapping="Wrap" TextAlignment="Center" />
+                            <TextBlock Text="{Binding QuestionStepViewContext.Sonderregel.Stand}"
+                                       Foreground="Wheat" FontSize="32" Margin="0,30,0,0"
+                                       TextWrapping="Wrap" TextAlignment="Center" />
+                        </StackPanel>
+                    </Viewbox>
+                </Border>
             </Grid>
         </Grid>
 </UserControl>

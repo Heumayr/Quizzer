@@ -102,6 +102,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [DataRow(typeof(MinigamePhase), "MinigamePhases")]
         [DataRow(typeof(ReactionOutcome), "ReactionOutcomes")]
         [DataRow(typeof(SchereSteinPapier), "SchereSteinPapier")]
+        [DataRow(typeof(CellSpecialRule), "SpecialRules")]
         public void TheConstantsMirrorTheServerEnums(Type aufzaehlung, string name)
         {
             var konstanten = ReadScript("constants.js");

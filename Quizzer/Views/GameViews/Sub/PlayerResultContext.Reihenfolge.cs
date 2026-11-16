@@ -58,7 +58,7 @@ namespace Quizzer.Views.GameViews.Sub
             else if (ergebnis.Richtige > 0)
             {
                 Suggestion = ScoreSuggestion.Correction;
-                CurrentScoreManipulation = ergebnis.Punkte;
+                SetzeTeilwert(ergebnis.Punkte);
             }
             else
             {
@@ -124,7 +124,7 @@ namespace Quizzer.Views.GameViews.Sub
             else if (ergebnis.RichtigePlaetze > 0)
             {
                 Suggestion = ScoreSuggestion.Correction;
-                CurrentScoreManipulation = ergebnis.Punkte;
+                SetzeTeilwert(ergebnis.Punkte);
             }
             else
             {

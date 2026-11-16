@@ -40,5 +40,18 @@ namespace Quizzer.Views.HelperViewModels
             get => GetValue(CommandParameterProperty);
             set => SetValue(CommandParameterProperty, value);
         }
+
+        public static readonly DependencyProperty ZeigtVerdeckteRegelnProperty =
+            DependencyProperty.Register(nameof(ZeigtVerdeckteRegeln), typeof(bool), typeof(UcCellViewPlay), new PropertyMetadata(false));
+
+        /// <summary>
+        /// Nur das Spielleiter-Raster zeigt verdeckte Sonderregeln (M35 C3). Vorgabe <c>false</c>: wer es
+        /// vergisst, verraet am Beamer nichts.
+        /// </summary>
+        public bool ZeigtVerdeckteRegeln
+        {
+            get => (bool)GetValue(ZeigtVerdeckteRegelnProperty);
+            set => SetValue(ZeigtVerdeckteRegelnProperty, value);
+        }
     }
 }

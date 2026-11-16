@@ -40,8 +40,9 @@ namespace Quizzer.DataModels.Transfer.Sync
         ///    aber ein altes WPF haelt die Frage fuer verbogen, und seine Reparatur schriebe Tastenwahl zurueck.
         /// 5: Minispiel-Arten Tippsprint und Stoppuhr (M35 C1) - derselbe Grund wie bei 4.
         /// 6: Minispiel-Arten Duell, Raeuber und Waechter, Teilen oder Nehmen (M35 C2) - derselbe Grund wie bei 4.
+        /// 7: Sonderregel an der Zelle - Spalten GameGridCoordinate.SpecialRule und SpecialRuleAnnounced (M35 C3).
         /// </summary>
-        public const int CurrentFormatVersion = 6;
+        public const int CurrentFormatVersion = 7;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

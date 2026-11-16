@@ -33,7 +33,8 @@ namespace Quizzer.Views.GameViews
         /// </summary>
         public bool BuzzerFehlt =>
             StaticManager.BuzzerServerViewModel?.IsBuzzerServerRunning != true
-            && (Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None) != BuzzerControlsLayout.None;
+            && ((Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None) != BuzzerControlsLayout.None
+                || (Coordinate != null && DataModels.Questions.Sonderregeln.SpecialRuleProfiles.Applies(Coordinate, Question)));
 
         /// <summary>Der Satz dazu - leer, solange nichts fehlt.</summary>
         public string BuzzerFehltText => BuzzerFehlt
@@ -55,6 +56,10 @@ namespace Quizzer.Views.GameViews
 
                 return;
             }
+
+            // Sonderregel (M35 C3): erst die Vorphase - die Frage kommt, wenn sie zu ist.
+            if (await StarteVorphaseAsync())
+                return;
 
             var layout = Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None;
 
@@ -167,12 +172,15 @@ namespace Quizzer.Views.GameViews
                 BuzzerControlsViewModel.AllPlayersSubmittedInput = null;
                 ClearAppreciateOutcome();
                 ClearMinigame();
+                ClearSonderregel();
                 BuzzerControlsViewModel.SetRoundInfo(null);
 
                 await BuzzerControlsViewModel.ResetRoundAsync(null);
             }
         }
 
-        public BuzzerControlsLayout CurrentBuzzerLayout => Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None;
+        /// <summary>Was gerade auf den Telefonen liegt - in der Vorphase einer Sonderregel deren Rahmen (M35 C3).</summary>
+        public BuzzerControlsLayout CurrentBuzzerLayout
+            => VorphaseLaeuft ? BuzzerControlsLayout.Minigame : Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None;
     }
 }

@@ -133,6 +133,11 @@ namespace Quizzer.DataModels.Transfer
                     throw new InvalidDataException(
                         $"Die Zelle {zelle.X}/{zelle.Y} zeigt auf eine Frage, die es im Bündel "
                         + "nicht gibt.");
+
+                if (!Enum.IsDefined(zelle.SpecialRule))
+                    throw new InvalidDataException(
+                        $"Die Zelle {zelle.X}/{zelle.Y} trägt eine unbekannte Sonderregel ({(int)zelle.SpecialRule}). "
+                        + "Vermutlich stammt das Bündel aus einer neueren Fassung.");
             }
 
             foreach (var textur in dokument.Design?.Texturen ?? new Dictionary<string, string>())

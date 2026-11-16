@@ -99,6 +99,8 @@ namespace Quizzer.DataModels.Transfer
                     X = zelle.X,
                     Y = zelle.Y,
                     Z = zelle.Z,
+                    SpecialRule = zelle.SpecialRule,
+                    SpecialRuleAnnounced = zelle.SpecialRuleAnnounced,
 
                     // Bewusst kein IsDone, keine Phase, keine Punkte - das ist der Abend, nicht
                     // das Spiel.
@@ -274,6 +276,8 @@ namespace Quizzer.DataModels.Transfer
                     Z = z.Z,
                     Phase = 1,
                     IsDone = false,
+                    SpecialRule = z.SpecialRule,
+                    SpecialRuleAnnounced = z.SpecialRuleAnnounced,
                 },
                 FrageIndex: z.FrageIndex)).ToList();
 

@@ -141,6 +141,33 @@ neuAufbauen(zustand(1, 11, { kind: 99 }));
 pruefe(wurzel.querySelector(".layout-empty")?.textContent.includes("kennt das Telefon noch nicht"),
     "Eine unbekannte Art wird nicht gesagt.");
 
+// --- M35 C3: Vorphase einer Sonderregel - ihr Modul statt der Art, ihr Regeltext, und die Regel geht mit ---
+pruefe(gesendet[0]?.specialRule === 0, "Ein Minispiel schickt eine Sonderregel mit: " + JSON.stringify(gesendet[0]));
+
+const vorphase = (regel, durchgang, kindInfo) => zustand(1, durchgang,
+    { kind: 0, specialRule: regel, title: "Sonderregel: Einsatz", rulesText: "Setze Punkte.", countdownSeconds: 0, totalRounds: 1 },
+    kindInfo);
+
+neuAufbauen(vorphase(1, 20, { max: 300 }));
+rahmen.setLocked(false);
+pruefe(wurzel.querySelector(".einsatz-eingabe") != null, "Die Vorphase Einsatz zeigt kein Eingabefeld.");
+pruefe(runde() === "Vor der Frage", "Die Vorphase zaehlt Runden: " + runde());
+pruefe(status() === "Setze Punkte.", "In der Vorphase steht der Regeltext nicht da: " + status());
+
+wurzel.querySelector(".einsatz-eingabe").value = "120";
+wurzel.querySelector(".einsatz-taste").click();
+const einsatz = gesendet.at(-1);
+pruefe(einsatz?.specialRule === 1 && einsatz?.kind === 0 && einsatz?.durchgang === 20 && einsatz?.payload?.amount === 120,
+    "Der Einsatz geht nicht mit Regel, Durchgang und Betrag hinaus: " + JSON.stringify(einsatz));
+
+neuAufbauen(vorphase(2, 21, {}));
+rahmen.setLocked(false);
+pruefe(wurzel.querySelectorAll(".risiko-taste").length === 2, "Die Vorphase Risiko zeigt nicht ja und nein.");
+pruefe(wurzel.querySelector(".einsatz-eingabe") == null, "Beim Wechsel der Regel blieb das alte Modul stehen.");
+
+rahmen.update(zustand(3, 22, { kind: 0, specialRule: 2 }, { ownDoubled: true }));
+pruefe(status().includes("gleich kommt die Frage"), "Das Ende der Vorphase klingt wie ein Minispiel: " + status());
+
 rahmen.dispose();
 
 if (fehler > 0) {

@@ -32,6 +32,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         /// <summary>Der Durchgang, in dem das Telefon die Runde gesehen hat - ein alter wird verworfen.</summary>
         public int Durchgang { get; set; }
 
+        /// <summary>Die Sonderregel, deren Vorphase das Telefon sah (M35 C3) - eine andere als die laufende wird verworfen.</summary>
+        public CellSpecialRule SpecialRule { get; set; }
+
         /// <summary>Die Abgabe selbst; ihr Aufbau haengt an der Art.</summary>
         public JsonElement Payload { get; set; }
     }
@@ -40,6 +43,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
     public sealed class MinigameClientInfo
     {
         public MinigameKind Kind { get; set; }
+
+        /// <summary>Gesetzt, wenn der Rahmen die Vorphase einer Sonderregel spielt (M35 C3) - dann zaehlt sie, nicht die Art.</summary>
+        public CellSpecialRule SpecialRule { get; set; }
 
         /// <summary>„Reaktion" - die Ueberschrift am Telefon.</summary>
         public string Title { get; set; } = string.Empty;
@@ -92,9 +98,13 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
     /// <param name="DurationSeconds">Dauer des Tippsprints bzw. Zielzeit der Stoppuhr (M35 C1); sonst ungenutzt.</param>
     /// <param name="TriggerPlayerId">Der Ausloeser - wer das Feld aufgedeckt hat; beim Duell und bei Teilen oder Nehmen waehlt er (M35 C2).</param>
     /// <param name="Variant">Die Spielweise der Art, beim Duell die Disziplin (M35 C2).</param>
+    /// <param name="SpecialRule">Statt einer Art die Vorphase dieser Sonderregel (M35 C3).</param>
+    /// <param name="FieldPoints">Was „richtig" in der Zelle bringt - beim Einsatz Teil der Obergrenze.</param>
+    /// <param name="Balances">Kontostand je Spieler beim Einstellen - beim Einsatz Teil der Obergrenze.</param>
     public sealed record MinigameSetup(
         MinigameKind Kind, string Title, string RulesText, int TotalRounds, int CountdownSeconds = 3, int DurationSeconds = 0,
-        Guid? TriggerPlayerId = null, int Variant = 0);
+        Guid? TriggerPlayerId = null, int Variant = 0, CellSpecialRule SpecialRule = CellSpecialRule.None,
+        int FieldPoints = 0, IReadOnlyDictionary<Guid, int>? Balances = null);
 
     /// <summary>
     /// Die Regeln einer Art am Server: was eine gueltige Abgabe ist und was ein Spieler sieht. Der

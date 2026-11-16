@@ -121,6 +121,21 @@
                               IsChecked="{Binding AllowNegativeScore}"
                               ToolTip="Ausgeschaltet nimmt kein Minus-Vorschlag auf der Spielerkarte einem Spieler mehr, als er hat - weder eine falsche Antwort noch ein Klau oder ein verlorener Einsatz. Ein eigener Wert, den der Spielleiter selbst einträgt, bleibt frei." />
                 </StackPanel>
+                <!-- M35 C3, V3: Sonderregeln zufaellig verteilen; je Zelle waehlt man sie im Auswahldialog der Zelle. -->
+                <StackPanel Orientation="Horizontal" Margin="5">
+                    <Label Content="Sonderregeln:" VerticalAlignment="Center"
+                           ToolTip="Wie viele Zellen beim Verteilen eine Sonderregel bekommen (Einsatz, Risiko)." />
+                    <TextBox VerticalContentAlignment="Center" MinWidth="40" Margin="5,8,5,8"
+                             Text="{Binding SonderregelAnzahl, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Anzahl der Zellen, die eine Sonderregel bekommen." />
+                    <CheckBox Content="angekündigt" VerticalAlignment="Center" Margin="5,0,5,0"
+                              IsChecked="{Binding SonderregelnAngekuendigt}"
+                              ToolTip="Angekündigt: die Gäste sehen die Regel schon im Raster und können taktisch wählen. Sonst bleibt sie verdeckt, bis die Zelle aufgedeckt wird." />
+                    <Button Content="Sonderregeln zufällig verteilen" Command="{Binding DistributeSpecialRulesCommand}" Margin="5,0,0,0"
+                            ToolTip="Legt die Regeln zufällig auf Zellen mit einer gewöhnlichen Frage, die noch nicht gespielt sind - nie auf ein Minispiel. Liegen schon welche, wird vorher gefragt." />
+                    <Button Content="Alle entfernen" Command="{Binding RemoveSpecialRulesCommand}" Margin="5,0,0,0"
+                            ToolTip="Nimmt jede Sonderregel vom Raster." />
+                </StackPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="210" Content="Schwierigkeit Faktor / Zuschlag:" ToolTip="Punkte = Fragepunkte × (Faktor × Schwierigkeit + 1) + Zuschlag × Schwierigkeit." VerticalAlignment="Center" />

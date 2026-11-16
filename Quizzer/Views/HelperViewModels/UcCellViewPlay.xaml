@@ -63,6 +63,24 @@
                            base:AutoFitLabel.MinFontSize="6"
                            base:AutoFitLabel.MaxFontSize="22"
                            base:AutoFitLabel.WrapText="False" />
+
+                    <!-- M35 C3: Sonderregel mit Symbol und Text, nie nur Farbe. Am Beamer nur angekuendigte;
+                         verdeckte sieht nur das Spielleiter-Raster (ZeigtVerdeckteRegeln). -->
+                    <TextBlock x:Name="SonderregelMarke" HorizontalAlignment="Center" TextAlignment="Center"
+                               FontSize="12" FontWeight="Bold" Foreground="Gold" TextWrapping="Wrap">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="{Binding SonderregelMarkeBeamer}" />
+                                <Setter Property="Visibility" Value="{Binding SonderregelBeamerVisibility}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ZeigtVerdeckteRegeln, ElementName=root}" Value="True">
+                                        <Setter Property="Text" Value="{Binding SonderregelMarkeSpielleiter}" />
+                                        <Setter Property="Visibility" Value="{Binding SonderregelSpielleiterVisibility}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                 </StackPanel>
 
                 <!-- Winners -->

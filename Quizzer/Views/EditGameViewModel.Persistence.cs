@@ -56,6 +56,8 @@ namespace Quizzer.Views
             if (coordinate == null || Game == null)
                 return;
 
+            SonderregelnBereinigen([coordinate]);
+
             await RunGuardedAsync(async () =>
             {
                 coordinate.Game = Game;
@@ -96,6 +98,8 @@ namespace Quizzer.Views
         public override async Task VMSaveAsync()
         {
             if (Game == null) return;
+
+            SonderregelnBereinigen(Game.GameGridCoordinates);
 
             if (!PunkteformelTraegt())
                 return;

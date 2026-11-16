@@ -296,6 +296,12 @@ namespace Quizzer.Logic.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<int>("SpecialRule")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("SpecialRuleAnnounced")
+                        .HasColumnType("bit");
+
                     b.Property<int>("X")
                         .HasColumnType("int");
 

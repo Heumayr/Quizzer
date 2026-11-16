@@ -87,10 +87,14 @@
 
                 <!-- Die Bewertung als Wort: an den vier gleich aussehenden Knoepfen ist nicht
                      zu erkennen, welcher gedrueckt wurde. -->
-                <TextBlock Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="2"
-                           Text="{Binding SuggestionText}"
-                           HorizontalAlignment="Center" Margin="0,6,0,0"
-                           FontWeight="SemiBold" Foreground="Wheat" />
+                <StackPanel Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="2">
+                    <!-- M35 C3: was der Spieler in der Vorphase der Sonderregel abgegeben hat. -->
+                    <TextBlock Text="{Binding SonderregelText}" Visibility="{Binding SonderregelVisibility}"
+                               HorizontalAlignment="Center" Margin="0,6,0,0" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding SuggestionText}"
+                               HorizontalAlignment="Center" Margin="0,6,0,0" TextWrapping="Wrap"
+                               FontWeight="SemiBold" Foreground="Wheat" />
+                </StackPanel>
             </Grid>
 
             <StackPanel Grid.Row="4" Visibility="{Binding ShowKeySelections}">

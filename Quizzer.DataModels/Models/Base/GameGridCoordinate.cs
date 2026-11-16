@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Quizzer.DataModels.Attributes;
+using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.QuestionTypes;
 using System;
 using System.Collections.Generic;
@@ -35,6 +36,12 @@ namespace Quizzer.DataModels.Models.Base
         public int CurrentPoints { get; set; }
 
         public int CurrentMinusPoints { get; set; }
+
+        /// <summary>Die Sonderregel der Zelle (M35 C3); nur fuer gewoehnliche Fragen, nie fuer Minispiele.</summary>
+        public CellSpecialRule SpecialRule { get; set; }
+
+        /// <summary>Ob die Sonderregel am Beamer-Raster angekuendigt ist (V3) - sonst bleibt sie verdeckt.</summary>
+        public bool SpecialRuleAnnounced { get; set; }
 
         /// <summary>
         /// Rechnet die Punkte dieser Zelle neu. <see cref="CurrentPoints"/> und
@@ -154,6 +161,8 @@ namespace Quizzer.DataModels.Models.Base
                 IsDone = IsDone,
                 CurrentPoints = CurrentPoints,
                 CurrentMinusPoints = CurrentMinusPoints,
+                SpecialRule = SpecialRule,
+                SpecialRuleAnnounced = SpecialRuleAnnounced,
                 QuestionBase = null,
                 QuestionResults = new List<QuestionResult>(),
                 Game = null!

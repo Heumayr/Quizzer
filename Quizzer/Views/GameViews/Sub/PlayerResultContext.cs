@@ -219,6 +219,7 @@ namespace Quizzer.Views.GameViews.Sub
                     ScoreSuggestion.Wrong => KappeMinus(Coordinate?.CurrentMinusPoints * -1 ?? 0),
                     _ => 0,
                 };
+                WendeSonderregelAufBewertungAn(suggestion);
 
                 if (value == ScoreSuggestion.Right)
                     CorrectAnswered = true;
@@ -240,8 +241,8 @@ namespace Quizzer.Views.GameViews.Sub
         /// </summary>
         public string SuggestionText => Suggestion switch
         {
-            ScoreSuggestion.Right => $"Bewertung: richtig, +{CurrentScoreManipulation}",
-            ScoreSuggestion.Wrong => $"Bewertung: falsch, {CurrentScoreManipulation}",
+            ScoreSuggestion.Right => $"Bewertung: richtig, +{CurrentScoreManipulation}{GrundText}",
+            ScoreSuggestion.Wrong => $"Bewertung: falsch, {CurrentScoreManipulation}{GrundText}",
             ScoreSuggestion.Correction => $"Bewertung: eigener Wert, {CurrentScoreManipulation}{GrundText}",
             _ => "Noch nicht bewertet",
         };

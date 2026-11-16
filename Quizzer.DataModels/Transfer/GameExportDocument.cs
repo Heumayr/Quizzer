@@ -112,6 +112,12 @@ namespace Quizzer.DataModels.Transfer
             public int Z { get; set; }
 
             public int? FrageIndex { get; set; }
+
+            /// <summary>Die Sonderregel der Zelle (M35 C3) - gehoert zum Bauplan, nicht zum Abend.</summary>
+            public CellSpecialRule SpecialRule { get; set; }
+
+            /// <summary>Ob sie am Beamer-Raster angekuendigt ist (V3).</summary>
+            public bool SpecialRuleAnnounced { get; set; }
         }
 
         /// <summary>Eine Frage samt ihren Schritten.</summary>

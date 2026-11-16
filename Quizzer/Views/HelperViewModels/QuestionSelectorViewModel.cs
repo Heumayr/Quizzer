@@ -16,7 +16,7 @@ using System.Windows.Input;
 
 namespace Quizzer.Views.HelperViewModels
 {
-    public class QuestionSelectorViewModel : ViewModelBase
+    public partial class QuestionSelectorViewModel : ViewModelBase
     {
         public Game? Game { get; set; }
 
@@ -39,6 +39,7 @@ namespace Quizzer.Views.HelperViewModels
 
                 OnPropertyChanged(nameof(SelectedQuestion));
                 OnPropertyChanged(nameof(CurrentSelectedQuestionDisplay));
+                SonderregelGeaendert();
             }
         }
 
@@ -79,6 +80,7 @@ namespace Quizzer.Views.HelperViewModels
             OnPropertyChanged(nameof(Coordinate));
             OnPropertyChanged(nameof(SelectedQuestion));
             OnPropertyChanged(nameof(CurrentSelectedQuestionDisplay));
+            SonderregelGeaendert();
         }
 
         public override async Task VMSaveAsync()
