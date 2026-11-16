@@ -66,6 +66,8 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual(ScoreSuggestion.Correction, Karte(anna).Suggestion);
             Assert.AreEqual(gewinn, Karte(anna).CurrentScoreManipulation, "Der Ausstieg bringt nicht Einsatz × (Multiplikator − 1).");
             StringAssert.Contains(Karte(anna).SuggestionText, "bei ×1,28 ausgestiegen");
+            Assert.AreEqual(128, Karte(anna).Messwert, "Der Ausstieg steht nicht als Messwert auf der Karte (M35 C9).");
+            Assert.IsNull(Karte(bert).Messwert, "Wer abstuerzte, hat einen Ausstieg.");
             Assert.AreEqual(-einsatz, Karte(bert).CurrentScoreManipulation, "Der Absturz kostet nicht den Einsatz.");
             StringAssert.Contains(Karte(bert).SuggestionText, "Einsatz verloren");
             Assert.IsTrue(vm.ShowResultWindowCalls > 0, "Nach dem Ende geht das Bewertungsfenster nicht auf.");

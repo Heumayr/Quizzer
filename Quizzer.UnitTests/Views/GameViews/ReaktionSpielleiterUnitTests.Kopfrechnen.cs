@@ -55,6 +55,8 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual(Feldpunkte(vm), Karte(anna).CurrentScoreManipulation, "Der Sieger bekommt nicht die Feldpunkte.");
             StringAssert.Contains(Karte(anna).SuggestionText, "1 von 1 richtig");
             Assert.AreEqual(ScoreSuggestion.None, Karte(bert).Suggestion, "Wer nicht vorn ist, bekommt einen Vorschlag.");
+            Assert.AreEqual(200, Karte(anna).Messwert, "1 richtige in 30 s sind 2,00 je Minute - nicht auf der Karte (M35 C9).");
+            Assert.IsNull(Karte(bert).Messwert, "Null richtige sind ein Messwert.");
             Assert.IsTrue(vm.ShowResultWindowCalls > 0, "Nach dem Ende geht das Bewertungsfenster nicht auf.");
         }
     }

@@ -57,6 +57,8 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual(world.Coordinate.CurrentPoints, Karte(anna).CurrentScoreManipulation, "Nicht die Feldpunkte.");
             Assert.AreEqual(ScoreSuggestion.None, Karte(bert).Suggestion, "Der Zweite hat einen Vorschlag.");
             StringAssert.Contains(Karte(bert).ReihenfolgeText, "40 Tipps");
+            Assert.AreEqual(1040, Karte(anna).Messwert, "Die Tipps je Sekunde (Hundertstel) stehen nicht auf der Karte (M35 C9).");
+            Assert.AreEqual(800, Karte(bert).Messwert);
             Assert.IsTrue(Gespielt("Ende"), "Zum Ergebnis kam kein Ton.");
             Assert.IsTrue(vm.ShowResultWindowCalls > 0, "Nach dem Ende geht das Bewertungsfenster nicht auf.");
             Assert.IsTrue(serverVm.BuzzerControlsViewModel.LivePlayers.Any(p => p.AnswerText == "52 Tipps"),
@@ -66,6 +68,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             await vm.WiederholeMinispielRundeAsync();
 
             Assert.AreEqual(ScoreSuggestion.None, Karte(anna).Suggestion, "Nach dem Wiederholen bleibt der Vorschlag stehen.");
+            Assert.IsNull(Karte(anna).Messwert, "Nach dem Wiederholen bleibt der Messwert der verworfenen Runde stehen.");
             StringAssert.Contains(vm.Reaktion.Kopfzeile, "Tippsprint läuft");
             Assert.IsTrue(vm.Reaktion.Zeilen.All(z => z.Zeit == "0 Tipps"), "Das Rennen beginnt nicht bei null.");
         }
@@ -95,6 +98,8 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual(ScoreSuggestion.Right, Karte(bert).Suggestion, "Die naechste Zeit hat keinen Vorschlag.");
             Assert.AreEqual(ScoreSuggestion.None, Karte(anna).Suggestion, "Die weitere Zeit hat einen Vorschlag.");
             StringAssert.Contains(Karte(anna).ReihenfolgeText, "0,23 s daneben");
+            Assert.AreEqual(230, Karte(anna).Messwert, "Der Abstand steht nicht als Messwert auf der Karte (M35 C9).");
+            Assert.AreEqual(100, Karte(bert).Messwert);
             Assert.IsTrue(serverVm!.BuzzerControlsViewModel!.LivePlayers.Any(p => p.AnswerText == "10,23 s"),
                 "Die Uebersicht des Spielleiters zeigt die Zeit nicht.");
             Assert.IsTrue(Gespielt("Ende"), "Zum Ergebnis kam kein Ton.");
