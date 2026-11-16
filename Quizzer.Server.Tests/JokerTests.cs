@@ -228,6 +228,29 @@ namespace Quizzer.Server.Tests
             AssertForbidden(result, sperre.Id, "Eine Sperre gegen einen, der nicht mitspielt, wurde angenommen.");
         }
 
+        /// <summary>Was das Einlösen verweigert, darf auch der Abgleich nicht schreiben (Befund aus C7b).</summary>
+        [TestMethod]
+        public async Task ABlockAgainstOneselfOrATargetOnAnotherKindIsForbidden()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var abend = await AbendAsync(factory);
+            var selbst = Joker(abend, abend.MiaId, JokerKind.Block);
+            selbst.TargetPlayerId = abend.MiaId;
+            var doppelt = Joker(abend, abend.MiaId, JokerKind.Double);
+            doppelt.TargetPlayerId = abend.MaxId;
+            var richtig = Joker(abend, abend.MiaId, JokerKind.Block);
+            richtig.TargetPlayerId = abend.MaxId;
+
+            var result = await PushAsync(abend.Gina, new SyncPushRequest
+            {
+                Upserts = [SyncTestData.New(selbst), SyncTestData.New(doppelt), SyncTestData.New(richtig)],
+            });
+
+            AssertForbidden(result, selbst.Id, "Eine Sperre gegen sich selbst wurde angenommen.");
+            AssertForbidden(result, doppelt.Id, "Ein Doppelt mit Ziel wurde angenommen.");
+            Assert.IsFalse(result.Rejected.Any(r => r.Id == richtig.Id), "Die gewöhnliche Sperre gegen einen Mitspieler wurde abgewiesen.");
+        }
+
         [TestMethod]
         public async Task AnUnknownKindIsRefused()
         {

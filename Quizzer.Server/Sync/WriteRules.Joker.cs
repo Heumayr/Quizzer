@@ -21,7 +21,17 @@ namespace Quizzer.Server.Sync
             if (!await IsMemberAsync(GetGuid(row, nameof(PlayerJoker.PlayerId)), gameId, ct))
                 return "Der Joker gehört keinem Mitspieler dieses Spiels.";
 
-            if (GetNullableGuid(row, nameof(PlayerJoker.TargetPlayerId)) is { } target && !await IsMemberAsync(target, gameId, ct))
+            if (GetNullableGuid(row, nameof(PlayerJoker.TargetPlayerId)) is not { } target)
+                return null;
+
+            // Wie PlayerJokersController.RedeemAsync: ein Ziel hat nur die Sperre, und nie gegen sich selbst.
+            if ((JokerKind)art != JokerKind.Block)
+                return "Nur die Sperre hat ein Ziel.";
+
+            if (target == GetGuid(row, nameof(PlayerJoker.PlayerId)))
+                return "Eine Sperre gegen sich selbst gibt es nicht.";
+
+            if (!await IsMemberAsync(target, gameId, ct))
                 return "Die Sperre trifft keinen Mitspieler dieses Spiels.";
 
             return null;
