@@ -297,6 +297,41 @@ namespace Quizzer.Server.Tests
             Assert.IsFalse(await laptopDb.GameGridCoordinates.AnyAsync(c => c.Id == set.Cell.Id));
         }
 
+        /// <summary>M35 C9: Rohwert, sein Zeitpunkt und die Klaus am Ergebnis gehen vom PC über den Server zum Laptop.</summary>
+        [TestMethod]
+        public async Task ARecordAndItsStealsTravelToTheOtherMachine()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var (pc, laptop, me) = await SignedInPairAsync(factory);
+            await using var _ = pc;
+            await using var __ = laptop;
+
+            var set = await PrepareGameLocallyAsync(pc, me);
+            var reaktion = new MinigameQuestion { Id = Guid.NewGuid(), Designation = "Reaktion", CategoryId = set.Category.Id, OwnerPlayerId = me, Points = 100 };
+            Quizzer.DataModels.Questions.Minispiele.MinigameProfiles.For(MinigameKind.Reaction).ApplyDefaults(reaktion);
+            var zelle = new GameGridCoordinate { Id = Guid.NewGuid(), GameId = set.Game.Id, QuestionBaseId = reaktion.Id, X = 1, Y = 0 };
+            var gemessen = new DateTimeOffset(2026, 11, 16, 21, 30, 0, TimeSpan.FromHours(1));
+            var ergebnis = new QuestionResult
+            {
+                Id = Guid.NewGuid(), GameId = set.Game.Id, GameGridCoordinateId = zelle.Id, QuestionBaseId = reaktion.Id,
+                PlayerId = me, Score = 100, RightCount = 1, RecordValue = 187, RecordedAt = gemessen, Steals = 2,
+            };
+            await using (var local = pc.Local())
+            {
+                local.AddRange(reaktion, zelle, ergebnis);
+                await local.SaveChangesAsync();
+            }
+
+            var pushed = await pc.Sync.PushAsync();
+            Assert.AreEqual(0, pushed.Rejected.Count, string.Join("; ", pushed.Rejected.Select(r => r.Message)));
+
+            await laptop.Sync.PullAsync();
+            await using var laptopDb = laptop.Local();
+            var angekommen = await laptopDb.QuestionResults.SingleAsync(r => r.Id == ergebnis.Id);
+            Assert.AreEqual((187, gemessen, 2), (angekommen.RecordValue, angekommen.RecordedAt, angekommen.Steals),
+                "Rohwert, Zeitpunkt oder Klaus sind am Laptop nicht angekommen.");
+        }
+
         /// <summary>M35 C7: ein Joker geht vom PC zum Laptop, das Zurücknehmen am Laptop wieder zum PC.</summary>
         [TestMethod]
         public async Task AJokerTravelsToTheOtherMachineAndSoDoesItsWithdrawal()

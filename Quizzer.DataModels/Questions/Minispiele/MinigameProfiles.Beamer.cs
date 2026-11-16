@@ -30,6 +30,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
             ShowShare = true,
             MinOptions = 0,
             OptionsName = "Zeilen",
+            Record = MinigameRecords.Zocker,
         };
 
         private static readonly MinigameProfile WheelOfFortune = new()

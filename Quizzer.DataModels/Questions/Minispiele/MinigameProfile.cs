@@ -114,6 +114,9 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// <summary>Ob das Fragefenster die Paarwahl des Spielleiters zeigt - mit Gegenueber oder nur den Waehlenden.</summary>
         public bool ShowsPairChoice => ChoosesPartner || ChooserOnly;
 
+        /// <summary>Was der Rohwert am Ergebnis bei dieser Art bedeutet (M35 C9); <c>null</c>: kein Messwert, keine Bestenliste.</summary>
+        public MinigameRecord? Record { get; init; }
+
         /// <summary>Die Spielweise zum gespeicherten Index; ein unbekannter faellt auf die Vorgabe.</summary>
         public MinigameVariant VariantFor(int variant)
             => variant >= 0 && variant < Variants.Count ? Variants[variant] : Variants[0];

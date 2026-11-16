@@ -57,8 +57,10 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// 21: Minispiel-Art Bluff (M35 C6) - derselbe Grund wie bei 4.
         /// 22: Minispiel-Art Heisse Kartoffel (M35 C6) - derselbe Grund wie bei 4.
         /// 23: Joker (M35 C7) - neuer Zeilentyp PlayerJoker, den ein altes WPF nicht kennt.
+        /// 24: Bestenliste (M35 C9) - Spalten QuestionResult.RecordValue, RecordedAt und Steals; ein altes WPF
+        ///    setzte beim Push still null und 0 ein.
         /// </summary>
-        public const int CurrentFormatVersion = 23;
+        public const int CurrentFormatVersion = 24;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

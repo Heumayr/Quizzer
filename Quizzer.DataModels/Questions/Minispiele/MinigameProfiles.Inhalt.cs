@@ -37,6 +37,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
             // Wie der Tippsprint: allein gewaenne man immer.
             MinPlayers = 2,
+            Record = MinigameRecords.Kopfrechnen,
         };
 
         private const string MemoryRegeltext =

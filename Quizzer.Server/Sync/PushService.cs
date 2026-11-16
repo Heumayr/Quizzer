@@ -12,7 +12,7 @@ namespace Quizzer.Server.Sync
     /// <summary>
     /// Spielt die Aenderungen eines Clients ein - Zeile fuer Zeile geprueft:
     /// <list type="number">
-    /// <item><b>Form</b>: bekannter Typ, bekannte Felder, lesbare Werte - sonst <c>Invalid</c>.</item>
+    /// <item><b>Form</b>: bekannter Typ, bekannte Felder, lesbare Werte, Bestwert im Bereich (<see cref="ResultRecordCheck"/>) - sonst <c>Invalid</c>.</item>
     /// <item><b>Stand</b>: die Zeile muss am Server noch so sein, wie der Client sie abgeholt hat
     /// (<see cref="SyncUpsert.BaseHash"/>) - sonst <c>Conflict</c>. Kein stilles Ueberschreiben.</item>
     /// <item><b>Recht</b>: siehe <see cref="WriteRules"/> - sonst <c>Forbidden</c>.</item>
@@ -40,7 +40,7 @@ namespace Quizzer.Server.Sync
                 foreach (var upsert in request.Upserts)
                 {
                     var row = upsert.Row;
-                    var problem = store.Validate(row) ?? SyncDateifelder.Pruefe(row);
+                    var problem = store.Validate(row) ?? SyncDateifelder.Pruefe(row) ?? await ResultRecordCheck.CheckAsync(row, store.Context, request, ct);
 
                     if (problem != null)
                     {

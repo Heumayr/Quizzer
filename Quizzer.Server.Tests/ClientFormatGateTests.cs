@@ -52,6 +52,17 @@ namespace Quizzer.Server.Tests
             Assert.AreEqual(ClientFormatGate.TooOld, (await antwort.Content.ReadFromJsonAsync<ApiError>())?.Message);
         }
 
+        /// <summary>M35 C9: ein WPF ohne Rohwert und Klaus am Ergebnis setzte beim Push still null und 0 ein.</summary>
+        [TestMethod]
+        public async Task AProgramWithoutTheLeaderboardColumnsIsStopped()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+
+            var antwort = await LoginWithFormatAsync(factory.CreateClient(), Format(23));
+
+            Assert.AreEqual(HttpStatusCode.UpgradeRequired, antwort.StatusCode);
+        }
+
         [TestMethod]
         public async Task ANewerProgramIsStoppedWithItsOwnMessage()
         {

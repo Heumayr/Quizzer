@@ -50,6 +50,18 @@ namespace Quizzer.DataModels.Models.Base
         /// <summary>Manuelle Korrektur des Spielleiters (kann positiv oder negativ sein).</summary>
         public int Correction { get; set; }
 
+        /// <summary>
+        /// Der Messwert der Runde in einer Minispielzelle (M35 C9), etwa die beste Reaktionszeit in ms. Was er
+        /// bedeutet, legt die Art fest (<c>MinigameProfile.Record</c>); <c>null</c>: nichts gemessen.
+        /// </summary>
+        public int? RecordValue { get; set; }
+
+        /// <summary>Wann <see cref="RecordValue"/> gespeichert wurde - das Datum der Bestenliste.</summary>
+        public DateTimeOffset? RecordedAt { get; set; }
+
+        /// <summary>Wie viele gespeicherte Klaus dieser Spieler in dieser Zelle geschafft hat (M35 C9).</summary>
+        public int Steals { get; set; }
+
         /// <summary>Endgültiger Punktestand: <c>Score + Correction - MinusScore</c>.</summary>
         public int FinalScore => Score + Correction - MinusScore;
 
@@ -80,6 +92,9 @@ namespace Quizzer.DataModels.Models.Base
                 Score = Score,
                 MinusScore = MinusScore,
                 Correction = Correction,
+                RecordValue = RecordValue,
+                RecordedAt = RecordedAt,
+                Steals = Steals,
                 QuestionBase = null!,
                 Game = null!,
                 Player = null!,

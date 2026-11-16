@@ -5,6 +5,9 @@ namespace Quizzer.DataModels.Questions.Minispiele
     /// <summary>Die Zeitspiele im Telefonrahmen (M35 C1): Tippsprint und Stoppuhr.</summary>
     public static partial class MinigameProfiles
     {
+        /// <summary>Die laengste Zielzeit der Stoppuhr - auch die Obergrenze ihres Bestwerts (M35 C9).</summary>
+        public const int StopwatchMaxSeconds = 60;
+
         private static readonly MinigameProfile TapSprint = new()
         {
             Kind = MinigameKind.TapSprint,
@@ -30,6 +33,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
             // Wie die Reaktion: allein gewaenne man immer.
             MinPlayers = 2,
+            Record = MinigameRecords.Tippsprint,
         };
 
         // Die Zielzeit steckt in DurationSeconds: ein Parameter, je Art gedeutet - keine neue Spalte (M35 C1).
@@ -54,10 +58,11 @@ namespace Quizzer.DataModels.Questions.Minispiele
             DurationToolTip = "Bei dieser Zeit soll gestoppt werden. Zu sehen ist die Uhr nur die ersten drei Sekunden.",
             DefaultDurationSeconds = 10,
             MinDurationSeconds = 5,
-            MaxDurationSeconds = 60,
+            MaxDurationSeconds = StopwatchMaxSeconds,
             MinOptions = 0,
             OptionsName = "Zeilen",
             MinPlayers = 2,
+            Record = MinigameRecords.Stoppuhr,
         };
     }
 }

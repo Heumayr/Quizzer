@@ -54,6 +54,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
             // Wie die Mehrheit: allein gewaenne man immer.
             MinPlayers = 2,
+            Record = MinigameRecords.Reaktion,
         };
 
         /// <summary>Steht im Regeltext fuer <see cref="MinigameQuestion.DurationSeconds"/> - <see cref="RulesFor"/> setzt die Zahl ein.</summary>

@@ -555,6 +555,12 @@ namespace Quizzer.Logic.Migrations
                     b.Property<Guid>("QuestionBaseId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("RecordValue")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("RecordedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<int>("RightCount")
                         .HasColumnType("int");
 
@@ -564,6 +570,9 @@ namespace Quizzer.Logic.Migrations
                         .HasColumnType("rowversion");
 
                     b.Property<int>("Score")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Steals")
                         .HasColumnType("int");
 
                     b.Property<int>("WrongCount")
