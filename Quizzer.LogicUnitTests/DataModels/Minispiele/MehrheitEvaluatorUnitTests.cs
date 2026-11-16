@@ -84,6 +84,22 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
             CollectionAssert.AreEquivalent(new[] { "A" }, e.GewinnerTasten.ToList());
         }
 
+        /// <summary>
+        /// Dasselbe <b>ohne Tastenliste</b>. Mit ihr hielte der Tastenfilter die leere Abgabe schon
+        /// fest - die Mutationsprobe am Leer-Riegel blieb dort gruen (gemessen M35 B2).
+        /// </summary>
+        [TestMethod]
+        public void WithoutAKeyListAnEmptyVoteIsStillNoVote()
+        {
+            var e = MehrheitEvaluator.Werte(
+                new Dictionary<Guid, string?> { [Anna] = "A", [Ben] = "A", [Cleo] = null, [Dora] = "" },
+                null, minderheit: true);
+
+            Assert.IsFalse(e.HatGewaehlt(Cleo));
+            Assert.IsFalse(e.IstGewinner(Dora), "In der Minderheit gewinnt die Gruppe der Nichtwaehler.");
+            CollectionAssert.AreEquivalent(new[] { "A" }, e.GewinnerTasten.ToList());
+        }
+
         /// <summary>Eine Taste, die zu keiner Option gehoert, kommt aus dem WLAN und zaehlt nicht.</summary>
         [TestMethod]
         public void AnUnknownKeyIsNotAVote()

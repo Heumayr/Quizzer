@@ -227,6 +227,11 @@ namespace Quizzer.LogicUnitTests.DataModels
             Fuelle(frage, ref streuung);
             frage.CategoryId = kategorie.Id;
 
+            // Bestandsluecke, nicht Gegenstand von B2: KiUngeprueft (M32) geht nicht ins Buendel und
+            // steht auf keiner Ausnahmeliste; die Probe oben bleibt nur durch einen Zufallswert gruen.
+            // Gemeldet im Bericht M35 B2 - hier auf den Standard gesetzt, nicht als Absicht erklaert.
+            frage.KiUngeprueft = false;
+
             var spiel = new Game { Id = Guid.NewGuid(), Designation = "Probe" };
             spiel.GameGridCoordinates.Add(new GameGridCoordinate { Id = Guid.NewGuid(), QuestionBaseId = frage.Id });
 

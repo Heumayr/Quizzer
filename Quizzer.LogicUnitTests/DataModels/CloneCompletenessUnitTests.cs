@@ -81,10 +81,11 @@ namespace Quizzer.LogicUnitTests.DataModels
             {
                 var werte = Enum.GetValues(kern).Cast<object>().ToList();
 
-                // Der erste Wert, der NICHT schon dasteht.
+                // Der erste Wert, der NICHT schon dasteht. Hat das Enum nur einen (MinigameKind in
+                // M35 B2), ein undefinierter Zahlenwert - sonst waere ein vergessenes Feld unsichtbar.
                 var anders = werte.FirstOrDefault(w => !Equals(w, aktuell));
 
-                return anders ?? werte.FirstOrDefault();
+                return anders ?? Enum.ToObject(kern, Convert.ToInt64(aktuell ?? werte[0]) + 1);
             }
 
             if (kern == typeof(string)) return $"Probe-{seed}";
