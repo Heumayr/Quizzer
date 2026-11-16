@@ -276,6 +276,13 @@
                         <Button Content="Vorphase schließen" Command="{Binding CloseVorphaseCommand}" FontWeight="Bold"
                                 Visibility="{Binding Sonderregel.SchliessenVisibility}"
                                 ToolTip="Schließt die Vorphase, auch wenn noch nicht alle abgegeben haben. Für wen nichts kam, gilt die Regel nicht – danach geht die Frage auf die Telefone." />
+                        <!-- M35 C3b: Experte - bei Gleichstand waehlt der Spielleiter unter den Meistgewaehlten (E1). -->
+                        <StackPanel Visibility="{Binding SonderregelKandidatVisibility}" Margin="4,6,4,0">
+                            <TextBlock Text="Wer antwortet (Gleichstand)" FontSize="12" Margin="0,0,0,2" />
+                            <ComboBox ItemsSource="{Binding SonderregelKandidaten}" SelectedItem="{Binding GewaehlterKandidat}"
+                                      DisplayMemberPath="CalculatedDisplayName"
+                                      ToolTip="Mehrere wurden gleich oft gewählt. Vorgabe ist der erste in der Spielerreihenfolge – hier legst du fest, wer allein antwortet." />
+                        </StackPanel>
                     </StackPanel>
 
                     <!-- V5: Countdown auf dem Beamer. Ein Buzzer haelt ihn an. -->

@@ -82,6 +82,14 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
             {
                 DefaultShare = 50,
             },
+            new(CellSpecialRule.Expert, "Experte",
+                "Vor der Frage wählt jeder am Telefon, wer für alle antworten soll – nicht sich selbst. Der "
+                + "Meistgewählte antwortet allein (bei Gleichstand entscheidet der Spielleiter). Ist er richtig, bekommt "
+                + $"er die Feldpunkte und jeder, der ihn gewählt hat, {SharePlaceholder} % der Feldpunkte dazu. Wählt "
+                + "niemand, spielen alle wie immer.")
+            {
+                DefaultShare = 25,
+            },
         ];
 
         private static string AuktionText(string preis)

@@ -29,5 +29,23 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             Assert.AreEqual(bert.Id, Info<ChoiceClientInfo>(bert).OwnChoice, "Bert sieht seine eigene Wette nicht.");
             Assert.IsNull(((ChoiceClientInfo)zustand.Rules!.InfoFor(null, MinigamePhase.Running)!).OwnChoice, "Der Beamer sieht eine Wette.");
         }
+
+        // --- Experte ---
+
+        [TestMethod]
+        public void AnExpertIsNeverOneselfAndNeverAStranger()
+        {
+            Starte(CellSpecialRule.Expert);
+
+            var info = Info<ChoiceClientInfo>(anna);
+            Assert.AreEqual(2, info.Options.Count, "Der Experte bietet nicht genau die anderen an.");
+            Assert.IsFalse(info.Options.Any(o => o.Id == anna.Id), "Anna kann sich selbst waehlen.");
+
+            Assert.IsFalse(Gib(anna, new { chosen = anna.Id }, CellSpecialRule.Expert).Accepted, "Sich selbst gewaehlt.");
+            Assert.IsFalse(Gib(anna, new { chosen = Guid.NewGuid() }, CellSpecialRule.Expert).Accepted, "Einen Fremden gewaehlt.");
+            Assert.IsFalse(Gib(anna, new { chosen = bert.Id }, CellSpecialRule.Bet).Accepted, "Abgabe fuer eine fremde Regel angenommen.");
+            Assert.IsTrue(Gib(anna, new { chosen = bert.Id }, CellSpecialRule.Expert).Accepted);
+            Assert.IsNull(Info<ChoiceClientInfo>(bert).OwnChoice, "Bert sieht Annas Wahl.");
+        }
     }
 }

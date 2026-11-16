@@ -44,8 +44,9 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// 8: Anteil und Spielweise der Sonderregel - Spalten SpecialRuleShare und SpecialRuleVariant (M35 C3b).
         /// 9: Sonderregel Auktion (M35 C3b) - ein altes WPF kennt den Wert nicht und spielte die Zelle ohne Regel.
         /// 10: Sonderregel Wette (M35 C3b) - derselbe Grund wie bei 9.
+        /// 11: Sonderregel Experte (M35 C3b) - derselbe Grund wie bei 9.
         /// </summary>
-        public const int CurrentFormatVersion = 10;
+        public const int CurrentFormatVersion = 11;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

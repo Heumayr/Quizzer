@@ -148,6 +148,7 @@ namespace Quizzer.LogicUnitTests.DataModels.Sonderregeln
                 [CellSpecialRule.Risk] = 7,
                 [CellSpecialRule.Auction] = 9,
                 [CellSpecialRule.Bet] = 10,
+                [CellSpecialRule.Expert] = 11,
             };
 
             var ohne = Enum.GetValues<CellSpecialRule>().Where(r => !seitFormat.ContainsKey(r)).ToList();

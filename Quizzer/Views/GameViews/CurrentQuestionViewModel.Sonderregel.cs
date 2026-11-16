@@ -1,11 +1,13 @@
 using LocalBuzzer.Service.Base.States.Minispiele;
 using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
+using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Questions.Minispiele;
 using Quizzer.DataModels.Questions.Sonderregeln;
 using Quizzer.Views.GameViews.Sonderregeln;
 using Quizzer.Views.GameViews.Sub;
 using Quizzer.Views.StaticRessources;
+using System.Windows;
 using System.Windows.Input;
 
 namespace Quizzer.Views.GameViews
@@ -112,7 +114,8 @@ namespace Quizzer.Views.GameViews
                 karten.ToDictionary(k => k.Player.Id, k => k.Player.CalculatedDisplayName),
                 Ausloeser,
                 Coordinate is { } zelle ? SpecialRuleProfiles.ShareOf(zelle) : 0,
-                Coordinate?.SpecialRuleVariant ?? 0);
+                Coordinate?.SpecialRuleVariant ?? 0,
+                karten.Select(k => k.Player.Id).ToList());
         }
 
         /// <summary>Der Spielleiter schliesst die Vorphase (E1) - wer nichts abgegeben hat, fuer den greift die Regel nicht.</summary>
@@ -141,8 +144,65 @@ namespace Quizzer.Views.GameViews
 
             OnPropertyChanged(nameof(CurrentBuzzerLayout));
             OnPropertyChanged(nameof(MinispielSteuerungVisibility));
+            KandidatenGeaendert();
 
             await PrepareBuzzerlayoutAsync();
+        }
+
+        /// <summary>Gleichstand beim Experten (M35 C3b): unter diesen waehlt der Spielleiter, wer antwortet (E1).</summary>
+        public IReadOnlyList<Player> SonderregelKandidaten
+            => sonderregel is { VorphaseZu: true, Kandidaten.Count: > 1 } regel
+                ? regel.Kandidaten.Select(SpielerVon).OfType<Player>().ToList()
+                : [];
+
+        public Visibility SonderregelKandidatVisibility => SonderregelKandidaten.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+
+        public Player? GewaehlterKandidat
+        {
+            get => sonderregel?.Antwortende is { Count: 1 } a ? SonderregelKandidaten.FirstOrDefault(p => p.Id == a.First()) : null;
+            set
+            {
+                if (value != null)
+                    _ = WaehleKandidatSicherAsync(value.Id);
+            }
+        }
+
+        /// <summary>Der Spielleiter waehlt unter den Gleichauf: Sperre am Server, Beamer und Karten folgen.</summary>
+        internal async Task WaehleKandidatAsync(Guid spieler)
+        {
+            if (sonderregel == null || !sonderregel.WaehleKandidat(spieler))
+                return;
+
+            await SetzeAntwortendeAsync();
+            Sonderregel.Zeige(sonderregel.Titel, sonderregel.Regeltext, Sonderregel.Stand, VorphaseLaeuft, sonderregel.Hinweis);
+
+            foreach (var karte in PlayersResultViewModel?.PlayerResultContextList ?? [])
+                karte.SonderregelGeaendert();
+
+            WerteSonderregel();
+            OnPropertyChanged(nameof(GewaehlterKandidat));
+        }
+
+        private async Task WaehleKandidatSicherAsync(Guid spieler)
+        {
+            try
+            {
+                await WaehleKandidatAsync(spieler);
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
+        }
+
+        private Player? SpielerVon(Guid id)
+            => PlayersResultViewModel?.PlayerResultContextList.FirstOrDefault(k => k.Player?.Id == id)?.Player;
+
+        private void KandidatenGeaendert()
+        {
+            OnPropertyChanged(nameof(SonderregelKandidaten));
+            OnPropertyChanged(nameof(SonderregelKandidatVisibility));
+            OnPropertyChanged(nameof(GewaehlterKandidat));
         }
 
         private Task OnVorphaseAbgabeAsync(MinigameSubmission abgabe)
@@ -213,6 +273,7 @@ namespace Quizzer.Views.GameViews
 
             VorphaseLaeuft = false;
             Sonderregel.Leere();
+            KandidatenGeaendert();
         }
     }
 }

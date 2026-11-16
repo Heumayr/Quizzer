@@ -14,9 +14,12 @@ namespace Quizzer.Views.GameViews.Sonderregeln
     /// <param name="Spielweise">Spielweise der Zelle, Index im Profil (M35 C3b).</param>
     internal sealed record VorphaseGrundlage(
         int Feldpunkte, IReadOnlyDictionary<Guid, int> Kontostaende, IReadOnlyDictionary<Guid, string>? Namen = null, Guid? Ausloeser = null,
-        int Anteil = 0, int Spielweise = 0)
+        int Anteil = 0, int Spielweise = 0, IReadOnlyList<Guid>? Reihenfolge = null)
     {
         public static VorphaseGrundlage Leer { get; } = new(0, new Dictionary<Guid, int>());
+
+        /// <summary>Die Spieler in der Reihenfolge der Karten - beim Experten entscheidet sie den Gleichstand vor.</summary>
+        public IReadOnlyList<Guid> Spielerfolge => Reihenfolge ?? Kontostaende.Keys.ToList();
 
         /// <summary>Der Name zu einer Id - fuer Gruende und Abgabetexte.</summary>
         public string NameVon(Guid spieler) => Namen?.GetValueOrDefault(spieler) ?? "?";
@@ -49,6 +52,12 @@ namespace Quizzer.Views.GameViews.Sonderregeln
         /// <summary>Was Beamer und Spielleiter waehrend der Frage dazu lesen, etwa „Kopfgeld auf Anna"; leer: nichts.</summary>
         public virtual string Hinweis => string.Empty;
 
+        /// <summary>Unter wem der Spielleiter waehlt, wer antwortet (Experte bei Gleichstand); leer: nichts zu waehlen.</summary>
+        public virtual IReadOnlyList<Guid> Kandidaten => [];
+
+        /// <summary>Der Spielleiter waehlt unter den Kandidaten (E1); <c>false</c>, wenn es keiner ist.</summary>
+        public virtual bool WaehleKandidat(Guid spieler) => false;
+
         /// <summary>Was die Regel beim Oeffnen der Zelle bekam - Kontostaende, Namen, Ausloeser, Anteil.</summary>
         public VorphaseGrundlage Grundlage { get; private set; } = VorphaseGrundlage.Leer;
 
@@ -77,6 +86,7 @@ namespace Quizzer.Views.GameViews.Sonderregeln
             CellSpecialRule.Risk => new RisikoAblauf(),
             CellSpecialRule.Auction => new AuktionAblauf(),
             CellSpecialRule.Bet => new WetteAblauf(),
+            CellSpecialRule.Expert => new ExperteAblauf(),
             _ => null,
         };
 

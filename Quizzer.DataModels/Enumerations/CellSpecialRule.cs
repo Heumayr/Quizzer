@@ -24,5 +24,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Wette (M35 C3b): jeder wettet auf einen Spieler, auch sich; nur dessen „richtig" gewinnt.</summary>
         Bet = 4,
+
+        /// <summary>Experte (M35 C3b): der Meistgewaehlte antwortet allein, seine Waehler gewinnen mit.</summary>
+        Expert = 5,
     }
 }
