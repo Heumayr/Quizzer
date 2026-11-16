@@ -160,6 +160,9 @@ namespace Quizzer.DataModels.Transfer
             public bool ShowTextOnKeySelect { get; set; } = true;
             public StepDisplayLayoutMode StepDisplayLayoutMode { get; set; } = StepDisplayLayoutMode.Vertical;
 
+            /// <summary>Ungeprüfter KI-Entwurf (M32, V04). Fehlt in Bündeln von vor M37 - dann gilt die Frage als geprüft.</summary>
+            public bool KiUngeprueft { get; set; }
+
             /// <summary>
             /// Was nur dieser Fragetyp hat. <c>null</c> bei Typen ohne eigene Felder.
             /// <para>

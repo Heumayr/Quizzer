@@ -145,6 +145,7 @@ namespace Quizzer.DataModels.Transfer
                 BuzzerMaxAllowedKeySelect = frage.BuzzerMaxAllowedKeySelect,
                 ShowTextOnKeySelect = frage.ShowTextOnKeySelect,
                 StepDisplayLayoutMode = frage.StepDisplayLayoutMode,
+                KiUngeprueft = frage.KiUngeprueft,
             };
 
             if (frage is AppreciateQestion schaetz)
@@ -334,6 +335,7 @@ namespace Quizzer.DataModels.Transfer
             frage.BuzzerMaxAllowedKeySelect = daten.BuzzerMaxAllowedKeySelect;
             frage.ShowTextOnKeySelect = daten.ShowTextOnKeySelect;
             frage.StepDisplayLayoutMode = daten.StepDisplayLayoutMode;
+            frage.KiUngeprueft = daten.KiUngeprueft;
 
             if (frage is AppreciateQestion schaetz && daten.Typeigen != null)
             {

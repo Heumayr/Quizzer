@@ -109,36 +109,45 @@ namespace Quizzer.LogicUnitTests.DataModels
                 || typ == typeof(DateTime) || typ == typeof(decimal);
         }
 
-        /// <summary>Ein Wert, der sich vom Standard unterscheidet - damit ein Verlust auffällt.</summary>
-        private static object? AbweichenderWert(Type typ, int streuung)
+        /// <summary>
+        /// Ein Wert ungleich der Vorgabe - damit ein Verlust auffällt. Vorgabe ist der Wert eines frisch gebauten
+        /// Objekts, denn genau den hat der Import, wenn das Feld im Bündel fehlt (V04: ein gestreuter bool traf
+        /// sie zufällig, und <c>KiUngeprueft</c> fehlte unbemerkt).
+        /// </summary>
+        private static object? AbweichenderWert(Type typ, object? vorgabe, int streuung)
         {
             var kern = Nullable.GetUnderlyingType(typ) ?? typ;
+            object? wert = null;
 
-            if (kern == typeof(string)) return "Probe-" + streuung;
-            if (kern == typeof(bool)) return streuung % 2 == 0;
-            if (kern == typeof(int)) return 4200 + streuung;
-            if (kern == typeof(double)) return 3.5 + streuung;
-            if (kern == typeof(decimal)) return 3.5m + streuung;
-            if (kern == typeof(DateTime)) return new DateTime(2001, 2, 3).AddDays(streuung);
-            if (kern == typeof(Guid)) return Guid.NewGuid();
-
-            if (kern.IsEnum)
+            if (kern == typeof(string)) wert = "Probe-" + streuung;
+            else if (kern == typeof(bool)) wert = vorgabe is not true;
+            else if (kern == typeof(int)) wert = 4200 + streuung;
+            else if (kern == typeof(double)) wert = 3.5 + streuung;
+            else if (kern == typeof(decimal)) wert = 3.5m + streuung;
+            else if (kern == typeof(DateTime)) wert = new DateTime(2001, 2, 3).AddDays(streuung);
+            else if (kern == typeof(Guid)) wert = Guid.NewGuid();
+            else if (kern.IsEnum)
             {
-                var werte = Enum.GetValues(kern);
-
-                return werte.GetValue(streuung % werte.Length);
+                var andere = Enum.GetValues(kern).Cast<object>().Where(w => !Equals(w, vorgabe)).ToArray();
+                wert = andere.Length == 0 ? null : andere[streuung % andere.Length];
             }
 
-            return null;
+            return Equals(wert, vorgabe) ? null : wert;
         }
 
-        /// <summary>Füllt jedes gespeicherte Feld mit einem abweichenden Wert.</summary>
+        /// <summary>Was ein frisch gebautes Objekt desselben Typs in diesem Feld trägt.</summary>
+        private static object? Vorgabe(Type typ, PropertyInfo p)
+            => p.GetValue(Activator.CreateInstance(typ));
+
+        /// <summary>Füllt jedes gespeicherte Feld mit einem Wert ungleich seiner Vorgabe.</summary>
         private static void Fuelle(object ziel, ref int streuung)
         {
-            foreach (var p in ziel.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            var typ = ziel.GetType();
+
+            foreach (var p in typ.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                          .Where(IstGespeichertesFeld))
             {
-                var wert = AbweichenderWert(p.PropertyType, streuung++);
+                var wert = AbweichenderWert(p.PropertyType, Vorgabe(typ, p), streuung++);
 
                 if (wert != null)
                     p.SetValue(ziel, wert);
@@ -230,11 +239,6 @@ namespace Quizzer.LogicUnitTests.DataModels
             Fuelle(frage, ref streuung);
             frage.CategoryId = kategorie.Id;
 
-            // Bestandsluecke, nicht Gegenstand von B2: KiUngeprueft (M32) geht nicht ins Buendel und
-            // steht auf keiner Ausnahmeliste; die Probe oben bleibt nur durch einen Zufallswert gruen.
-            // Gemeldet im Bericht M35 B2 - hier auf den Standard gesetzt, nicht als Absicht erklaert.
-            frage.KiUngeprueft = false;
-
             var spiel = new Game { Id = Guid.NewGuid(), Designation = "Probe" };
             spiel.GameGridCoordinates.Add(new GameGridCoordinate { Id = Guid.NewGuid(), QuestionBaseId = frage.Id });
 
@@ -269,6 +273,30 @@ namespace Quizzer.LogicUnitTests.DataModels
             Assert.ThrowsExactly<InvalidDataException>(() => GameExportSerializer.Pruefe(dokument));
         }
 
+        /// <summary>
+        /// V04: ein Bündel von vor M37 kennt <c>KiUngeprueft</c> nicht. Es bleibt lesbar (Format 1, das Feld kam
+        /// dazu, seine Bedeutung blieb), und die Frage gilt als geprüft.
+        /// </summary>
+        [TestMethod]
+        public void ABundleWithoutTheAiFlagStaysReadable()
+        {
+            var kategorie = new Category { Id = Guid.NewGuid(), Designation = "Probe-Kategorie" };
+            var frage = new DefaultQuestion { Id = Guid.NewGuid(), CategoryId = kategorie.Id, Designation = "Alt", KiUngeprueft = true };
+            var dokument = GameExportMapper.ToDocument(new Game { Id = Guid.NewGuid() }, [frage], [kategorie], null, _ => null);
+
+            var knoten = System.Text.Json.Nodes.JsonNode.Parse(GameExportSerializer.ToJson(dokument))!;
+            var fragen = knoten["Fragen"]!.AsArray();
+            Assert.IsTrue(fragen.Single()!.AsObject().Remove(nameof(GameExportDocument.QuestionData.KiUngeprueft)),
+                "Das Feld stand gar nicht im Bündel - dann misst diese Probe kein altes Bündel.");
+
+            using var strom = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(knoten.ToJsonString()));
+            var gelesen = GameExportSerializer.Read(strom);
+
+            Assert.AreEqual(1, gelesen.FormatVersion);
+            Assert.IsFalse(GameExportMapper.ToEntities(gelesen, _ => null).Fragen.Single().KiUngeprueft,
+                "Eine Frage aus einem alten Bündel gilt als ungeprüfter KI-Entwurf.");
+        }
+
         private static void Vergleiche(object original, object kopie, List<string> funde)
         {
             var typ = original.GetType();
@@ -285,7 +313,10 @@ namespace Quizzer.LogicUnitTests.DataModels
                 var a = p.GetValue(original);
                 var b = p.GetValue(kopie);
 
-                if (!Equals(a, b))
+                // Je Eigenschaft: gleicht der Probewert der Vorgabe, bliebe ein Verlust grün (V04).
+                if (Equals(a, Vorgabe(typ, p)))
+                    funde.Add($"{typ.Name}.{p.Name}: der Probewert <{a}> gleicht der Vorgabe - ein Verlust fiele nicht auf");
+                else if (!Equals(a, b))
                     funde.Add($"{typ.Name}.{p.Name}: erwartet <{a}>, im Bündel steht <{b}>");
             }
         }
