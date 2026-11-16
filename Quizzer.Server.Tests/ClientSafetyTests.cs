@@ -9,7 +9,7 @@ namespace Quizzer.Server.Tests
 {
     /// <summary>Die Funde 1 und 4 der Durchsicht vom 2026-10-21, am Client.</summary>
     [TestClass]
-    public sealed class ClientSafetyTests
+    public sealed partial class ClientSafetyTests
     {
         private static async Task<(ClientHarness Client, Guid Me)> SignedInAsync(Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> factory, string name)
         {
@@ -22,7 +22,8 @@ namespace Quizzer.Server.Tests
 
         /// <summary>
         /// Fund 1, zweite Linie: liest der Abgleich gegen eine fremde (leere) Datenbank, sieht es
-        /// aus, als sei alles geloescht. Das darf nicht zum Server.
+        /// aus, als sei alles geloescht. Das darf nicht zum Server. Mit Fragen, nicht mit Kategorien:
+        /// die loescht ein Mitglied am Server ohnehin nicht, und seit V06 zaehlen sie nicht mehr mit.
         /// </summary>
         [TestMethod]
         public async Task AWrongLocalDatabaseDoesNotWipeTheServer()
@@ -31,26 +32,19 @@ namespace Quizzer.Server.Tests
             var (client, me) = await SignedInAsync(factory, "Wipe");
             await using var _ = client;
 
-            await using (var local = client.Local())
-            {
-                for (var i = 0; i < 12; i++)
-                    local.Categories.Add(new Category { Id = Guid.NewGuid(), Designation = "K" + i });
-                await local.SaveChangesAsync();
-            }
-            await client.Sync.PushAsync();
+            var fragen = await OwnQuestionsAsync(client, me, 12, "K");
 
             // Jetzt "zeigt" die lokale Datenbank woanders hin: alles weg.
             await using (var local = client.Local())
             {
+                local.QuestionBases.RemoveRange(local.QuestionBases);
                 local.Categories.RemoveRange(local.Categories);
                 await local.SaveChangesAsync();
             }
 
             await Assert.ThrowsExactlyAsync<SyncSafetyException>(() => client.Sync.PushAsync());
 
-            var snapshot = await client.Api.GetSnapshotAsync();
-            Assert.IsTrue(snapshot.Rows.Count(r => r.Type == nameof(Category) && r.Values["Designation"].GetString()!.StartsWith('K')) >= 12,
-                "Die Kategorien sind am Server noch da.");
+            Assert.AreEqual(12, await OnServerAsync(client, fragen), "Die Fragen sind am Server nicht mehr alle da.");
         }
 
         /// <summary>Ein Spiel mit vielen Zellen zu loeschen ist kein Verdachtsfall.</summary>

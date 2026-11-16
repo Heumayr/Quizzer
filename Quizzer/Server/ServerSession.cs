@@ -82,7 +82,8 @@ namespace Quizzer.Server
         /// Nach erfolgreicher Anmeldung: auf die Zwischendatenbank des Kontos umschalten, sie auf
         /// Stand bringen und alles abholen.
         /// </summary>
-        public static async Task<PullResult> ActivateAsync(QuizzerApiClient api, IProgress<string>? progress)
+        /// <param name="approved">Eine Massenlöschung, die der Nutzer bei der Anmeldung freigegeben hat (V06).</param>
+        public static async Task<PullResult> ActivateAsync(QuizzerApiClient api, IProgress<string>? progress, MassDeletion? approved = null)
         {
             var account = api.Account ?? throw new InvalidOperationException("Nicht angemeldet.");
 
@@ -95,7 +96,7 @@ namespace Quizzer.Server
             Sync = new ClientSyncService(api, () => new SyncStore(cache), new FileSyncStateStore(StatePath(api.BaseAddress, account.AccountId)), Settings.FilePathQuizzer);
 
             progress?.Report("Daten werden vom Server geladen …");
-            var result = await Sync.PullAsync();
+            var result = approved is null ? await Sync.PullAsync() : await Sync.PullApprovedAsync(approved);
 
             await SignInLocallyAsync(account);
             RememberAccount(api.BaseAddress, account);

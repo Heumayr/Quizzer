@@ -28,7 +28,11 @@ namespace Quizzer.Client
     /// Wie viele abgewiesene Aenderungen insgesamt lokal liegen - nicht nur die dieses Pushs. Ein
     /// spaeterer Push ohne Ablehnung meldete sonst „Abgeglichen", obwohl sie still liegen blieben.
     /// </param>
-    public sealed record SyncStatusInfo(SyncStatus Status, DateTimeOffset? LastSuccess, string Message, IReadOnlyList<SyncRejected> Rejected, int Offen = 0);
+    /// <param name="PendingMassDeletion">
+    /// Was die Massenlösch-Sperre aufhält (V06) - ein ausdrücklicher Abgleich fragt danach. Der Hintergrund gibt es nie frei.
+    /// </param>
+    public sealed record SyncStatusInfo(SyncStatus Status, DateTimeOffset? LastSuccess, string Message, IReadOnlyList<SyncRejected> Rejected, int Offen = 0,
+        MassDeletion? PendingMassDeletion = null);
 
     /// <summary>
     /// Schickt Aenderungen nebenher zum Server (M9: „speicherungen werden nebenbei immer an den
@@ -155,8 +159,8 @@ namespace Quizzer.Client
             }
             catch (SyncSafetyException ex)
             {
-                // Kein Wiederholen: derselbe Zustand fuehrte zum selben Ergebnis.
-                SetStatus(SyncStatus.Rejected, ex.Message);
+                // Kein Wiederholen: derselbe Zustand fuehrte zum selben Ergebnis. Und keine Freigabe - fail-closed (V06).
+                SetStatus(SyncStatus.Rejected, ex.Message, massDeletion: ex.MassDeletion);
             }
             catch (Exception ex) when (ex is ServerUnreachableException or IOException)
             {
@@ -205,10 +209,11 @@ namespace Quizzer.Client
             retryDelay = TimeSpan.FromTicks(Math.Min(retryDelay.Ticks * 2, MaxRetry.Ticks));
         }
 
-        private void SetStatus(SyncStatus status, string message, IReadOnlyList<SyncRejected>? rejected = null, bool success = false, int? offen = null)
+        private void SetStatus(SyncStatus status, string message, IReadOnlyList<SyncRejected>? rejected = null, bool success = false, int? offen = null,
+            MassDeletion? massDeletion = null)
         {
             // Ohne Angabe bleibt die Zahl stehen: "Wird übertragen …" laesst die Ablehnungen nicht verschwinden.
-            Status = new SyncStatusInfo(status, success ? DateTimeOffset.Now : Status.LastSuccess, message, rejected ?? [], offen ?? Status.Offen);
+            Status = new SyncStatusInfo(status, success ? DateTimeOffset.Now : Status.LastSuccess, message, rejected ?? [], offen ?? Status.Offen, massDeletion);
             StatusChanged?.Invoke(this, Status);
         }
 

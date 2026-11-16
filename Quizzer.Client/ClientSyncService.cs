@@ -33,7 +33,7 @@ namespace Quizzer.Client
     /// </list>
     /// Abholen und Zurueckschicken laufen nie gleichzeitig.
     /// </summary>
-    public sealed class ClientSyncService(
+    public sealed partial class ClientSyncService(
         QuizzerApiClient api,
         Func<SyncStore> openStore,
         ISyncStateStore stateStore,
@@ -47,7 +47,9 @@ namespace Quizzer.Client
         /// Holt den vollstaendigen Stand und spielt ihn lokal ein. <b>Vorher wird zurueckgeschickt</b>,
         /// was lokal noch offen ist - sonst ueberschriebe das Abholen eigene Aenderungen.
         /// </summary>
-        public async Task<PullResult> PullAsync(CancellationToken ct = default)
+        public Task<PullResult> PullAsync(CancellationToken ct = default) => PullCoreAsync(null, ct);
+
+        private async Task<PullResult> PullCoreAsync(MassDeletion? approved, CancellationToken ct)
         {
             await gate.WaitAsync(ct);
             try
@@ -55,7 +57,7 @@ namespace Quizzer.Client
                 var state = LoadState();
 
                 if (state.Manifest.Count > 0)
-                    await PushCoreAsync(state, ct);
+                    await PushCoreAsync(state, approved, ct);
 
                 var snapshot = await api.GetSnapshotAsync(ct);
                 if (snapshot.FormatVersion != SyncSnapshot.CurrentFormatVersion)
@@ -107,7 +109,7 @@ namespace Quizzer.Client
             try
             {
                 var state = LoadState();
-                return await PushCoreAsync(state, ct);
+                return await PushCoreAsync(state, null, ct);
             }
             finally
             {
@@ -165,7 +167,7 @@ namespace Quizzer.Client
                 var state = LoadState();
                 state.Suppressed.Clear();
                 state.Rejections.Clear();
-                return await PushCoreAsync(state, ct);
+                return await PushCoreAsync(state, null, ct);
             }
             finally
             {
@@ -211,34 +213,14 @@ namespace Quizzer.Client
 
         private const string DeletedMarker = "(gelöscht)";
 
-        /// <summary>
-        /// Ab hier gilt ein Push als verdaechtig: mehr als die Haelfte aller bekannten Zeilen,
-        /// und mindestens so viele, sollen weg. So sieht es aus, wenn der Abgleich gegen die
-        /// falsche lokale Datenbank liest - nicht, wenn jemand aufraeumt (Durchsicht 2026-10-21,
-        /// Fund 1, als zweite Linie).
-        /// </summary>
-        public const int MassDeleteMinimum = 10;
-
-        private async Task<PushResult> PushCoreAsync(SyncState state, CancellationToken ct)
+        private async Task<PushResult> PushCoreAsync(SyncState state, MassDeletion? approved, CancellationToken ct)
         {
             var request = await BuildRequestAsync(state, ct);
 
             if (request.Upserts.Count == 0 && request.Deletes.Count == 0)
                 return PushResult.Nothing;
 
-            // Gezaehlt werden nur Hauptzeilen: ein geloeschtes Spiel nimmt seine Zellen und
-            // Kopfzeilen mit, und die allein machten bei einem kleinen Bestand schnell die
-            // Haelfte aus.
-            var rootDeletes = request.Deletes.Count(d => IsRootType(d.Type));
-            var rootKnown = state.Manifest.Keys.Count(k => IsRootType(k.Type));
-
-            if (rootDeletes >= MassDeleteMinimum && rootDeletes * 2 > rootKnown)
-            {
-                throw new SyncSafetyException(
-                    $"Der Abgleich würde {rootDeletes} von {rootKnown} Einträgen am Server löschen. "
-                    + "Das sieht nach einer falschen lokalen Datenbank aus - es wurde nichts übertragen. "
-                    + "Bitte das Programm neu starten; besteht es weiter, „Vom Server neu laden\".");
-            }
+            GuardMassDelete(request, state, approved);
 
             SyncPushResponse response;
             try
@@ -295,9 +277,6 @@ namespace Quizzer.Client
 
             return new PushResult(response.Accepted.Count, response.Deleted.Count, response.Rejected, uploaded, mediaProblems);
         }
-
-        private static bool IsRootType(string type)
-            => SyncModel.TryGet(type, out var entry) && (entry.Rank <= 2 || entry.Rank == 4);
 
         private async Task<SyncPushResponse> PushOneByOneAsync(SyncPushRequest request, string reason, CancellationToken ct)
         {

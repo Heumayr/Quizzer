@@ -171,7 +171,10 @@ namespace Quizzer.Views
         public ICommand SyncNowCommand => syncNowCommand ??= new AsyncRelayCommand(async _ =>
         {
             if (Server.ServerSession.Background is { } background)
+            {
                 await Task.Run(background.FlushAsync);
+                await GesperrteLoeschungErfragenAsync(background);
+            }
 
             OnPropertyChanged(nameof(SyncStatusText));
         }, _ => !Server.ServerSession.IsOffline);
@@ -197,11 +200,12 @@ namespace Quizzer.Views
 
             try
             {
-                var result = await sync.PullAsync();
+                var result = await Server.MassDeletionPrompt.RunAskingAsync(
+                    gesperrt => gesperrt is null ? sync.PullAsync() : sync.PullApprovedAsync(gesperrt), "Vom Server laden");
                 Server.ServerSession.Background?.Refresh();
                 UserPrompt.Inform($"Geladen: {result.Changed} geänderte, {result.Deleted} entfernte Einträge, {result.MediaDownloaded} neue Medien.", "Vom Server laden");
             }
-            catch (Exception ex) when (ex is Client.ServerUnreachableException or Client.ApiException)
+            catch (Exception ex) when (ex is Client.ServerUnreachableException or Client.ApiException or Client.SyncSafetyException)
             {
                 UserPrompt.Inform(ex.Message, "Vom Server laden");
             }
