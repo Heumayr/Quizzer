@@ -297,16 +297,20 @@ namespace Quizzer.Views.GameViews.Sub
         {
             switch (Suggestion)
             {
+                // Eine Sonderregel (M35 C3) kann das Vorzeichen drehen (Wette verloren, Auktion bezahlt): das
+                // geht als Korrektur ein, gezaehlt wird trotzdem richtig bzw. falsch.
                 case ScoreSuggestion.Right:
-                    if (CurrentScoreManipulation < 0) throw new Exception("Invalid positiv score");
-                    Result.Score += CurrentScoreManipulation;
+                    if (CurrentScoreManipulation < 0 && Grund == null) throw new Exception("Invalid positiv score");
+                    if (CurrentScoreManipulation < 0) Result.Correction += CurrentScoreManipulation;
+                    else Result.Score += CurrentScoreManipulation;
                     Result.RightCount++;
                     break;
 
                 case ScoreSuggestion.Wrong:
-                    if (CurrentScoreManipulation > 0) throw new Exception("Invalid negativ score");
+                    if (CurrentScoreManipulation > 0 && Grund == null) throw new Exception("Invalid negativ score");
                     Result.WrongCount++;
-                    Result.MinusScore += CurrentScoreManipulation * -1;
+                    if (CurrentScoreManipulation > 0) Result.Correction += CurrentScoreManipulation;
+                    else Result.MinusScore += CurrentScoreManipulation * -1;
                     break;
 
                 case ScoreSuggestion.Correction:
@@ -315,7 +319,9 @@ namespace Quizzer.Views.GameViews.Sub
                     break;
             }
 
+            bucht = true;
             Suggestion = ScoreSuggestion.None;
+            bucht = false;
             OnPropertyChanged(nameof(ActualScore));
         }
 

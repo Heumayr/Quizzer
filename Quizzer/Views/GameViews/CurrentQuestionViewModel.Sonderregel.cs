@@ -31,9 +31,28 @@ namespace Quizzer.Views.GameViews
         public ICommand CloseVorphaseCommand
             => closeVorphaseCommand ??= new AsyncRelayCommand(_ => SchliesseVorphaseAsync());
 
-        /// <summary>Was die Regel aus einer Bewertung macht; <c>null</c>: ohne Regel oder ohne Abgabe des Spielers.</summary>
-        internal Punktevorschlag? SonderregelVorschlag(Guid spieler, SonderregelEingang eingang)
-            => sonderregel?.Werte(spieler, eingang);
+        /// <summary>
+        /// Der Schritt nach jeder Bewertung (M35 C3b): die Regel bekommt die Bewertungen <b>aller</b> Karten der
+        /// Zelle und legt je Karte ihren Vorschlag ab (E1) - Wette und Kopfgeld haengen an fremden Bewertungen.
+        /// </summary>
+        internal void WerteSonderregel()
+        {
+            if (sonderregel is not { VorphaseZu: true } regel || PlayersResultViewModel?.PlayerResultContextList is not { } karten)
+                return;
+
+            var eingaenge = karten.Where(k => k.Player != null).ToDictionary(k => k.Player.Id, k => k.SonderregelEingang);
+            var vorschlaege = regel.WerteAlle(eingaenge);
+
+            foreach (var karte in karten.Where(k => k.Player != null))
+                karte.UebernimmSonderregel(vorschlaege.GetValueOrDefault(karte.Player.Id));
+        }
+
+        /// <summary>Setzt die Regel dieser Zelle - aus der Vorphase oder, im Test, von aussen.</summary>
+        internal void SetzeSonderregel(SonderregelAblauf regel)
+        {
+            sonderregel = regel;
+            vorphaseGespielt = true;
+        }
 
         /// <summary>Was der Spieler in der Vorphase abgegeben hat - fuer seine Karte.</summary>
         internal string SonderregelAbgabe(Guid spieler) => sonderregel?.Abgabe(spieler) ?? string.Empty;
@@ -48,8 +67,7 @@ namespace Quizzer.Views.GameViews
                 || !SpecialRuleProfiles.Applies(zelle, Question) || SonderregelAblauf.Fuer(zelle.SpecialRule) is not { } regel)
                 return false;
 
-            sonderregel = regel;
-            vorphaseGespielt = true;
+            SetzeSonderregel(regel);
             VorphaseLaeuft = true;
 
             BuzzerControlsViewModel.SetMinigameInfo(regel.Setup(Grundlage()));
@@ -90,6 +108,9 @@ namespace Quizzer.Views.GameViews
 
             foreach (var karte in PlayersResultViewModel?.PlayerResultContextList ?? [])
                 karte.SonderregelGeaendert();
+
+            // Was schon ohne Bewertung feststeht (eine verlorene Wette), steht gleich auf den Karten.
+            WerteSonderregel();
 
             OnPropertyChanged(nameof(CurrentBuzzerLayout));
             OnPropertyChanged(nameof(MinispielSteuerungVisibility));

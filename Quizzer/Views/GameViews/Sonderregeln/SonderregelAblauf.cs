@@ -49,15 +49,34 @@ namespace Quizzer.Views.GameViews.Sonderregeln
             VorphaseZu = true;
         }
 
-        /// <summary>Was die Regel aus der Bewertung macht; <c>null</c>: sie greift nicht, die Karte bleibt.</summary>
-        public Punktevorschlag? Werte(Guid spieler, SonderregelEingang eingang) => VorphaseZu ? WerteAbgabe(spieler, eingang) : null;
+        /// <summary>
+        /// Was die Regel aus <b>allen</b> Bewertungen der Zelle macht - je Spieler ein Vorschlag; wer fehlt, fuer
+        /// den greift sie nicht. Leer, solange die Vorphase laeuft.
+        /// </summary>
+        public IReadOnlyDictionary<Guid, Punktevorschlag> WerteAlle(IReadOnlyDictionary<Guid, SonderregelEingang> eingaenge)
+            => VorphaseZu ? WerteZelle(eingaenge) : new Dictionary<Guid, Punktevorschlag>();
 
         /// <summary>Die Vorphase dieses Spielers im Klartext - fuer die Spielerkarte; leer, solange sie laeuft.</summary>
         public string Abgabe(Guid spieler) => VorphaseZu ? AbgabeText(spieler) : string.Empty;
 
         protected abstract void Uebernimm(IReadOnlyDictionary<Guid, object> abgaben);
 
-        protected abstract Punktevorschlag? WerteAbgabe(Guid spieler, SonderregelEingang eingang);
+        /// <summary>Je Spieler aus seiner eigenen Abgabe - eine Regel, die an fremden Bewertungen haengt, ueberschreibt das.</summary>
+        protected virtual IReadOnlyDictionary<Guid, Punktevorschlag> WerteZelle(IReadOnlyDictionary<Guid, SonderregelEingang> eingaenge)
+        {
+            var vorschlaege = new Dictionary<Guid, Punktevorschlag>();
+
+            foreach (var (spieler, eingang) in eingaenge)
+            {
+                if (WerteAbgabe(spieler, eingang) is { } vorschlag)
+                    vorschlaege[spieler] = vorschlag;
+            }
+
+            return vorschlaege;
+        }
+
+        /// <summary>Was die Regel aus der eigenen Bewertung macht; <c>null</c>: sie greift nicht.</summary>
+        protected virtual Punktevorschlag? WerteAbgabe(Guid spieler, SonderregelEingang eingang) => null;
 
         protected abstract string AbgabeText(Guid spieler);
     }
