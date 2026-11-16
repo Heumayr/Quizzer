@@ -184,5 +184,30 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
                 Assert.AreEqual(typ, SyncModel.For(typ).ClrType, $"{profil.Typ} fehlt in SyncModel.Entries.");
             }
         }
+
+        /// <summary>
+        /// Je Art das Abgleichformat, mit dem sie kam (M35 C1). Ein altes WPF kennt eine neue Art nicht,
+        /// haelt ihr Layout fuer verbogen und schriebe die Tastenwahl zurueck - also neue Art, neues Format.
+        /// Eine Art ohne Eintrag wird hier rot und erinnert ans Hochzaehlen.
+        /// </summary>
+        [TestMethod]
+        public void EveryMinigameKindHasAFormatThatIsNotAhead()
+        {
+            var seitFormat = new Dictionary<MinigameKind, int>
+            {
+                [MinigameKind.Majority] = 3,
+                [MinigameKind.Reaction] = 4,
+                [MinigameKind.TapSprint] = 5,
+                [MinigameKind.Stopwatch] = 5,
+            };
+
+            var ohne = Enum.GetValues<MinigameKind>().Where(k => !seitFormat.ContainsKey(k)).ToList();
+
+            Assert.AreEqual(0, ohne.Count, "Neue Minispiel-Art ohne Abgleichformat - SyncSnapshot.CurrentFormatVersion "
+                + "hochzaehlen und hier eintragen: " + string.Join(", ", ohne));
+            // Hoeher darf es sein - spaetere Spalten zaehlen ebenfalls hoch.
+            Assert.IsTrue(seitFormat.Values.Max() <= Quizzer.DataModels.Transfer.Sync.SyncSnapshot.CurrentFormatVersion,
+                "Das Abgleichformat liegt hinter der neuesten Minispiel-Art.");
+        }
     }
 }

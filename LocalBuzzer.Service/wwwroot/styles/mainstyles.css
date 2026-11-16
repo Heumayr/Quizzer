@@ -633,8 +633,11 @@ body {
     min-height: 0;
 }
 
-/* Nie nur Farbe: jeder Zustand hat dazu ein Symbol und einen Text (reaktion.js). */
-.reaktion-taste {
+/* Nie nur Farbe: jeder Zustand hat dazu ein Symbol und einen Text (reaktion.js, M35 C1 auch
+   tippsprint.js und stoppuhr.js - dieselbe grosse Taste). */
+.reaktion-taste,
+.tippsprint-taste,
+.stoppuhr-taste {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
@@ -654,12 +657,16 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-.reaktion-symbol {
+.reaktion-symbol,
+.tippsprint-symbol,
+.stoppuhr-symbol {
     font-size: 72px;
     line-height: 1;
 }
 
-.reaktion-text {
+.reaktion-text,
+.tippsprint-text,
+.stoppuhr-text {
     font-size: 30px;
     text-align: center;
     padding: 0 var(--space-md);
@@ -680,6 +687,37 @@ body {
 .reaktion-ergebnis {
     background: var(--secondary);
 }
+
+/* ===== Tippsprint und Stoppuhr (M35 C1) ===== */
+.tippsprint-zahl,
+.stoppuhr-anzeige {
+    font-size: 88px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.tippsprint-aktiv,
+.stoppuhr-sichtbar {
+    background: var(--primary);
+}
+
+.stoppuhr-bereit {
+    background: var(--success);
+}
+
+.stoppuhr-verdeckt {
+    background: #4c1d95;
+}
+
+.tippsprint-ergebnis,
+.stoppuhr-ergebnis {
+    background: var(--secondary);
+}
+
+    .tippsprint-ergebnis .tippsprint-text,
+    .stoppuhr-ergebnis .stoppuhr-text {
+        font-size: 24px;
+    }
 
     .reaktion-ergebnis .reaktion-text {
         font-size: 24px;

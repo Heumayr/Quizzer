@@ -26,9 +26,9 @@ namespace Quizzer.Views.GameViews.QuestionViews
                 QuestionType.Matching => fe.FindResource("MultipleChoiceStepTemplate") as DataTemplate,
                 QuestionType.TrueFalse => fe.FindResource("MultipleChoiceStepTemplate") as DataTemplate,
 
-                // Minispiel: die Reaktion zeigt Runden und Zeiten (M35 B3); die Mehrheit die Optionen
+                // Minispiel: Arten im Rahmen zeigen Runden und Tafel (M35 B3, C1); die Mehrheit die Optionen
                 // im Raster, darueber der Regeltext (B2).
-                QuestionType.Minigame when ctx.IstReaktion => fe.FindResource("ReaktionStepTemplate") as DataTemplate,
+                QuestionType.Minigame when ctx.ZeigtMinispielTafel => fe.FindResource("ReaktionStepTemplate") as DataTemplate,
                 QuestionType.Minigame => fe.FindResource("MultipleChoiceStepTemplate") as DataTemplate,
                 QuestionType.Properties => fe.FindResource("PropertiesStepTemplate") as DataTemplate,
                 QuestionType.Appreciate => fe.FindResource("AppreciateStepTemplate") as DataTemplate,

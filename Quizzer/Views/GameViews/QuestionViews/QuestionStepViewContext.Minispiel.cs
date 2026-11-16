@@ -10,10 +10,16 @@ namespace Quizzer.Views.GameViews.QuestionViews
     /// </summary>
     public partial class QuestionStepViewContext
     {
-        /// <summary>Ob die Frage eine Reaktion ist - dann zeigt der Beamer Runden und Zeiten (M35 B3).</summary>
-        public bool IstReaktion => Question is MinigameQuestion { Kind: DataModels.Enumerations.MinigameKind.Reaction };
+        /// <summary>
+        /// Ob die Art im Minispiel-Rahmen laeuft (Reaktion M35 B3, Tippsprint und Stoppuhr C1) - dann zeigt
+        /// der Beamer Runden und Tafel statt der Optionen.
+        /// </summary>
+        public bool ZeigtMinispielTafel
+            => Question is MinigameQuestion minispiel
+               && MinigameProfiles.TryFor(minispiel.Kind, out var art)
+               && art.Layout == DataModels.Enumerations.BuzzerControlsLayout.Minigame;
 
-        /// <summary>„Runde n von m" und die Zeiten - fuer beide Bildschirme dasselbe Objekt am Owner.</summary>
+        /// <summary>„Runde n von m" und die Tafel - fuer beide Bildschirme dasselbe Objekt am Owner.</summary>
         public Sub.ReaktionAnzeige? Reaktion => Owner?.Reaktion;
 
         /// <summary>Der Regeltext der Art und Spielweise - leer bei allen anderen Typen.</summary>

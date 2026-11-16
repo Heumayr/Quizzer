@@ -9,7 +9,9 @@
 // M35 B3: die Zahlen von MinigameKind, MinigamePhase und ReactionOutcome am Server.
 export const MinigameKinds = Object.freeze({
     Majority: 1,
-    Reaction: 2
+    Reaction: 2,
+    TapSprint: 3,
+    Stopwatch: 4
 });
 
 export const MinigamePhases = Object.freeze({

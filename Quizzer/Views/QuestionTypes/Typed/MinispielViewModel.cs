@@ -80,6 +80,11 @@ namespace Quizzer.Views.QuestionTypes.Typed
 
         public Visibility DauerVisibility => Sichtbar(Art?.ShowDurationSeconds == true);
 
+        /// <summary>„Dauer (Sekunden)" oder, bei der Stoppuhr, „Zielzeit (Sekunden)" - aus dem Profil.</summary>
+        public string DauerBeschriftung => Art?.DurationLabel ?? string.Empty;
+
+        public string DauerErklaerung => Art?.DurationToolTip ?? string.Empty;
+
         public Visibility RundenVisibility => Sichtbar(Art?.ShowRounds == true);
 
         public Visibility AnteilVisibility => Sichtbar(Art?.ShowShare == true);
@@ -132,6 +137,8 @@ namespace Quizzer.Views.QuestionTypes.Typed
             OnPropertyChanged(nameof(Anteil));
             OnPropertyChanged(nameof(VarianteVisibility));
             OnPropertyChanged(nameof(DauerVisibility));
+            OnPropertyChanged(nameof(DauerBeschriftung));
+            OnPropertyChanged(nameof(DauerErklaerung));
             OnPropertyChanged(nameof(RundenVisibility));
             OnPropertyChanged(nameof(AnteilVisibility));
             OnPropertyChanged(nameof(Beschreibung));

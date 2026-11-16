@@ -14,5 +14,11 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Reaktion: rot, nach zufaelliger Wartezeit gruen - wer am schnellsten tippt (M35 B3).</summary>
         Reaction = 2,
+
+        /// <summary>Tippsprint: in der Dauer so oft tippen wie moeglich, Rennen am Beamer (M35 C1).</summary>
+        TapSprint = 3,
+
+        /// <summary>Stoppuhr: Uhr starten, sie verschwindet nach 3 s, bei der Zielzeit stoppen (M35 C1).</summary>
+        Stopwatch = 4,
     }
 }

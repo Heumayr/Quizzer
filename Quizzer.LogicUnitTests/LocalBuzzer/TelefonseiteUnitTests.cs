@@ -138,5 +138,19 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// </summary>
         [TestMethod]
         public void TheReactionModuleMeasuresOnThePhone() => LaufeMit("reaktion.test.mjs");
+
+        /// <summary>
+        /// M35 C1: Tippsprint - gezaehlt am Telefon, Zwischenstaende im Takt, Endstand nach der Dauer,
+        /// nie ueber 20 Tipps je Sekunde, Weiterzaehlen nach dem Wiederverbinden.
+        /// </summary>
+        [TestMethod]
+        public void TheTapSprintCountsOnThePhone() => LaufeMit("tippsprint.test.mjs");
+
+        /// <summary>
+        /// M35 C1: Stoppuhr - Start durch den Spieler, 3 s sichtbar, dann verdeckt; gemessen ab dem
+        /// eigenen Start, Aufgeben ueber der Grenze.
+        /// </summary>
+        [TestMethod]
+        public void TheStopwatchMeasuresOnThePhone() => LaufeMit("stoppuhr.test.mjs");
     }
 }

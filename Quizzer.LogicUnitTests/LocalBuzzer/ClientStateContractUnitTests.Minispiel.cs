@@ -30,6 +30,8 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         [DataRow(typeof(MinigameClientInfo), "rahmen.js", "serverInfo")]
         [DataRow(typeof(ReactionClientInfo), "reaktion.js", "artInfo")]
+        [DataRow(typeof(TapSprintClientInfo), "tippsprint.js", "artInfo")]
+        [DataRow(typeof(StopwatchClientInfo), "stoppuhr.js", "artInfo")]
         public void TheMinigameModulesReadExactlyTheFieldsTheServerSends(Type typ, string datei, string variable)
         {
             var skript = ReadScript("minispiele", datei);
@@ -51,6 +53,8 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         [DataRow(typeof(MinigameAction), "rahmen.js")]
         [DataRow(typeof(ReactionPayload), "reaktion.js")]
+        [DataRow(typeof(TapSprintPayload), "tippsprint.js")]
+        [DataRow(typeof(StopwatchPayload), "stoppuhr.js")]
         public void ThePhoneSendsTheFieldsTheServerReads(Type typ, string datei)
         {
             var skript = ReadScript("minispiele", datei);
@@ -60,6 +64,26 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             Assert.AreEqual(0, fehlend.Count,
                 $"{typ.Name} erwartet, aber {datei} schickt es nie - der Server liest den Standardwert: "
                 + string.Join(", ", fehlend));
+        }
+
+        /// <summary>
+        /// Jede Art, die im Telefonrahmen laeuft, hat dort ein Modul (M35 C1) - sonst zeigt das Telefon
+        /// „kennt das Telefon noch nicht", und kein Test ausser dem echten Handy merkt es.
+        /// </summary>
+        [TestMethod]
+        public void EveryFrameKindHasAPhoneModule()
+        {
+            var rahmen = ReadScript("minispiele", "rahmen.js");
+            var registriert = Regex.Matches(rahmen, @"\[MinigameKinds\.(\w+)\s*,").Select(m => m.Groups[1].Value).ToList();
+
+            var erwartet = MinigameProfiles.All
+                .Where(p => p.Layout == BuzzerControlsLayout.Minigame)
+                .Select(p => p.Kind.ToString())
+                .ToList();
+
+            Assert.IsTrue(erwartet.Count > 0, "Keine Art im Telefonrahmen - die Zusicherung waere immer gruen.");
+            CollectionAssert.AreEquivalent(erwartet, registriert,
+                "rahmen.js kennt nicht genau die Arten des Telefonrahmens: " + string.Join(", ", registriert));
         }
 
         /// <summary>Die Zahlen der Aufzaehlungen stehen in <c>constants.js</c> noch einmal - Name fuer Name gleich.</summary>

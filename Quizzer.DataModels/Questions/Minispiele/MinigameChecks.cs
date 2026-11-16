@@ -17,6 +17,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         public const string TooFewOptions = "minigame-too-few-options";
         public const string TooFewPlayers = "minigame-too-few-players";
         public const string RoundsOutOfRange = "minigame-rounds-out-of-range";
+        public const string DurationOutOfRange = "minigame-duration-out-of-range";
 
         /// <summary>Prueft den Inhalt: bekannte Art, bekannte Spielweise, genug Zeilen.</summary>
         public static IEnumerable<ValidationIssue> Content(MinigameQuestion frage)
@@ -40,6 +41,12 @@ namespace Quizzer.DataModels.Questions.Minispiele
                 yield return new(RoundsOutOfRange, ValidationSeverity.Error,
                     $"Minispiel {art.DisplayName}: 1 bis {MinigameProfile.MaxRounds} Runden, eingetragen "
                     + $"sind {frage.Rounds}.", nameof(frage.Rounds));
+
+            if (art.ShowDurationSeconds
+                && (frage.DurationSeconds < art.MinDurationSeconds || frage.DurationSeconds > art.MaxDurationSeconds))
+                yield return new(DurationOutOfRange, ValidationSeverity.Error,
+                    $"Minispiel {art.DisplayName}: {art.DurationLabel} {art.MinDurationSeconds} bis "
+                    + $"{art.MaxDurationSeconds}, eingetragen sind {frage.DurationSeconds}.", nameof(frage.DurationSeconds));
 
             var zeilen = (frage.Steps ?? []).Count(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly);
 

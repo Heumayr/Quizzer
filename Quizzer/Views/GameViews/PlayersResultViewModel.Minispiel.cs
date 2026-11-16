@@ -45,6 +45,20 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(MehrheitErgebnis));
         }
 
+        /// <summary>Tippsprint (M35 C1): meiste Tipps „richtig", sonst keiner, nie Minus (E1).</summary>
+        internal void WerteTippsprint(TippsprintErgebnis ergebnis)
+        {
+            foreach (var ctx in PlayerResultContextList)
+                ctx.UebernimmTippsprint(ergebnis);
+        }
+
+        /// <summary>Stoppuhr (M35 C1): naechste an der Zielzeit „richtig", sonst keiner, nie Minus (E1).</summary>
+        internal void WerteStoppuhr(StoppuhrErgebnis ergebnis)
+        {
+            foreach (var ctx in PlayerResultContextList)
+                ctx.UebernimmStoppuhr(ergebnis);
+        }
+
         /// <summary>Verteilt die Vorschlaege der Reaktion: beste Zeit „richtig", sonst keiner, nie Minus (E1).</summary>
         internal void WerteReaktion(ReaktionErgebnis ergebnis)
         {

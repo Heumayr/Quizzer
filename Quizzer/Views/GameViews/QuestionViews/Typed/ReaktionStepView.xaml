@@ -4,13 +4,19 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Quizzer.Views.GameViews.QuestionViews.Typed"
+             xmlns:base="clr-namespace:Quizzer.Base"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
 
     <!--
         Minispiel Reaktion (M35 B3) am Beamer und beim Spielleiter: Regeltext, „Runde n von m",
-        danach die Zeiten. Der Sieger traegt Symbol und Text, nie nur eine Farbe.
+        danach die Zeiten. Der Sieger traegt Symbol und Text, nie nur eine Farbe. Tippsprint und
+        Stoppuhr (M35 C1) nutzen dieselbe Tafel; das Rennen des Tippsprints zeigt dazu Balken, die
+        Zahl steht immer daneben.
     -->
+    <UserControl.Resources>
+        <base:BoolToVisibilityConverter x:Key="BalkenSichtbar" />
+    </UserControl.Resources>
     <Grid ClipToBounds="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -45,14 +51,24 @@
                         <Grid Margin="0,4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="240" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" MinWidth="240" />
                                 <ColumnDefinition Width="220" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="40" Foreground="WhiteSmoke"
                                        TextTrimming="CharacterEllipsis" />
-                            <TextBlock Grid.Column="1" Text="{Binding Zeit}" FontSize="40" FontWeight="Bold"
+                            <Border Grid.Column="1" Width="300" Height="32" Margin="12,0" CornerRadius="6"
+                                    Background="#40FFFFFF" VerticalAlignment="Center"
+                                    Visibility="{Binding HatBalken, Converter={StaticResource BalkenSichtbar}}">
+                                <Rectangle Fill="DeepSkyBlue" RadiusX="6" RadiusY="6" RenderTransformOrigin="0,0.5">
+                                    <Rectangle.RenderTransform>
+                                        <ScaleTransform ScaleX="{Binding BalkenAnteil}" />
+                                    </Rectangle.RenderTransform>
+                                </Rectangle>
+                            </Border>
+                            <TextBlock Grid.Column="2" Text="{Binding Zeit}" FontSize="40" FontWeight="Bold"
                                        Foreground="WhiteSmoke" TextAlignment="Right" />
-                            <TextBlock Grid.Column="2" Text="{Binding SiegerText}" FontSize="40" FontWeight="Bold"
+                            <TextBlock Grid.Column="3" Text="{Binding SiegerText}" FontSize="40" FontWeight="Bold"
                                        Foreground="Gold" TextAlignment="Right" />
                         </Grid>
                     </DataTemplate>

@@ -119,5 +119,33 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
             StringAssert.Contains(mehrheit.Zeilenhinweis, "nicht gespielt");
             Assert.IsNotNull(vm2);
         }
+
+        /// <summary>
+        /// M35 C1: Tippsprint und Stoppuhr fragen nach Sekunden statt Runden; dieselbe Spalte heisst bei der
+        /// Stoppuhr „Zielzeit". Ausserhalb der Grenzen nicht speicherbar.
+        /// </summary>
+        [TestMethod]
+        [DataRow(MinigameKind.TapSprint, "Dauer (Sekunden)", 2)]
+        [DataRow(MinigameKind.Stopwatch, "Zielzeit (Sekunden)", 4)]
+        public void TheTimedKindsAskForSecondsNamedByTheKind(MinigameKind art, string beschriftung, int zuKurz)
+        {
+            var (vm, maske) = Neu();
+
+            maske.Art = MinigameProfiles.For(art);
+            var frage = (MinigameQuestion)vm.Question!;
+
+            Assert.AreEqual(BuzzerControlsLayout.Minigame, frage.BuzzerControlsLayout, "Der Wechsel der Art stellt das Telefon nicht um.");
+            Assert.AreEqual(Visibility.Visible, maske.DauerVisibility, "Die Sekunden sind nicht einstellbar.");
+            Assert.AreEqual(Visibility.Collapsed, maske.RundenVisibility, "Eine Art mit einer Runde fragt nach Runden.");
+            Assert.AreEqual(beschriftung, maske.DauerBeschriftung);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(maske.DauerErklaerung), "Das Feld hat keine Erklaerung.");
+            StringAssert.Contains(maske.Regelzeile, $"{frage.DurationSeconds} Sekunden", "Am Beamer fehlt die Zahl.");
+            Assert.IsTrue(vm.CanSave, "Mit den Vorgaben nicht speicherbar. Offen: "
+                + string.Join(" | ", vm.Issues.Where(i => i.IsError).Select(i => i.Code)));
+
+            maske.Dauer = zuKurz;
+            Assert.AreEqual(zuKurz, frage.DurationSeconds);
+            Assert.IsFalse(vm.CanSave, $"{zuKurz} Sekunden sind speicherbar.");
+        }
     }
 }

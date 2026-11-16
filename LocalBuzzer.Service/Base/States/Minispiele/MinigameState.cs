@@ -74,6 +74,8 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
                 rules = neu.Kind switch
                 {
                     MinigameKind.Reaction => new ReactionRules((a, b) => Zufall(a, b), NameVon),
+                    MinigameKind.TapSprint => new TapSprintRules(neu.DurationSeconds, NameVon),
+                    MinigameKind.Stopwatch => new StopwatchRules(neu.DurationSeconds, NameVon),
                     _ => null,
                 };
                 ClearLocked();

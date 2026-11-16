@@ -27,8 +27,9 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Margin="5,3" Visibility="{Binding DauerVisibility}">
-                    <Label Content="Dauer (Sekunden)" MinWidth="150" VerticalAlignment="Center"
-                           ToolTip="Wie lange eine Runde läuft." />
+                    <!-- Die Art deutet den Wert: die Stoppuhr liest ihn als Zielzeit (M35 C1). -->
+                    <Label Content="{Binding DauerBeschriftung}" MinWidth="150" VerticalAlignment="Center"
+                           ToolTip="{Binding DauerErklaerung}" />
                     <TextBox MinWidth="120" VerticalContentAlignment="Center"
                              Text="{Binding Dauer, UpdateSourceTrigger=LostFocus}" />
                 </StackPanel>

@@ -58,6 +58,17 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
         public int DefaultDurationSeconds { get; init; } = 30;
 
+        /// <summary>Wie die Maske <see cref="MinigameQuestion.DurationSeconds"/> nennt - die Stoppuhr liest sie als Zielzeit (M35 C1).</summary>
+        public string DurationLabel { get; init; } = "Dauer (Sekunden)";
+
+        /// <summary>Die Erklaerung dazu in der Maske.</summary>
+        public string DurationToolTip { get; init; } = "Wie lange eine Runde läuft.";
+
+        /// <summary>Kuerzeste und laengste erlaubte Dauer, wo die Art eine liest - geprueft von <see cref="MinigameChecks"/>.</summary>
+        public int MinDurationSeconds { get; init; } = 1;
+
+        public int MaxDurationSeconds { get; init; } = 600;
+
         public int DefaultRounds { get; init; } = 1;
 
         public int DefaultShare { get; init; } = 100;

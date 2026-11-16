@@ -25,7 +25,7 @@ namespace Quizzer.UnitTests.Views.GameViews
     /// Toene, Wiederholen und Abbrechen (E1) - und die Probetelefone (V1).
     /// </summary>
     [TestClass]
-    public class ReaktionSpielleiterUnitTests
+    public partial class ReaktionSpielleiterUnitTests
     {
         private const int Port = 5413;
 
@@ -86,13 +86,17 @@ namespace Quizzer.UnitTests.Views.GameViews
             }
         }
 
-        private async Task<TestableCurrentQuestionViewModel> OeffneReaktionAsync(int runden)
+        private Task<TestableCurrentQuestionViewModel> OeffneReaktionAsync(int runden)
+            => OeffneMinispielAsync(MinigameKind.Reaction, f => f.Rounds = runden);
+
+        /// <summary>Server, zwei verbundene Telefone und das Fragefenster - fuer jede Art im Rahmen (M35 C1).</summary>
+        private async Task<TestableCurrentQuestionViewModel> OeffneMinispielAsync(MinigameKind art, Action<MinigameQuestion> einstellen)
         {
             world = await TestGameBuilder.CreateAsync(QuestionType.Minigame, normalStepCount: 2, playerCount: 2,
                 adjustQuestion: f =>
                 {
-                    MinigameProfiles.For(MinigameKind.Reaction).ApplyDefaults((MinigameQuestion)f);
-                    ((MinigameQuestion)f).Rounds = runden;
+                    MinigameProfiles.For(art).ApplyDefaults((MinigameQuestion)f);
+                    einstellen((MinigameQuestion)f);
                 });
 
             serverVm = StaticManager.BuzzerServerViewModel;
@@ -123,10 +127,10 @@ namespace Quizzer.UnitTests.Views.GameViews
                 $"{player.Designation} ist nicht verbunden.");
         }
 
-        private Task AbgebenAsync(int telefon, object payload)
+        private Task AbgebenAsync(int telefon, object payload, MinigameKind art = MinigameKind.Reaction)
             => phones[telefon].InvokeAsync("SpielAktion", new
             {
-                kind = (int)MinigameKind.Reaction,
+                kind = (int)art,
                 durchgang = serverVm!.BuzzerControlsViewModel!.MinigameState!.Durchgang,
                 payload,
             });

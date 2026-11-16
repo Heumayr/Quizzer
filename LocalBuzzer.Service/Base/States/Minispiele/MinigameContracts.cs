@@ -86,7 +86,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         int Round, int TotalRounds, bool Finished, bool Aborted, IReadOnlyDictionary<Guid, object> Submissions);
 
     /// <summary>Was die Spielleiterseite vor der ersten Runde einstellt.</summary>
-    public sealed record MinigameSetup(MinigameKind Kind, string Title, string RulesText, int TotalRounds, int CountdownSeconds = 3);
+    /// <param name="DurationSeconds">Dauer des Tippsprints bzw. Zielzeit der Stoppuhr (M35 C1); sonst ungenutzt.</param>
+    public sealed record MinigameSetup(
+        MinigameKind Kind, string Title, string RulesText, int TotalRounds, int CountdownSeconds = 3, int DurationSeconds = 0);
 
     /// <summary>
     /// Die Regeln einer Art am Server: was eine gueltige Abgabe ist und was ein Spieler sieht. Der

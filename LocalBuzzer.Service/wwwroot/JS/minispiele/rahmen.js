@@ -1,12 +1,16 @@
 import { MinigameKinds, MinigamePhases } from "../constants.js";
 import { ReaktionModul } from "./reaktion.js";
+import { TippsprintModul } from "./tippsprint.js";
+import { StoppuhrModul } from "./stoppuhr.js";
 
 // Der Rahmen der Minispiele am Telefon (M35 B3): Ueberschrift, Runde n von m, Warten,
 // Countdown und Ergebnis. Was eine Art ausmacht, steckt in ihrem Modul unter minispiele/.
 // Abgegeben wird ueber den einen Hub-Eingang SpielAktion: { kind, durchgang, payload }.
 
 const MODULE = new Map([
-    [MinigameKinds.Reaction, (optionen) => new ReaktionModul(optionen)]
+    [MinigameKinds.Reaction, (optionen) => new ReaktionModul(optionen)],
+    [MinigameKinds.TapSprint, (optionen) => new TippsprintModul(optionen)],
+    [MinigameKinds.Stopwatch, (optionen) => new StoppuhrModul(optionen)]
 ]);
 
 export function rundenText(serverInfo) {

@@ -1,12 +1,17 @@
 namespace Quizzer.DataModels.Questions.Minispiele
 {
-    /// <summary>Eine Zeile der Zeitentafel am Beamer.</summary>
+    /// <summary>Eine Zeile der Tafel am Beamer - Reaktion, Tippsprint und Stoppuhr (M35 C1) teilen sie.</summary>
     /// <param name="Name">Der Spieler.</param>
-    /// <param name="Zeit">Seine Zeit im Klartext oder warum er keine hat.</param>
+    /// <param name="Zeit">Sein Wert im Klartext oder warum er keinen hat.</param>
     /// <param name="Sieger">Ob er gewonnen hat - am Beamer mit Symbol und Text, nie nur Farbe.</param>
-    public sealed record ReaktionTafelZeile(string Name, string Zeit, bool Sieger)
+    /// <param name="Balken">Anteil 0..1 fuer das Rennen des Tippsprints; <c>null</c> = kein Balken.</param>
+    public sealed record ReaktionTafelZeile(string Name, string Zeit, bool Sieger, double? Balken = null)
     {
         public string SiegerText => Sieger ? "★ Sieger" : string.Empty;
+
+        public bool HatBalken => Balken.HasValue;
+
+        public double BalkenAnteil => Math.Clamp(Balken ?? 0, 0, 1);
     }
 
     /// <summary>

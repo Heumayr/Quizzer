@@ -7,7 +7,8 @@ namespace Quizzer.Logic.Demo
 {
     /// <summary>
     /// Die Minispiele der Typenschau (M35 B2) - eigene Teildatei, weil die Typenschau sonst ueber die
-    /// Groessen-Obergrenze wuechse. Mehrheit und Reaktion im Raster, die Minderheit im Vorrat (B3).
+    /// Groessen-Obergrenze wuechse. Mehrheit und Reaktion im Raster; Minderheit (B3), Tippsprint und
+    /// Stoppuhr (C1) im Vorrat - das Raster hat zwei Zeilen.
     /// </summary>
     public static partial class DemoDataSeeder
     {
@@ -20,23 +21,31 @@ namespace Quizzer.Logic.Demo
                 "Was isst die Runde lieber?", variante: 0,
                 ["Pizza", "Pasta", "Sushi", "Schnitzel"]);
 
-            yield return Reaktion(kat, "Typenschau: Reaktion", "MIN-3", 200, Difficulty.Level2,
-                "Wer ist am schnellsten? Erst bei Grün tippen!");
+            yield return OhneZeilen(kat, "Typenschau: Reaktion", "MIN-3", 200, Difficulty.Level2,
+                "Wer ist am schnellsten? Erst bei Grün tippen!", MinigameKind.Reaction);
 
             // Nur im Vorrat: das Raster hat zwei Zeilen (TypenschauZeilen), die Reaktion hat die zweite.
             yield return Mehrheit(kat, "Typenschau: Minderheit", "MIN-2", 200, Difficulty.Level2,
                 "Wohin ginge die Runde am liebsten? (Hier gewinnt die kleinste Gruppe.)",
                 variante: MehrheitEvaluator.MinorityVariant,
                 ["Berge", "Meer", "Stadt"]);
+
+            // M35 C1, ebenfalls nur im Vorrat.
+            yield return OhneZeilen(kat, "Typenschau: Tippsprint", "MIN-4", 200, Difficulty.Level2,
+                "Wer tippt am häufigsten? Zehn Sekunden, so schnell ihr könnt!", MinigameKind.TapSprint);
+
+            yield return OhneZeilen(kat, "Typenschau: Stoppuhr", "MIN-5", 200, Difficulty.Level2,
+                "Wer hat das beste Zeitgefühl? Stoppt nach genau zehn Sekunden!", MinigameKind.Stopwatch);
         }
 
-        /// <summary>Reaktion (M35 B3): keine Zeilen, nur Art und Runden - der Rest passiert am Telefon.</summary>
-        private static QuestionBase Reaktion(
-            Guid kategorieId, string bezeichnung, string kurz, int punkte, Difficulty stufe, string frageText)
+        /// <summary>Arten im Telefonrahmen (Reaktion B3, Tippsprint und Stoppuhr C1): keine Zeilen, nur Art und Parameter.</summary>
+        private static QuestionBase OhneZeilen(
+            Guid kategorieId, string bezeichnung, string kurz, int punkte, Difficulty stufe, string frageText,
+            MinigameKind art)
         {
             var frage = new MinigameQuestion();
             Grunddaten(frage, kategorieId, bezeichnung, kurz, punkte, stufe);
-            MinigameProfiles.For(MinigameKind.Reaction).ApplyDefaults(frage);
+            MinigameProfiles.For(art).ApplyDefaults(frage);
             frage.MinusPoints = 0;
             frage.QuestionText = frageText;
 

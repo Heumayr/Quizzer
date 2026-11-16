@@ -61,9 +61,13 @@ namespace Quizzer.Views.BuzzerViews
         {
             try
             {
-                TrackInput(abgabe.Player.Id, abgabe.Value is ReactionAttempt versuch
-                    ? ReaktionEvaluator.Describe(versuch)
-                    : "abgegeben");
+                TrackInput(abgabe.Player.Id, abgabe.Value switch
+                {
+                    ReactionAttempt versuch => ReaktionEvaluator.Describe(versuch),
+                    TippsprintStand stand => TippsprintEvaluator.Describe(stand.Tipps),
+                    StoppuhrVersuch stopp => StoppuhrEvaluator.Describe(stopp),
+                    _ => "abgegeben",
+                });
 
                 await RunOnUiAsync(async () =>
                 {

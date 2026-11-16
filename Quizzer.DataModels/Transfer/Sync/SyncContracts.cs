@@ -38,8 +38,9 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// 3: Fragetyp Minispiel - Zeilentyp MinigameQuestion (M35 B2); ein altes WPF kennt ihn nicht.
         /// 4: Minispiel-Art Reaktion (M35 B3) - neue Werte in Kind und BuzzerControlsLayout. Keine Spalte,
         ///    aber ein altes WPF haelt die Frage fuer verbogen, und seine Reparatur schriebe Tastenwahl zurueck.
+        /// 5: Minispiel-Arten Tippsprint und Stoppuhr (M35 C1) - derselbe Grund wie bei 4.
         /// </summary>
-        public const int CurrentFormatVersion = 4;
+        public const int CurrentFormatVersion = 5;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

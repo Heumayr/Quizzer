@@ -17,7 +17,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
     /// </summary>
     [TestClass]
     [DoNotParallelize]
-    public class MinispielHubUnitTests
+    public partial class MinispielHubUnitTests
     {
         private const int TestPort = 5411;
 

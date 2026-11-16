@@ -78,16 +78,30 @@ namespace Quizzer.DataModels.Questions
             ArgumentNullException.ThrowIfNull(question);
             ArgumentNullException.ThrowIfNull(guesses);
 
-            var expected = ExpectedInBaseUnit(question);
+            var gelesen = guesses.Select(pair => (pair.Key, pair.Value ?? string.Empty,
+                ParseGuess(pair.Value, question.ValueKind, question.Unit)));
 
-            var evaluated = guesses.Select(pair =>
+            return Rank(gelesen, ExpectedInBaseUnit(question));
+        }
+
+        /// <summary>
+        /// Die Abstandswertung ohne das Lesen: kleinster Abstand zum Sollwert gewinnt, Gleichstand alle,
+        /// ohne Wert ausser Wertung. Geteilt mit der Stoppuhr (M35 C1), die schon Zahlen hat.
+        /// </summary>
+        /// <param name="values">Je Spieler die Eingabe im Klartext und der Wert, <c>null</c> = ausser Wertung.</param>
+        /// <param name="expected">Der Sollwert in derselben Einheit wie die Werte.</param>
+        public static AppreciateOutcome Rank(
+            IEnumerable<(Guid PlayerId, string RawInput, double? Value)> values, double? expected)
+        {
+            ArgumentNullException.ThrowIfNull(values);
+
+            var evaluated = values.Select(v =>
             {
-                var value = ParseGuess(pair.Value, question.ValueKind, question.Unit);
-                var distance = value.HasValue && expected.HasValue
-                    ? Math.Abs(value.Value - expected.Value)
+                var distance = v.Value.HasValue && expected.HasValue
+                    ? Math.Abs(v.Value.Value - expected.Value)
                     : (double?)null;
 
-                return new AppreciateGuess(pair.Key, pair.Value ?? string.Empty, value, distance, false);
+                return new AppreciateGuess(v.PlayerId, v.RawInput, v.Value, distance, false);
             }).ToList();
 
             var best = evaluated
