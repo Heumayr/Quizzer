@@ -32,7 +32,8 @@ export const SpecialRules = Object.freeze({
     Auction: 3,
     Bet: 4,
     Expert: 5,
-    Alliance: 6
+    Alliance: 6,
+    Bounty: 7
 });
 
 export const ReactionOutcomes = Object.freeze({

@@ -94,6 +94,14 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
                 "Wer das Feld aufgedeckt hat, wählt am Telefon einen Partner. Nur die beiden antworten. Sind beide "
                 + "richtig, bekommen beide die vollen Punkte – sonst gibt es für beide kein Plus, ein Minus bleibt. Hat "
                 + "niemand das Feld aufgedeckt, gibt es keine Allianz."),
+            new(CellSpecialRule.Bounty, "Kopfgeld",
+                "Auf den Führenden ist ein Kopfgeld ausgesetzt – er wird am Beamer genannt. Antwortet ein anderer "
+                + $"richtig und der Führende nicht, nimmt er ihm {SharePlaceholder} % der Feldpunkte ab, jeder Jäger "
+                + "für sich. Sind alle gleichauf, entfällt das Kopfgeld.")
+            {
+                DefaultShare = 50,
+                HasPrePhase = false,
+            },
         ];
 
         private static string AuktionText(string preis)

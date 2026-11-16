@@ -46,8 +46,9 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// 10: Sonderregel Wette (M35 C3b) - derselbe Grund wie bei 9.
         /// 11: Sonderregel Experte (M35 C3b) - derselbe Grund wie bei 9.
         /// 12: Sonderregel Allianz (M35 C3b) - derselbe Grund wie bei 9.
+        /// 13: Sonderregel Kopfgeld (M35 C3b) - derselbe Grund wie bei 9.
         /// </summary>
-        public const int CurrentFormatVersion = 12;
+        public const int CurrentFormatVersion = 13;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

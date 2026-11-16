@@ -30,5 +30,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Allianz (M35 C3b): der Ausloeser waehlt einen Partner, nur die beiden antworten.</summary>
         Alliance = 6,
+
+        /// <summary>Kopfgeld (M35 C3b), ohne Vorphase: wer den Fuehrenden richtig ueberholt, nimmt ihm den Anteil ab.</summary>
+        Bounty = 7,
     }
 }

@@ -50,7 +50,8 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
                 .Select(m => m.Groups[1].Value)
                 .ToList();
 
-            var erwartet = SpecialRuleProfiles.All.Select(p => p.Rule.ToString()).ToList();
+            // Eine Regel ohne Vorphase (Kopfgeld, M35 C3b) braucht kein Modul - und darf keins haben, das nie kommt.
+            var erwartet = SpecialRuleProfiles.All.Where(p => p.HasPrePhase).Select(p => p.Rule.ToString()).ToList();
 
             Assert.IsTrue(erwartet.Count > 0, "Keine Sonderregel - die Zusicherung waere immer gruen.");
             CollectionAssert.AreEquivalent(erwartet, registriert,
