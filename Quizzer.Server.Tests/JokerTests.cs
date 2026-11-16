@@ -191,6 +191,30 @@ namespace Quizzer.Server.Tests
             Assert.AreEqual(0, result.Rejected.Count, string.Join("; ", result.Rejected.Select(r => r.Message)));
         }
 
+        /// <summary>Mitspieler heißt: in DIESEM Spiel - ein Platz in einem anderen Spiel derselben Spielleiterin zählt nicht.</summary>
+        [TestMethod]
+        public async Task ASeatInAnotherGameDoesNotCount()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var abend = await AbendAsync(factory);
+            var zweites = SyncTestData.NewGame("Zweiter Abend");
+            var push = zweites.AsNewPush();
+            push.Upserts.Add(SyncTestData.New(new PlayerXGame { Id = Guid.NewGuid(), GameId = zweites.Game.Id, PlayerId = abend.GustavId }));
+            Assert.AreEqual(0, (await PushAsync(abend.Gina, push)).Rejected.Count, "Das zweite Spiel wurde nicht angelegt.");
+
+            var amServer = Joker(abend, abend.GustavId);
+            var imPush = Joker(abend, abend.MalloryId);
+            var fremderPlatz = new PlayerXGame { Id = Guid.NewGuid(), GameId = zweites.Game.Id, PlayerId = abend.MalloryId };
+
+            var result = await PushAsync(abend.Gina, new SyncPushRequest
+            {
+                Upserts = [SyncTestData.New(fremderPlatz), SyncTestData.New(amServer), SyncTestData.New(imPush)],
+            });
+
+            AssertForbidden(result, amServer.Id, "Ein Platz in einem anderen Spiel (am Server) zählte als Mitspieler.");
+            AssertForbidden(result, imPush.Id, "Ein Platz in einem anderen Spiel (im selben Push) zählte als Mitspieler.");
+        }
+
         [TestMethod]
         public async Task ABlockAgainstSomeoneWhoDoesNotPlayIsForbidden()
         {
