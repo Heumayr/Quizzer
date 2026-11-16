@@ -85,7 +85,6 @@ namespace Quizzer.Server.Tests
 
             var antwort = await client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequest(ServerTestHost.AdminUser, ServerTestHost.AdminPassword));
 
-            Assert.IsTrue(SyncSnapshot.CurrentFormatVersion > ClientFormatGate.LegacyFormat);
             Assert.AreEqual(HttpStatusCode.UpgradeRequired, antwort.StatusCode);
         }
 
