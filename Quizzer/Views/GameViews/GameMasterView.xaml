@@ -81,6 +81,11 @@
                     <TextBlock Style="{StaticResource SectionHeader}" Text="Telefone" Margin="0,18,0,4" />
                     <Button Content="Buzzer-Server öffnen" Command="{Binding BuzzerServerCommand}"
                             ToolTip="Startet den Server, zu dem sich die Telefone verbinden, und zeigt die QR-Codes." />
+
+                    <!-- M35 C7a: Joker von Hand, mit Grund -->
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Joker" Margin="0,18,0,4" />
+                    <Button Content="Joker vergeben …" Command="{Binding JokerCommand}"
+                            ToolTip="Einem Mitspieler einen Joker geben, seine Joker sehen und einen offenen zurücknehmen." />
                 </StackPanel>
             </ScrollViewer>
         </Border>
