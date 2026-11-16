@@ -199,7 +199,7 @@ namespace Quizzer.Server.Sync
             if (denied != null && !account.IsAdmin)
                 return denied;
 
-            return await CheckCoherenceAsync(row, ct);
+            return await CheckCoherenceAsync(row, serverEntity, ct);
         }
 
         private async Task<string?> CheckUpsertCoreAsync(SyncRow row, object? serverEntity, CancellationToken ct)
