@@ -73,6 +73,7 @@ namespace LocalBuzzer.Service.Base.States.Sonderregeln
             CellSpecialRule.Auction => new AuctionRules(setup),
             CellSpecialRule.Bet => new BetRules(setup, kontext),
             CellSpecialRule.Expert => new ExpertRules(kontext),
+            CellSpecialRule.Alliance => new AllianceRules(setup, kontext),
             _ => null,
         };
     }

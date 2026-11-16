@@ -87,6 +87,7 @@ namespace Quizzer.Views.GameViews.Sonderregeln
             CellSpecialRule.Auction => new AuktionAblauf(),
             CellSpecialRule.Bet => new WetteAblauf(),
             CellSpecialRule.Expert => new ExperteAblauf(),
+            CellSpecialRule.Alliance => new AllianzAblauf(),
             _ => null,
         };
 

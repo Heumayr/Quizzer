@@ -90,6 +90,10 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
             {
                 DefaultShare = 25,
             },
+            new(CellSpecialRule.Alliance, "Allianz",
+                "Wer das Feld aufgedeckt hat, wählt am Telefon einen Partner. Nur die beiden antworten. Sind beide "
+                + "richtig, bekommen beide die vollen Punkte – sonst gibt es für beide kein Plus, ein Minus bleibt. Hat "
+                + "niemand das Feld aufgedeckt, gibt es keine Allianz."),
         ];
 
         private static string AuktionText(string preis)

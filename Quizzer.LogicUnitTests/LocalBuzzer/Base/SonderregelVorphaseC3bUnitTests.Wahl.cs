@@ -47,5 +47,35 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             Assert.IsTrue(Gib(anna, new { chosen = bert.Id }, CellSpecialRule.Expert).Accepted);
             Assert.IsNull(Info<ChoiceClientInfo>(bert).OwnChoice, "Bert sieht Annas Wahl.");
         }
+
+        // --- Allianz ---
+
+        [TestMethod]
+        public void OnlyTheTriggerChoosesAPartnerAndTheOthersWatch()
+        {
+            Starte(CellSpecialRule.Alliance, ausloeser: anna.Id);
+
+            Assert.IsTrue(zustand.IsLockedFor(bert), "Bert darf waehlen, obwohl Anna das Feld aufdeckte.");
+            StringAssert.Contains(((MinigameClientInfo)zustand.InfoFor(bert)).WatcherText, "Anna", "Die Zuschauer erfahren nicht, wer waehlt.");
+            Assert.AreEqual(0, Info<ChoiceClientInfo>(bert).Options.Count, "Ein Zuschauer bekommt Tasten.");
+            Assert.AreEqual(2, Info<ChoiceClientInfo>(anna).Options.Count, "Der Ausloeser bekommt nicht genau die anderen.");
+
+            Assert.IsFalse(Gib(bert, new { chosen = clara.Id }, CellSpecialRule.Alliance).Accepted, "Ein Zuschauer hat gewaehlt.");
+            Assert.IsFalse(Gib(anna, new { chosen = anna.Id }, CellSpecialRule.Alliance).Accepted, "Der Ausloeser hat sich selbst gewaehlt.");
+
+            var zu = Gib(anna, new { chosen = bert.Id }, CellSpecialRule.Alliance).Closed;
+            Assert.IsNotNull(zu, "Nach der Wahl des Ausloesers ist die Vorphase nicht zu.");
+            Assert.AreEqual(bert.Id, zu.Submissions[anna.Id]);
+        }
+
+        [TestMethod]
+        public void WithoutATriggerAmongThePlayersNobodyChooses()
+        {
+            Starte(CellSpecialRule.Alliance, ausloeser: Guid.NewGuid());
+
+            Assert.IsTrue(zustand.IsLockedFor(anna) && zustand.IsLockedFor(bert), "Ohne Ausloeser darf jemand waehlen.");
+            StringAssert.Contains(((MinigameClientInfo)zustand.InfoFor(anna)).WatcherText, "keine Allianz");
+            Assert.IsFalse(Gib(anna, new { chosen = bert.Id }, CellSpecialRule.Alliance).Accepted, "Ohne Ausloeser angenommen.");
+        }
     }
 }

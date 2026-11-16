@@ -27,5 +27,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Experte (M35 C3b): der Meistgewaehlte antwortet allein, seine Waehler gewinnen mit.</summary>
         Expert = 5,
+
+        /// <summary>Allianz (M35 C3b): der Ausloeser waehlt einen Partner, nur die beiden antworten.</summary>
+        Alliance = 6,
     }
 }

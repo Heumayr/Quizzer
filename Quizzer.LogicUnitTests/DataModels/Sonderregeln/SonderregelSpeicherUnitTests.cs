@@ -117,8 +117,8 @@ namespace Quizzer.LogicUnitTests.DataModels.Sonderregeln
         [TestMethod]
         public void ShareAndVariantCameWithFormat8()
         {
-            if (SyncSnapshot.CurrentFormatVersion < 8)
-                Assert.Fail("Neue Spalten ohne neues Abgleichformat.");
+            var format = SyncSnapshot.CurrentFormatVersion;
+            Assert.IsTrue(format >= 8, "Neue Spalten ohne neues Abgleichformat.");
         }
 
         [TestMethod]
@@ -149,6 +149,7 @@ namespace Quizzer.LogicUnitTests.DataModels.Sonderregeln
                 [CellSpecialRule.Auction] = 9,
                 [CellSpecialRule.Bet] = 10,
                 [CellSpecialRule.Expert] = 11,
+                [CellSpecialRule.Alliance] = 12,
             };
 
             var ohne = Enum.GetValues<CellSpecialRule>().Where(r => !seitFormat.ContainsKey(r)).ToList();

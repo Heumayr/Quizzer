@@ -29,7 +29,8 @@ const SONDERREGELN = new Map([
     [SpecialRules.Risk, () => new RisikoModul()],
     [SpecialRules.Auction, () => new AuktionModul()],
     [SpecialRules.Bet, () => new WahlModul()],
-    [SpecialRules.Expert, () => new WahlModul()]
+    [SpecialRules.Expert, () => new WahlModul()],
+    [SpecialRules.Alliance, () => new WahlModul()]
 ]);
 
 export function rundenText(serverInfo) {
