@@ -3,3 +3,5 @@ certs/
 backups/
 logs/
 .env.pruef
+pakete/
+.pruef-totp

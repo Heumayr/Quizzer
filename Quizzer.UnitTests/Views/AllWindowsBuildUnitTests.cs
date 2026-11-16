@@ -50,6 +50,7 @@ namespace Quizzer.UnitTests.Views
             typeof(Quizzer.Views.GameViews.GamePlayersView),
             typeof(Quizzer.Server.AccountsView),
             typeof(Quizzer.Server.ChangePasswordView),
+            typeof(Quizzer.Server.TwoFactorView),
             typeof(Quizzer.Server.ServerLoginView),
             typeof(Quizzer.Server.StatisticsView),
             typeof(Quizzer.Server.SyncRejectionsView),

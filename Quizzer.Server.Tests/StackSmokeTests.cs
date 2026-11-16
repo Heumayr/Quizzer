@@ -7,6 +7,7 @@ using Quizzer.DataModels.Questions;
 using Quizzer.Logic.Context;
 using Quizzer.Logic.Demo;
 using Quizzer.Logic.Sync;
+using Quizzer.Server.Auth;
 
 namespace Quizzer.Server.Tests
 {
@@ -46,8 +47,9 @@ namespace Quizzer.Server.Tests
             var pc = await ClientAsync("E2EPC", basis, pin);
             var laptop = await ClientAsync("E2ELaptop", basis, pin);
 
-            await pc.Api.LoginAsync(user, password);
-            await laptop.Api.LoginAsync(user, password);
+            var totp = new StackTotp(Environment.GetEnvironmentVariable("QUIZZER_E2E_TOTP_FILE"));
+            await totp.SignInAsync(pc.Api, user, password);
+            await totp.SignInAsync(laptop.Api, user, password);
 
             await pc.Sync.PullAsync();
 
@@ -127,6 +129,56 @@ namespace Quizzer.Server.Tests
             var sync = new ClientSyncService(api, () => new SyncStore(builder.ConnectionString), new MemorySyncStateStore(), media);
 
             return new Client(builder.ConnectionString, media, api, sync);
+        }
+
+        /// <summary>
+        /// Admin-Konten brauchen seit M36 A5 Zwei-Faktor. Mit QUIZZER_E2E_TOTP_FILE richtet der Rauchtest
+        /// es beim ersten Lauf selbst ein und legt das Geheimnis dort ab - nur fuer den Pruefstapel.
+        /// </summary>
+        private sealed class StackTotp(string? datei)
+        {
+            // Zeile 1: Geheimnis (Base32), Zeile 2: zuletzt benutzter Zeitschritt - auch ueber Laeufe hinweg,
+            // sonst traefe ein schneller zweiter Lauf denselben Schritt (gemessen 2026-11-16).
+            private readonly string[] gespeichert = datei != null && File.Exists(datei) ? File.ReadAllLines(datei) : [];
+
+            private string? GeheimnisText { get; set; }
+
+            private long letzterSchritt = -1;
+
+            public async Task SignInAsync(QuizzerApiClient api, string user, string password)
+            {
+                if (GeheimnisText == null && gespeichert.Length > 0)
+                {
+                    GeheimnisText = gespeichert[0];
+                    letzterSchritt = gespeichert.Length > 1 ? long.Parse(gespeichert[1], System.Globalization.CultureInfo.InvariantCulture) : -1;
+                }
+
+                if (GeheimnisText != null)
+                {
+                    await api.LoginAsync(user, password, await NaechsterCodeAsync());
+                    return;
+                }
+
+                await api.LoginAsync(user, password);
+                if (datei == null)
+                    return;
+
+                GeheimnisText = (await api.BeginTotpSetupAsync()).Secret;
+                await api.ConfirmTotpAsync(await NaechsterCodeAsync());
+            }
+
+            /// <summary>Derselbe Zeitschritt zweimal ist eine Wiederholung - der Server weist sie ab.</summary>
+            private async Task<string> NaechsterCodeAsync()
+            {
+                while (Totp.StepAt(DateTimeOffset.UtcNow) <= letzterSchritt)
+                    await Task.Delay(1000);
+
+                letzterSchritt = Totp.StepAt(DateTimeOffset.UtcNow);
+                if (datei != null)
+                    File.WriteAllLines(datei, [GeheimnisText!, letzterSchritt.ToString(System.Globalization.CultureInfo.InvariantCulture)]);
+
+                return Totp.Code(Totp.FromBase32(GeheimnisText!), letzterSchritt);
+            }
         }
     }
 }

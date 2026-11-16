@@ -38,6 +38,7 @@ namespace Quizzer.Server.Auth
                 new(JwtRegisteredClaimNames.Name, account.UserName),
                 new(CurrentAccount.PlayerIdClaim, account.PlayerId.ToString()),
                 new(CurrentAccount.RoleClaim, account.Role.ToString()),
+                new(CurrentAccount.TotpClaim, account.TotpEnabled ? "true" : "false"),
                 new("player_name", playerName),
             };
 

@@ -11,6 +11,12 @@ namespace Quizzer.Client
     /// <summary>Die Sitzung ist abgelaufen oder widerrufen - neu anmelden.</summary>
     public sealed class SessionExpiredException(string message) : ApiException(HttpStatusCode.Unauthorized, message);
 
+    /// <summary>Das Kennwort stimmt, das Konto verlangt aber einen Code aus der Authenticator-App (M36 A5).</summary>
+    public sealed class TotpRequiredException(string message) : ApiException(HttpStatusCode.Unauthorized, message);
+
+    /// <summary>Admin-Konto ohne Zwei-Faktor-Anmeldung: der Server erlaubt nur die Einrichtung.</summary>
+    public sealed class TotpSetupRequiredException(string message) : ApiException(HttpStatusCode.Forbidden, message);
+
     /// <summary>Der Server ist nicht erreichbar (Netz, Zertifikat, Zeitueberschreitung).</summary>
     public sealed class ServerUnreachableException(string message, Exception inner) : Exception(message, inner);
 

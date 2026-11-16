@@ -4,9 +4,12 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Quizzer.DataModels;
 using Quizzer.DataModels.Transfer.Server;
 using Quizzer.Logic.Context;
+using Quizzer.Server.Auth;
+using Quizzer.Server.Infrastructure;
 using System.Net.Http.Json;
 
 [assembly: DoNotParallelize]
@@ -32,8 +35,21 @@ namespace Quizzer.Server.Tests
 
         public static string MediaRoot { get; private set; } = string.Empty;
 
+        /// <summary>
+        /// Die TOTP-Uhr aller Server im Lauf (M36 A5). Jeder Code ruft sie einen Schritt weiter -
+        /// so kommt der Wiederholschutz nie versehentlich in die Quere, und die Ausweise bleiben
+        /// auf der echten Uhr.
+        /// </summary>
+        public static ManualTimeProvider TotpTime { get; } = new(DateTimeOffset.UtcNow);
+
+        /// <summary>Der Bootstrap-Admin hat TOTP eingerichtet - fuer Admins ist es Pflicht.</summary>
+        public static byte[] AdminTotpSecret { get; private set; } = [];
+
+        /// <summary>Fuer Server mit anderem Signierschluessel: dort ist das TOTP-Geheimnis unlesbar.</summary>
+        public static Queue<string> AdminRecoveryCodes { get; } = new();
+
         [AssemblyInitialize]
-        public static void Init(TestContext _)
+        public static async Task Init(TestContext _)
         {
             ConnectionString = Environment.GetEnvironmentVariable("QUIZZER_SERVER_TEST_SQL")
                 ?? @"Data Source=(localdb)\MSSQLLocalDB;Database=Quizzer_Server_Tests;Integrated Security=True";
@@ -52,6 +68,44 @@ namespace Quizzer.Server.Tests
 
             MediaRoot = Path.Combine(Path.GetTempPath(), "quizzer-server-tests-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(MediaRoot);
+
+            await using var factory = CreateFactory();
+            var first = await factory.CreateClient().PostAsJsonAsync("/api/v1/auth/login", new LoginRequest(AdminUser, AdminPassword));
+            Assert.AreEqual(System.Net.HttpStatusCode.OK, first.StatusCode, await first.Content.ReadAsStringAsync());
+            var tokens = (await first.Content.ReadFromJsonAsync<TokenResponse>())!;
+            var (secret, confirmed) = await EnableTotpAsync(Authorized(factory, tokens));
+            AdminTotpSecret = secret;
+            foreach (var code in confirmed.RecoveryCodes)
+                AdminRecoveryCodes.Enqueue(code);
+        }
+
+        /// <summary>Anmeldung des Bootstrap-Admins mit einem Wiederherstellungscode statt TOTP.</summary>
+        public static async Task<HttpClient> AdminWithRecoveryCodeAsync(WebApplicationFactory<Program> factory)
+        {
+            var response = await factory.CreateClient().PostAsJsonAsync("/api/v1/auth/login", new LoginRequest(AdminUser, AdminPassword, AdminRecoveryCodes.Dequeue()));
+            Assert.AreEqual(System.Net.HttpStatusCode.OK, response.StatusCode, await response.Content.ReadAsStringAsync());
+            return Authorized(factory, (await response.Content.ReadFromJsonAsync<TokenResponse>())!);
+        }
+
+        /// <summary>Der Code des naechsten Zeitschritts - die Uhr ruckt dabei einen Schritt weiter.</summary>
+        public static string NextCode(byte[] secret)
+        {
+            TotpTime.Advance(TimeSpan.FromSeconds(Totp.StepSeconds));
+            return Totp.Code(secret, Totp.StepAt(TotpTime.GetUtcNow()));
+        }
+
+        public static string NextAdminCode() => NextCode(AdminTotpSecret);
+
+        /// <summary>Einrichten und bestaetigen ueber die API, wie es das WPF tut.</summary>
+        public static async Task<(byte[] Secret, TotpConfirmResponse Confirmed)> EnableTotpAsync(HttpClient authorized)
+        {
+            var setup = await authorized.PostAsync("/api/v1/me/totp/setup", null);
+            Assert.AreEqual(System.Net.HttpStatusCode.OK, setup.StatusCode, await setup.Content.ReadAsStringAsync());
+            var secret = Totp.FromBase32((await setup.Content.ReadFromJsonAsync<TotpSetupResponse>())!.Secret);
+
+            var confirm = await authorized.PostAsJsonAsync("/api/v1/me/totp/confirm", new TotpConfirmRequest(NextCode(secret)));
+            Assert.AreEqual(System.Net.HttpStatusCode.OK, confirm.StatusCode, await confirm.Content.ReadAsStringAsync());
+            return (secret, (await confirm.Content.ReadFromJsonAsync<TotpConfirmResponse>())!);
         }
 
         [AssemblyCleanup]
@@ -79,13 +133,18 @@ namespace Quizzer.Server.Tests
                 if (extra != null)
                     web.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(extra));
 
-                if (services != null)
-                    web.ConfigureTestServices(services);
+                web.ConfigureTestServices(s =>
+                {
+                    s.AddKeyedSingleton<TimeProvider>(ServerSetup.TotpClockKey, TotpTime);
+                    services?.Invoke(s);
+                });
             });
 
+        /// <summary>Fuer den Bootstrap-Admin kommt der TOTP-Code von selbst mit.</summary>
         public static async Task<TokenResponse> LoginAsync(HttpClient client, string user, string password)
         {
-            var response = await client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequest(user, password));
+            var code = user == AdminUser && AdminTotpSecret.Length > 0 ? NextAdminCode() : null;
+            var response = await client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequest(user, password, code));
             Assert.AreEqual(System.Net.HttpStatusCode.OK, response.StatusCode, await response.Content.ReadAsStringAsync());
             return (await response.Content.ReadFromJsonAsync<TokenResponse>())!;
         }
@@ -111,5 +170,15 @@ namespace Quizzer.Server.Tests
             var tokens = await LoginAsync(factory.CreateClient(), userName, password);
             return (Authorized(factory, tokens), tokens);
         }
+    }
+
+    /// <summary>Eine Uhr, die nur auf Zuruf weitergeht.</summary>
+    public sealed class ManualTimeProvider(DateTimeOffset start) : TimeProvider
+    {
+        private DateTimeOffset now = start;
+
+        public override DateTimeOffset GetUtcNow() => now;
+
+        public void Advance(TimeSpan by) => now += by;
     }
 }

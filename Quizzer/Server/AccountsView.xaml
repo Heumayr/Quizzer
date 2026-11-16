@@ -31,6 +31,11 @@
                         ToolTip="Nur ein Admin verwaltet Konten und sieht alle Spiele." />
             </StackPanel>
 
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0">
+                <Button Content="Zwei-Faktor zurücksetzen" Command="{Binding ResetTotpCommand}" Padding="10,4"
+                        ToolTip="Für ein verlorenes Handy: schaltet die Zwei-Faktor-Anmeldung des gewählten Kontos ab und beendet seine Sitzungen." />
+            </StackPanel>
+
             <DataGrid ItemsSource="{Binding Accounts}" SelectedItem="{Binding Selected, Mode=TwoWay}"
                       AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True">
                 <DataGrid.Columns>
@@ -38,6 +43,7 @@
                     <DataGridTextColumn Header="Mitspieler" Binding="{Binding PlayerName}" Width="*" />
                     <DataGridTextColumn Header="Rolle" Binding="{Binding Role}" Width="Auto" />
                     <DataGridCheckBoxColumn Header="Gesperrt" Binding="{Binding IsDisabled}" Width="Auto" />
+                    <DataGridCheckBoxColumn Header="Zwei-Faktor" Binding="{Binding TotpEnabled}" Width="Auto" />
                     <DataGridTextColumn Header="Zuletzt angemeldet" Binding="{Binding LastLoginAt, StringFormat=g}" Width="Auto" />
                 </DataGrid.Columns>
             </DataGrid>

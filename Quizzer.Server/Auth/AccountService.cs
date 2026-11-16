@@ -14,16 +14,22 @@ namespace Quizzer.Server.Auth
     /// Anmelden, Erneuern, Abmelden und die Kontenverwaltung. Jede Methode oeffnet ihren eigenen
     /// <see cref="DataContext"/> - der Server haelt keinen Zustand zwischen zwei Anfragen.
     /// </summary>
-    public sealed class AccountService(TokenService tokens, IOptions<ServerOptions> options, TimeProvider time, ILogger<AccountService> log)
+    public sealed class AccountService(TokenService tokens, TwoFactorService twoFactor, IOptions<ServerOptions> options, TimeProvider time, ILogger<AccountService> log)
     {
         private readonly ServerOptions settings = options.Value;
 
+        /// <summary>Ausweise, oder warum nicht: <see cref="TotpRequired"/> nur bei richtigem Kennwort ohne Code.</summary>
+        public sealed record LoginResult(TokenResponse? Tokens, bool TotpRequired = false)
+        {
+            public static readonly LoginResult Failed = new(Tokens: null);
+        }
+
         /// <summary>
-        /// Prueft Name und Kennwort. Jeder Fehlausgang - unbekannter Name, falsches Kennwort,
-        /// gesperrt, deaktiviert - liefert <c>null</c>, damit die Antwort nichts verraet
+        /// Prueft Name, Kennwort und - wo eingeschaltet - den Code. Jeder Fehlausgang (unbekannter
+        /// Name, falsches Kennwort, falscher Code, gesperrt, deaktiviert) sieht gleich aus
         /// (standards-sicherheit A07: eine Meldung fuer alle Fehlausgaenge).
         /// </summary>
-        public async Task<TokenResponse?> LoginAsync(string? userName, string? password, CancellationToken ct)
+        public async Task<LoginResult> LoginAsync(string? userName, string? password, string? totpCode, CancellationToken ct)
         {
             var now = time.GetUtcNow();
             await using var context = new DataContext();
@@ -37,29 +43,27 @@ namespace Quizzer.Server.Auth
                 // Gleich viel Arbeit wie bei einem echten Konto, damit die Laufzeit nicht verraet,
                 // ob es den Namen gibt.
                 Session.HashPassword(password ?? "x");
-                return null;
+                return LoginResult.Failed;
             }
 
             if (account.IsDisabled || (account.LockedUntil is { } until && until > now))
             {
                 log.LogWarning("Anmeldung abgewiesen (gesperrt oder deaktiviert): Konto {AccountId}", account.Id);
-                return null;
+                return LoginResult.Failed;
             }
 
             if (!VerifyPassword(account.PasswordHash, password))
+                return await CountFailureAsync(context, account, now, ct);
+
+            if (account.TotpEnabled)
             {
-                account.FailedLoginCount++;
+                // Ohne Code: nachfragen, aber die Fehlerzaehlung NICHT zuruecksetzen - sonst liesse
+                // sich die Sperre mit abwechselnden Anfragen umgehen.
+                if (string.IsNullOrWhiteSpace(totpCode))
+                    return new LoginResult(null, TotpRequired: true);
 
-                if (account.FailedLoginCount >= settings.LockoutThreshold)
-                {
-                    account.LockedUntil = now + settings.LockoutDuration;
-                    account.FailedLoginCount = 0;
-                    log.LogWarning("Konto {AccountId} nach zu vielen Fehlversuchen kurz gesperrt", account.Id);
-                }
-
-                await context.SaveChangesAsync(ct);
-                log.LogInformation("Anmeldung fehlgeschlagen: Konto {AccountId}", account.Id);
-                return null;
+                if (!await twoFactor.VerifyAsync(context, account, totpCode, ct))
+                    return await CountFailureAsync(context, account, now, ct);
             }
 
             account.FailedLoginCount = 0;
@@ -70,7 +74,24 @@ namespace Quizzer.Server.Auth
             await context.SaveChangesAsync(ct);
 
             log.LogInformation("Anmeldung erfolgreich: Konto {AccountId}", account.Id);
-            return response;
+            return new LoginResult(response);
+        }
+
+        /// <summary>Ein falsches Kennwort oder ein falscher Code - beides zaehlt zur Sperre.</summary>
+        private async Task<LoginResult> CountFailureAsync(DataContext context, Account account, DateTimeOffset now, CancellationToken ct)
+        {
+            account.FailedLoginCount++;
+
+            if (account.FailedLoginCount >= settings.LockoutThreshold)
+            {
+                account.LockedUntil = now + settings.LockoutDuration;
+                account.FailedLoginCount = 0;
+                log.LogWarning("Konto {AccountId} nach zu vielen Fehlversuchen kurz gesperrt", account.Id);
+            }
+
+            await context.SaveChangesAsync(ct);
+            log.LogInformation("Anmeldung fehlgeschlagen: Konto {AccountId}", account.Id);
+            return LoginResult.Failed;
         }
 
         /// <summary>
@@ -158,32 +179,71 @@ namespace Quizzer.Server.Auth
         }
 
         /// <summary>
-        /// Ob das Konto noch gilt - und noch die Rolle hat, die im Ausweis steht. Wird bei jedem
-        /// Ausweis geprueft: ein herabgestufter Admin verliert die Rechte sofort, nicht erst, wenn
-        /// sein Ausweis ablaeuft (Durchsicht 2026-10-21, Fund 10).
+        /// Ob das Konto noch gilt - mit Rolle und TOTP-Stand aus dem Ausweis. Wird bei jedem Ausweis
+        /// geprueft: ein herabgestufter Admin verliert die Rechte sofort, nicht erst, wenn sein
+        /// Ausweis ablaeuft (Durchsicht 2026-10-21, Fund 10; TOTP seit M36 A5).
         /// </summary>
-        public async Task<bool> IsActiveAsync(Guid accountId, AccountRole role, CancellationToken ct)
+        public async Task<bool> IsActiveAsync(Guid accountId, AccountRole role, bool totpEnabled, CancellationToken ct)
         {
             await using var context = new DataContext();
-            return await context.Accounts.AsNoTracking().AnyAsync(a => a.Id == accountId && !a.IsDisabled && a.Role == role, ct);
+            return await context.Accounts.AsNoTracking()
+                .AnyAsync(a => a.Id == accountId && !a.IsDisabled && a.Role == role && a.TotpEnabled == totpEnabled, ct);
         }
 
-        public async Task<string?> ChangePasswordAsync(Guid accountId, ChangePasswordRequest request, CancellationToken ct)
+        /// <summary>
+        /// Aendert das Kennwort und beendet alle Sitzungen. Der Aufrufer bekommt neue Ausweise -
+        /// mit TOTP gelaenge ein erneutes Anmelden nicht ohne Code.
+        /// </summary>
+        public async Task<(string? Error, TokenResponse? Tokens)> ChangePasswordAsync(Guid accountId, ChangePasswordRequest request, CancellationToken ct)
         {
             await using var context = new DataContext();
-            var account = await context.Accounts.FirstOrDefaultAsync(a => a.Id == accountId, ct);
+            var account = await context.Accounts.Include(a => a.Player).FirstOrDefaultAsync(a => a.Id == accountId, ct);
 
             if (account == null || !VerifyPassword(account.PasswordHash, request.CurrentPassword))
-                return "Das bisherige Kennwort stimmt nicht.";
+                return ("Das bisherige Kennwort stimmt nicht.", null);
 
             var problem = CheckPassword(request.NewPassword, account.UserName);
             if (problem != null)
-                return problem;
+                return (problem, null);
 
+            var now = time.GetUtcNow();
             account.PasswordHash = Session.HashPassword(request.NewPassword);
-            await RevokeAllAsync(context, account.Id, time.GetUtcNow(), ct);
+            await RevokeAllAsync(context, account.Id, now, ct);
+            var tokens = await IssueAsync(context, account, Guid.NewGuid(), now, ct);
             await context.SaveChangesAsync(ct);
-            return null;
+            return (null, tokens);
+        }
+
+        /// <summary>
+        /// Schaltet die begonnene Einrichtung mit einem Code ein. Alle Sitzungen enden; der Aufrufer
+        /// bekommt neue Ausweise mit dem TOTP-Stand und die Wiederherstellungscodes.
+        /// </summary>
+        public async Task<(string? Error, TotpConfirmResponse? Result)> ConfirmTotpAsync(Guid accountId, string? code, CancellationToken ct)
+        {
+            var now = time.GetUtcNow();
+            await using var context = new DataContext();
+            var account = await context.Accounts.Include(a => a.Player).FirstOrDefaultAsync(a => a.Id == accountId, ct);
+
+            if (account == null)
+                return ("Dieses Konto gibt es nicht mehr.", null);
+
+            var (error, codes) = await twoFactor.ActivateAsync(context, account, code, ct);
+            if (error != null)
+                return (error, null);
+
+            await RevokeAllAsync(context, account.Id, now, ct);
+            var tokens = await IssueAsync(context, account, Guid.NewGuid(), now, ct);
+
+            try
+            {
+                await context.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return ("Das Konto wurde gerade anderswo geändert. Bitte die Einrichtung neu beginnen.", null);
+            }
+
+            return (null, new TotpConfirmResponse(codes!, tokens));
         }
 
         public async Task<List<AccountListItem>> ListAsync(CancellationToken ct)
@@ -193,7 +253,7 @@ namespace Quizzer.Server.Auth
                 .OrderBy(a => a.UserName)
                 .Select(a => new AccountListItem(a.Id, a.UserName, a.Role, a.PlayerId,
                     a.Player.DisplayName != "" ? a.Player.DisplayName : a.Player.Designation,
-                    a.IsDisabled, a.CreatedAt, a.LastLoginAt))
+                    a.IsDisabled, a.CreatedAt, a.LastLoginAt, a.TotpEnabled))
                 .ToListAsync(ct);
         }
 
@@ -332,7 +392,7 @@ namespace Quizzer.Server.Auth
             "administrator", "123456123456", "abcdefghijkl", "abc123abc123",
         };
 
-        private static bool VerifyPassword(string hash, string? password)
+        internal static bool VerifyPassword(string hash, string? password)
         {
             // Session.VerifyPassword laesst einen leeren Hash durch (lokale Spielleiter ohne
             // Kennwort). Ein Konto ohne Hash ist dagegen kaputt und darf nie hinein.
@@ -362,7 +422,7 @@ namespace Quizzer.Server.Auth
             });
 
             return new TokenResponse(access, accessExpires, refresh, refreshExpires,
-                new AccountInfo(account.Id, account.UserName, account.Role, account.PlayerId, playerName));
+                new AccountInfo(account.Id, account.UserName, account.Role, account.PlayerId, playerName, account.TotpEnabled));
         }
 
         private static async Task RevokeFamilyAsync(DataContext context, Guid familyId, DateTimeOffset now, CancellationToken ct)
@@ -371,13 +431,13 @@ namespace Quizzer.Server.Auth
             family.ForEach(t => t.RevokedAt = now);
         }
 
-        private static async Task RevokeAllAsync(DataContext context, Guid accountId, DateTimeOffset now, CancellationToken ct)
+        internal static async Task RevokeAllAsync(DataContext context, Guid accountId, DateTimeOffset now, CancellationToken ct)
         {
             var all = await context.RefreshTokens.Where(t => t.AccountId == accountId && t.RevokedAt == null).ToListAsync(ct);
             all.ForEach(t => t.RevokedAt = now);
         }
 
         private static AccountInfo ToInfo(Account account)
-            => new(account.Id, account.UserName, account.Role, account.PlayerId, account.Player.CalculatedDisplayName);
+            => new(account.Id, account.UserName, account.Role, account.PlayerId, account.Player.CalculatedDisplayName, account.TotpEnabled);
     }
 }

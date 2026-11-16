@@ -17,6 +17,7 @@ Set-Location $PSScriptRoot
 $projekt = 'quizzer-pruef'
 $envDatei = '.env.pruef'
 $port = 8544
+$totpDatei = Join-Path $PSScriptRoot '.pruef-totp'
 
 function Compose([string[]]$weitere) {
     docker compose -p $projekt --env-file $envDatei -f docker-compose.yml -f docker-compose.pruef.yml @weitere
@@ -48,7 +49,10 @@ function Anmeldeversuche([string]$von, [string]$cfIp, [int]$anzahl) {
 switch ($Befehl) {
     'up' { Compose @('up', '-d', '--build') }
     'down' { Compose @('down') }
-    'weg' { Compose @('down', '-v') }
+    'weg' {
+        Compose @('down', '-v')
+        Remove-Item -Force -ErrorAction SilentlyContinue $totpDatei
+    }
     'status' {
         Compose @('ps')
         curl.exe -sk "$adresse/api/v1/version"
@@ -78,6 +82,8 @@ switch ($Befehl) {
         $env:QUIZZER_E2E_USER = Wert 'QUIZZER_ADMIN_USER'
         $env:QUIZZER_E2E_PASSWORD = Wert 'QUIZZER_ADMIN_PASSWORD'
         $env:QUIZZER_E2E_PIN = (Get-Content certs/server.sha256 -Raw).Trim()
+        # Der Admin braucht seit M36 A5 Zwei-Faktor; der Rauchtest richtet es beim ersten Lauf ein.
+        $env:QUIZZER_E2E_TOTP_FILE = $totpDatei
         dotnet test ../Quizzer.Server.Tests --filter StackSmoke
     }
 }

@@ -159,6 +159,13 @@ namespace Quizzer.Views
             _ => new Server.ChangePasswordView().ShowDialog(),
             _ => !Server.ServerSession.IsOffline);
 
+        private RelayCommand? twoFactorCommand;
+
+        /// <summary>M36 A5: Zwei-Faktor-Anmeldung einrichten oder abschalten - fuer Admins Pflicht.</summary>
+        public ICommand TwoFactorCommand => twoFactorCommand ??= new RelayCommand(
+            _ => new Server.TwoFactorView().ShowDialog(),
+            _ => !Server.ServerSession.IsOffline);
+
         private AsyncRelayCommand? syncNowCommand;
 
         public ICommand SyncNowCommand => syncNowCommand ??= new AsyncRelayCommand(async _ =>
