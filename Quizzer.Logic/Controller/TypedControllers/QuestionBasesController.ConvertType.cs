@@ -167,7 +167,14 @@ namespace Quizzer.Logic.Controller.TypedControllers
 
             [nameof(RevealQuestion)] =
                 "([Id], [Mode], [ImageFileName], [AreasJson], [BlurStart]) VALUES (@id, 0, N'', N'[]', 40)",
+
+            // Aus dem Konstruktor gelesen, nicht abgeschrieben - die Vorgaben stehen im Minispiel-Profil.
+            [nameof(MinigameQuestion)] = MinigameStartwerte(new MinigameQuestion()),
         };
+
+        private static string MinigameStartwerte(MinigameQuestion vorgabe)
+            => FormattableString.Invariant(
+                $"([Id], [Kind], [DurationSeconds], [Rounds], [Share], [Variant]) VALUES (@id, {(int)vorgabe.Kind}, {vorgabe.DurationSeconds}, {vorgabe.Rounds}, {vorgabe.Share}, {vorgabe.Variant})");
 
         private static string InsertStatementFor(string tableName)
             => Startwerte.TryGetValue(tableName, out var spalten)
@@ -231,6 +238,13 @@ namespace Quizzer.Logic.Controller.TypedControllers
             if (from == QuestionType.Matching)
                 effects.Add("Die Begriffe links der Zuordnung bleiben gespeichert, werden aber "
                           + "nicht mehr gezeigt.");
+
+            if (to == QuestionType.Minigame)
+                effects.Add("Jeder Schritt wird zu einer Antwortoption der Mehrheit; Lösungsmarkierungen "
+                          + "zählen dort nicht. Art und Spielweise danach in der Maske wählen.");
+
+            if (from == QuestionType.Minigame)
+                effects.Add("Art und Einstellungen des Minispiels gehen verloren.");
 
             if (!target.AllowsMultipleResultSteps)
                 effects.Add($"{target.DisplayName} verträgt nur eine Lösungsmarkierung - "

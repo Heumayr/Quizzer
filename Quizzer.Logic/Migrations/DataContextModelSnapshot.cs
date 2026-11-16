@@ -700,6 +700,28 @@ namespace Quizzer.Logic.Migrations
                     b.ToTable("MatchingQuestion", "question");
                 });
 
+            modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.MinigameQuestion", b =>
+                {
+                    b.HasBaseType("Quizzer.DataModels.Models.QuestionBase");
+
+                    b.Property<int>("DurationSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rounds")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Share")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Variant")
+                        .HasColumnType("int");
+
+                    b.ToTable("MinigameQuestion", "question");
+                });
+
             modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.MultipleChoiceQuestion", b =>
                 {
                     b.HasBaseType("Quizzer.DataModels.Models.QuestionBase");
@@ -927,6 +949,15 @@ namespace Quizzer.Logic.Migrations
                     b.HasOne("Quizzer.DataModels.Models.QuestionBase", null)
                         .WithOne()
                         .HasForeignKey("Quizzer.DataModels.Models.QuestionTypes.MatchingQuestion", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Quizzer.DataModels.Models.QuestionTypes.MinigameQuestion", b =>
+                {
+                    b.HasOne("Quizzer.DataModels.Models.QuestionBase", null)
+                        .WithOne()
+                        .HasForeignKey("Quizzer.DataModels.Models.QuestionTypes.MinigameQuestion", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

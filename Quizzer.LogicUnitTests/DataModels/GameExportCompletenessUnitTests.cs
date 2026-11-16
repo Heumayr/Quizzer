@@ -81,6 +81,14 @@ namespace Quizzer.LogicUnitTests.DataModels
                 ["OwnerPlayerId"] = "beim Import gilt der angemeldete Spielleiter - eine fremde Id machte die Frage unsichtbar",
                 ["IsShared"] = "das Teilen gilt am jeweiligen Server (M9), nicht für den Inhalt einer Spieldatei - eine importierte Frage ist erst einmal privat",
             },
+            [typeof(MinigameQuestion)] = new()
+            {
+                ["Id"] = "wird neu vergeben",
+                ["RowVersion"] = "gehoert der Zieldatenbank",
+                ["CategoryId"] = "der Verweis laeuft ueber KategorieIndex im Dokument",
+                ["OwnerPlayerId"] = "beim Import gilt der angemeldete Spielleiter",
+                ["IsShared"] = "das Teilen gilt am jeweiligen Server (M9)",
+            },
         };
 
         private static bool IstGespeichertesFeld(PropertyInfo p)
@@ -200,6 +208,57 @@ namespace Quizzer.LogicUnitTests.DataModels
                 "Diese gespeicherten Felder ueberleben den Export nicht. Entweder fehlen sie im "
                 + "Dokument, oder sie gehoeren mit Grund auf die Ausnahmeliste in dieser Datei:"
                 + Environment.NewLine + string.Join(Environment.NewLine, funde));
+        }
+
+        /// <summary>
+        /// Das Minispiel (M35 B2) uebersteht den Rundlauf samt Art und Parametern.
+        /// <para>
+        /// <b>Die Art wird am Dokument geprueft</b>, nicht nur am Ergebnis: solange es nur eine Art gibt,
+        /// ist sie zugleich die Vorgabe des Konstruktors - ein vergessenes Feld fiele am Ende nicht auf.
+        /// </para>
+        /// </summary>
+        [TestMethod]
+        public void TheMinigameSurvivesTheRoundTrip()
+        {
+            var streuung = 1;
+            var kategorie = new Category { Id = Guid.NewGuid(), Designation = "Probe-Kategorie" };
+
+            var frage = new MinigameQuestion { Id = Guid.NewGuid() };
+            Fuelle(frage, ref streuung);
+            frage.CategoryId = kategorie.Id;
+
+            var spiel = new Game { Id = Guid.NewGuid(), Designation = "Probe" };
+            spiel.GameGridCoordinates.Add(new GameGridCoordinate { Id = Guid.NewGuid(), QuestionBaseId = frage.Id });
+
+            var dokument = GameExportMapper.ToDocument(spiel, [frage], [kategorie], null, _ => null);
+
+            Assert.AreEqual(frage.Kind, dokument.Fragen.Single().Typeigen?.MinigameKind,
+                "Die Art steht nicht im Bündel.");
+
+            using var strom = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(GameExportSerializer.ToJson(dokument)));
+            var zurueck = GameExportMapper.ToEntities(GameExportSerializer.Read(strom), _ => null).Fragen.Single();
+
+            Assert.IsInstanceOfType<MinigameQuestion>(zurueck);
+
+            var funde = new List<string>();
+            Vergleiche(frage, zurueck, funde);
+
+            Assert.AreEqual(0, funde.Count, string.Join(Environment.NewLine, funde));
+        }
+
+        /// <summary>Ein Buendel mit einer unbekannten Minispiel-Art wird abgewiesen, nicht halb gelesen.</summary>
+        [TestMethod]
+        public void AnUnknownMinigameKindIsRejected()
+        {
+            var kategorie = new Category { Id = Guid.NewGuid(), Designation = "Probe-Kategorie" };
+            var frage = new MinigameQuestion { Id = Guid.NewGuid(), CategoryId = kategorie.Id, Designation = "X" };
+
+            var dokument = GameExportMapper.ToDocument(new Game { Id = Guid.NewGuid() }, [frage], [kategorie], null, _ => null);
+            var typeigen = dokument.Fragen.Single().Typeigen;
+            Assert.IsNotNull(typeigen, "Das Minispiel traegt keinen eigenen Feldblock.");
+            typeigen.MinigameKind = (MinigameKind)99;
+
+            Assert.ThrowsExactly<InvalidDataException>(() => GameExportSerializer.Pruefe(dokument));
         }
 
         private static void Vergleiche(object original, object kopie, List<string> funde)

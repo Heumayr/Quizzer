@@ -169,6 +169,18 @@ namespace Quizzer.DataModels.Transfer
                 };
             }
 
+            if (frage is MinigameQuestion minispiel)
+            {
+                daten.Typeigen = new GameExportDocument.TypeSpecificData
+                {
+                    MinigameKind = minispiel.Kind,
+                    DurationSeconds = minispiel.DurationSeconds,
+                    Rounds = minispiel.Rounds,
+                    Share = minispiel.Share,
+                    Variant = minispiel.Variant,
+                };
+            }
+
             foreach (var schritt in frage.Steps.OrderBy(s => s.SequenceNumber))
             {
                 daten.Schritte.Add(new GameExportDocument.StepData
@@ -332,6 +344,15 @@ namespace Quizzer.DataModels.Transfer
                 aufdeck.ImageFileName = daten.Typeigen.BildSchluessel == null
                     ? string.Empty
                     : medienDatei(daten.Typeigen.BildSchluessel) ?? string.Empty;
+            }
+
+            if (frage is MinigameQuestion minispiel && daten.Typeigen != null)
+            {
+                minispiel.Kind = daten.Typeigen.MinigameKind ?? minispiel.Kind;
+                minispiel.DurationSeconds = daten.Typeigen.DurationSeconds ?? minispiel.DurationSeconds;
+                minispiel.Rounds = daten.Typeigen.Rounds ?? minispiel.Rounds;
+                minispiel.Share = daten.Typeigen.Share ?? minispiel.Share;
+                minispiel.Variant = daten.Typeigen.Variant ?? minispiel.Variant;
             }
 
             foreach (var schritt in daten.Schritte.OrderBy(s => s.SequenceNumber))

@@ -250,6 +250,10 @@ namespace Quizzer.Logic.Demo
                 "Wahr oder falsch? (Vorsicht: hier ist keine Aussage wahr.)",
                 [("Der Mount Everest steht in den Alpen.", false), ("Gold ist magnetisch.", false),
                  ("Ein Oktopus hat zehn Arme.", false)]);
+
+            // --- Minispiel (M35 B2), gebaut in DemoDataSeeder.Minispiele.cs ---
+            foreach (var minispiel in TypenschauMinispiele(kat))
+                yield return minispiel;
         }
 
         /// <summary>Wahr oder falsch: je Aussage ein Schritt, der Haken heißt „wahr".</summary>

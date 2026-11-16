@@ -176,6 +176,13 @@ namespace Quizzer.DataModels.Transfer
 
             /// <summary>Zeigt in <see cref="Medien"/> - das Bild der Aufdeckfrage.</summary>
             public string? BildSchluessel { get; set; }
+
+            // Minispiel (M35 B2)
+            public MinigameKind? MinigameKind { get; set; }
+            public int? DurationSeconds { get; set; }
+            public int? Rounds { get; set; }
+            public int? Share { get; set; }
+            public int? Variant { get; set; }
         }
 
         /// <summary>Ein Schritt einer Frage.</summary>

@@ -6,9 +6,56 @@
     <UserControl.Resources>
         <base:BoolToFontWeightConverter x:Key="MediumGewicht" />
         <base:BoolToVisibilityConverter x:Key="OffenSichtbar" />
+
+        <!-- Minispiel (M35 B2): Art und Parameter. Gezeigt nur, wo Zusatzmaske dieses Modell liefert. -->
+        <DataTemplate DataType="{x:Type local:MinispielViewModel}">
+            <StackPanel>
+                <TextBlock Text="Minispiel" FontWeight="DemiBold" FontSize="14" Margin="5,12,5,4" />
+
+                <StackPanel Orientation="Horizontal" Margin="5,3">
+                    <Label Content="Art" MinWidth="150" VerticalAlignment="Center"
+                           ToolTip="Welches Spiel in diesem Feld steckt. Ein Wechsel setzt die Einstellungen darunter auf die Vorgaben der Art." />
+                    <ComboBox ItemsSource="{Binding Arten}" DisplayMemberPath="DisplayName" MinWidth="200"
+                              SelectedItem="{Binding Art, Mode=TwoWay}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="5,3" Visibility="{Binding VarianteVisibility}">
+                    <Label Content="Spielweise" MinWidth="150" VerticalAlignment="Center"
+                           ToolTip="Wie gewertet wird - der Regeltext am Beamer folgt der Wahl." />
+                    <ComboBox ItemsSource="{Binding Varianten}" MinWidth="200"
+                              SelectedIndex="{Binding Variante, Mode=TwoWay}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="5,3" Visibility="{Binding DauerVisibility}">
+                    <Label Content="Dauer (Sekunden)" MinWidth="150" VerticalAlignment="Center"
+                           ToolTip="Wie lange eine Runde läuft." />
+                    <TextBox MinWidth="120" VerticalContentAlignment="Center"
+                             Text="{Binding Dauer, UpdateSourceTrigger=LostFocus}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="5,3" Visibility="{Binding RundenVisibility}">
+                    <Label Content="Runden" MinWidth="150" VerticalAlignment="Center"
+                           ToolTip="Wie viele Runden gespielt werden." />
+                    <TextBox MinWidth="120" VerticalContentAlignment="Center"
+                             Text="{Binding Runden, UpdateSourceTrigger=LostFocus}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="5,3" Visibility="{Binding AnteilVisibility}">
+                    <Label Content="Anteil (Prozent)" MinWidth="150" VerticalAlignment="Center"
+                           ToolTip="Welcher Anteil der Feldpunkte bewegt wird." />
+                    <TextBox MinWidth="120" VerticalContentAlignment="Center"
+                             Text="{Binding Anteil, UpdateSourceTrigger=LostFocus}" />
+                </StackPanel>
+
+                <TextBlock Text="{Binding Beschreibung}" Opacity="0.75" Margin="5,3,5,2" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Regelzeile}" Opacity="0.75" Margin="5,0,5,6" TextWrapping="Wrap" />
+            </StackPanel>
+        </DataTemplate>
     </UserControl.Resources>
 
     <StackPanel>
+
+        <ContentControl Content="{Binding Zusatzmaske}" Focusable="False" />
 
         <!--
             Der Startbildschirm. Ein eigener Block, keine Zeile: eine Zeile bekommt eine

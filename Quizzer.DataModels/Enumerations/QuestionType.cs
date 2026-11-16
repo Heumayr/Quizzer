@@ -51,5 +51,11 @@ namespace Quizzer.DataModels.Enumerations
         /// gleichzeitig am Telefon. Jede richtig beurteilte Aussage bringt ihren Anteil.
         /// </summary>
         TrueFalse = 7,
+
+        /// <summary>
+        /// Minispiel (M35 B2): das Feld enthaelt statt einer Frage ein Spiel fuer alle am Telefon.
+        /// Welches, sagt <see cref="MinigameKind"/>; gedeutet ueber <c>MinigameProfiles</c>.
+        /// </summary>
+        Minigame = 8,
     }
 }

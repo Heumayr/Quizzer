@@ -40,9 +40,12 @@ namespace Quizzer.Views.QuestionTypes
             public string Quellen => Entwurf.Quellen.Count == 0 ? string.Empty : "Quellen: " + string.Join(", ", Entwurf.Quellen);
         }
 
+        // Ohne Minispiel: dafuer hat die KI keinen Auftrag, der Entwurf scheiterte als "unbekannter Fragetyp".
         public ObservableCollection<TypWahl> Typen { get; } = new(
             new[] { new TypWahl(null, "passend wählen lassen") }
-                .Concat(QuestionTypeProfiles.All.Select(p => new TypWahl(p.Typ, p.DisplayName))));
+                .Concat(QuestionTypeProfiles.All
+                    .Where(p => p.Typ != QuestionType.Minigame)
+                    .Select(p => new TypWahl(p.Typ, p.DisplayName))));
 
         public int[] Anzahlen { get; } = Enumerable.Range(1, KiEntwurfAnfrage.MaxAnzahl).ToArray();
 

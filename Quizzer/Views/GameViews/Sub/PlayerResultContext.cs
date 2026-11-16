@@ -105,6 +105,13 @@ namespace Quizzer.Views.GameViews.Sub
                 return;
             }
 
+            // Minispiel (M35 B2): der Vorschlag haengt an allen Abgaben, nicht an dieser einen.
+            if (question?.Typ == DataModels.Enumerations.QuestionType.Minigame)
+            {
+                PlayersResultViewModel?.WerteMinispiel();
+                return;
+            }
+
             if (selectedKeys == null || question == null || selectedKeys.Count == 0)
             {
                 KeyViews = keyViews;

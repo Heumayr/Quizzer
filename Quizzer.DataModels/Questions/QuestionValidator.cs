@@ -63,6 +63,9 @@ namespace Quizzer.DataModels.Questions
             ValidateFinishText(question, profile, issues);
             ValidateOrdering(question, issues);
 
+            if (question is MinigameQuestion minispiel)
+                issues.AddRange(Minispiele.MinigameChecks.Content(minispiel));
+
             return issues;
         }
 
@@ -339,7 +342,9 @@ namespace Quizzer.DataModels.Questions
             // Die Reihenfolge bringt ihre Aufloesung ebenfalls selbst mit: bei IsFinish zeigt der
             // Beamer zu jedem Element seinen Platz (StepDisplayItem.SolutionBadge).
             // Wahr oder falsch: die Aufloesung ist die Markierung der Aussagen selbst.
-            if (question.Typ is QuestionType.Ordering or QuestionType.Matching or QuestionType.TrueFalse)
+            // Minispiel: die Aufloesung ist das Ergebnis der Runde, nicht ein Text.
+            if (question.Typ is QuestionType.Ordering or QuestionType.Matching or QuestionType.TrueFalse
+                or QuestionType.Minigame)
                 return;
 
             var steps = question.Steps ?? new List<QuestionStepResource>();

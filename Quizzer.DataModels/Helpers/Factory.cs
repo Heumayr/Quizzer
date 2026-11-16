@@ -32,6 +32,7 @@ namespace Quizzer.DataModels.Helpers
                 QuestionType.Ordering => new OrderingQuestion(),
                 QuestionType.Matching => new MatchingQuestion(),
                 QuestionType.TrueFalse => new TrueFalseQuestion(),
+                QuestionType.Minigame => new MinigameQuestion(),
                 _ => new DefaultQuestion()
             };
         }

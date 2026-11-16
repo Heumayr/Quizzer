@@ -22,6 +22,7 @@ namespace Quizzer.DataModels.Questions.Schrittbau
             new ReihenfolgeComposer(),
             new ZuordnungComposer(),
             new WahrFalschComposer(),
+            new MinispielComposer(),
         ];
 
         /// <summary>Liefert den Übersetzer zu einem Fragetyp.</summary>
