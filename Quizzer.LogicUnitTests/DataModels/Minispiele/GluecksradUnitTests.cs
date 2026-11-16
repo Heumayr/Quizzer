@@ -60,6 +60,7 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
         {
             Assert.AreEqual(0, Werte(WheelSegment.Steal).Vorschlaege.Count, "Klauen ohne Ziel bewegt etwas.");
             Assert.AreEqual(0, Werte(WheelSegment.Gift, ziel: Anna).Vorschlaege.Count, "Sich selbst beschenken bewegt etwas.");
+            Assert.AreEqual(0, Werte(WheelSegment.Steal, ziel: Anna).Vorschlaege.Count, "Bei sich selbst klauen bewegt etwas.");
             Assert.AreEqual(0, GluecksradEvaluator.Werte(new(WheelSegment.Double, null, null), Anteil, Kontostaende.OhneGrenze, Alle).Vorschlaege.Count,
                 "Ohne Dreher bekommt jemand den doppelten Anteil.");
             Assert.AreEqual("Klauen – es wurde kein Ziel gewählt.", GluecksradEvaluator.Ausgang(new(WheelSegment.Steal, Anna, null), _ => "Anna"));
