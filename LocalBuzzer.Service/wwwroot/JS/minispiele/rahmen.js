@@ -7,6 +7,7 @@ import { RaeuberModul } from "./raeuber.js";
 import { TeilenModul } from "./teilen.js";
 import { ZockerModul } from "./zocker.js";
 import { GluecksradModul } from "./gluecksrad.js";
+import { KopfrechnenModul } from "./kopfrechnen.js";
 import { EinsatzModul } from "../sonderregeln/einsatz.js";
 import { RisikoModul } from "../sonderregeln/risiko.js";
 import { AuktionModul } from "../sonderregeln/auktion.js";
@@ -25,7 +26,8 @@ const MODULE = new Map([
     [MinigameKinds.RobberAndGuard, () => new RaeuberModul()],
     [MinigameKinds.ShareOrTake, () => new TeilenModul()],
     [MinigameKinds.Crash, () => new ZockerModul()],
-    [MinigameKinds.WheelOfFortune, () => new GluecksradModul()]
+    [MinigameKinds.WheelOfFortune, () => new GluecksradModul()],
+    [MinigameKinds.MentalArithmetic, (optionen) => new KopfrechnenModul(optionen)]
 ]);
 
 const SONDERREGELN = new Map([
@@ -100,7 +102,11 @@ export class MinigameLayout {
         // startete ein Update mitten in der Wartezeit die Uhr neu.
         const gesperrt = !!(context?.currentLayoutLocked || context?.allLocked);
         const signatur = [serverInfo.durchgang, serverInfo.phase, context?.resetCount, serverInfo.ownSubmitted, gesperrt].join("|");
-        if (signatur === this.signatur) return;
+        if (signatur === this.signatur) {
+            // Mitten in der Runde: neuer Stand nur fuer dieses Telefon (Kopfrechnen, Memory - M35 C5).
+            this.modul?.aktualisiere?.(artInfo);
+            return;
+        }
 
         this.signatur = signatur;
         this.zeige(serverInfo, artInfo, gesperrt);

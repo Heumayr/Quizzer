@@ -242,6 +242,40 @@ namespace Quizzer.DataModels.Questions.Minispiele
             ChooserLabel = "Wer dreht",
         };
 
+        private static readonly MinigameProfile MentalArithmetic = new()
+        {
+            Kind = MinigameKind.MentalArithmetic,
+            DisplayName = "Kopfrechnen",
+            Description = "Alle bekommen am Telefon dieselbe Folge von Rechenaufgaben und tippen die Ergebnisse ein. "
+                        + "Jede Antwort prüft der Server, danach kommt sofort die nächste Aufgabe – eine falsche kostet "
+                        + "nur Zeit. Wer in der Zeit die meisten richtig hat, bekommt den Vorschlag mit den Punkten des "
+                        + "Felds, bei Gleichstand alle. Mehr als "
+                        + $"{KopfrechnenEvaluator.MaxAntwortenJeSekunde} Antworten je Sekunde nimmt der Server nicht an.",
+
+            // Der Index ist MinigameQuestion.Variant - KopfrechnenAufgaben.Leicht/Mittel/Schwer.
+            Variants =
+            [
+                new("Leicht – Plus und Minus bis 20",
+                    $"Kopfrechnen! {DurationPlaceholder} Sekunden Plus und Minus bis 20 – wer die meisten richtig hat, gewinnt."),
+                new("Mittel – bis 100 und kleines Einmaleins",
+                    $"Kopfrechnen! {DurationPlaceholder} Sekunden Plus und Minus bis 100 und das kleine Einmaleins – wer die "
+                    + "meisten richtig hat, gewinnt."),
+                new("Schwer – bis 1000, mal und geteilt",
+                    $"Kopfrechnen! {DurationPlaceholder} Sekunden Plus und Minus bis 1000, Mal und Geteilt – wer die meisten "
+                    + "richtig hat, gewinnt."),
+            ],
+            Layout = BuzzerControlsLayout.Minigame,
+            ShowDurationSeconds = true,
+            DefaultDurationSeconds = 60,
+            MinDurationSeconds = 15,
+            MaxDurationSeconds = 300,
+            MinOptions = 0,
+            OptionsName = "Zeilen",
+
+            // Wie der Tippsprint: allein gewaenne man immer.
+            MinPlayers = 2,
+        };
+
         /// <summary>Steht im Regeltext fuer <see cref="MinigameQuestion.DurationSeconds"/> - <see cref="RulesFor"/> setzt die Zahl ein.</summary>
         public const string DurationPlaceholder = "{Dauer}";
 
@@ -253,7 +287,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
         /// <summary>Alle Profile in der Reihenfolge, in der sie angeboten werden.</summary>
         public static IReadOnlyList<MinigameProfile> All { get; } =
-            [Majority, Reaction, TapSprint, Stopwatch, Duel, RobberAndGuard, ShareOrTake, Crash, WheelOfFortune];
+            [Majority, Reaction, TapSprint, Stopwatch, Duel, RobberAndGuard, ShareOrTake, Crash, WheelOfFortune, MentalArithmetic];
 
         /// <summary>Liefert das Profil zu einer Art.</summary>
         /// <exception cref="ArgumentOutOfRangeException">Bei einer unbekannten Art.</exception>

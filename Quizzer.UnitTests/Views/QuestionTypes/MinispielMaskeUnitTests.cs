@@ -127,6 +127,7 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
         [TestMethod]
         [DataRow(MinigameKind.TapSprint, "Dauer (Sekunden)", 2)]
         [DataRow(MinigameKind.Stopwatch, "Zielzeit (Sekunden)", 4)]
+        [DataRow(MinigameKind.MentalArithmetic, "Dauer (Sekunden)", 14)]
         public void TheTimedKindsAskForSecondsNamedByTheKind(MinigameKind art, string beschriftung, int zuKurz)
         {
             var (vm, maske) = Neu();
@@ -177,6 +178,22 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
 
             maske.Anteil = 0;
             Assert.AreEqual(!anteil, vm.CanSave, anteil ? "Ein Anteil von 0 ist speicherbar." : "Ein ungelesener Anteil sperrt das Speichern.");
+        }
+
+        /// <summary>M35 C5: Kopfrechnen waehlt die Schwierigkeit ueber die Spielweise - drei Stufen, ohne Runden und Anteil.</summary>
+        [TestMethod]
+        [DataRow(MinigameKind.MentalArithmetic, 3)]
+        public void TheLevelKindsOfferTheirLevels(MinigameKind art, int stufen)
+        {
+            var (vm, maske) = Neu();
+
+            maske.Art = MinigameProfiles.For(art);
+
+            Assert.AreEqual(Visibility.Visible, maske.VarianteVisibility, "Die Stufe ist nicht waehlbar.");
+            Assert.AreEqual(stufen, maske.Varianten.Count);
+            Assert.AreEqual(Visibility.Collapsed, maske.RundenVisibility, "Runden");
+            Assert.AreEqual(Visibility.Collapsed, maske.AnteilVisibility, "Anteil");
+            Assert.IsTrue(vm.CanSave, "Mit den Vorgaben nicht speicherbar.");
         }
     }
 }

@@ -866,3 +866,54 @@ body {
     font-size: 20px;
     overflow-wrap: break-word;
 }
+
+/* M35 C5: Kopfrechnen - Aufgabe gross, eigener Ziffernblock; richtig/falsch sagt der Satz, nie nur die Farbe. */
+.kopfrechnen-inhalt {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.kopfrechnen-stand,
+.kopfrechnen-hinweis {
+    margin: 0;
+    font-size: 18px;
+    color: var(--text-soft);
+}
+
+.kopfrechnen-aufgabe {
+    margin: 0;
+    font-size: 40px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.kopfrechnen-eingabe {
+    margin: 0;
+    min-height: 48px;
+    font-size: 36px;
+    text-align: center;
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-lg);
+    background: var(--input-bg);
+}
+
+.kopfrechnen-tasten {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-xs);
+}
+
+.kopfrechnen-taste {
+    min-height: var(--input-height);
+    border-radius: var(--radius-md);
+    font-size: 26px;
+    font-weight: 700;
+    background: var(--secondary);
+    touch-action: manipulation;
+}
+
+.kopfrechnen-senden {
+    background: var(--primary);
+}

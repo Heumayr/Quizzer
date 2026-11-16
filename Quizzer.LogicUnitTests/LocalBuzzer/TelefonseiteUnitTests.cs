@@ -176,6 +176,10 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         public void TheCrashCashesOutOnceAndLearnsTheCrashOnlyAfterwards() => LaufeMit("zocker.test.mjs");
 
+        /// <summary>M35 C5: Kopfrechnen - Ziffernblock, eine Abgabe je Aufgabe, die naechste kommt vom Server.</summary>
+        [TestMethod]
+        public void MentalArithmeticSendsOneAnswerPerTask() => LaufeMit("kopfrechnen.test.mjs");
+
         /// <summary>M35 C4: Gluecksrad - nur der Dreher waehlt ein Ziel, genau einmal; die Aufloesung vom Server.</summary>
         [TestMethod]
         public void TheWheelLetsOnlyTheSpinnerChooseOnce() => LaufeMit("gluecksrad.test.mjs");

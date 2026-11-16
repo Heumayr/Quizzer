@@ -35,5 +35,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Gluecksrad: der Spielleiter dreht, das Rad trifft den Ausloeser - Ziel waehlt er am Telefon (M35 C4).</summary>
         WheelOfFortune = 9,
+
+        /// <summary>Kopfrechnen: alle rechnen dieselbe Aufgabenfolge, der Server prueft jede Antwort (M35 C5).</summary>
+        MentalArithmetic = 10,
     }
 }

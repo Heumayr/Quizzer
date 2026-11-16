@@ -170,6 +170,27 @@ pruefe(status().includes("gleich kommt die Frage"), "Das Ende der Vorphase kling
 
 rahmen.dispose();
 
+// --- M35 C5: ein neuer Stand nur fuer dieses Telefon (gleiche Signatur) geht an das Modul, ohne Neustart ---
+const stub = {
+    gestartet: 0, aktualisiert: [],
+    mount() {}, starte() { this.gestartet++; }, aktualisiere(info) { this.aktualisiert.push(info); },
+    leeren() {}, zeigeErgebnis() {}, zeigeEnde() {}, setLocked() {}
+};
+const eigen = new MinigameLayout({ submitAction: async () => {} },
+    { timer: uhr.timer, now: uhr.now, module: new Map([[10, () => stub]]) });
+const rechnen = (aufgabe) => ({
+    resetCount: 1, currentLayoutLocked: false, allLocked: false,
+    layoutInfo: { kind: 10, title: "Kopfrechnen", phase: 1, currentRound: 1, totalRounds: 1, durchgang: 30,
+        countdownSeconds: 0, ownSubmitted: false, kindInfo: { taskNumber: aufgabe } }
+});
+
+eigen.render(document.createElement("div"), rechnen(1));
+eigen.update(rechnen(2));
+pruefe(stub.gestartet === 1, "Ein Stand mitten in der Runde hat das Modul neu gestartet: " + stub.gestartet);
+pruefe(stub.aktualisiert.length === 1 && stub.aktualisiert[0].taskNumber === 2,
+    "Der neue Stand erreicht das Modul nicht: " + JSON.stringify(stub.aktualisiert));
+eigen.dispose();
+
 if (fehler > 0) {
     console.error(`${fehler} Zusicherung(en) rot.`);
     process.exit(1);

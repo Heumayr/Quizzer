@@ -61,6 +61,7 @@ namespace Quizzer.Views.GameViews.Minispiele
             MinigameKind.ShareOrTake => new TeilenAblauf(fenster),
             MinigameKind.Crash => new ZockerAblauf(fenster),
             MinigameKind.WheelOfFortune => new GluecksradAblauf(fenster),
+            MinigameKind.MentalArithmetic => new KopfrechnenAblauf(fenster),
             _ => new ReaktionAblauf(fenster, art),
         };
 

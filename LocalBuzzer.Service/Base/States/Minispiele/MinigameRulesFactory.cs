@@ -30,6 +30,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             MinigameKind.ShareOrTake => new ShareOrTakeRules(setup, kontext),
             MinigameKind.Crash => new CrashRules(setup, kontext),
             MinigameKind.WheelOfFortune => new WheelOfFortuneRules(setup, kontext),
+            MinigameKind.MentalArithmetic => new MentalArithmeticRules(setup, kontext),
             _ => null,
         };
     }
