@@ -133,7 +133,7 @@ try {
     Invoke-Container "ALTER AUTHORIZATION ON DATABASE::[Quizzer] TO [sa]; ALTER DATABASE [Quizzer] SET MULTI_USER;" | Out-Null
     docker compose exec -T -u root sql rm -f /var/opt/mssql/backup/uebernahme.bak
 
-    docker run --rm -v quizzer_quizzer-media:/data -v "$((Resolve-Path $medien).Path):/in:ro" mcr.microsoft.com/dotnet/runtime-deps:10.0 `
+    docker run --rm -v quizzer_quizzer-media:/data -v "$((Resolve-Path $medien).Path):/in:ro" mcr.microsoft.com/dotnet/runtime-deps:10.0@sha256:9cab4d7d886226d47b5489ef9abf0544e2f109fde11a8acc190217610af26c00 `
         sh -c 'find /data -mindepth 1 -delete && cp -R /in/. /data/ && chown -R 1654:1654 /data'
 
     # --- 3. Schema auf Stand bringen, bevor jemand die Daten sieht
@@ -168,7 +168,7 @@ finally {
 # und wann der Start so weit ist, haengt nicht von diesem Skript ab.
 $amServer = Get-Zahlen { param($q) Invoke-Container $q 'Quizzer' } '(SELECT Id FROM base.Player WHERE Id NOT IN (SELECT PlayerId FROM auth.Account)) p'
 $ohneDesign = [int](Invoke-Container 'SELECT COUNT(*) FROM base.Game WHERE GameThemeId IS NULL' 'Quizzer' | Select-Object -Last 1)
-$imVolume = [int](docker run --rm -v quizzer_quizzer-media:/data:ro mcr.microsoft.com/dotnet/runtime-deps:10.0 sh -c 'find /data -type f | wc -l')
+$imVolume = [int](docker run --rm -v quizzer_quizzer-media:/data:ro mcr.microsoft.com/dotnet/runtime-deps:10.0@sha256:9cab4d7d886226d47b5489ef9abf0544e2f109fde11a8acc190217610af26c00 sh -c 'find /data -type f | wc -l')
 
 $erwartet = [ordered]@{}
 foreach ($name in $lokal.Keys) { $erwartet[$name] = $lokal[$name] }

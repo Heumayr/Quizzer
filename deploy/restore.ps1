@@ -25,7 +25,7 @@ try {
 
     $media = Join-Path $Source 'medien.tar.gz'
     if (Test-Path $media) {
-        docker run --rm -v quizzer_quizzer-media:/data -v "$((Resolve-Path $Source).Path):/in:ro" mcr.microsoft.com/dotnet/runtime-deps:10.0 `
+        docker run --rm -v quizzer_quizzer-media:/data -v "$((Resolve-Path $Source).Path):/in:ro" mcr.microsoft.com/dotnet/runtime-deps:10.0@sha256:9cab4d7d886226d47b5489ef9abf0544e2f109fde11a8acc190217610af26c00 `
             sh -c 'find /data -mindepth 1 -delete && tar xzf /in/medien.tar.gz -C /data && chown -R 1654:1654 /data'
     }
 

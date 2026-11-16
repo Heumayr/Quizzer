@@ -1,0 +1,76 @@
+#!/bin/sh
+#
+# Gate vor dem Push (V01). Die CI ist seit M25 abgeschaltet - das hier ist die einzige Stelle, an der
+# etwas automatisch geprueft wird. Vorlage: .harness-core/vorlagen/githooks/pre-push-dotnet.
+#
+# Aktiviert ueber core.hooksPath (einmal je Klon, alle Arbeitsbaeume teilen es):
+#   git config core.hooksPath .githooks
+# Umgehen im Notfall: git push --no-verify - und den Grund nennen.
+#
+# Die Logiktests teilen sich ihre LocalDB mit jedem anderen Arbeitsbaum: nicht pushen, solange
+# dort Logiktests laufen (was-gilt.md, Testaufbau).
+
+set -e
+cd "$(dirname "$0")/.."
+
+# Die Refs kommen ueber die Standardeingabe und sind nur einmal lesbar.
+refs=$(cat)
+
+# 1. Reine Loeschungen von Fernzweigen brauchen kein Gate. Ein gemischter Push wird geprueft.
+nur_loeschungen=0
+if [ -n "$refs" ]; then
+  nur_loeschungen=1
+  while read -r lokale_ref lokale_sha rest; do
+    [ -z "$lokale_ref" ] && continue
+    if [ -z "$lokale_sha" ]; then nur_loeschungen=0; continue; fi
+    case "$lokale_sha" in
+      *[!0]*) nur_loeschungen=0 ;;
+    esac
+  done <<EOF
+$refs
+EOF
+fi
+
+if [ "$nur_loeschungen" -eq 1 ]; then
+  echo "pre-push: nur Loeschungen von Fernzweigen - nichts zu bauen, nichts zu pruefen."
+  exit 0
+fi
+
+# 2. Ein laufendes Quizzer oder ein haengender testhost aus DIESEM Arbeitsbaum sperrt die DLLs
+#    (MSB3021/MSB3027) - die Meldung saehe nach einem Codefehler aus. Beenden tut der Hook nichts.
+normiere() {
+  printf '%s' "$1" | sed 's|\\|/|g' | tr 'A-Z' 'a-z'
+}
+wurzel_klein=$(normiere "$(pwd -W 2>/dev/null || pwd)")
+
+pfade=$(powershell.exe -NoProfile -NonInteractive -Command \
+  "Get-CimInstance Win32_Process -Filter \"Name='Quizzer.exe' OR Name='testhost.exe'\" | ForEach-Object { \$_.ExecutablePath }" \
+  2>/dev/null | tr -d '\r') || pfade=''
+
+while IFS= read -r pfad; do
+  [ -z "$pfad" ] && continue
+  case "$(normiere "$pfad")" in
+    "$wurzel_klein"/*)
+      echo "ABBRUCH: aus diesem Arbeitsbaum laeuft ein Prozess, der die DLLs sperrt:"
+      echo "  $pfad"
+      echo "Erst beenden (testhost: Get-Process testhost | Stop-Process -Force), dann erneut pushen."
+      exit 1 ;;
+  esac
+done <<EOF
+$pfade
+EOF
+
+# 3. Bau. Der erste Bau nach einer WPF-Aenderung scheitert gelegentlich mit CS2001 im
+#    *_wpftmp.csproj (quizzer-testaufbau.md) - deshalb genau ein zweiter Versuch, angesagt.
+echo "pre-push 1/2: Bau (Quizzer.slnx)"
+if ! dotnet build Quizzer.slnx -m:1 --nologo -v q; then
+  echo "pre-push: erster Bau gescheitert - zweiter Versuch (bekannter WPF-Wettlauf)."
+  dotnet build Quizzer.slnx -m:1 --nologo -v q
+fi
+
+# 4. Bewusst nur die Logiktests (etwa eine Minute, samt Telefonseite in Node). WPF- und
+#    Servertests brauchen mehrere Minuten und bleiben ein bewusster Aufruf (CLAUDE.md).
+echo "pre-push 2/2: Logiktests (WPF- und Servertests bewusst ausgenommen)"
+dotnet test Quizzer.LogicUnitTests/Quizzer.LogicUnitTests.csproj --no-build --nologo -v q
+
+echo "pre-push: alles gruen"

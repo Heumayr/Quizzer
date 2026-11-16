@@ -12,7 +12,9 @@ name: quizzer
 
 services:
   sql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    # Fest auf den Digest (A03, V02): CU27 16.0.4305.5, gemessen 2026-11-16. Heben nur bewusst,
+    # Pruefstapel zuerst; ContainerImagePinUnitTests haelt, dass jede Angabe einen Digest traegt.
+    image: mcr.microsoft.com/mssql/server:2022-latest@sha256:cf8f0ab2ebe61feec2eed2629061a07d247f791c2a8ddda74a4ac9f06a291718
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: ${QUIZZER_SA_PASSWORD:?QUIZZER_SA_PASSWORD fehlt in .env}
@@ -78,7 +80,7 @@ services:
     restart: unless-stopped
 
   caddy:
-    image: caddy:2.10.0-alpine
+    image: caddy:2.10.0-alpine@sha256:ae4458638da8e1a91aafffb231c5f8778e964bca650c8a8cb23a7e8ac557aa3c
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./certs:/certs:ro

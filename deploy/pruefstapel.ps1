@@ -44,7 +44,7 @@ function Anmeldeversuche([string]$von, [string]$cfIp, [int]$anzahl) {
     $skript = "for i in `$(seq 1 $anzahl); do wget --no-check-certificate -qO /dev/null -S " +
         "--header 'Cf-Connecting-Ip: $cfIp' --header 'Content-Type: application/json' --header 'X-Quizzer-Sync-Format: $format' " +
         "--post-data `"$rumpf`" https://caddy:8443/api/v1/auth/login 2>&1 | grep -m1 'HTTP/' | awk '{print `$2}'; done"
-    return @(docker run --rm --network "$($projekt)_edge" --ip $von --entrypoint sh caddy:2.10.0-alpine -c $skript)
+    return @(docker run --rm --network "$($projekt)_edge" --ip $von --entrypoint sh caddy:2.10.0-alpine@sha256:ae4458638da8e1a91aafffb231c5f8778e964bca650c8a8cb23a7e8ac557aa3c -c $skript)
 }
 switch ($Befehl) {
     'up' { Compose @('up', '-d', '--build') }
