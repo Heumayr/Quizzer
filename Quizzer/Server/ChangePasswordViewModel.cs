@@ -40,11 +40,10 @@ namespace Quizzer.Server
 
             try
             {
-                await api.ChangePasswordAsync(Current, Next);
-
-                // Das Aendern widerruft am Server alle Erneuerungsschluessel - auch den eigenen.
-                // Also gleich mit dem neuen Kennwort wieder anmelden.
-                await api.LoginAsync(account.UserName, Next);
+                // Das Aendern widerruft am Server alle Erneuerungsschluessel - auch den eigenen. Neue
+                // Ausweise kommen seit M36 A5 gleich mit (mit TOTP ginge Neuanmelden nicht ohne Code).
+                if (!await api.ChangePasswordAsync(Current, Next))
+                    await api.LoginAsync(account.UserName, Next);
 
                 UserPrompt.Inform("Das Kennwort ist geändert. Andere Sitzungen deines Kontos sind beendet.", "Kennwort");
                 Window?.Close();

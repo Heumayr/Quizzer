@@ -1,0 +1,58 @@
+<base:WindowBase x:Class="Quizzer.Server.TwoFactorView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:base="clr-namespace:Quizzer.Base"
+        xmlns:local="clr-namespace:Quizzer.Server"
+        Title="Zwei-Faktor-Anmeldung" Height="720" Width="560"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+    <base:WindowBase.DataContext>
+        <local:TwoFactorViewModel />
+    </base:WindowBase.DataContext>
+
+    <ScrollViewer Background="{StaticResource AppBgBrush}" VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24">
+            <TextBlock Text="{Binding Intro}" TextWrapping="Wrap" FontSize="14" />
+
+            <StackPanel Visibility="{Binding SetupVisibility}" Margin="0,12,0,0">
+                <TextBlock Text="1. QR-Code mit einer Authenticator-App scannen" Style="{StaticResource SectionHeader}" />
+                <TextBlock Text="Etwa Microsoft oder Google Authenticator, Aegis oder 2FAS."
+                           FontSize="12" Opacity="0.75" TextWrapping="Wrap" />
+                <Border Background="White" Padding="8" Margin="0,8,0,0" HorizontalAlignment="Center">
+                    <Image Source="{Binding QrImage}" Width="200" Height="200" />
+                </Border>
+                <TextBlock Text="Oder das Geheimnis von Hand eingeben:" Margin="0,8,0,0" FontSize="12" Opacity="0.75" />
+                <TextBox Text="{Binding Secret, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" FontSize="15"
+                         Height="32" VerticalContentAlignment="Center"
+                         ToolTip="Das Geheimnis zum Abtippen, falls die App den QR-Code nicht lesen kann. Nicht weitergeben." />
+                <TextBlock Text="2. Den sechsstelligen Code aus der App eingeben" Style="{StaticResource SectionHeader}" Margin="0,12,0,0" />
+            </StackPanel>
+
+            <StackPanel Visibility="{Binding DisableVisibility}" Margin="0,12,0,0">
+                <TextBlock Text="Kennwort" Style="{StaticResource SectionHeader}" />
+                <PasswordBox x:Name="Kennwort" PasswordChanged="Kennwort_PasswordChanged" Height="32" />
+                <TextBlock Text="Code aus der App oder ein Wiederherstellungscode" Style="{StaticResource SectionHeader}" Margin="0,12,0,0" />
+            </StackPanel>
+
+            <TextBox Text="{Binding Code, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding CodeInputVisibility}"
+                     Height="34" FontSize="16" VerticalContentAlignment="Center"
+                     ToolTip="Sechs Ziffern aus der Authenticator-App. Der Code wechselt alle 30 Sekunden." />
+
+            <TextBox Text="{Binding RecoveryCodes, Mode=OneWay}" Visibility="{Binding CodesVisibility}" IsReadOnly="True"
+                     FontFamily="Consolas" FontSize="15" AcceptsReturn="True" Height="230" Margin="0,12,0,0"
+                     ToolTip="Die Wiederherstellungscodes - markieren und kopieren, ausdrucken oder abschreiben." />
+
+            <TextBlock Text="{Binding Message}" Foreground="#FF8A80" TextWrapping="Wrap" Margin="0,8,0,0" />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                <Button Content="Bestätigen" Command="{Binding ConfirmCommand}" Visibility="{Binding SetupVisibility}"
+                        IsDefault="True" MinWidth="140" Height="34" FontWeight="Bold" Margin="0,0,8,0"
+                        ToolTip="Prüft den Code am Server und schaltet die Zwei-Faktor-Anmeldung ein. Andere Sitzungen deines Kontos enden dabei." />
+                <Button Content="Abschalten" Command="{Binding DisableCommand}" Visibility="{Binding DisableVisibility}"
+                        MinWidth="140" Height="34" Margin="0,0,8,0"
+                        ToolTip="Schaltet die Zwei-Faktor-Anmeldung ab. Danach genügt wieder das Kennwort." />
+                <Button Content="{Binding CloseText}" Command="{Binding CloseCommand}" MinWidth="140" Height="34"
+                        ToolTip="Schließt das Fenster. Eine nicht bestätigte Einrichtung bleibt ohne Wirkung." />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</base:WindowBase>

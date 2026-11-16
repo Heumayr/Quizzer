@@ -108,6 +108,8 @@
                             ToolTip="Holt den aktuellen Stand, etwa nach dem Vorbereiten an einem anderen Rechner." />
                     <Button Content="Kennwort ändern" Command="{Binding ChangePasswordCommand}" Height="32" Margin="0,0,0,4"
                             ToolTip="Ändert das Kennwort deines Kontos. Andere Sitzungen werden dabei beendet." />
+                    <Button Content="Zwei-Faktor-Anmeldung" Command="{Binding TwoFactorCommand}" Height="32" Margin="0,0,0,4"
+                            ToolTip="Schützt dein Konto zusätzlich mit einem Code vom Handy - einrichten oder abschalten. Für Admins Pflicht." />
                     <Button Content="Konten verwalten" Command="{Binding AccountsCommand}" Visibility="{Binding AdminVisibility}"
                             Height="32"
                             ToolTip="Nur für den Admin: Konten anlegen, Kennwörter zurücksetzen, sperren." />

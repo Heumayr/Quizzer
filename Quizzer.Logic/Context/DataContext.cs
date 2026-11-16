@@ -100,6 +100,12 @@ namespace Quizzer.Logic.Context
                 .HasForeignKey(t => t.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<AccountRecoveryCode>()
+                .HasOne(c => c.Account)
+                .WithMany()
+                .HasForeignKey(c => c.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             base.OnModelCreating(modelBuilder);
         }
 
@@ -130,6 +136,7 @@ namespace Quizzer.Logic.Context
 
         public DbSet<Account> Accounts { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<AccountRecoveryCode> AccountRecoveryCodes { get; set; }
 
         /// <summary>
         /// Get the data set according to the entity type.

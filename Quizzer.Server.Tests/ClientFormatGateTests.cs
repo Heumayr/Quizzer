@@ -25,7 +25,7 @@ namespace Quizzer.Server.Tests
                 client.DefaultRequestHeaders.Add(ApiInfo.SyncFormatHeader, format);
 
             return await client.PostAsJsonAsync("/api/v1/auth/login",
-                new LoginRequest(ServerTestHost.AdminUser, ServerTestHost.AdminPassword));
+                new LoginRequest(ServerTestHost.AdminUser, ServerTestHost.AdminPassword, ServerTestHost.NextAdminCode()));
         }
 
         [TestMethod]

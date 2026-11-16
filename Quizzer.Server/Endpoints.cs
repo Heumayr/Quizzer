@@ -24,7 +24,21 @@ namespace Quizzer.Server
             "POST /api/v1/auth/refresh",
         };
 
+        /// <summary>
+        /// Was ein Admin ohne eingerichtetes TOTP darf (M36 A5) - sonst nichts. Ein Deckungstest
+        /// haelt die Liste gegen die Regeln der tatsaechlichen Routen.
+        /// </summary>
+        public static readonly IReadOnlySet<string> TotpSetupRoutes = new HashSet<string>
+        {
+            "GET /api/v1/me",
+            "POST /api/v1/me/totp/setup",
+            "POST /api/v1/me/totp/confirm",
+            "POST /api/v1/auth/logout",
+        };
+
         private const string LoginFailed = "Benutzername oder Kennwort falsch.";
+
+        private const string TotpRequired = "Bitte den Code aus der Authenticator-App eingeben (oder einen Wiederherstellungscode).";
 
         public static void Map(WebApplication app)
         {
@@ -39,9 +53,12 @@ namespace Quizzer.Server
             var auth = api.MapGroup("/auth");
 
             auth.MapPost("/login", async (LoginRequest request, AccountService accounts, CancellationToken ct) =>
-                    await accounts.LoginAsync(request.UserName, request.Password, ct) is { } tokens
-                        ? Results.Ok(tokens)
-                        : Results.Json(new ApiError(LoginFailed), statusCode: StatusCodes.Status401Unauthorized))
+                    await accounts.LoginAsync(request.UserName, request.Password, request.TotpCode, ct) switch
+                    {
+                        { Tokens: { } tokens } => Results.Ok(tokens),
+                        { TotpRequired: true } => Results.Json(new ApiError(TotpRequired, ApiErrorCodes.TotpRequired), statusCode: StatusCodes.Status401Unauthorized),
+                        _ => Results.Json(new ApiError(LoginFailed), statusCode: StatusCodes.Status401Unauthorized),
+                    })
                 .AllowAnonymous()
                 .RequireRateLimiting(ServerSetup.AuthRateLimit);
 
@@ -56,20 +73,26 @@ namespace Quizzer.Server
             {
                 await accounts.LogoutAsync(CurrentAccount.From(http.User).AccountId, request.RefreshToken, ct);
                 return Results.NoContent();
-            });
+            }).RequireAuthorization(ServerSetup.TotpSetupPolicy);
 
             var me = api.MapGroup("/me");
 
             me.MapGet("", async (HttpContext http, AccountService accounts, CancellationToken ct) =>
                 await accounts.GetInfoAsync(CurrentAccount.From(http.User).AccountId, ct) is { } info
                     ? Results.Ok(info)
-                    : Results.NotFound());
+                    : Results.NotFound())
+                .RequireAuthorization(ServerSetup.TotpSetupPolicy);
 
+            // Liefert neue Ausweise: das Aendern beendet alle Sitzungen, auch die eigene.
             me.MapPost("/password", async (ChangePasswordRequest request, HttpContext http, AccountService accounts, CancellationToken ct) =>
-                    await accounts.ChangePasswordAsync(CurrentAccount.From(http.User).AccountId, request, ct) is { } error
-                        ? Results.BadRequest(new ApiError(error))
-                        : Results.NoContent())
+                    await accounts.ChangePasswordAsync(CurrentAccount.From(http.User).AccountId, request, ct) switch
+                    {
+                        { Tokens: { } tokens } => Results.Ok(tokens),
+                        var failed => Results.BadRequest(new ApiError(failed.Error ?? "Das Kennwort ließ sich nicht ändern.")),
+                    })
                 .RequireRateLimiting(ServerSetup.AuthRateLimit);
+
+            MapTwoFactor(me);
 
             me.MapGet("/statistics", async (HttpContext http, StatisticsService statistics, CancellationToken ct) =>
                 Results.Ok(await statistics.ForAsync(CurrentAccount.From(http.User), ct)));
@@ -193,6 +216,55 @@ namespace Quizzer.Server
                 {
                     return Results.NotFound();
                 }
+            });
+
+            // Verlorenes Handy: der Admin setzt ein fremdes Konto zurueck, dessen Sitzungen enden.
+            accounts.MapDelete("/{id:guid}/totp", async (Guid id, HttpContext http, TwoFactorService service, CancellationToken ct) =>
+            {
+                try
+                {
+                    var error = await service.ResetAsync(id, CurrentAccount.From(http.User).AccountId, ct);
+                    return error != null ? Results.BadRequest(new ApiError(error)) : Results.NoContent();
+                }
+                catch (KeyNotFoundException)
+                {
+                    return Results.NotFound();
+                }
+            });
+        }
+
+        /// <summary>
+        /// Einrichten und Bestaetigen sind auch einem Admin ohne TOTP erlaubt - sonst kaeme er nie
+        /// heraus. Abschalten nur fuer Mitglieder; fuer Admins ist es Pflicht.
+        /// </summary>
+        private static void MapTwoFactor(RouteGroupBuilder me)
+        {
+            var totp = me.MapGroup("/totp").RequireRateLimiting(ServerSetup.AuthRateLimit);
+
+            totp.MapPost("/setup", async (HttpContext http, TwoFactorService service, CancellationToken ct) =>
+                    await service.BeginSetupAsync(CurrentAccount.From(http.User).AccountId, ct) switch
+                    {
+                        { Setup: { } setup } => Results.Ok(setup),
+                        var failed => Results.Json(new ApiError(failed.Error ?? TwoFactorService.AlreadyEnabled), statusCode: StatusCodes.Status409Conflict),
+                    })
+                .RequireAuthorization(ServerSetup.TotpSetupPolicy);
+
+            totp.MapPost("/confirm", async (TotpConfirmRequest request, HttpContext http, AccountService accounts, CancellationToken ct) =>
+                    await accounts.ConfirmTotpAsync(CurrentAccount.From(http.User).AccountId, request.Code, ct) switch
+                    {
+                        { Result: { } result } => Results.Ok(result),
+                        var failed => Results.BadRequest(new ApiError(failed.Error ?? "Die Einrichtung ist gescheitert.")),
+                    })
+                .RequireAuthorization(ServerSetup.TotpSetupPolicy);
+
+            totp.MapPost("/disable", async (TotpDisableRequest request, HttpContext http, TwoFactorService service, CancellationToken ct) =>
+            {
+                var current = CurrentAccount.From(http.User);
+                if (current.IsAdmin)
+                    return Results.Json(new ApiError(TwoFactorService.AdminMustKeep), statusCode: StatusCodes.Status403Forbidden);
+
+                var error = await service.DisableAsync(current.AccountId, request, ct);
+                return error != null ? Results.BadRequest(new ApiError(error)) : Results.NoContent();
             });
         }
     }

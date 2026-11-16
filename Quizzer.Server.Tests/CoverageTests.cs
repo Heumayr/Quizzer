@@ -39,5 +39,42 @@ namespace Quizzer.Server.Tests
             Assert.IsTrue(all.Count > 10, "Es wurden kaum Endpunkte gefunden: " + string.Join(", ", all));
             CollectionAssert.AreEquivalent(Endpoints.AnonymousRoutes.ToList(), anonymous.ToList());
         }
+
+        /// <summary>
+        /// TOTP-Pflicht fuer Admins (M36 A5), gegen die wirksame Regel jeder Route gehalten: frei
+        /// davon sind genau die Endpunkte der Einrichtung. Wer einer weiteren Route die schwache
+        /// Regel gibt, macht diesen Test rot.
+        /// </summary>
+        [TestMethod]
+        public async Task OnlyTheSetupRoutesSkipTheTotpDutyForAdmins()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            _ = factory.CreateClient();
+
+            var provider = factory.Services.GetRequiredService<IAuthorizationPolicyProvider>();
+            var exempt = new HashSet<string>();
+            var checkedRoutes = 0;
+
+            foreach (var endpoint in factory.Services.GetServices<EndpointDataSource>().SelectMany(s => s.Endpoints).OfType<RouteEndpoint>())
+            {
+                if (endpoint.Metadata.GetMetadata<IAllowAnonymous>() != null)
+                    continue;
+
+                var policy = await AuthorizationPolicy.CombineAsync(provider,
+                                 endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>(),
+                                 endpoint.Metadata.GetOrderedMetadata<AuthorizationPolicy>())
+                             ?? await provider.GetFallbackPolicyAsync();
+                checkedRoutes++;
+
+                if (policy!.Requirements.OfType<Auth.TotpForAdminRequirement>().Any())
+                    continue;
+
+                foreach (var method in endpoint.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods ?? ["*"])
+                    exempt.Add($"{method} /{endpoint.RoutePattern.RawText!.Trim('/')}");
+            }
+
+            Assert.IsTrue(checkedRoutes > 10, $"Nur {checkedRoutes} Routen geprüft.");
+            CollectionAssert.AreEquivalent(Endpoints.TotpSetupRoutes.ToList(), exempt.ToList(), string.Join(", ", exempt));
+        }
     }
 }

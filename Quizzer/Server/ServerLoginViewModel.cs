@@ -1,6 +1,7 @@
 using Quizzer.Base;
 using Quizzer.Client;
 using Quizzer.DataModels;
+using Quizzer.DataModels.Enumerations;
 using System.Windows;
 using System.Windows.Input;
 
@@ -18,8 +19,22 @@ namespace Quizzer.Server
         private string password = string.Empty;
         private string error = string.Empty;
         private string busy = string.Empty;
+        private string code = string.Empty;
+        private bool codeRequired;
         private bool serverUnreachable;
         private Uri? server;
+
+        internal const string AdminNeedsTwoFactor =
+            "Für Admin-Konten ist die Zwei-Faktor-Anmeldung Pflicht. Ohne sie lässt der Server nichts zu - "
+            + "beim nächsten Anmelden wird die Einrichtung wieder angeboten.";
+
+        /// <summary>Die Einrichtung fuer einen Admin ohne TOTP (M36 A5); Tests setzen ein Ersatzfenster.</summary>
+        internal static Func<bool> ShowTwoFactorSetup { get; set; } = () =>
+        {
+            var view = new TwoFactorView();
+            view.ShowDialog();
+            return view.Activated;
+        };
 
         public bool SignedIn { get; private set; }
 
@@ -36,6 +51,15 @@ namespace Quizzer.Server
             get => password;
             set { password = value; Error = string.Empty; OnPropertyChanged(); }
         }
+
+        /// <summary>Erst sichtbar, wenn der Server fuer dieses Konto einen Code verlangt.</summary>
+        public string Code
+        {
+            get => code;
+            set { code = value; Error = string.Empty; OnPropertyChanged(); }
+        }
+
+        public Visibility CodeVisibility => codeRequired ? Visibility.Visible : Visibility.Collapsed;
 
         public string Error
         {
@@ -119,12 +143,28 @@ namespace Quizzer.Server
                 return;
             }
 
+            if (codeRequired && string.IsNullOrWhiteSpace(Code))
+            {
+                Error = "Bitte den Code aus der Authenticator-App eingeben.";
+                return;
+            }
+
             Busy = "Anmeldung …";
             try
             {
-                await ServerSession.Api.LoginAsync(UserName.Trim(), Password);
+                await ServerSession.Api.LoginAsync(UserName.Trim(), Password, codeRequired ? Code : null);
+                if (!await EnsureTwoFactorAsync(ServerSession.Api))
+                    return;
+
                 Password = string.Empty;
+                Code = string.Empty;
                 await CompleteAsync(ServerSession.Api);
+            }
+            catch (TotpRequiredException ex)
+            {
+                codeRequired = true;
+                OnPropertyChanged(nameof(CodeVisibility));
+                Error = ex.Message;
             }
             catch (ServerUnreachableException ex)
             {
@@ -208,6 +248,34 @@ namespace Quizzer.Server
             }
 
             Window?.Close();
+        }
+
+        /// <summary>
+        /// Ein Admin ohne Zwei-Faktor-Anmeldung richtet sie gleich ein. Bricht er ab, wird nicht
+        /// fertig angemeldet - der Server liesse ohnehin nur die Einrichtung zu.
+        /// </summary>
+        private async Task<bool> EnsureTwoFactorAsync(QuizzerApiClient api)
+        {
+            if (api.Account is not { Role: AccountRole.Admin, TotpEnabled: false })
+                return true;
+
+            Busy = "Zwei-Faktor-Anmeldung wird eingerichtet …";
+            if (ShowTwoFactorSetup())
+                return true;
+
+            try
+            {
+                await api.LogoutAsync();
+            }
+            catch (Exception ex) when (ex is ApiException or ServerUnreachableException)
+            {
+                // Lokal ist der Ausweis schon verworfen (LogoutAsync raeumt im finally); am Server laeuft er ab.
+                Error = AdminNeedsTwoFactor;
+                return false;
+            }
+
+            Error = AdminNeedsTwoFactor;
+            return false;
         }
 
         private void SetUnreachable(string message)

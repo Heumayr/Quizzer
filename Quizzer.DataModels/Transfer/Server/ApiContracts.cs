@@ -1,4 +1,5 @@
 using Quizzer.DataModels.Enumerations;
+using System.Text.Json.Serialization;
 
 namespace Quizzer.DataModels.Transfer.Server
 {
@@ -19,7 +20,8 @@ namespace Quizzer.DataModels.Transfer.Server
 
     public sealed record VersionResponse(int ApiVersion, int SyncFormatVersion, string ServerVersion);
 
-    public sealed record LoginRequest(string UserName, string Password);
+    /// <summary><see cref="TotpCode"/>: sechs Ziffern oder ein Wiederherstellungscode (M36 A5); fehlt bei alten Clients.</summary>
+    public sealed record LoginRequest(string UserName, string Password, string? TotpCode = null);
 
     public sealed record RefreshRequest(string RefreshToken);
 
@@ -28,7 +30,8 @@ namespace Quizzer.DataModels.Transfer.Server
         string UserName,
         AccountRole Role,
         Guid PlayerId,
-        string PlayerName);
+        string PlayerName,
+        bool TotpEnabled = false);
 
     public sealed record TokenResponse(
         string AccessToken,
@@ -47,7 +50,8 @@ namespace Quizzer.DataModels.Transfer.Server
         string PlayerName,
         bool IsDisabled,
         DateTimeOffset CreatedAt,
-        DateTimeOffset? LastLoginAt);
+        DateTimeOffset? LastLoginAt,
+        bool TotpEnabled = false);
 
     /// <summary>
     /// Ein neues Konto. Entweder <see cref="PlayerId"/> (ein bestehender Mitspieler ohne Konto,
@@ -63,8 +67,32 @@ namespace Quizzer.DataModels.Transfer.Server
     /// <summary>Nur die gesetzten Felder werden geaendert.</summary>
     public sealed record UpdateAccountRequest(string? NewPassword, AccountRole? Role, bool? IsDisabled);
 
-    /// <summary>Eine Fehlermeldung, die der Client so anzeigen darf.</summary>
-    public sealed record ApiError(string Message);
+    /// <summary>
+    /// Eine Fehlermeldung, die der Client so anzeigen darf. <see cref="Code"/> ist maschinenlesbar
+    /// (<see cref="ApiErrorCodes"/>) und fehlt im Draht, wenn leer - ein altes WPF liest nur die Meldung.
+    /// </summary>
+    public sealed record ApiError(
+        string Message,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Code = null);
+
+    public static class ApiErrorCodes
+    {
+        /// <summary>Kennwort stimmt, das Konto verlangt aber einen Code (401).</summary>
+        public const string TotpRequired = "totp_required";
+
+        /// <summary>Admin ohne eingerichtete Zwei-Faktor-Anmeldung: erst einrichten (403).</summary>
+        public const string TotpSetupRequired = "totp_setup_required";
+    }
+
+    /// <summary>Begonnene Einrichtung: Geheimnis (Base32) zum Abtippen und dieselbe Angabe als otpauth-URI.</summary>
+    public sealed record TotpSetupResponse(string Secret, string OtpAuthUri);
+
+    public sealed record TotpConfirmRequest(string Code);
+
+    /// <summary>Die Codes stehen nur hier im Klartext; die Ausweise tragen den neuen Stand.</summary>
+    public sealed record TotpConfirmResponse(IReadOnlyList<string> RecoveryCodes, TokenResponse Tokens);
+
+    public sealed record TotpDisableRequest(string Password, string Code);
 
     public sealed record GameStatistic(
         Guid GameId,

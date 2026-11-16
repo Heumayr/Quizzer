@@ -139,6 +139,41 @@ namespace Quizzer.Server
             }
         });
 
+        private AsyncRelayCommand? resetTotpCommand;
+
+        /// <summary>Verlorenes Handy (M36 A5): die Zwei-Faktor-Anmeldung des gewaehlten Kontos zuruecksetzen.</summary>
+        public ICommand ResetTotpCommand => resetTotpCommand ??= new AsyncRelayCommand(async _ =>
+        {
+            if (ServerSession.Api is not { } api || Selected is not { } account)
+            {
+                Message = "Erst ein Konto in der Liste wählen.";
+                return;
+            }
+
+            if (!account.TotpEnabled)
+            {
+                Message = $"„{account.UserName}“ hat keine Zwei-Faktor-Anmeldung eingerichtet.";
+                return;
+            }
+
+            if (!UserPrompt.Confirm(
+                    $"Die Zwei-Faktor-Anmeldung von „{account.UserName}“ zurücksetzen? Alle Sitzungen des Kontos enden. "
+                    + "Ein Admin-Konto muss sie beim nächsten Anmelden neu einrichten.",
+                    "Zwei-Faktor-Anmeldung"))
+                return;
+
+            try
+            {
+                await api.ResetTotpAsync(account.AccountId);
+                Message = "Zwei-Faktor-Anmeldung zurückgesetzt, alle Sitzungen des Kontos beendet.";
+                await ReloadAsync();
+            }
+            catch (Exception ex) when (ex is ApiException or ServerUnreachableException)
+            {
+                Message = ex.Message;
+            }
+        });
+
         private async Task UpdateSelectedAsync(UpdateAccountRequest request, string done)
         {
             if (ServerSession.Api is not { } api || Selected is not { } account)

@@ -17,13 +17,22 @@ namespace Quizzer.Server.Infrastructure
 
         public const string AdminPolicy = "admin";
 
+        /// <summary>Nur angemeldet, ohne TOTP-Pflicht - allein fuer die Einrichtung (M36 A5).</summary>
+        public const string TotpSetupPolicy = "totp-setup";
+
+        /// <summary>Die Uhr der Zwei-Faktor-Pruefung; Tests ersetzen sie, ohne die Ausweise zu verschieben.</summary>
+        public const string TotpClockKey = "totp-clock";
+
         public static void ConfigureServices(WebApplicationBuilder builder)
         {
             var services = builder.Services;
 
             services.Configure<ServerOptions>(builder.Configuration.GetSection(ServerOptions.Section));
             services.AddSingleton(TimeProvider.System);
+            services.AddKeyedSingleton(TotpClockKey, TimeProvider.System);
             services.AddSingleton<TokenService>();
+            services.AddSingleton<TotpSecretProtector>();
+            services.AddSingleton<TwoFactorService>();
             services.AddSingleton<AccountService>();
             services.AddSingleton<SnapshotService>();
             services.AddSingleton<PushService>();
@@ -53,17 +62,25 @@ namespace Quizzer.Server.Infrastructure
                         OnTokenValidated = async context =>
                         {
                             var account = CurrentAccount.From(context.Principal!);
-                            if (!await accounts.IsActiveAsync(account.AccountId, account.Role, context.HttpContext.RequestAborted))
-                                context.Fail("Konto gesperrt oder Rolle geändert.");
+                            var totp = CurrentAccount.HasTotp(context.Principal!);
+                            if (!await accounts.IsActiveAsync(account.AccountId, account.Role, totp, context.HttpContext.RequestAborted))
+                                context.Fail("Konto gesperrt, Rolle oder Zwei-Faktor-Stand geändert.");
                         },
                     };
                 });
 
+            var totpForAdmin = new TotpForAdminRequirement();
+            var signedIn = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().AddRequirements(totpForAdmin).Build();
+            services.AddSingleton<IAuthorizationMiddlewareResultHandler, TotpForbiddenResultHandler>();
+
             services.AddAuthorizationBuilder()
                 // Deny by default: jeder Endpunkt ohne ausdrueckliches AllowAnonymous braucht einen
-                // gueltigen Ausweis (standards-sicherheit A01).
-                .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
-                .AddPolicy(AdminPolicy, p => p.RequireAuthenticatedUser().RequireRole(nameof(DataModels.Enumerations.AccountRole.Admin)));
+                // gueltigen Ausweis (standards-sicherheit A01) - und als Admin eingerichtetes TOTP.
+                // Dasselbe fuer ein RequireAuthorization() ohne Namen.
+                .SetFallbackPolicy(signedIn)
+                .SetDefaultPolicy(signedIn)
+                .AddPolicy(AdminPolicy, p => p.RequireAuthenticatedUser().RequireRole(nameof(DataModels.Enumerations.AccountRole.Admin)).AddRequirements(totpForAdmin))
+                .AddPolicy(TotpSetupPolicy, p => p.RequireAuthenticatedUser());
 
             services.AddRateLimiter(options =>
             {
