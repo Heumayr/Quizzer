@@ -20,5 +20,11 @@ namespace LocalBuzzer.Service.Base
         public object BuzzerStateInfo { get; }
 
         public void LockAll();
+
+        /// <summary>Was dieser Spieler sieht (M35 B3) - die bisherigen Layouts zeigen allen dasselbe.</summary>
+        public object InfoFor(Player? player) => BuzzerStateInfo;
+
+        /// <summary>Ob dieser Spieler gesperrt ist - Sperre je Spieler (M35 B3), sonst die der Runde.</summary>
+        public bool IsLockedFor(Player? player) => Locked;
     }
 }

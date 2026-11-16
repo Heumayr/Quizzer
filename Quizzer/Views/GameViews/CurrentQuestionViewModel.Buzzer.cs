@@ -118,6 +118,11 @@ namespace Quizzer.Views.GameViews
                     BuzzerControlsViewModel.AllPlayersSubmittedInput = OnAllPlayersSubmittedInput;
 
                     break;
+
+                case BuzzerControlsLayout.Minigame:
+                    PrepareMinigame();
+
+                    break;
             }
 
             // Erst das Ausspielen bringt das Layout auf die Telefone: nur ResetRoundAsync ruft
@@ -161,6 +166,7 @@ namespace Quizzer.Views.GameViews
                 BuzzerControlsViewModel.PlayerSubmittedInput = null;
                 BuzzerControlsViewModel.AllPlayersSubmittedInput = null;
                 ClearAppreciateOutcome();
+                ClearMinigame();
                 BuzzerControlsViewModel.SetRoundInfo(null);
 
                 await BuzzerControlsViewModel.ResetRoundAsync(null);

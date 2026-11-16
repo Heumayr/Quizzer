@@ -28,14 +28,15 @@ namespace Quizzer.UnitTests.PlayThrough
         public static async Task<TestGameBuilder> CreateAsync(
             QuestionType questionType = QuestionType.Default,
             int normalStepCount = 2,
-            int playerCount = 2)
+            int playerCount = 2,
+            Action<QuestionBase>? adjustQuestion = null)
         {
             var builder = new TestGameBuilder();
-            await builder.BuildAsync(questionType, normalStepCount, playerCount);
+            await builder.BuildAsync(questionType, normalStepCount, playerCount, adjustQuestion);
             return builder;
         }
 
-        private async Task BuildAsync(QuestionType questionType, int normalStepCount, int playerCount)
+        private async Task BuildAsync(QuestionType questionType, int normalStepCount, int playerCount, Action<QuestionBase>? adjustQuestion)
         {
             var tag = Guid.NewGuid().ToString("N")[..8];
 
@@ -59,6 +60,9 @@ namespace Quizzer.UnitTests.PlayThrough
             Question.QuestionText = "Wie hoch ist der Grossglockner?";
             Question.CategoryId = Category.Id;
             Question.Points = 100;
+
+            // Etwa die Minispiel-Art (M35 B3) - vor dem Speichern, damit das Laden sie sieht.
+            adjustQuestion?.Invoke(Question);
             Question.MinusPoints = 50;
 
             using (var ctrl = new QuestionBasesController())

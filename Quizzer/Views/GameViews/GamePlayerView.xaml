@@ -41,6 +41,10 @@
             <typed:AppreciateStepView IsMasterView="False" />
         </DataTemplate>
 
+        <DataTemplate x:Key="ReaktionStepTemplate">
+            <typed:ReaktionStepView IsMasterView="False" />
+        </DataTemplate>
+
         <base:BottomStatsRowHeightConverter x:Key="BottomStatsRowHeightConverter" />
         <base:MainContentRowHeightConverter x:Key="MainContentRowHeightConverter" />
     </base:WindowBase.Resources>

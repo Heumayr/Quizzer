@@ -598,3 +598,89 @@ body {
     opacity: 0.01;
     pointer-events: none;
 }
+
+/* ===== Minispiele (M35 B3): Rahmen und Reaktion ===== */
+.layout-minispiel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    height: 100%;
+    padding-bottom: var(--safe-bottom);
+    box-sizing: border-box;
+}
+
+.minispiel-titel {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.minispiel-runde {
+    color: var(--text-soft);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.minispiel-status {
+    margin: 0;
+    font-size: 17px;
+    overflow-wrap: break-word;
+}
+
+.minispiel-feld {
+    flex: 1 1 auto;
+    display: flex;
+    min-height: 0;
+}
+
+/* Nie nur Farbe: jeder Zustand hat dazu ein Symbol und einen Text (reaktion.js). */
+.reaktion-taste {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    width: 100%;
+    border: 0;
+    border-radius: var(--radius-xl);
+    background: var(--panel);
+    color: var(--text);
+    font-weight: 900;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.reaktion-symbol {
+    font-size: 72px;
+    line-height: 1;
+}
+
+.reaktion-text {
+    font-size: 30px;
+    text-align: center;
+    padding: 0 var(--space-md);
+}
+
+.reaktion-warten {
+    background: #b91c1c;
+}
+
+.reaktion-jetzt {
+    background: var(--success);
+}
+
+    .reaktion-jetzt .reaktion-text {
+        font-size: 56px;
+    }
+
+.reaktion-ergebnis {
+    background: var(--secondary);
+}
+
+    .reaktion-ergebnis .reaktion-text {
+        font-size: 24px;
+    }

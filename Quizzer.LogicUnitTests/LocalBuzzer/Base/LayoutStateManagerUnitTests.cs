@@ -23,6 +23,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
         [DataRow(BuzzerControlsLayout.Buzzer)]
         [DataRow(BuzzerControlsLayout.KeySelect)]
         [DataRow(BuzzerControlsLayout.Input)]
+        [DataRow(BuzzerControlsLayout.Minigame)]
         public void EveryUsableLayoutHasAState(BuzzerControlsLayout layout)
         {
             var manager = NewManager();

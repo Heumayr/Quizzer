@@ -124,5 +124,19 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// </summary>
         [TestMethod]
         public void ThePhoneScreenStaysAwake() => LaufeMit("wachbleiben.test.mjs");
+
+        /// <summary>
+        /// M35 B3: der Minispiel-Rahmen - Warten, Countdown, Ergebnis; ein wiederholter Stand startet
+        /// die Uhr nicht neu, und Art und Durchgang gehen mit jeder Abgabe.
+        /// </summary>
+        [TestMethod]
+        public void TheMinigameFrameHandsOverToTheKindModule() => LaufeMit("minispielRahmen.test.mjs");
+
+        /// <summary>
+        /// M35 B3: Reaktion - rot, lokal gruen mit Symbol und „JETZT!", Zeit ab dem Umschalten am
+        /// Telefon, Tippen vor Gruen ist ein Fruehstart.
+        /// </summary>
+        [TestMethod]
+        public void TheReactionModuleMeasuresOnThePhone() => LaufeMit("reaktion.test.mjs");
     }
 }

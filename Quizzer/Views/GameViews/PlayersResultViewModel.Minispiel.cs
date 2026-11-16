@@ -1,3 +1,4 @@
+using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.DataModels.Questions.Minispiele;
 
@@ -6,11 +7,15 @@ namespace Quizzer.Views.GameViews
     /// <summary>
     /// Minispiel-Teil des Ergebnisfensters (M35 B2): wertet die Mehrheit ueber alle Karten aus,
     /// sobald eine Abgabe hereinkommt - eine einzelne Karte kann nicht wissen, ob ihre Gruppe vorn liegt.
+    /// Die Reaktion (B3) wertet nach jeder geschlossenen Runde ueber alle bisherigen.
     /// </summary>
     public partial class PlayersResultViewModel
     {
         /// <summary>Das letzte Ergebnis der Mehrheit - <c>null</c>, solange keine Minispiel-Zelle laeuft.</summary>
         public MehrheitErgebnis? MehrheitErgebnis { get; private set; }
+
+        /// <summary>Das letzte Ergebnis der Reaktion - <c>null</c>, solange keine Runde gezaehlt ist.</summary>
+        public ReaktionErgebnis? ReaktionErgebnis { get; private set; }
 
         /// <summary>
         /// Rechnet die Mehrheit neu und verteilt die Vorschlaege. Gerufen von jeder Karte, deren Abgabe
@@ -18,7 +23,8 @@ namespace Quizzer.Views.GameViews
         /// </summary>
         internal void WerteMinispiel()
         {
-            if (Coordinate?.QuestionBase is not MinigameQuestion frage)
+            // Nur die Mehrheit waehlt Tasten - eine andere Art darf hier nicht ihre Karten leeren.
+            if (Coordinate?.QuestionBase is not MinigameQuestion { Kind: MinigameKind.Majority } frage)
                 return;
 
             var abgaben = PlayerResultContextList.ToDictionary(
@@ -37,6 +43,17 @@ namespace Quizzer.Views.GameViews
                 ctx.UebernimmMehrheit(MehrheitErgebnis, frage, minderheit);
 
             OnPropertyChanged(nameof(MehrheitErgebnis));
+        }
+
+        /// <summary>Verteilt die Vorschlaege der Reaktion: beste Zeit „richtig", sonst keiner, nie Minus (E1).</summary>
+        internal void WerteReaktion(ReaktionErgebnis ergebnis)
+        {
+            ReaktionErgebnis = ergebnis;
+
+            foreach (var ctx in PlayerResultContextList)
+                ctx.UebernimmReaktion(ergebnis);
+
+            OnPropertyChanged(nameof(ReaktionErgebnis));
         }
     }
 }

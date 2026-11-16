@@ -78,7 +78,7 @@ namespace Quizzer.Views.QuestionTypes.Typed
         public string AbschlussTitel => composer.AbschlussTitel;
 
         /// <summary>Ob dieser Typ überhaupt eine Zeilenliste zeigt.</summary>
-        public Visibility ZeilenVisibility
+        public virtual Visibility ZeilenVisibility
             => string.IsNullOrEmpty(ZeilenTitel) ? Visibility.Collapsed : Visibility.Visible;
 
         /// <summary>Ob dieser Typ ein Abschlussfeld zeigt.</summary>

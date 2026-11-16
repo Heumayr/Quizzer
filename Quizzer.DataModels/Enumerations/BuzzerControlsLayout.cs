@@ -22,5 +22,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Spieler geben einen freien Text ein (z.B. für Schätzfragen).</summary>
         Input = 3,
+
+        /// <summary>Minispiel (M35 B3): Rahmen am Telefon (Warten, Countdown, Ergebnis), darin das Modul der Art.</summary>
+        Minigame = 4,
     }
 }

@@ -5,6 +5,7 @@ import { LayoutManager } from "./layoutManager.js";
 import { BuzzerLayout } from "./layouts/buzzerLayout.js";
 import { KeySelectLayout } from "./layouts/keySelectLayout.js";
 import { InputLayout } from "./layouts/inputLayout.js";
+import { MinigameLayout } from "./minispiele/rahmen.js";
 import { wachHalten } from "./wachbleiben.js";
 
 const WAITING_FOR_HOST = "Verbunden – warte auf den Spielleiter";
@@ -57,6 +58,8 @@ function buildStatusText() {
             return `Runde ${state.round}: Auswahl treffen`;
         case Layouts.Input:
             return `Runde ${state.round}: Eingabe erwartet`;
+        case Layouts.Minigame:
+            return `Runde ${state.round}: Minispiel`;
         default:
             return state.round > 0
                 ? `Runde ${state.round}: warte auf den Spielleiter`
@@ -123,6 +126,11 @@ function registerLayouts() {
 
     layoutManager.register(Layouts.Input, new InputLayout({
         submitInput: (payload) => invokeOrReport("SubmitInput", payload)
+    }));
+
+    // M35 B3: ein Eingang fuer alle Minispiele, geprueft am Server.
+    layoutManager.register(Layouts.Minigame, new MinigameLayout({
+        submitAction: (aktion) => invokeOrReport("SpielAktion", aktion)
     }));
 }
 

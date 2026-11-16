@@ -36,8 +36,10 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// sonst setzt dessen Push still den Standardwert ein. Der Versionsriegel (M36 A4) haelt es dann an.
         /// 2: Game.AllowNegativeScore (M35 B1).
         /// 3: Fragetyp Minispiel - Zeilentyp MinigameQuestion (M35 B2); ein altes WPF kennt ihn nicht.
+        /// 4: Minispiel-Art Reaktion (M35 B3) - neue Werte in Kind und BuzzerControlsLayout. Keine Spalte,
+        ///    aber ein altes WPF haelt die Frage fuer verbogen, und seine Reparatur schriebe Tastenwahl zurueck.
         /// </summary>
-        public const int CurrentFormatVersion = 3;
+        public const int CurrentFormatVersion = 4;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

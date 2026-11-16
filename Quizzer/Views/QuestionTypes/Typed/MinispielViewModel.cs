@@ -96,12 +96,23 @@ namespace Quizzer.Views.QuestionTypes.Typed
         public override string Tastenerklaerung
             => "Diese Taste liegt im Spiel auf dieser Option - am Telefon und am Beamer.";
 
+        /// <summary>
+        /// Eine Art ohne Zeilen (Reaktion, M35 B3) zeigt die Liste nur, solange darin noch Inhalt aus einer
+        /// anderen Art steht - sonst liessen sich die Reste nicht mehr entfernen.
+        /// </summary>
+        public override Visibility ZeilenVisibility
+            => Art?.MinOptions == 0 && Zeilen.All(z => z.IstLeer) ? Visibility.Collapsed : base.ZeilenVisibility;
+
         public override string Zeilenhinweis
         {
             get
             {
                 var optionen = Zeilen.Count(z => !z.IstLeer);
                 var mindestens = Art?.MinOptions ?? 0;
+
+                if (Art is { MinOptions: 0 } ohneZeilen)
+                    return $"{ohneZeilen.DisplayName} braucht keine Zeilen – gespielt wird am Telefon."
+                           + (optionen > 0 ? " Was hier noch steht, wird nicht gespielt." : string.Empty);
 
                 return $"{optionen} Optionen (mindestens {mindestens}). Jeder wählt am Telefon geheim "
                        + "genau eine. Die Punkte sind ein Vorschlag auf der Spielerkarte; Minuspunkte "
@@ -125,6 +136,7 @@ namespace Quizzer.Views.QuestionTypes.Typed
             OnPropertyChanged(nameof(AnteilVisibility));
             OnPropertyChanged(nameof(Beschreibung));
             OnPropertyChanged(nameof(Regelzeile));
+            OnPropertyChanged(nameof(ZeilenVisibility));
         }
 
         private void Setze(int wert, Func<MinigameQuestion, int> lies, Action<MinigameQuestion, int> schreib)

@@ -16,7 +16,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
     /// </para>
     /// </summary>
     [TestClass]
-    public class ClientStateContractUnitTests
+    public partial class ClientStateContractUnitTests
     {
         private static string ScriptFolder =>
             Path.Combine(AppContext.BaseDirectory, "wwwroot", "JS");

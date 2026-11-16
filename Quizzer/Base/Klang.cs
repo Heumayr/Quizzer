@@ -26,11 +26,14 @@ namespace Quizzer.Base
             set => aktiv = value;
         }
 
-        public static void Buzzer() => Spiele(buzzer);
+        public static void Buzzer() => Spiele(buzzer, nameof(Buzzer));
 
-        public static void Tick() => Spiele(tick);
+        public static void Tick() => Spiele(tick, nameof(Tick));
 
-        public static void Ende() => Spiele(ende);
+        public static void Ende() => Spiele(ende, nameof(Ende));
+
+        /// <summary>Nur fuer Tests: welcher Ton angefordert wurde, auch wenn die Toene aus sind (M35 B3).</summary>
+        internal static Action<string>? Mitschnitt { get; set; }
 
         private static SoundPlayer Spieler(byte[] wav)
         {
@@ -39,8 +42,10 @@ namespace Quizzer.Base
             return spieler;
         }
 
-        private static void Spiele(Lazy<SoundPlayer> spieler)
+        private static void Spiele(Lazy<SoundPlayer> spieler, string name)
         {
+            Mitschnitt?.Invoke(name);
+
             if (!Aktiv)
                 return;
 

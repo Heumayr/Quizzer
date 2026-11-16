@@ -191,6 +191,41 @@ namespace Quizzer.LogicUnitTests.Logic
             Assert.AreEqual(0, maengel.Count, string.Join(Environment.NewLine, maengel));
         }
 
+        /// <summary>
+        /// M35 B3: die Reaktion steht im Raster der Typenschau, im Minispiel-Rahmen; jede Minispiel-Art
+        /// liegt wenigstens im Vorrat der Typenschau.
+        /// </summary>
+        [TestMethod]
+        public async Task TheTypeShowPlaysEveryMinigameKind()
+        {
+            var t = await DemoDataSeeder.CreateTypenschauAsync();
+
+            using var ctrl = new QuestionBasesController();
+            var imRaster = new List<MinigameQuestion>();
+
+            foreach (var zelle in t.Spiel.GameGridCoordinates)
+            {
+                if (await ctrl.GetAsync(zelle.QuestionBaseId!.Value) is MinigameQuestion m)
+                    imRaster.Add(m);
+            }
+
+            var reaktion = imRaster.SingleOrDefault(m => m.Kind == MinigameKind.Reaction);
+
+            Assert.IsNotNull(reaktion, "Die Reaktion hat keine Zelle in der Typenschau.");
+            Assert.AreEqual(BuzzerControlsLayout.Minigame, reaktion!.BuzzerControlsLayout, "Die Reaktion laeuft nicht im Minispiel-Rahmen.");
+
+            var kategorie = imRaster[0].CategoryId;
+            var arten = (await ctrl.GetAllAsync())
+                .OfType<MinigameQuestion>()
+                .Where(m => m.CategoryId == kategorie)
+                .Select(m => m.Kind)
+                .ToHashSet();
+
+            CollectionAssert.IsSubsetOf(
+                Quizzer.DataModels.Questions.Minispiele.MinigameProfiles.All.Select(p => p.Kind).ToList(), arten.ToList(),
+                "Nicht jede Minispiel-Art liegt in der Typenschau.");
+        }
+
         /// <summary>Ein zweiter Lauf legt keine zweite Anna an.</summary>
         [TestMethod]
         public async Task TheTypeShowReusesTheDemoPlayers()

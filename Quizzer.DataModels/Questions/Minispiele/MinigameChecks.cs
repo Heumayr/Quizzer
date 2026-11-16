@@ -16,6 +16,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         public const string VariantUnknown = "minigame-variant-unknown";
         public const string TooFewOptions = "minigame-too-few-options";
         public const string TooFewPlayers = "minigame-too-few-players";
+        public const string RoundsOutOfRange = "minigame-rounds-out-of-range";
 
         /// <summary>Prueft den Inhalt: bekannte Art, bekannte Spielweise, genug Zeilen.</summary>
         public static IEnumerable<ValidationIssue> Content(MinigameQuestion frage)
@@ -34,6 +35,11 @@ namespace Quizzer.DataModels.Questions.Minispiele
                 yield return new(VariantUnknown, ValidationSeverity.Warning,
                     $"Minispiel {art.DisplayName}: die gespeicherte Spielweise gibt es nicht, gespielt "
                     + $"wird „{art.Variants[0].Name}“.", nameof(frage.Variant));
+
+            if (art.ShowRounds && (frage.Rounds < 1 || frage.Rounds > MinigameProfile.MaxRounds))
+                yield return new(RoundsOutOfRange, ValidationSeverity.Error,
+                    $"Minispiel {art.DisplayName}: 1 bis {MinigameProfile.MaxRounds} Runden, eingetragen "
+                    + $"sind {frage.Rounds}.", nameof(frage.Rounds));
 
             var zeilen = (frage.Steps ?? []).Count(s => !s.IsStart && !s.IsFinish && !s.IsQuestionOnly);
 

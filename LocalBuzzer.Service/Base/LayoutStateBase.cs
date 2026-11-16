@@ -1,4 +1,5 @@
 ﻿using LocalBuzzer.Service.Base.States;
+using LocalBuzzer.Service.Base.States.Minispiele;
 using LocalBuzzer.Service.Hubs.Accessors;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
@@ -51,6 +52,7 @@ namespace LocalBuzzer.Service.Base
         public BuzzerState BuzzerState { get; }
         public BuzzerKeySelector BuzzerKeySelector { get; }
         public BuzzerInputState BuzzerInputState { get; }
+        public MinigameState MinigameState { get; }
 
         private readonly GameAccessor _gameAccessor;
 
@@ -61,10 +63,12 @@ namespace LocalBuzzer.Service.Base
             BuzzerState = new(gameAccessor);
             BuzzerKeySelector = new(gameAccessor);
             BuzzerInputState = new(gameAccessor);
+            MinigameState = new(gameAccessor);
 
             States.Add(BuzzerState);
             States.Add(BuzzerKeySelector);
             States.Add(BuzzerInputState);
+            States.Add(MinigameState);
         }
 
         public void ResetLayouts(int round, BuzzerControlsLayout layout = BuzzerControlsLayout.None)
@@ -108,10 +112,10 @@ namespace LocalBuzzer.Service.Base
                 Round = Round,
                 ResetCount = ResetCount,
                 Layout = CurrentLayout,
-                CurrentLayoutLocked = (CurrentState?.Locked ?? true) || ZeitAbgelaufen,
+                CurrentLayoutLocked = (CurrentState?.IsLockedFor(player) ?? true) || ZeitAbgelaufen,
                 ZeitAbgelaufen = ZeitAbgelaufen,
                 AllLocked = AllLocked,
-                LayoutInfo = CurrentState?.BuzzerStateInfo,
+                LayoutInfo = CurrentState?.InfoFor(player),
                 Winner = BuzzerState.Winner?.CalculatedDisplayName
             };
         }

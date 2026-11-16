@@ -186,8 +186,7 @@ namespace Quizzer.DataModels.Questions
                      + "sind Vorschläge - gebucht wird erst, wenn Sie bestätigen.",
             TableName = nameof(MinigameQuestion),
 
-            // Mehrheit laeuft auf der Tastenwahl wie Multiple Choice (M35 B2). Arten mit eigenem
-            // Telefon-Layout kommen mit B3 - dann traegt die Art das Layout, nicht der Typ.
+            // Rueckfall fuer eine unbekannte Art; sonst traegt die Art das Layout (LayoutFor, M35 B3).
             BuzzerControlsLayout = BuzzerControlsLayout.KeySelect,
             StepDisplayLayoutMode = StepDisplayLayoutMode.Grid,
             QuestionViewKeyType = QuestionViewKeyType.Alphabetical,

@@ -18,6 +18,15 @@ namespace LocalBuzzer.Service.Base
             }
         }
 
+        /// <summary>Alle aktuellen Verbindungen - fuer den Versand je Spieler (M35 B3).</summary>
+        public IReadOnlyList<(string ConnectionId, Player Player)> Snapshot()
+        {
+            lock (_gate)
+            {
+                return _playerByConnection.Select(e => (e.Key, e.Value)).ToList();
+            }
+        }
+
         /// <summary>
         /// Traegt die Verbindung eines Spielers ein. Hatte er schon eine, verliert diese ihre
         /// Zuordnung und ihre Kennung kommt zurueck - der Letzte gewinnt.

@@ -376,13 +376,13 @@ namespace Quizzer.Logic.Demo
             return frage;
         }
 
-        /// <summary>Das Raster: je Typ eine Spalte, zwei Zeilen (100 und 200 Punkte).</summary>
+        /// <summary>Das Raster: je Typ eine Spalte, zwei Zeilen (100 und 200 Punkte); weitere Fragen nur im Vorrat.</summary>
         private static async Task<Game> TypenschauSpielAsync(
             List<List<QuestionBase>> spalten, List<Player> spieler)
         {
             var moderator = spieler[^1];
             var mitspieler = spieler[..^1];
-            var zeilen = spalten.Max(s => s.Count);
+            var zeilen = Math.Min(TypenschauZeilen, spalten.Max(s => s.Count));
 
             using var spieleCtrl = new GamesController();
 

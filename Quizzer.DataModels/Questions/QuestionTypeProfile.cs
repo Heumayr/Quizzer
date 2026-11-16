@@ -1,5 +1,7 @@
 ﻿using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
+using Quizzer.DataModels.Models.QuestionTypes;
+using Quizzer.DataModels.Questions.Minispiele;
 
 namespace Quizzer.DataModels.Questions
 {
@@ -83,7 +85,7 @@ namespace Quizzer.DataModels.Questions
         {
             ArgumentNullException.ThrowIfNull(question);
 
-            question.BuzzerControlsLayout = BuzzerControlsLayout;
+            question.BuzzerControlsLayout = LayoutFor(question);
             question.StepDisplayLayoutMode = StepDisplayLayoutMode;
             question.QuestionViewKeyType = QuestionViewKeyType;
             question.UseRandomSequenceOnNoneFinishSteps = UseRandomSequenceOnNoneFinishSteps;
@@ -99,11 +101,20 @@ namespace Quizzer.DataModels.Questions
         {
             ArgumentNullException.ThrowIfNull(question);
 
-            return question.BuzzerControlsLayout == BuzzerControlsLayout
+            return question.BuzzerControlsLayout == LayoutFor(question)
                 && question.StepDisplayLayoutMode == StepDisplayLayoutMode
                 && question.QuestionViewKeyType == QuestionViewKeyType
                 && question.UseRandomSequenceOnNoneFinishSteps == UseRandomSequenceOnNoneFinishSteps
                 && question.UseProportionalScoreReductionOnStep == UseProportionalScoreReductionOnStep;
         }
+
+        /// <summary>
+        /// Das Telefon-Layout dieser Frage. Beim Minispiel legt es die Art fest, nicht der Typ (M35 B3):
+        /// die Mehrheit laeuft auf der Tastenwahl, die Reaktion auf dem Minispiel-Rahmen.
+        /// </summary>
+        public BuzzerControlsLayout LayoutFor(QuestionBase question)
+            => question is MinigameQuestion minispiel && MinigameProfiles.TryFor(minispiel.Kind, out var art)
+                ? art.Layout
+                : BuzzerControlsLayout;
     }
 }

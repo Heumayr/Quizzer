@@ -1,4 +1,5 @@
-﻿using LocalBuzzer.Service.Hubs;
+﻿using LocalBuzzer.Service.Base.States.Minispiele;
+using LocalBuzzer.Service.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Quizzer.DataModels.Models.Base;
 using System;
@@ -41,5 +42,15 @@ namespace LocalBuzzer.Service.Base
         public void OnPlayerSubmittedInput(InputResult result) => PlayerSubmittedInput?.Invoke(result);
 
         public void OnAllPlayersSubmittedInput(ConcurrentDictionary<Guid, InputResult> dic) => AllPlayersSubmittedInput?.Invoke(dic);
+
+        /// <summary>Ein Spieler hat im Minispiel abgegeben, und der Rahmen hat es angenommen (M35 B3).</summary>
+        public event Action<MinigameSubmission>? MinigameSubmitted;
+
+        /// <summary>Eine Runde des Minispiels ist zu - oder es wurde abgebrochen.</summary>
+        public event Action<MinigameRoundClosed>? MinigameRoundClosed;
+
+        public void OnMinigameSubmitted(MinigameSubmission abgabe) => MinigameSubmitted?.Invoke(abgabe);
+
+        public void OnMinigameRoundClosed(MinigameRoundClosed runde) => MinigameRoundClosed?.Invoke(runde);
     }
 }

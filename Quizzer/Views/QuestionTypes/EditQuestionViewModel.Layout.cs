@@ -48,12 +48,13 @@ namespace Quizzer.Views.QuestionTypes
         public Visibility RandomSequenceHintVisibility
             => When(Profile?.UseRandomSequenceOnNoneFinishSteps ?? false);
 
-        /// <summary>Das Buzzer-Layout im Klartext, wie der Typ es vorgibt.</summary>
-        public string BuzzerLayoutText => Profile?.BuzzerControlsLayout switch
+        /// <summary>Das Buzzer-Layout im Klartext, wie der Typ (beim Minispiel die Art) es vorgibt.</summary>
+        public string BuzzerLayoutText => (Question == null ? Profile?.BuzzerControlsLayout : Profile?.LayoutFor(Question)) switch
         {
             BuzzerControlsLayout.Buzzer => "Buzzer - wer zuerst drückt, darf antworten",
             BuzzerControlsLayout.KeySelect => "Tastenwahl - die Spieler wählen eine Antwort",
             BuzzerControlsLayout.Input => "Texteingabe - die Spieler tippen einen Wert",
+            BuzzerControlsLayout.Minigame => "Minispiel - das Telefon zeigt das Spiel der gewählten Art",
             _ => string.Empty,
         };
 

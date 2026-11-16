@@ -38,6 +38,10 @@
             <typed:AppreciateStepView IsMasterView="True" />
         </DataTemplate>
 
+        <DataTemplate x:Key="ReaktionStepTemplate">
+            <typed:ReaktionStepView IsMasterView="True" />
+        </DataTemplate>
+
         <DataTemplate x:Key="RevealStepTemplate">
             <typed:RevealStepView IsMasterView="True" />
         </DataTemplate>
@@ -231,6 +235,20 @@
                             Command="{Binding BuzzerControlsViewModel.ResetRoundCommand}"
                             CommandParameter="{Binding CurrentBuzzerLayout}"
                             ToolTip="Schickt die laufende Runde neu auf die Telefone." />
+
+                    <!-- M35 B3: der Spielleiter hat die Hand (E1) - starten, wiederholen, abbrechen. -->
+                    <StackPanel Visibility="{Binding MinispielSteuerungVisibility}">
+                        <Separator Margin="4,18,4,2" />
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Minispiel" Margin="4,0,4,4" />
+                        <TextBlock Text="{Binding Reaktion.Kopfzeile}" FontSize="12" Opacity="0.8"
+                                   TextWrapping="Wrap" Margin="4,0,4,6" />
+                        <Button Content="Runde starten" Command="{Binding StartMinigameRoundCommand}" FontWeight="Bold"
+                                ToolTip="Startet die nächste Runde auf allen Telefonen. Nach der letzten Runde geht nichts mehr – dann wiederholen oder abschließen." />
+                        <Button Content="Runde wiederholen" Command="{Binding RepeatMinigameRoundCommand}" Margin="4,6,4,0"
+                                ToolTip="Spielt die laufende oder zuletzt gespielte Runde neu. Ihre bisherigen Zeiten zählen nicht mehr." />
+                        <Button Content="Minispiel abbrechen" Command="{Binding AbortMinigameCommand}" Margin="4,6,4,0"
+                                ToolTip="Beendet das Minispiel sofort. Die laufende Runde zählt nicht, gespielte Runden bleiben als Vorschlag." />
+                    </StackPanel>
 
                     <!-- V5: Countdown auf dem Beamer. Ein Buzzer haelt ihn an. -->
                     <Separator Margin="4,18,4,2" />

@@ -1,0 +1,145 @@
+// Der Minispiel-Rahmen am Telefon (M35 B3): Warten, Countdown, Uebergabe an das Modul der Art,
+// Ergebnis - und dass ein Zustand, der mitten in der Wartezeit noch einmal kommt, die Uhr nicht
+// neu startet. Abgegeben wird mit Art und Durchgang, die das Telefon gesehen hat.
+
+import { baueDom } from "./dom-ersatz.mjs";
+import { baueUhr } from "./uhr-ersatz.mjs";
+
+const { wurzel } = baueDom();
+
+if (!globalThis.navigator.vibrate) {
+    Object.defineProperty(globalThis.navigator, "vibrate", { value: () => {} });
+}
+
+const { MinigameLayout } = await import(
+    "../../../LocalBuzzer.Service/wwwroot/JS/minispiele/rahmen.js");
+
+let fehler = 0;
+
+function pruefe(bedingung, satz) {
+    if (bedingung) return;
+    console.error("ROT: " + satz);
+    fehler++;
+}
+
+const uhr = baueUhr();
+const gesendet = [];
+const rahmen = new MinigameLayout(
+    { submitAction: async (aktion) => { gesendet.push(aktion); } },
+    { timer: uhr.timer, now: uhr.now });
+
+function zustand(phase, durchgang, extra = {}, kindInfo = {}) {
+    return {
+        resetCount: 1,
+        currentLayoutLocked: phase !== 1,
+        allLocked: false,
+        layoutInfo: {
+            kind: 2, title: "Reaktion", rulesText: "Wartet auf Grün.", phase,
+            currentRound: extra.currentRound ?? 1, totalRounds: 3, durchgang,
+            countdownSeconds: 3, aborted: false, ownSubmitted: false, ...extra, kindInfo
+        }
+    };
+}
+
+const status = () => wurzel.querySelector(".minispiel-status").textContent;
+const runde = () => wurzel.querySelector(".minispiel-runde").textContent;
+const flaeche = () => wurzel.querySelector(".reaktion-taste");
+const text = () => wurzel.querySelector(".reaktion-text")?.textContent ?? "";
+const tippe = () => (flaeche().hoerer.pointerdown ?? []).forEach(fn => fn({ button: 0 }));
+
+// Wie layoutManager.switchTo: altes Layout entsorgen, Wirt leeren, neu rendern.
+function neuAufbauen(z) {
+    rahmen.dispose();
+    wurzel.innerHTML = "";
+    rahmen.render(wurzel, z);
+}
+
+// --- Warten ---
+rahmen.render(wurzel, zustand(0, 7, { currentRound: 0 }));
+rahmen.setLocked(true);
+
+pruefe(wurzel.querySelector(".minispiel-titel").textContent === "Reaktion", "Die Ueberschrift nennt die Art nicht.");
+pruefe(runde() === "3 Runden", "Vor der ersten Runde steht nicht, wie viele es werden: " + runde());
+pruefe(status().includes("Wartet auf Grün"), "Beim Warten steht der Regeltext nicht da: " + status());
+
+// --- Runde startet: Countdown, dann rot ---
+const laufend = zustand(1, 8, {}, { waitMs: 2000 });
+rahmen.update(laufend);
+rahmen.setLocked(false);
+
+pruefe(runde() === "Runde 1 von 3", "Die Runde wird nicht als 'n von m' gezeigt: " + runde());
+pruefe(status() === "Gleich geht es los: 3", "Der Countdown beginnt nicht bei 3: " + status());
+
+uhr.vor(1000);
+pruefe(status() === "Gleich geht es los: 2", "Der Countdown zaehlt nicht herunter: " + status());
+
+uhr.vor(2000);
+pruefe(status() === "Los!", "Nach dem Countdown steht nicht 'Los!': " + status());
+pruefe(flaeche().classList.contains("reaktion-warten"), "Nach dem Countdown ist das Modul nicht im Wartezustand.");
+
+// Derselbe Stand noch einmal (etwa nach der Abgabe eines anderen) darf die Uhr nicht neu starten.
+uhr.vor(1500);
+rahmen.update(laufend);
+uhr.vor(500);
+pruefe(flaeche().classList.contains("reaktion-jetzt"),
+    "Ein wiederholter Stand hat die Wartezeit neu gestartet - gruen kam nicht nach 2 s.");
+
+uhr.vor(250);
+tippe();
+
+pruefe(gesendet.length === 1, "Der Tipp ging nicht ueber SpielAktion hinaus.");
+pruefe(gesendet[0]?.kind === 2 && gesendet[0]?.durchgang === 8,
+    "Art und Durchgang gehen nicht mit: " + JSON.stringify(gesendet[0]));
+pruefe(gesendet[0]?.payload?.milliseconds === 250, "Die Nutzlast traegt nicht die gemessene Zeit: " + JSON.stringify(gesendet[0]));
+
+// --- Rundenende: die eigene Zeit ---
+rahmen.update(zustand(2, 8, {}, { ownOutcome: 1, ownMilliseconds: 250, bestMilliseconds: 250 }));
+pruefe(status().includes("Runde 1 vorbei"), "Das Rundenende wird nicht gesagt: " + status());
+pruefe(text().includes("250 ms"), "Nach der Runde steht die eigene Zeit nicht da: " + text());
+
+// --- Naechste Runde: neuer Durchgang geht mit ---
+rahmen.update(zustand(1, 9, { currentRound: 2 }, { waitMs: 2000 }));
+uhr.vor(3000 + 2000 + 300);
+tippe();
+pruefe(gesendet[1]?.durchgang === 9, "In der zweiten Runde geht der alte Durchgang mit: " + JSON.stringify(gesendet[1]));
+
+// --- Wiederverbunden nach der eigenen Abgabe: sie kommt zurueck, kein zweiter Versuch ---
+const vorher = gesendet.length;
+neuAufbauen(zustand(1, 9, { currentRound: 2, ownSubmitted: true }, { ownOutcome: 2 }));
+rahmen.setLocked(true);
+uhr.vor(10000);
+tippe();
+pruefe(gesendet.length === vorher, "Nach dem Wiederverbinden liess sich ein zweites Mal abgeben.");
+pruefe(text().includes("Frühstart"), "Nach dem Wiederverbinden fehlt die eigene Abgabe: " + text());
+
+// --- Sperre je Spieler: wer diese Runde nicht mitspielt, schaut zu - ohne Countdown und Uhr ---
+const gesperrt = zustand(1, 12, { currentRound: 3 }, { waitMs: 2000 });
+gesperrt.currentLayoutLocked = true;
+neuAufbauen(gesperrt);
+rahmen.setLocked(true);
+pruefe(status().includes("schaust zu"), "Ein gesperrter Spieler erfaehrt nicht, dass er zuschaut: " + status());
+uhr.vor(10000);
+pruefe(!flaeche().classList.contains("reaktion-jetzt"), "Beim gesperrten Spieler laeuft die Reaktion trotzdem.");
+
+// --- Ende ---
+rahmen.update(zustand(3, 9, { currentRound: 3 },
+    { isWinner: false, winnerNames: ["Bert"], winnerMilliseconds: 199, bestMilliseconds: 250 }));
+pruefe(status() === "Minispiel vorbei.", "Das Ende wird nicht gesagt: " + status());
+pruefe(text().includes("Bert"), "Am Ende fehlt der Sieger: " + text());
+
+rahmen.update(zustand(3, 10, { aborted: true }));
+pruefe(status().includes("beendet"), "Der Abbruch wird nicht gesagt: " + status());
+
+// --- Eine Art, die das Telefon nicht kennt ---
+neuAufbauen(zustand(1, 11, { kind: 99 }));
+pruefe(wurzel.querySelector(".layout-empty")?.textContent.includes("kennt das Telefon noch nicht"),
+    "Eine unbekannte Art wird nicht gesagt.");
+
+rahmen.dispose();
+
+if (fehler > 0) {
+    console.error(`${fehler} Zusicherung(en) rot.`);
+    process.exit(1);
+}
+
+console.log("minispielRahmen: alle Zusicherungen gruen.");

@@ -113,9 +113,14 @@
 
                 <Grid Margin="0,0,0,4">
                     <TextBlock Text="Mitspieler" FontWeight="Bold" Opacity="0.7" VerticalAlignment="Center" />
-                    <Button Content="QR zum Selbst-Anmelden" HorizontalAlignment="Right" Padding="10,2"
-                            Command="{Binding OpenJoinQrCommand}"
-                            ToolTip="Ein Code für alle: wer ihn scannt, wählt am Telefon seinen Namen oder meldet sich als Gast. Du bestätigst hier." />
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Probetelefone öffnen" Padding="10,2" Margin="0,0,6,0"
+                                Command="{Binding OpenProbePhonesCommand}"
+                                ToolTip="Öffnet hier am Rechner je Mitspieler ein Browserfenster als Telefon – zum Vorbereiten und Ausprobieren ohne Handys. Ein verbundenes Handy wird dabei abgelöst." />
+                        <Button Content="QR zum Selbst-Anmelden" Padding="10,2"
+                                Command="{Binding OpenJoinQrCommand}"
+                                ToolTip="Ein Code für alle: wer ihn scannt, wählt am Telefon seinen Namen oder meldet sich als Gast. Du bestätigst hier." />
+                    </StackPanel>
                 </Grid>
             </StackPanel>
 

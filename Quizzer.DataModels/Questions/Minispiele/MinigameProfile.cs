@@ -41,6 +41,12 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
         private IReadOnlyList<string>? variantNames;
 
+        /// <summary>Welche Bedienung das Telefon bekommt - gelesen von <see cref="QuestionTypeProfile.LayoutFor"/>.</summary>
+        public BuzzerControlsLayout Layout { get; init; } = BuzzerControlsLayout.KeySelect;
+
+        /// <summary>Hoechstzahl der Runden, wo die Art welche spielt.</summary>
+        public const int MaxRounds = 10;
+
         /// <summary>Ob die Art <see cref="MinigameQuestion.DurationSeconds"/> liest.</summary>
         public bool ShowDurationSeconds { get; init; }
 
@@ -81,6 +87,9 @@ namespace Quizzer.DataModels.Questions.Minispiele
             frage.Rounds = DefaultRounds;
             frage.Share = DefaultShare;
             frage.Variant = 0;
+
+            // Das Layout haengt an der Art - dieselbe Rechnung wie Konstruktor und Reparatur.
+            QuestionTypeProfiles.For(QuestionType.Minigame).ApplyTo(frage);
         }
     }
 }

@@ -84,5 +84,40 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
                 "Mit zwei Optionen nicht speicherbar. Offen: "
                 + string.Join(" | ", vm.Issues.Where(i => i.IsError).Select(i => i.Code)));
         }
+
+        /// <summary>
+        /// M35 B3: die Reaktion in der Maske - Runden statt Zeilen, Layout aus der Art, ohne Optionen
+        /// speicherbar. Leere Zeilen verschwinden; stehen noch Reste der Mehrheit darin, bleibt die Liste.
+        /// </summary>
+        [TestMethod]
+        public void TheReactionAsksForRoundsInsteadOfRows()
+        {
+            var (vm, maske) = Neu();
+
+            maske.Art = MinigameProfiles.For(MinigameKind.Reaction);
+            var frage = (MinigameQuestion)vm.Question!;
+
+            Assert.AreEqual(MinigameKind.Reaction, frage.Kind);
+            Assert.AreEqual(BuzzerControlsLayout.Minigame, frage.BuzzerControlsLayout, "Der Wechsel der Art stellt das Telefon nicht um.");
+            Assert.AreEqual(Visibility.Visible, maske.RundenVisibility, "Die Runden sind nicht einstellbar.");
+            Assert.AreEqual(Visibility.Collapsed, maske.ZeilenVisibility, "Leere Zeilen stehen da, obwohl die Reaktion keine braucht.");
+            StringAssert.Contains(maske.Zeilenhinweis, "keine Zeilen");
+            StringAssert.Contains(vm.BuzzerLayoutText, "Minispiel");
+
+            maske.Runden = 5;
+            Assert.AreEqual(5, frage.Rounds);
+            Assert.IsTrue(vm.CanSave, "Ohne Optionen nicht speicherbar. Offen: "
+                + string.Join(" | ", vm.Issues.Where(i => i.IsError).Select(i => i.Code)));
+
+            maske.Runden = 0;
+            Assert.IsFalse(vm.CanSave, "Null Runden sind speicherbar.");
+
+            var (vm2, mehrheit) = Neu();
+            mehrheit.Zeilen[0].Text = "Pizza";
+            mehrheit.Art = MinigameProfiles.For(MinigameKind.Reaction);
+            Assert.AreEqual(Visibility.Visible, mehrheit.ZeilenVisibility, "Reste der Mehrheit sind nicht mehr zu entfernen.");
+            StringAssert.Contains(mehrheit.Zeilenhinweis, "nicht gespielt");
+            Assert.IsNotNull(vm2);
+        }
     }
 }

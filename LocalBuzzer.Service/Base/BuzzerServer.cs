@@ -99,7 +99,8 @@ namespace LocalBuzzer.Service
                     var stateManager = app.Services.GetRequiredService<LayoutStateManager>();
 
                     BuzzerController?.Dispose();
-                    BuzzerController = new BuzzerController(eventBus, buzzerHubContext, stateManager);
+                    BuzzerController = new BuzzerController(eventBus, buzzerHubContext, stateManager,
+                        app.Services.GetRequiredService<PlayerConnectionRegistry>());
 
                     await app.StartAsync(ct);
 

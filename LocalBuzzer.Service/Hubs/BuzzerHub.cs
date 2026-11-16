@@ -1,5 +1,6 @@
 ﻿using LocalBuzzer.Service.Base;
 using LocalBuzzer.Service.Base.States;
+using LocalBuzzer.Service.Base.States.Minispiele;
 using LocalBuzzer.Service.Hubs.Accessors;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -10,7 +11,7 @@ using static LocalBuzzer.Service.Base.States.BuzzerInputState;
 
 namespace LocalBuzzer.Service.Hubs
 {
-    public sealed class BuzzerHub : Hub
+    public sealed partial class BuzzerHub : Hub
     {
         /// <summary>Was ein Telefon zu sehen bekommt, wenn ein anderes Geraet desselben Spielers es abloest.</summary>
         public const string ReplacedMessage = "Dieses Gerät wurde durch ein anderes ersetzt.";
@@ -101,15 +102,22 @@ namespace LocalBuzzer.Service.Hubs
             }
         }
 
-        public override Task OnDisconnectedAsync(Exception? exception)
+        public override async Task OnDisconnectedAsync(Exception? exception)
         {
             // Nur die aktuelle Verbindung des Spielers darf ihn auf getrennt setzen - eine ersetzte,
             // die erst jetzt zu Ende geht, wuerde sonst das neue Geraet als weg melden.
             if (_registry.Unregister(Context.ConnectionId, out var player))
+            {
                 player.ConnectionState = PlayerConnection.Disconnected;
 
-            return base.OnDisconnectedAsync(exception);
+                // Getrenntes Telefon = keine Abgabe (M35 B3): fehlte nur noch dieses, ist die Runde zu.
+                await CloseMinigameRoundIfCompleteAsync();
+            }
+
+            await base.OnDisconnectedAsync(exception);
         }
+
+        private Task SendStateToEachAsync() => ClientStateSender.SendToEachAsync(Clients, _registry, _stateManager);
 
         public async Task Buzz()
         {
@@ -126,7 +134,7 @@ namespace LocalBuzzer.Service.Hubs
             if (buzz.TryBuzz(player))
             {
                 _bus.OnWinner(player, _stateManager.Round);
-                await Clients.All.SendAsync("StateChanged", _stateManager.CreateClientState());
+                await SendStateToEachAsync();
             }
         }
 
@@ -156,13 +164,13 @@ namespace LocalBuzzer.Service.Hubs
             inputState.SetInput(result);
             _bus.OnPlayerSubmittedInput(result);
 
-            await Clients.All.SendAsync("StateChanged", _stateManager.CreateClientState());
+            await SendStateToEachAsync();
 
             if (inputState.Locked)
             {
                 _stateManager.LockAll();
                 _bus.OnAllPlayersSubmittedInput(inputState.InputsForPlayer);
-                await Clients.All.SendAsync("StateChanged", _stateManager.CreateClientState());
+                await SendStateToEachAsync();
             }
         }
 
@@ -193,7 +201,7 @@ namespace LocalBuzzer.Service.Hubs
             {
                 _stateManager.LockAll();
                 _bus.OnAllPlayersSelectedKeys(keySelector.KeyResultsForPlayer);
-                await Clients.All.SendAsync("StateChanged", _stateManager.CreateClientState());
+                await SendStateToEachAsync();
             }
         }
     }

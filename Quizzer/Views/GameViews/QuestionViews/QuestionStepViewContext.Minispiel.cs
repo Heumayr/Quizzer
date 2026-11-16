@@ -10,6 +10,12 @@ namespace Quizzer.Views.GameViews.QuestionViews
     /// </summary>
     public partial class QuestionStepViewContext
     {
+        /// <summary>Ob die Frage eine Reaktion ist - dann zeigt der Beamer Runden und Zeiten (M35 B3).</summary>
+        public bool IstReaktion => Question is MinigameQuestion { Kind: DataModels.Enumerations.MinigameKind.Reaction };
+
+        /// <summary>„Runde n von m" und die Zeiten - fuer beide Bildschirme dasselbe Objekt am Owner.</summary>
+        public Sub.ReaktionAnzeige? Reaktion => Owner?.Reaktion;
+
         /// <summary>Der Regeltext der Art und Spielweise - leer bei allen anderen Typen.</summary>
         public string MinispielRegeltext
             => Question is MinigameQuestion minispiel ? MinigameProfiles.RulesFor(minispiel) : string.Empty;

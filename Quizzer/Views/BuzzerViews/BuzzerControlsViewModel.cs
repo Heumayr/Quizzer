@@ -54,6 +54,7 @@ namespace Quizzer.Views.BuzzerViews
             ctrl?.EventBus.AllPlayersSelectedKeys += OnAllPlayerSelectedKeys;
 
             SubscribeInputEvents(ctrl);
+            SubscribeMinigameEvents(ctrl);
 
             BuzzerServerViewModel = viewModel;
         }
@@ -288,6 +289,7 @@ namespace Quizzer.Views.BuzzerViews
         public void OnReset(int round)
         {
             ClearRound();
+            MinigameReset?.Invoke();
         }
 
         public void Dispose()
@@ -301,6 +303,7 @@ namespace Quizzer.Views.BuzzerViews
             ctrl?.EventBus.AllPlayersSelectedKeys -= OnAllPlayerSelectedKeys;
 
             UnsubscribeInputEvents(ctrl);
+            UnsubscribeMinigameEvents(ctrl);
 
             // Das Abo haengt am prozessweiten BuzzerServerViewModel und ueberlebt sonst jedes
             // Entsorgen: nach mehrmaligem Start liefen tote ViewModels bei jedem Verbindungs-

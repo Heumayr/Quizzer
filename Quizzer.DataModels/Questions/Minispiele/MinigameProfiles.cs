@@ -31,8 +31,32 @@ namespace Quizzer.DataModels.Questions.Minispiele
             MinPlayers = 2,
         };
 
+        private static readonly MinigameProfile Reaction = new()
+        {
+            Kind = MinigameKind.Reaction,
+            DisplayName = "Reaktion",
+            Description = "Alle Telefone zeigen Rot und schalten nach einer zufälligen Wartezeit auf Grün "
+                        + "mit „JETZT!“. Wer zu früh tippt, verliert die Runde. Über alle Runden zählt "
+                        + "die beste Einzelzeit: sie bekommt den Vorschlag „richtig“ mit den Punkten des "
+                        + "Felds, bei Gleichstand alle. Wer nichts abgibt, bekommt keinen Vorschlag.",
+            Variants =
+            [
+                new("Beste Zeit gewinnt",
+                    "Wartet auf Grün und „JETZT!“ – dann so schnell wie möglich tippen. Wer zu früh "
+                    + "tippt, verliert die Runde. Die beste Zeit gewinnt."),
+            ],
+            Layout = BuzzerControlsLayout.Minigame,
+            ShowRounds = true,
+            DefaultRounds = 3,
+            MinOptions = 0,
+            OptionsName = "Zeilen",
+
+            // Wie die Mehrheit: allein gewaenne man immer.
+            MinPlayers = 2,
+        };
+
         /// <summary>Alle Profile in der Reihenfolge, in der sie angeboten werden.</summary>
-        public static IReadOnlyList<MinigameProfile> All { get; } = [Majority];
+        public static IReadOnlyList<MinigameProfile> All { get; } = [Majority, Reaction];
 
         /// <summary>Liefert das Profil zu einer Art.</summary>
         /// <exception cref="ArgumentOutOfRangeException">Bei einer unbekannten Art.</exception>

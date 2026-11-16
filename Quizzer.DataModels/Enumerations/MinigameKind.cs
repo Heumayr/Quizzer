@@ -11,5 +11,8 @@ namespace Quizzer.DataModels.Enumerations
     {
         /// <summary>Mehrheit: jeder waehlt geheim eine Option, die groesste (oder kleinste) Gruppe gewinnt.</summary>
         Majority = 1,
+
+        /// <summary>Reaktion: rot, nach zufaelliger Wartezeit gruen - wer am schnellsten tippt (M35 B3).</summary>
+        Reaction = 2,
     }
 }

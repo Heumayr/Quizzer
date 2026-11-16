@@ -31,6 +31,10 @@
             <typed:AppreciateStepView />
         </DataTemplate>
 
+        <DataTemplate x:Key="ReaktionStepTemplate">
+            <typed:ReaktionStepView />
+        </DataTemplate>
+
         <DataTemplate x:Key="RevealStepTemplate">
             <typed:RevealStepView />
         </DataTemplate>
