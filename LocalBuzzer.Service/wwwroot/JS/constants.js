@@ -15,7 +15,8 @@ export const MinigameKinds = Object.freeze({
     Duel: 5,
     RobberAndGuard: 6,
     ShareOrTake: 7,
-    Crash: 8
+    Crash: 8,
+    WheelOfFortune: 9
 });
 
 export const MinigamePhases = Object.freeze({

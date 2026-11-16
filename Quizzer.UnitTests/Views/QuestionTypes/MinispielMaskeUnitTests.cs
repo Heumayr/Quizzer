@@ -157,6 +157,7 @@ namespace Quizzer.UnitTests.Views.QuestionTypes
         [DataRow(MinigameKind.RobberAndGuard, false, true, false)]
         [DataRow(MinigameKind.ShareOrTake, false, false, false)]
         [DataRow(MinigameKind.Crash, false, true, true)]
+        [DataRow(MinigameKind.WheelOfFortune, false, true, false)]
         public void ThePlayerChoiceKindsAskForWhatTheyRead(MinigameKind art, bool runden, bool anteil, bool spielweise)
         {
             var (vm, maske) = Neu();

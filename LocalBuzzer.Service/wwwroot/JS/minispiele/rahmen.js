@@ -6,6 +6,7 @@ import { DuellModul } from "./duell.js";
 import { RaeuberModul } from "./raeuber.js";
 import { TeilenModul } from "./teilen.js";
 import { ZockerModul } from "./zocker.js";
+import { GluecksradModul } from "./gluecksrad.js";
 import { EinsatzModul } from "../sonderregeln/einsatz.js";
 import { RisikoModul } from "../sonderregeln/risiko.js";
 import { AuktionModul } from "../sonderregeln/auktion.js";
@@ -23,7 +24,8 @@ const MODULE = new Map([
     [MinigameKinds.Duel, (optionen) => new DuellModul(optionen)],
     [MinigameKinds.RobberAndGuard, () => new RaeuberModul()],
     [MinigameKinds.ShareOrTake, () => new TeilenModul()],
-    [MinigameKinds.Crash, () => new ZockerModul()]
+    [MinigameKinds.Crash, () => new ZockerModul()],
+    [MinigameKinds.WheelOfFortune, () => new GluecksradModul()]
 ]);
 
 const SONDERREGELN = new Map([

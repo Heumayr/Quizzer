@@ -251,7 +251,7 @@
 
                         <!-- M35 C2: wer spielt - der Ausloeser waehlt am Telefon; fehlt er, waehlt hier der Spielleiter (E1). -->
                         <StackPanel Visibility="{Binding MinispielPaarVisibility}" Margin="4,10,4,0">
-                            <TextBlock Text="Wer fordert (Auslöser)" FontSize="12" Margin="0,0,0,2" />
+                            <TextBlock Text="{Binding PaarWaehlerBeschriftung}" FontSize="12" Margin="0,0,0,2" />
                             <ComboBox ItemsSource="{Binding PaarSpieler}" SelectedItem="{Binding PaarWaehler}"
                                       DisplayMemberPath="CalculatedDisplayName"
                                       ToolTip="Wer das Feld aufgedeckt hat. Er wählt am Telefon sein Gegenüber – fehlt er, hier wählen." />

@@ -33,6 +33,9 @@ namespace Quizzer.Views.GameViews
         /// <summary>„Gegner" bzw. „Partner (leer: wählt der Auslöser am Telefon)".</summary>
         public string PaarPartnerBeschriftung => $"{SpielerwahlArt?.PartnerLabel ?? "Partner"} (leer: wählt der Auslöser)";
 
+        /// <summary>Die Beschriftung des Waehlenden - beim Gluecksrad dreht er (M35 C4).</summary>
+        public string PaarWaehlerBeschriftung => $"{SpielerwahlArt?.ChooserLabel ?? "Wer fordert"} (Auslöser)";
+
         private AsyncRelayCommand? setMinigamePairCommand;
 
         public ICommand SetMinigamePairCommand
@@ -56,6 +59,7 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(PaarPartner));
             OnPropertyChanged(nameof(MinispielPaarVisibility));
             OnPropertyChanged(nameof(PaarPartnerBeschriftung));
+            OnPropertyChanged(nameof(PaarWaehlerBeschriftung));
         }
 
         internal async Task SetzePaarAsync()

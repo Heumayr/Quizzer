@@ -29,6 +29,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             MinigameKind.RobberAndGuard => new RobberRules(kontext),
             MinigameKind.ShareOrTake => new ShareOrTakeRules(setup, kontext),
             MinigameKind.Crash => new CrashRules(setup, kontext),
+            MinigameKind.WheelOfFortune => new WheelOfFortuneRules(setup, kontext),
             _ => null,
         };
     }

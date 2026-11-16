@@ -8,7 +8,7 @@ namespace Quizzer.Logic.Demo
     /// <summary>
     /// Die Minispiele der Typenschau (M35 B2) - eigene Teildatei, weil die Typenschau sonst ueber die
     /// Groessen-Obergrenze wuechse. Mehrheit und Reaktion im Raster; Minderheit (B3), Tippsprint und
-    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker (C4) im Vorrat - das Raster hat zwei Zeilen.
+    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4) im Vorrat - das Raster hat zwei Zeilen.
     /// </summary>
     public static partial class DemoDataSeeder
     {
@@ -50,6 +50,10 @@ namespace Quizzer.Logic.Demo
             // M35 C4, ebenfalls nur im Vorrat.
             yield return OhneZeilen(kat, "Typenschau: Zocker", "MIN-9", 200, Difficulty.Level2,
                 "Wer traut sich am längsten? Steigt aus, bevor es abstürzt!", MinigameKind.Crash);
+
+            yield return OhneZeilen(kat, "Typenschau: Glücksrad", "MIN-10", 200, Difficulty.Level2,
+                "Das Glücksrad! Wer das Feld aufgedeckt hat, dreht – Verdoppeln, Klauen, Verschenken, Pech oder Robin Hood.",
+                MinigameKind.WheelOfFortune);
         }
 
         /// <summary>Arten im Telefonrahmen (Reaktion B3, Tippsprint und Stoppuhr C1): keine Zeilen, nur Art und Parameter.</summary>

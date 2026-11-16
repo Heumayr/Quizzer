@@ -93,6 +93,9 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// <summary>Ob der Ausloeser einen Mitspieler waehlt - dann zeigt das Fragefenster die Paarwahl des Spielleiters.</summary>
         public bool ChoosesPartner => PartnerLabel != null;
 
+        /// <summary>Wie der Waehlende in der Paarwahl des Spielleiters heisst - beim Gluecksrad dreht er (M35 C4).</summary>
+        public string ChooserLabel { get; init; } = "Wer fordert";
+
         /// <summary>Die Spielweise zum gespeicherten Index; ein unbekannter faellt auf die Vorgabe.</summary>
         public MinigameVariant VariantFor(int variant)
             => variant >= 0 && variant < Variants.Count ? Variants[variant] : Variants[0];

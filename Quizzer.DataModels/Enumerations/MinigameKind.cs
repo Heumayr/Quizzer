@@ -32,5 +32,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Zocker: ein Multiplikator steigt, wer vor dem geheimen Absturz aussteigt, gewinnt (M35 C4).</summary>
         Crash = 8,
+
+        /// <summary>Gluecksrad: der Spielleiter dreht, das Rad trifft den Ausloeser - Ziel waehlt er am Telefon (M35 C4).</summary>
+        WheelOfFortune = 9,
     }
 }

@@ -60,6 +60,7 @@ namespace Quizzer.Views.GameViews.Minispiele
             MinigameKind.RobberAndGuard => new RaeuberAblauf(fenster),
             MinigameKind.ShareOrTake => new TeilenAblauf(fenster),
             MinigameKind.Crash => new ZockerAblauf(fenster),
+            MinigameKind.WheelOfFortune => new GluecksradAblauf(fenster),
             _ => new ReaktionAblauf(fenster, art),
         };
 

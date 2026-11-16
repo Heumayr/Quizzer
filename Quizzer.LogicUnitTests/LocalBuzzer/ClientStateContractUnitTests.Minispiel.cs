@@ -36,6 +36,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [DataRow(typeof(RobberClientInfo), "raeuber.js", "artInfo")]
         [DataRow(typeof(ShareOrTakeClientInfo), "teilen.js", "artInfo")]
         [DataRow(typeof(CrashClientInfo), "zocker.js", "artInfo")]
+        [DataRow(typeof(WheelClientInfo), "gluecksrad.js", "artInfo")]
         [DataRow(typeof(MinigamePlayerOption), "spielerwahl.js", "spieler")]
         [DataRow(typeof(MinigamePlayerOption), "raeuber.js", "spieler")]
         public void TheMinigameModulesReadExactlyTheFieldsTheServerSends(Type typ, string datei, string variable)

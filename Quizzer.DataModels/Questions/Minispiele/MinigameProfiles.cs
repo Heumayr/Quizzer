@@ -214,6 +214,34 @@ namespace Quizzer.DataModels.Questions.Minispiele
             OptionsName = "Zeilen",
         };
 
+        private static readonly MinigameProfile WheelOfFortune = new()
+        {
+            Kind = MinigameKind.WheelOfFortune,
+            DisplayName = "Glücksrad",
+            Description = "Der Spielleiter dreht im Fragefenster, der Beamer zeigt das Rad. Fünf gleich große Felder für "
+                        + "den, der das Feld aufgedeckt hat: Verdoppeln (der doppelte Anteil der Feldpunkte), Klauen "
+                        + "(einem gewählten Mitspieler den Anteil abnehmen), Verschenken (einem gewählten Mitspieler den "
+                        + "Anteil schenken), Pech (den Anteil verlieren) und Robin Hood (der Führende gibt dem Letzten den "
+                        + "Anteil; bei Gleichstand teilen sich die Führenden bzw. die Letzten ihn). Das Ziel wählt der "
+                        + "Auslöser am Telefon; fehlt er, wählt der Spielleiter. Ein Minus wird gekappt, wenn das Spiel "
+                        + "kein Minus erlaubt.",
+            Variants =
+            [
+                new("Glücksrad",
+                    "Das Glücksrad! Wer das Feld aufgedeckt hat, dreht: Verdoppeln, Klauen, Verschenken, Pech oder "
+                    + $"Robin Hood – es geht um {SharePlaceholder} % der Feldpunkte."),
+            ],
+            Layout = BuzzerControlsLayout.Minigame,
+            ShowShare = true,
+            MinOptions = 0,
+            OptionsName = "Zeilen",
+
+            // Klauen und Verschenken brauchen ein Gegenueber.
+            MinPlayers = 2,
+            PartnerLabel = "Ziel",
+            ChooserLabel = "Wer dreht",
+        };
+
         /// <summary>Steht im Regeltext fuer <see cref="MinigameQuestion.DurationSeconds"/> - <see cref="RulesFor"/> setzt die Zahl ein.</summary>
         public const string DurationPlaceholder = "{Dauer}";
 
@@ -225,7 +253,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
         /// <summary>Alle Profile in der Reihenfolge, in der sie angeboten werden.</summary>
         public static IReadOnlyList<MinigameProfile> All { get; } =
-            [Majority, Reaction, TapSprint, Stopwatch, Duel, RobberAndGuard, ShareOrTake, Crash];
+            [Majority, Reaction, TapSprint, Stopwatch, Duel, RobberAndGuard, ShareOrTake, Crash, WheelOfFortune];
 
         /// <summary>Liefert das Profil zu einer Art.</summary>
         /// <exception cref="ArgumentOutOfRangeException">Bei einer unbekannten Art.</exception>

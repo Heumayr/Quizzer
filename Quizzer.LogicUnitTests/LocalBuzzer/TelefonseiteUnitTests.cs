@@ -176,6 +176,10 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         public void TheCrashCashesOutOnceAndLearnsTheCrashOnlyAfterwards() => LaufeMit("zocker.test.mjs");
 
+        /// <summary>M35 C4: Gluecksrad - nur der Dreher waehlt ein Ziel, genau einmal; die Aufloesung vom Server.</summary>
+        [TestMethod]
+        public void TheWheelLetsOnlyTheSpinnerChooseOnce() => LaufeMit("gluecksrad.test.mjs");
+
         /// <summary>M35 C3: Sonderregel Einsatz - eine Zahl bis zur Obergrenze, genau einmal, die eigene kommt zurueck.</summary>
         [TestMethod]
         public void TheStakeIsAWholeNumberUpToTheLimitSentOnce() => LaufeMit("einsatz.test.mjs");

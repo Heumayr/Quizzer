@@ -845,3 +845,24 @@ body {
     font-size: 20px;
     overflow-wrap: break-word;
 }
+
+/* M35 C4: Gluecksrad - Kopf, Spielerwahl und Satz wie bei Teilen oder Nehmen. */
+.gluecksrad-inhalt {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    overflow-y: auto;
+}
+
+.gluecksrad-kopf {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.gluecksrad-text {
+    margin: 0;
+    font-size: 20px;
+    overflow-wrap: break-word;
+}
