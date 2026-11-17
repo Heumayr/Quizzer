@@ -96,6 +96,12 @@
                         <TextBlock Style="{StaticResource SectionHeader}" Text="Teams" Margin="0,18,0,4" />
                         <Button Content="{Binding TeamsUmsetzenText}" Command="{Binding TeamsUmsetzenCommand}"
                                 ToolTip="Mitspieler in ein anderes Team setzen, Teams umbenennen oder neu auslosen. Bisherige Punkte bleiben beim alten Team." />
+                        <!-- M37 T5: wer bei der nächsten Teamregel für sein Team antwortet -->
+                        <TextBlock Text="{Binding SprecherText}" TextWrapping="Wrap" FontSize="12" Opacity="0.8" Margin="0,8,0,0" />
+                        <Button Content="Sprecher weiter" Command="{Binding SprecherWeiterCommand}"
+                                ToolTip="In jedem Team spricht der Nächste der Reihe nach. Nach jeder gewerteten Teamregel-Frage geschieht das von selbst." />
+                        <Button Content="Sprecher zurück" Command="{Binding SprecherZurueckCommand}"
+                                ToolTip="In jedem Team spricht wieder der Vorige – etwa nach einer zurückgenommenen Wertung, die den Sprecher nicht zurücksetzt." />
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>

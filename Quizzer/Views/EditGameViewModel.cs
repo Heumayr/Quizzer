@@ -575,15 +575,8 @@ namespace Quizzer.Views
 
         public bool IsBuilding => Game?.State == GameState.Building;
 
-        /// <summary>
-        /// Loescht alle Ergebnisse eines Spiels und setzt die Zellen zurueck.
-        /// </summary>
-        /// <returns>
-        /// <c>true</c>, wenn wirklich zurueckgesetzt wurde. Der Rueckgabewert ist der Grund fuer
-        /// diese Signatur: der Aufrufer loeschte bis 2026-09-06 auch dann den Neustart-Haken,
-        /// wenn der Spielleiter die Rueckfrage verneint hatte - beim naechsten Start kam sie dann
-        /// gar nicht mehr, und niemand wusste, warum.
-        /// </returns>
+        /// <summary>Loescht alle Ergebnisse eines Spiels, setzt die Zellen und den Sprecherstand der Teams (M37 T5) zurueck.</summary>
+        /// <returns><c>true</c>, wenn wirklich zurueckgesetzt wurde - nur dann loescht der Aufrufer den Neustart-Haken (2026-09-06).</returns>
         public static async Task<bool> ResetGameResultsAsync(Game game)
         {
             if (game == null) return false;
@@ -599,8 +592,10 @@ namespace Quizzer.Views
             await ctrl.DeleteByGameIdAsync(game.Id);
 
             using var ctrlCoords = new GameGridCoordinatesController(ctrl);
+            using var ctrlTeams = new GameTeamsController(ctrl);
             await ctrlCoords.UpdateIsDoneStateOfGame(game.Id, false);
             await ctrlCoords.UpdatePhaseOfGame(game.Id, 1);
+            await ctrlTeams.ResetSpeakersAsync(game.Id);
 
             game.CalculateAndSetCurrentPoints();
 

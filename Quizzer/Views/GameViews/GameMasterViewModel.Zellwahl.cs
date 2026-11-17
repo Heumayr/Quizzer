@@ -38,6 +38,8 @@ namespace Quizzer.Views.GameViews
             if (merk.HatSichGeaendert(Game))
                 LetzteWertungMerken(merk);
 
+            await NachTeamregelAsync(context, merk); // M37 T5: nach einer bewerteten Teamregel spricht der Nächste
+
             cell.RefreshFromModel();
 
             StatsContext.UpdateScores(IsGameFinished);
