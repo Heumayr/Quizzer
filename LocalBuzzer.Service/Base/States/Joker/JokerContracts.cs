@@ -75,10 +75,16 @@ namespace LocalBuzzer.Service.Base.States.Joker
 
         public Guid? OwnTarget { get; set; }
 
-        /// <summary>Wer welchen Joker eingesetzt hat - leer, solange die Runde laeuft.</summary>
+        /// <summary>Zu und vom Spielleiter eingeloest (V12) - erst dann stehen Ergebnisse und Sperre fest.</summary>
+        public bool Confirmed { get; set; }
+
+        /// <summary>Der Spielleiter hat die eigene Wahl abgelehnt (zweiter Riegel) - sie gilt nicht. Nur fuer dieses Telefon.</summary>
+        public bool OwnRejected { get; set; }
+
+        /// <summary>Wer welchen Joker eingesetzt hat - leer, bis die Runde zu und eingeloest ist; Abgelehntes nie.</summary>
         public List<JokerResultInfo> Results { get; set; } = new();
 
-        /// <summary>Wer diesen Spieler gesperrt hat - erst nach dem Schliessen, und nur fuer ihn.</summary>
+        /// <summary>Wer diesen Spieler gesperrt hat - erst nach dem Einloesen, und nur fuer ihn.</summary>
         public string? BlockedBy { get; set; }
     }
 }

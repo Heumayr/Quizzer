@@ -1,11 +1,16 @@
 // Joker-Runde am Telefon (M35 C7b): wer offene Joker haelt, sieht nur seine eigenen und waehlt einen oder
 // keinen; die Sperre fragt danach, wen sie trifft. Gesendet wird genau einmal { jokerId, target } - der Server
-// prueft trotzdem alles. Erst nach dem Schliessen kommt, wer welchen Joker eingesetzt hat.
+// prueft trotzdem alles. Erst nach dem Schliessen und Einloesen kommt, wer welchen Joker eingesetzt hat (V12).
 
 export const KEIN_JOKER = "Keinen Joker";
 
+// Der Spielleiter hat die Wahl nicht eingeloest (zweiter Riegel) - das Telefon nimmt sie zurueck (V12).
+export const ABGELEHNT = "Dein Joker wurde nicht eingelöst – er zählt für diese Frage nicht.";
+
 // Die eigene Wahl als Satz - nie nur Farbe.
 export function eigeneWahlText(artInfo) {
+    if (artInfo?.ownRejected) return ABGELEHNT;
+
     const id = artInfo?.ownJokerId;
     if (id == null) return "Kein Joker eingesetzt.";
 
@@ -27,6 +32,7 @@ export class JokerModul {
         this.inhalt = null;
         this.text = null;
         this.tasten = [];
+        this.amEnde = false;
     }
 
     mount(feld) {
@@ -126,9 +132,24 @@ export class JokerModul {
 
     zeigeEnde(artInfo) {
         this.leereTasten();
+        this.amEnde = true;
+
+        // Bis der Spielleiter eingeloest hat, steht nichts fest - eine abgelehnte Wahl erscheint so nirgends (V12).
+        if (!artInfo?.confirmed) {
+            this.text.textContent = "Die Joker werden eingelöst …";
+            return;
+        }
+
+        if (artInfo.ownRejected) {
+            const abgelehnt = document.createElement("p");
+            abgelehnt.className = "joker-abgelehnt";
+            abgelehnt.textContent = ABGELEHNT;
+            this.inhalt.appendChild(abgelehnt);
+        }
+
         const zeilen = ergebnisZeilen(artInfo);
 
-        if (artInfo?.blockedBy) {
+        if (artInfo.blockedBy) {
             const gesperrt = document.createElement("p");
             gesperrt.className = "joker-gesperrt";
             gesperrt.textContent = `Du bist für diese Frage gesperrt – Joker von ${artInfo.blockedBy}.`;
@@ -145,9 +166,15 @@ export class JokerModul {
         this.text.textContent = zeilen.length > 0 ? "Diese Joker sind im Spiel:" : "Niemand hat einen Joker eingesetzt.";
     }
 
+    // Gleicher Rahmenstand, neuer Inhalt - die Einloesung des Spielleiters kommt so an (V12). Mitten in der Wahl nie.
+    aktualisiere(artInfo) {
+        if (this.amEnde) this.zeigeEnde(artInfo);
+    }
+
     leereTasten() {
         if (this.inhalt) this.inhalt.innerHTML = "";
         this.tasten = [];
+        this.amEnde = false;
     }
 
     leeren() {

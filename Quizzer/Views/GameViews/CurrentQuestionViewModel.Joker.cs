@@ -98,6 +98,10 @@ namespace Quizzer.Views.GameViews
 
             var neu = await EinloesenOderMeldenAsync(joker.Einloesungen(runde.Submissions, zelle.GameId, zelle.Id));
 
+            // V12: erst jetzt erfahren die Telefone, was gilt - eine hier abgelehnte Wahl stand sonst kurz als eingesetzt da.
+            if (BuzzerControlsViewModel != null)
+                await BuzzerControlsViewModel.ConfirmJokersAsync(neu.Select(j => j.Id).ToList());
+
             joker.Schliesse(neu);
             VorphaseLaeuft = false;
             LoeseVorphase();

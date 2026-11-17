@@ -7,7 +7,7 @@ import { baueUhr } from "./uhr-ersatz.mjs";
 
 const { wurzel } = baueDom();
 
-const { JokerModul, eigeneWahlText, KEIN_JOKER } = await import(
+const { JokerModul, eigeneWahlText, KEIN_JOKER, ABGELEHNT } = await import(
     "../../../LocalBuzzer.Service/wwwroot/JS/joker/joker.js");
 const { MinigameLayout } = await import(
     "../../../LocalBuzzer.Service/wwwroot/JS/minispiele/rahmen.js");
@@ -105,15 +105,33 @@ pruefe(text() === "Dein Joker: Sperre gegen Bert", "Die eigene Wahl kommt nicht 
 pruefe(joker().length === 0, "Nach der Abgabe stehen noch Tasten.");
 pruefe(eigeneWahlText({ ...info, ownJokerId: null }) === "Kein Joker eingesetzt.", "Ohne Joker fehlt der Satz.");
 
-// --- Nach dem Schliessen: alle Joker, und der Gesperrte erfährt es ---
-modul.zeigeEnde({ ...info, results: [{ player: "Anna", joker: "Sperre", target: "Bert" }, { player: "Clara", joker: "Doppelt", target: null }], blockedBy: "Anna" });
+// --- Nach dem Schliessen, noch nicht eingeloest (V12): nichts steht fest, auch wenn etwas mitkaeme ---
+const ende = { ...info, results: [{ player: "Anna", joker: "Sperre", target: "Bert" }, { player: "Clara", joker: "Doppelt", target: null }], blockedBy: "Anna" };
+modul.zeigeEnde(ende);
+pruefe(wurzel.querySelector(".joker-ergebnis") == null && wurzel.querySelector(".joker-gesperrt") == null,
+    "Vor dem Einlösen stehen Joker oder eine Sperre da.");
+pruefe(text().includes("eingelöst"), "Vor dem Einlösen fehlt der Satz, dass eingelöst wird: " + text());
+
+// --- Eingeloest: alle Joker, und der Gesperrte erfährt es - ueber aktualisiere, wie der Rahmen es ruft ---
+modul.aktualisiere({ ...ende, confirmed: true });
 const zeilen = [...wurzel.querySelectorAll(".joker-ergebnis")].map(z => z.textContent);
 pruefe(zeilen.length === 2 && zeilen[0] === "Anna: Sperre gegen Bert" && zeilen[1] === "Clara: Doppelt", "Die Joker stehen nicht da: " + zeilen.join(" | "));
 pruefe((wurzel.querySelector(".joker-gesperrt")?.textContent ?? "").includes("Joker von Anna"), "Der Gesperrte erfährt nicht, wer ihn gesperrt hat.");
+pruefe(wurzel.querySelector(".joker-abgelehnt") == null, "Ohne Ablehnung steht trotzdem eine da.");
 
-modul.zeigeEnde({ results: [], blockedBy: null });
+modul.zeigeEnde({ results: [], blockedBy: null, confirmed: true });
 pruefe(text() === "Niemand hat einen Joker eingesetzt.", "Ohne Joker fehlt der Satz am Ende: " + text());
 pruefe(wurzel.querySelector(".joker-gesperrt") == null, "Ohne Sperre steht trotzdem eine da.");
+
+// --- Abgelehnt (V12): die eigene Wahl wird zurückgenommen, als Satz ---
+modul.zeigeEnde({ ...info, ownJokerId: "d-1", ownRejected: true, confirmed: true, results: [], blockedBy: null });
+pruefe(wurzel.querySelector(".joker-abgelehnt")?.textContent === ABGELEHNT, "Das Telefon erfährt die Ablehnung nicht.");
+pruefe(eigeneWahlText({ ...info, ownJokerId: "d-1", ownRejected: true }) === ABGELEHNT, "Die abgelehnte Wahl steht weiter als „Dein Joker“ da.");
+
+// --- aktualisiere mitten in der Wahl laesst die Tasten stehen - auch im selben Modul nach einem Ende ---
+modul.starte(info, async () => { });
+modul.aktualisiere({ ...ende, confirmed: true });
+pruefe(joker().length === 2 && wurzel.querySelector(".joker-ergebnis") == null, "Ein Update mitten in der Wahl nimmt die Tasten weg.");
 
 // --- Der Rahmen: prePhase waehlt das Modul und geht mit jeder Abgabe mit ---
 const uhr = baueUhr();
@@ -137,8 +155,14 @@ await ruhe();
 pruefe(aktionen.length === 1 && aktionen[0].prePhase === PrePhases.Joker && aktionen[0].durchgang === 41 && aktionen[0].kind === 0,
     "Die Abgabe trägt prePhase oder Durchgang nicht: " + JSON.stringify(aktionen));
 
-rahmen.update({ ...laufend, currentLayoutLocked: true, layoutInfo: { ...laufend.layoutInfo, phase: 3, kindInfo: { results: [] } } });
+const zu = { ...laufend, currentLayoutLocked: true, layoutInfo: { ...laufend.layoutInfo, phase: 3, kindInfo: { results: [] } } };
+rahmen.update(zu);
 pruefe(wurzel.querySelector(".minispiel-status").textContent.startsWith("Joker-Runde zu"), "Am Ende steht nicht, dass die Joker-Runde zu ist.");
+
+// V12: die Einloesung kommt mit demselben Rahmenstand - der Rahmen reicht sie ans Modul weiter.
+rahmen.update({ ...zu, layoutInfo: { ...zu.layoutInfo, kindInfo: { confirmed: true, results: [{ player: "Bert", joker: "Doppelt", target: null }] } } });
+pruefe([...wurzel.querySelectorAll(".joker-ergebnis")].map(z => z.textContent).join() === "Bert: Doppelt",
+    "Die Einlösung des Spielleiters erreicht das Telefon nicht.");
 
 if (fehler > 0) {
     console.error(`${fehler} Zusicherung(en) rot.`);

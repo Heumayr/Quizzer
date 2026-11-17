@@ -46,6 +46,10 @@ namespace Quizzer.Views.BuzzerViews
         public Task SetAnswerersAsync(IReadOnlyCollection<Guid>? antwortende, IReadOnlyDictionary<Guid, string>? saetze = null)
             => BuzzerController?.SetAnswerersAsync(antwortende, saetze) ?? Task.CompletedTask;
 
+        /// <summary>Die Joker-Runde ist eingeloest - die Telefone erfahren, was gilt und was abgelehnt ist (V12).</summary>
+        public Task<bool> ConfirmJokersAsync(IReadOnlyCollection<Guid> eingeloest)
+            => BuzzerController?.ConfirmJokersAsync(eingeloest) ?? Task.FromResult(false);
+
         /// <summary>Hebt die Sperre auf, ohne zu senden - das tut das Zuruecksetzen danach.</summary>
         public void ClearAnswerers() => BuzzerController?.StateManager.AnswerLock.Clear();
 

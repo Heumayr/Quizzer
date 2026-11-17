@@ -1,3 +1,4 @@
+using LocalBuzzer.Service.Base.States.Joker;
 using LocalBuzzer.Service.Base.States.Minispiele;
 
 namespace LocalBuzzer.Service.Base
@@ -57,6 +58,21 @@ namespace LocalBuzzer.Service.Base
             CheckServerRunning();
 
             if (!StateManager.MinigameState.SetPair(chooserId, partnerId))
+                return false;
+
+            await SendStateAsync(ct);
+            return true;
+        }
+
+        /// <summary>
+        /// Die Joker-Runde ist eingeloest (V12): was der zweite Riegel abgelehnt hat, nimmt das Telefon zurueck, und erst
+        /// jetzt sehen alle, wer welchen Joker setzt. <c>false</c> ohne Joker-Runde oder solange sie laeuft.
+        /// </summary>
+        public async Task<bool> ConfirmJokersAsync(IReadOnlyCollection<Guid> eingeloest, CancellationToken ct = default)
+        {
+            CheckServerRunning();
+
+            if (!StateManager.MinigameState.Lenke(r => (r as JokerRules)?.ConfirmRedeemed(eingeloest) == true))
                 return false;
 
             await SendStateAsync(ct);

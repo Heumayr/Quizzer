@@ -47,8 +47,9 @@
     font-weight: 400;
 }
 
-/* Nie nur Farbe: der Satz sagt, wer gesperrt hat. */
-.joker-gesperrt {
+/* Nie nur Farbe: der Satz sagt, wer gesperrt hat - und dass der eigene Joker nicht gilt (V12). */
+.joker-gesperrt,
+.joker-abgelehnt {
     margin: 0;
     padding: 12px;
     border: 3px solid var(--text);

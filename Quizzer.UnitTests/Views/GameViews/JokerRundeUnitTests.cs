@@ -3,10 +3,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.DataModels.Models.Buzzer;
 using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.TestShared;
 using Quizzer.UnitTests.PlayThrough;
 using Quizzer.Views.GameViews;
+using System.Text.Json;
 using System.Windows;
 using static Quizzer.Views.GameViews.Sub.PlayerResultContext;
 using PrePhase = LocalBuzzer.Service.Base.States.Joker.MinigamePrePhase;
@@ -285,6 +287,54 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual(Feld, Karte(vm, 0).CurrentScoreManipulation, "Ein nicht gespeicherter Joker wirkt trotzdem.");
             Assert.IsFalse(Stand(2)?.ExcludedFromQuestion ?? false, "Eine nicht gespeicherte Sperre sperrt trotzdem.");
             Assert.IsFalse((await AusDerDatenbankAsync(joker[0])).IsRedeemed);
+        }
+
+        /// <summary>Der Joker-Teil eines Zustands - <c>null</c>, wenn er nicht aus der Joker-Runde stammt.</summary>
+        private static JsonElement? JokerInfo(ClientLayoutStateDto dto)
+            => dto.LayoutInfo is JsonElement { ValueKind: JsonValueKind.Object } info
+               && info.TryGetProperty("prePhase", out var phase) && phase.GetInt32() == (int)PrePhase.Joker
+               && info.TryGetProperty("kindInfo", out var art) && art.ValueKind == JsonValueKind.Object ? art : null;
+
+        private static bool NenntIn(JsonElement art, string feld, string name)
+            => art.TryGetProperty(feld, out var wert) && wert.ValueKind != JsonValueKind.Null && wert.GetRawText().Contains(name, StringComparison.Ordinal);
+
+        /// <summary>Alle Joker-Zustaende, die diese Telefone je bekamen - der Verlauf, nicht nur der letzte.</summary>
+        private List<JsonElement> JokerVerlauf(params int[] telefone)
+            => (telefone.Length == 0 ? staende : telefone.Select(t => staende[t]))
+                .SelectMany(v => { lock (v) return v.ToList(); })
+                .Select(JokerInfo).OfType<JsonElement>().ToList();
+
+        /// <summary>
+        /// V12: lehnt der zweite Riegel eine Wahl ab - hier ist Berts Sperre zurueckgenommen, nachdem die Runde schon
+        /// offen war -, steht sie im ganzen Verlauf auf keinem Telefon: nicht in den Ergebnissen, nicht als Sperre bei
+        /// Clara. Bert erfaehrt, dass sein Joker nicht zaehlt. Vorher zeigten alle Telefone sie kurz an.
+        /// </summary>
+        [TestMethod]
+        public async Task ARejectedChoiceNeverReachesAPhoneAndItsOwnerLearnsIt()
+        {
+            Vergib((0, JokerKind.Double), (1, JokerKind.Block));
+            var vm = await OeffneAsync(CellSpecialRule.None);
+
+            using (var ctrl = new PlayerJokersController())
+            {
+                Assert.IsTrue(await ctrl.WithdrawAsync(joker[1].Id), "Berts Sperre liess sich nicht zuruecknehmen.");
+                await ctrl.SaveChangesAsync();
+            }
+
+            await JokerAsync(0, joker[0].Id);
+            await JokerAsync(1, joker[1].Id, world!.Players[2].Id);
+            Assert.IsTrue(await WarteAsync(() => !vm.VorphaseLaeuft), "Die Runde schloss nicht.");
+
+            Assert.IsTrue(await WarteAsync(() => JokerVerlauf(1).Any(a => NenntIn(a, "ownRejected", "true"))),
+                "Bert erfaehrt nicht, dass sein Joker nicht zaehlt.");
+            Assert.IsFalse(JokerVerlauf(0, 2).Any(a => NenntIn(a, "ownRejected", "true")), "Ein anderes Telefon erfaehrt von Berts Ablehnung.");
+            Assert.IsTrue(await WarteAsync(() => JokerVerlauf().Any(a => NenntIn(a, "results", Name(0)))),
+                "Annas eingeloester Joker erreicht kein Telefon - dann misst die Probe nichts.");
+
+            var bert = Name(1);
+            Assert.IsFalse(JokerVerlauf().Any(a => NenntIn(a, "results", bert) || NenntIn(a, "blockedBy", bert)),
+                "Berts abgelehnte Sperre stand auf einem Telefon.");
+            Assert.IsFalse(vm.Sonderregel.Hinweis.Contains("Sperre"), "Der Beamer zeigt die abgelehnte Sperre: " + vm.Sonderregel.Hinweis);
         }
 
         [TestMethod]

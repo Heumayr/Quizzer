@@ -81,6 +81,9 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             return knoten.ToJsonString();
         }
 
+        /// <summary>Was der Spielleiter nach dem Schliessen eingeloest hat (V12) - der Rest gilt als abgelehnt.</summary>
+        private static bool Loese(MinigameState z, params Guid[] eingeloest) => z.Lenke(r => ((JokerRules)r!).ConfirmRedeemed(eingeloest));
+
         [TestMethod]
         public void OnlyHoldersDecideAndTheRoundClosesWhenAllHoldersHaveDecided()
         {
@@ -216,8 +219,15 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             zustand.CloseRound();
             zweite.CloseRound();
 
+            // V12: zu, aber noch nicht eingeloest - weiter fuer alle gleich.
+            foreach (var wer in new[] { bert, clara, null })
+                Assert.AreEqual(Json(zustand, wer), Json(zweite, wer), $"{wer?.Designation ?? "Der Beamer"} sieht Annas Wahl vor dem Einloesen ({unterschied}).");
+
+            Assert.IsTrue(Loese(zustand, annasSperre.Id));
+            Assert.IsTrue(Loese(zweite, annasSperre.Id, annasDoppelt.Id));
+
             Assert.AreNotEqual(Json(zustand, null), Json(zweite, null),
-                "Nach dem Schliessen unterscheiden sich die Zustaende nicht - die Gegenprobe ist blind.");
+                "Nach dem Einloesen unterscheiden sich die Zustaende nicht - die Gegenprobe ist blind.");
         }
 
         [TestMethod]
@@ -231,10 +241,56 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             Gib(bert, bertsSchutz.Id);
             Assert.AreEqual(MinigamePhase.Finished, zustand.Phase, "Die Runde ist nicht zu, obwohl alle Halter entschieden haben.");
 
+            // V12: zu heisst noch nicht eingeloest - bis dahin steht nichts fest.
+            Assert.IsFalse(Info(zustand, null).Confirmed);
+            Assert.AreEqual(0, Info(zustand, null).Results.Count, "Der Beamer sieht Joker vor dem Einloesen.");
+            Assert.IsNull(Info(zustand, bert).BlockedBy, "Bert erfaehrt die Sperre vor dem Einloesen.");
+
+            Assert.IsTrue(Loese(zustand, annasSperre.Id, bertsSchutz.Id));
+
+            Assert.IsTrue(Info(zustand, null).Confirmed);
             var beamer = Info(zustand, null).Results.Select(r => $"{r.Player}:{r.Joker}:{r.Target}").ToList();
             CollectionAssert.AreEqual(new[] { "Anna:Sperre:Bert", "Bert:Schutz:" }, beamer);
             Assert.AreEqual("Anna", Info(zustand, bert).BlockedBy, "Bert erfaehrt nicht, wer ihn gesperrt hat.");
             Assert.IsNull(Info(zustand, clara).BlockedBy, "Clara gilt als gesperrt.");
+            Assert.IsFalse(new[] { anna, bert, clara }.Any(p => Info(zustand, p).OwnRejected), "Eine eingeloeste Wahl gilt als abgelehnt.");
+        }
+
+        /// <summary>
+        /// V12: lehnt der zweite Riegel im WPF Annas Sperre ab, erscheint sie auf keinem Telefon und nicht am Beamer - Bert
+        /// gilt nicht als gesperrt, und nur Anna erfaehrt, dass ihr Joker nicht zaehlt. Vor dem Schliessen geht nichts.
+        /// </summary>
+        [TestMethod]
+        public void ARejectedChoiceReachesNoPhoneAndOnlyItsOwnerLearnsIt()
+        {
+            Gib(anna, annasSperre.Id, bert.Id);
+            Assert.IsFalse(Loese(zustand, annasSperre.Id), "Eingeloest wurde, waehrend die Runde laeuft.");
+
+            Gib(bert, bertsSchutz.Id);
+            Assert.IsTrue(Loese(zustand, bertsSchutz.Id));
+
+            CollectionAssert.AreEqual(new[] { "Bert:Schutz:" }, Info(zustand, null).Results.Select(r => $"{r.Player}:{r.Joker}:{r.Target}").ToList(),
+                "Die abgelehnte Sperre steht in den Ergebnissen.");
+            Assert.IsNull(Info(zustand, bert).BlockedBy, "Bert gilt als gesperrt, obwohl die Sperre nicht eingeloest ist.");
+            Assert.IsTrue(Info(zustand, anna).OwnRejected, "Anna erfaehrt nicht, dass ihr Joker nicht zaehlt.");
+            Assert.IsFalse(Info(zustand, bert).OwnRejected || Info(zustand, clara).OwnRejected || Info(zustand, null).OwnRejected,
+                "Ein anderes Telefon oder der Beamer erfaehrt von Annas Ablehnung.");
+
+            // Eine wiederholte Runde beginnt ohne Einloesung und ohne Ablehnung - auch nach ihrem Schliessen gilt die alte nicht.
+            Assert.IsTrue(zustand.RepeatRound());
+            Gib(anna, annasSperre.Id, bert.Id);
+            Assert.IsFalse(Loese(zustand, annasSperre.Id), "In der wiederholten Runde wurde eingeloest, waehrend sie laeuft.");
+            Gib(bert, bertsSchutz.Id);
+
+            Assert.AreEqual(MinigamePhase.Finished, zustand.Phase);
+            Assert.IsFalse(Info(zustand, null).Confirmed || Info(zustand, null).Results.Count > 0 || Info(zustand, bert).BlockedBy != null,
+                "Die Einloesung der alten Runde gilt fuer die neue.");
+            Assert.IsFalse(Info(zustand, anna).OwnRejected, "Die Ablehnung der alten Runde gilt fuer die neue.");
+
+            // Abgebrochen gibt es nichts einzuloesen - und auch keine alte Ablehnung.
+            Assert.IsNotNull(zustand.Abort());
+            Assert.IsTrue(Info(zustand, null).Confirmed, "Nach dem Abbruch wartet das Telefon auf eine Einloesung.");
+            Assert.IsFalse(Info(zustand, anna).OwnRejected, "Nach dem Abbruch gilt die alte Ablehnung.");
         }
     }
 }
