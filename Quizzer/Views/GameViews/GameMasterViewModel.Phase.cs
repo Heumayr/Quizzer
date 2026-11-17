@@ -15,6 +15,30 @@ namespace Quizzer.Views.GameViews
     /// </summary>
     public partial class GameMasterViewModel
     {
+        public int GamePhase
+        {
+            get => Game?.Phase ?? -1;
+            set
+            {
+                Game?.Phase = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>Die Phase samt der Zahl, auf die das Spiel angelegt ist.</summary>
+        public string PhaseHeadline
+        {
+            get
+            {
+                if (Game == null)
+                    return "Keine Phase";
+
+                return Game.SuggestedPhases > 0
+                    ? $"Phase {Game.Phase} von {Game.SuggestedPhases}"
+                    : $"Phase {Game.Phase}";
+            }
+        }
+
         private AsyncRelayCommand? raiseGamePhaseCommand;
 
         public ICommand RaiseGamePhaseCommand =>
