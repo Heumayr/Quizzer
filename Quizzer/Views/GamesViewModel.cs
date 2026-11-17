@@ -257,6 +257,8 @@ namespace Quizzer.Views
             if (!GamePlayersView.Ask(game.Id))
                 return;
 
+            await TeamsZuteilenWennNoetigAsync(game.Id);
+
             try
             {
                 this.Window?.Hide();
