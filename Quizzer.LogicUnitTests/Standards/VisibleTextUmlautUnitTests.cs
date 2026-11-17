@@ -169,6 +169,9 @@ namespace Quizzer.LogicUnitTests.Standards
                     if (wert.TrimStart().StartsWith('{'))
                         continue;
 
+                    if (!istMarkup && IstBezeichner(zeile, treffer))
+                        continue;
+
                     // Und in einer interpolierten Zeichenfolge steht in den Klammern ebenfalls
                     // ein Bezeichner, kein Anzeigetext. Gemessen 2026-09-06 an
                     // $"Groesse: {ergebnis.Groesse ...} MB" - sichtbar ist "Groesse:", und das
@@ -205,6 +208,24 @@ namespace Quizzer.LogicUnitTests.Standards
         private static string OhneKlammerinhalt(string wert)
             => Regex.Replace(wert, @"\{[^{}]*\}", " ");
 
+        /// <summary>
+        /// Ein Modulpfad, oder Klassennamen in einer Anweisung mit <c>className</c>, <c>classList</c> oder einem
+        /// Selektor (V13). Die Anweisung endet am letzten <c>;</c> davor - ein Text dahinter zaehlt wieder.
+        /// </summary>
+        private static bool IstBezeichner(string zeile, Match treffer)
+        {
+            var wert = Regex.Replace(treffer.Groups["wert"].Value, @"\$\{[^}]*\}", "x");
+
+            if (Regex.IsMatch(wert, @"^\.{0,2}/[\w./-]+\.(m?js|css)$"))
+                return true;
+
+            var davor = zeile[..treffer.Index];
+            var anweisung = davor[(davor.LastIndexOf(';') + 1)..];
+
+            return Regex.IsMatch(wert, @"^\.?[a-z][a-z0-9]*(-[a-z0-9]+)*( \.?[a-z][a-z0-9]*(-[a-z0-9]+)*)*$")
+                && Regex.IsMatch(anweisung, @"\b(className|classList|querySelector(All)?|closest)\b");
+        }
+
         private static int KlammerSaldo(string zeile)
         {
             var ohneTexte = Regex.Replace(zeile, "\"[^\"\\\\]*\"", "\"\"");
@@ -238,6 +259,47 @@ namespace Quizzer.LogicUnitTests.Standards
             Assert.AreEqual(0, funde.Count,
                 "Sichtbarer Text muss echte Umlaute tragen (standards-allgemein.md §1). "
                 + $"Gefunden:{Environment.NewLine}{string.Join(Environment.NewLine, funde)}");
+        }
+
+        /// <summary>
+        /// V13, beide Richtungen: Klassennamen und Modulpfade im Skript sind Bezeichner (der Waechter meldete
+        /// <c>erklaer…</c>, und ein Modul hiess deshalb <c>baer.js</c>) - ein Anzeigetext ohne Umlaut wird weiter
+        /// gefunden, auch ein einzelnes kleines Wort und einer hinter einer Klassenzuweisung in derselben Zeile.
+        /// </summary>
+        [TestMethod]
+        public void ClassNamesAndModulePathsAreNoDisplayTextButDisplayTextStillIs()
+        {
+            string[] bezeichner =
+            [
+                "import { ErklaerbaerModul } from \"./erklaerbaer.js\";",
+                "const { Modul } = await import(\"../minispiele/erklaerbaer.js\");",
+                "feld.className = \"erklaerbaer-begriff\";",
+                "taste.className = gewaehlt ? \"wahl-knopf gewaehlt\" : \"wahl-knopf\";",
+                "inhalt.classList.add(`erklaer-${art}`);",
+                "const zeile = wurzel.querySelector(\".erklaer-zeile\");",
+            ];
+
+            string[] anzeige =
+            [
+                "text.textContent = \"Erklaerbaer laeuft\";",
+                "knopf.textContent = \"zurueck\";",
+                "taste.className = \"joker-knopf\"; taste.textContent = \"zurueck\";",
+                "this.status.textContent = `Runde ${n} laeuft`;",
+            ];
+
+            var gemeldet = bezeichner.Select(z => (Zeile: z, Texte: Anzeigetexte([z], istMarkup: false).ToList()))
+                .Where(x => x.Texte.Any(t => Umschriften.Any(s => t.Text.Contains(s, StringComparison.OrdinalIgnoreCase))))
+                .Select(x => x.Zeile)
+                .ToList();
+
+            Assert.AreEqual(0, gemeldet.Count, "Als Anzeigetext gemeldet: " + string.Join(" | ", gemeldet));
+
+            foreach (var zeile in anzeige)
+            {
+                Assert.IsTrue(Anzeigetexte([zeile], istMarkup: false)
+                        .Any(t => Umschriften.Any(s => t.Text.Contains(s, StringComparison.OrdinalIgnoreCase))),
+                    "Ein Anzeigetext ohne Umlaut faellt nicht mehr auf: " + zeile);
+            }
         }
 
         /// <summary>
