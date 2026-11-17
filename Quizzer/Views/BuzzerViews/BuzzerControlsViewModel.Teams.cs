@@ -45,6 +45,36 @@ namespace Quizzer.Views.BuzzerViews
             TeamSperreGeaendert();
         }
 
+        /// <summary>Die Team-Abstimmung beginnt (M37 T7) - das Ausspielen der Runde danach bringt sie auf die Telefone.</summary>
+        public void StarteTeamAbstimmung()
+        {
+            try
+            {
+                BuzzerController?.StartTeamVote();
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
+        }
+
+        /// <summary>Je Team seine Antwort an die Telefone (M37 T7) - jedes bekommt nur die seines Teams.</summary>
+        public async Task SetzeTeamAbstimmungAsync(IReadOnlyDictionary<Guid, string> ergebnisse)
+        {
+            try
+            {
+                if (BuzzerController is { } ctrl)
+                    await ctrl.SetTeamVoteResultsAsync(ergebnisse);
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.HandleException(ex);
+            }
+        }
+
+        /// <summary>Die Frage ist zu: keine Abstimmung mehr, ohne zu senden - das tut das Zurücksetzen danach.</summary>
+        public void BeendeTeamAbstimmung() => BuzzerController?.EndTeamVote();
+
         /// <summary>Die Frage ist zu: die Sperre geht, ohne zu senden - das tut das Zurücksetzen danach.</summary>
         public void ClearTeamLock()
         {

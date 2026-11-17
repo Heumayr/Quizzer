@@ -101,6 +101,7 @@ namespace Quizzer.Views.GameViews.Sonderregeln
             CellSpecialRule.Final => new FinalAblauf(),
             CellSpecialRule.SameThought => new GleichGedachtAblauf(),
             CellSpecialRule.AllOrNothing => new AlleOderKeinerAblauf(),
+            CellSpecialRule.TeamVote => new TeamAbstimmungAblauf(),
             _ => null,
         };
 

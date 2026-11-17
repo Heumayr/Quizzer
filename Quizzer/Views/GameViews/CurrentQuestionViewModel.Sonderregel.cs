@@ -286,6 +286,7 @@ namespace Quizzer.Views.GameViews
             Sonderregel.Leere();
             LeereFinale();
             LeereGleichGedacht();
+            LeereTeamAbstimmung();
             KandidatenGeaendert();
         }
     }

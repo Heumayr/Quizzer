@@ -104,6 +104,9 @@ namespace Quizzer.Views.GameViews
                     // aus den Tasten selbst, nicht aus dem gespeicherten Wert, der hinter einer
                     // umgewandelten Frage zuruecksein kann. Minispiel Mehrheit: genau eine Option
                     // (M35 B2) - fest, damit eine umgewandelte Frage keine Mehrfachstimme behaelt.
+                    // M37 T7: die Team-Abstimmung zeigt ab diesem Ausspielen Stimme und Stand des eigenen Teams.
+                    StarteTeamAbstimmung();
+
                     var erlaubt = Question is MinigameQuestion ? 1
                         : reihenfolge || wahrFalsch ? Math.Max(tasten?.Count ?? 1, 1)
                         : Question?.BuzzerMaxAllowedKeySelect ?? 1;
@@ -161,6 +164,7 @@ namespace Quizzer.Views.GameViews
         private async Task OnAllPlayersSelectedKeys(ConcurrentDictionary<Guid, BuzzerKeySelector.SelectionResult> dictionary)
         {
             PlayersResultViewModel?.SelectionResultsDic = dictionary;
+            await TeamAbstimmungZuAsync(dictionary);
             await OpenResultsAsync();
         }
 
@@ -193,6 +197,7 @@ namespace Quizzer.Views.GameViews
                 ClearSonderregel();
                 await RaeumeTeamregelAufAsync();
                 BuzzerControlsViewModel.ClearTeamLock(); // M37 T4: die Team-Sperre gilt nur dieser Frage (F-M37-09)
+                BuzzerControlsViewModel.BeendeTeamAbstimmung(); // M37 T7
                 BuzzerControlsViewModel.SetRoundInfo(null);
 
                 await BuzzerControlsViewModel.ResetRoundAsync(null);
