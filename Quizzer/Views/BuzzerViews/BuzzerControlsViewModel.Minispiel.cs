@@ -84,6 +84,7 @@ namespace Quizzer.Views.BuzzerViews
                 {
                     ReactionAttempt versuch => ReaktionEvaluator.Describe(versuch),
                     TippsprintStand stand => TippsprintEvaluator.Describe(stand.Tipps),
+                    TauziehenZug zug => TippsprintEvaluator.Describe(zug.Tipps),
                     StoppuhrVersuch stopp => StoppuhrEvaluator.Describe(stopp),
                     ZockerAusstieg aus => $"bei {ZockerEvaluator.Text(aus.Multiplikator)} ausgestiegen",
                     KopfrechnenAntwort antwort => KopfrechnenEvaluator.Describe(antwort.Stand),

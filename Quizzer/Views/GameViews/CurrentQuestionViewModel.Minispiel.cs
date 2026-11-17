@@ -65,7 +65,8 @@ namespace Quizzer.Views.GameViews
 
             BuzzerControlsViewModel.SetMinigameInfo(new MinigameSetup(
                 frage.Kind, titel, MinigameProfiles.RulesFor(frage, Coordinate?.Game), runden, DurationSeconds: frage.DurationSeconds,
-                TriggerPlayerId: Ausloeser, Variant: frage.Variant, Content: MinispielInhalt.Zeilen(frage)));
+                TriggerPlayerId: Ausloeser, Variant: frage.Variant, Content: MinispielInhalt.Zeilen(frage),
+                TeamScoring: Coordinate?.Game?.TeamMinigameScoring ?? TeamMinigameScoring.Average));
             BereitePaarVor();
             BuzzerControlsViewModel.MinigameRoundClosed = OnMinigameRoundClosedAsync;
             BuzzerControlsViewModel.MinigameSubmitted = OnMinigameSubmittedAsync;

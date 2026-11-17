@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
+using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.Buzzer;
 using Quizzer.UnitTests.PlayThrough;
@@ -29,6 +30,9 @@ namespace Quizzer.UnitTests.Views.GameViews
 
         /// <summary>Richtet die Zelle vor dem Oeffnen ein - Anteil, Spielweise (M35 C3b).</summary>
         protected Action<GameGridCoordinate>? ZelleEinrichten { get; set; }
+
+        /// <summary>Richtet die Frage ein, bevor sie geschrieben wird - Art und Dauer eines Minispiels (M37 T9).</summary>
+        protected Action<QuestionBase>? FrageEinrichten { get; set; }
 
         /// <summary>Schreibt vor dem Oeffnen in die Datenbank - Joker (M35 C7b).</summary>
         private protected Func<TestGameBuilder, Task>? VorDemOeffnen { get; set; }
@@ -71,7 +75,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             CellSpecialRule regel, int spieler = 3, int[]? kontostaende = null, Func<CellSpecialRule, SonderregelAblauf?>? fabrik = null,
             QuestionType typ = QuestionType.Default)
         {
-            world = await TestGameBuilder.CreateAsync(typ, normalStepCount: 3, playerCount: spieler);
+            world = await TestGameBuilder.CreateAsync(typ, normalStepCount: 3, playerCount: spieler, adjustQuestion: FrageEinrichten);
             world.Coordinate.SpecialRule = regel;
             ZelleEinrichten?.Invoke(world.Coordinate);
 

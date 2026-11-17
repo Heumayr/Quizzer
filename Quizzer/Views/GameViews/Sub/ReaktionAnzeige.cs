@@ -33,6 +33,7 @@ namespace Quizzer.Views.GameViews.Sub
             Zeilen = zeilen ?? [];
             Aufloesung = aufloesung ?? [];
             ZeigeRekord(null);
+            ZeigeSeil(null);
 
             OnPropertyChanged(nameof(Kopfzeile));
             OnPropertyChanged(nameof(Zeilen));
@@ -47,6 +48,19 @@ namespace Quizzer.Views.GameViews.Sub
 
             OnPropertyChanged(nameof(Rekord));
             OnPropertyChanged(nameof(RekordVisibility));
+        }
+
+        /// <summary>Das Seil des Tauziehens bei zwei Teams (M37 T9); <c>null</c>: keins. Jede neue Tafel nimmt es weg.</summary>
+        public TauziehenSeil? Seil { get; private set; }
+
+        public Visibility SeilVisibility => Seil != null ? Visibility.Visible : Visibility.Collapsed;
+
+        internal void ZeigeSeil(TauziehenSeil? seil)
+        {
+            Seil = seil;
+
+            OnPropertyChanged(nameof(Seil));
+            OnPropertyChanged(nameof(SeilVisibility));
         }
     }
 }

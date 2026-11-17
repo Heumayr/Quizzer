@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.DataModels.Models.QuestionTypes;
+using Quizzer.DataModels.Questions.Minispiele;
 using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.UnitTests.PlayThrough;
 using Quizzer.Views.GameViews;
@@ -64,6 +66,18 @@ namespace Quizzer.UnitTests.Views.GameViews
         {
             VorDemOeffnen = TeamsAnlegenAsync;
             return OeffneAsync(regel, spieler, typ: typ);
+        }
+
+        /// <summary>Ein Minispiel im Teamspiel (M37 T9): die Art mit ihren Vorgaben, ohne Regel an der Zelle.</summary>
+        private protected Task<TestableCurrentQuestionViewModel> OeffneTeamMinispielAsync(MinigameKind art, Action<MinigameQuestion>? einstellen = null, int spieler = 4)
+        {
+            FrageEinrichten = frage =>
+            {
+                MinigameProfiles.For(art).ApplyDefaults((MinigameQuestion)frage);
+                einstellen?.Invoke((MinigameQuestion)frage);
+            };
+
+            return OeffneTeamregelAsync(CellSpecialRule.None, spieler, QuestionType.Minigame);
         }
 
         protected LayoutStateManager Hub => serverVm!.BuzzerControlsViewModel!.BuzzerController!.StateManager;
