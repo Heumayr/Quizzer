@@ -185,8 +185,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
 
             Assert.IsTrue(berts.ExcludedFromQuestion, "Berts Telefon sagt nicht, dass sein Team gesperrt ist.");
             Assert.IsTrue(berts.CurrentLayoutLocked, "Berts Buzzer ist offen.");
-            Assert.AreEqual(TeamBuzzLock.Satz, berts.ExcludedReason);
-            Assert.AreEqual("Dein Team hat schon gebuzzert.", TeamBuzzLock.Satz);
+            Assert.AreEqual("Dein Team hat schon gebuzzert.", berts.ExcludedReason, "Berts Telefon nennt nicht den Satz der Team-Sperre.");
             Assert.IsFalse(carls.ExcludedFromQuestion, "Carl aus dem anderen Team ist gesperrt.");
             Assert.IsFalse(carls.CurrentLayoutLocked, "Carls Buzzer ist zu.");
 
