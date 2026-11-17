@@ -123,6 +123,9 @@ namespace Quizzer.Views.GameViews
             // M37 T2: ein leeres Team haelt den Start nicht an, faellt aber am Beamer auf.
             angemerkt.AddRange(Teamzuordnung.Startwarnungen(dbGame));
 
+            // M37 E4: ein zweites Finale (aus Buendel oder Abgleich) wird gespielt, faellt aber vorher auf.
+            angemerkt.AddRange(DataModels.Questions.Sonderregeln.Sonderregelraster.Spielbefunde(dbGame.GameGridCoordinates).Select(b => b.Message));
+
             return StartFreigegeben(beanstandet, angemerkt);
         }
 

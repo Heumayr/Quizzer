@@ -13,14 +13,21 @@ namespace Quizzer.Views.HelperViewModels
     /// </summary>
     public partial class QuestionSelectorViewModel
     {
-        /// <summary>„Keine" vorn, dann jede Regel aus den Profilen, die zum Spiel mit oder ohne Teams passt (M37 T5).</summary>
+        /// <summary>
+        /// „Keine" vorn, dann jede Regel aus den Profilen, die zum Spiel mit oder ohne Teams passt (M37 T5) - das Finale nur,
+        /// solange keine andere Zelle es trägt (M37 E4).
+        /// </summary>
         public IReadOnlyList<SonderregelOption> SonderregelOptionen =>
         [
             new(CellSpecialRule.None, SpecialRuleProfiles.NameOf(CellSpecialRule.None)),
-            .. SpecialRuleProfiles.Angeboten(Teamspiel).Select(p => new SonderregelOption(p.Rule, p.DisplayName)),
+            .. SpecialRuleProfiles.Angeboten(Teamspiel).Where(p => FreiAufDieserZelle(p.Rule)).Select(p => new SonderregelOption(p.Rule, p.DisplayName)),
         ];
 
         private bool Teamspiel => Game?.IsTeamGame == true;
+
+        private bool FreiAufDieserZelle(CellSpecialRule regel)
+            => Coordinate == null || regel == Coordinate.SpecialRule
+               || Sonderregelraster.FreiFuer(regel, Coordinate, Game?.GameGridCoordinates ?? []);
 
         /// <summary>Ob diese Zelle eine Regel tragen darf: eine gewoehnliche Frage, noch nicht gespielt.</summary>
         public bool SonderregelMoeglich => Coordinate != null && Sonderregelraster.Erlaubt(Coordinate);
@@ -34,6 +41,8 @@ namespace Quizzer.Views.HelperViewModels
             _ when Profil is { } profil && !profil.PasstZu(Teamspiel) => profil.IstTeamregel
                 ? $"„{profil.DisplayName}“ gibt es nur im Teamspiel – sie wird nicht gespielt."
                 : $"„{profil.DisplayName}“ wird im Teamspiel nicht gespielt.",
+            _ when Profil is { EinmalJeSpiel: true } einmal && !Sonderregelraster.FreiFuer(einmal.Rule, Coordinate, Game?.GameGridCoordinates ?? [])
+                => $"„{einmal.DisplayName}“ liegt noch auf einer anderen Zelle – gedacht ist es einmal je Spiel.",
             _ => string.Empty,
         };
 
