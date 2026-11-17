@@ -42,7 +42,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
                 game.PlayerXGames.Add(new PlayerXGame { Id = Guid.NewGuid(), GameId = game.Id, PlayerId = p.Id, Player = p });
 
             server = new BuzzerServer { GetGame = () => game };
-            await server.StartAsync(new BuzzerServerOptions { Port = TestPort, BindAddress = "127.0.0.1" });
+            await HubTest.StartAsync(server, TestPort);
 
             server.BuzzerController!.EventBus.MinigameSubmitted += a => { lock (abgaben) abgaben.Add(a); };
             server.BuzzerController.EventBus.MinigameRoundClosed += r => { lock (geschlossen) geschlossen.Add(r); };

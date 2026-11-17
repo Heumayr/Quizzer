@@ -6,6 +6,7 @@ using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.Buzzer;
 using Quizzer.UnitTests.PlayThrough;
+using Quizzer.UnitTests.Views.BuzzerViews;
 using Quizzer.Views.BuzzerViews;
 using Quizzer.Views.GameViews.Sonderregeln;
 using Quizzer.Views.GameViews.Sub;
@@ -19,15 +20,12 @@ namespace Quizzer.UnitTests.Views.GameViews
     /// Gemeinsamer Aufbau der Sonderregel-Tests mit echtem Buzzer-Server (M35 C3b): Spiel, Server auf eigenem
     /// Port, je Spieler ein Telefon als SignalR-Client, das jeden Zustand mitschreibt. Je Testklasse ein Port.
     /// </summary>
-    public abstract class SonderregelServerTestBasis
+    public abstract class SonderregelServerTestBasis : BuzzerServerTestBasis
     {
         protected TestGameBuilder? world;
         protected BuzzerServerViewModel? serverVm;
         protected readonly List<HubConnection> phones = new();
         protected readonly List<List<ClientLayoutStateDto>> staende = new();
-
-        /// <summary>Der Port gehoert allein der abgeleiteten Klasse.</summary>
-        protected abstract int Port { get; }
 
         /// <summary>Richtet die Zelle vor dem Oeffnen ein - Anteil, Spielweise (M35 C3b).</summary>
         protected Action<GameGridCoordinate>? ZelleEinrichten { get; set; }
@@ -99,8 +97,7 @@ namespace Quizzer.UnitTests.Views.GameViews
 
             serverVm = StaticManager.BuzzerServerViewModel;
             serverVm.Game = world.Game;
-            serverVm.BuzzerPort = Port;
-            await ((AsyncRelayCommand)serverVm.StartServerCommand).ExecuteAsync(null);
+            await StarteServerAsync(serverVm);
 
             foreach (var p in world.Players)
                 await VerbindeAsync(p);

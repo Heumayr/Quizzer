@@ -41,11 +41,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
 
             server = new BuzzerServer { GetGame = () => game };
 
-            await server.StartAsync(new BuzzerServerOptions
-            {
-                Port = TestPort,
-                BindAddress = "127.0.0.1",
-            });
+            await HubTest.StartAsync(server, TestPort);
         }
 
         [TestCleanup]

@@ -9,6 +9,7 @@ using Quizzer.DataModels.Models.Buzzer;
 using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.DataModels.Questions.Minispiele;
 using Quizzer.UnitTests.PlayThrough;
+using Quizzer.UnitTests.Views.BuzzerViews;
 using Quizzer.Views.BuzzerViews;
 using Quizzer.Views.GameViews.Sub;
 using Quizzer.Views.StaticRessources;
@@ -25,9 +26,9 @@ namespace Quizzer.UnitTests.Views.GameViews
     /// Toene, Wiederholen und Abbrechen (E1) - und die Probetelefone (V1).
     /// </summary>
     [TestClass]
-    public partial class ReaktionSpielleiterUnitTests
+    public partial class ReaktionSpielleiterUnitTests : BuzzerServerTestBasis
     {
-        private const int Port = 5413;
+        protected override int Port => 5413;
 
         private TestGameBuilder? world;
         private BuzzerServerViewModel? serverVm;
@@ -107,8 +108,7 @@ namespace Quizzer.UnitTests.Views.GameViews
 
             serverVm = StaticManager.BuzzerServerViewModel;
             serverVm.Game = world.Game;
-            serverVm.BuzzerPort = Port;
-            await ((AsyncRelayCommand)serverVm.StartServerCommand).ExecuteAsync(null);
+            await StarteServerAsync(serverVm);
 
             foreach (var spieler in world.Players)
                 await VerbindeAsync(spieler);

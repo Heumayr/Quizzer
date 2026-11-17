@@ -8,6 +8,7 @@ using Quizzer.DataModels.Questions;
 using Quizzer.DataModels.Questions.Sonderregeln;
 using Quizzer.Logic.Spielablauf;
 using Quizzer.UnitTests.PlayThrough;
+using Quizzer.UnitTests.Views.BuzzerViews;
 using Quizzer.Views.BuzzerViews;
 using Quizzer.Views.GameViews.Sub;
 using Quizzer.Views.StaticRessources;
@@ -24,9 +25,9 @@ namespace Quizzer.UnitTests.Views.GameViews
     /// Bewertung auf der Karte um (E1) - gekappt (E2) und mit der Ruecknahme vollstaendig zurueckzudrehen.
     /// </summary>
     [TestClass]
-    public class SonderregelSpielleiterUnitTests
+    public class SonderregelSpielleiterUnitTests : BuzzerServerTestBasis
     {
-        private const int Port = 5417;
+        protected override int Port => 5417;
 
         private TestGameBuilder? world;
         private BuzzerServerViewModel? serverVm;
@@ -85,8 +86,7 @@ namespace Quizzer.UnitTests.Views.GameViews
 
             serverVm = StaticManager.BuzzerServerViewModel;
             serverVm.Game = world.Game;
-            serverVm.BuzzerPort = Port;
-            await ((AsyncRelayCommand)serverVm.StartServerCommand).ExecuteAsync(null);
+            await StarteServerAsync(serverVm);
 
             foreach (var spieler in world.Players)
                 await VerbindeAsync(spieler);

@@ -18,6 +18,11 @@
     <ProjectReference Include="..\Quizzer\Quizzer.csproj" />
   </ItemGroup>
 
+  <!-- Eine Quelle fuer alle Testprojekte: Adresse der Testserver (V14). -->
+  <ItemGroup>
+    <Compile Include="..\Quizzer.LogicUnitTests\Shared\TestNetwork.cs" Link="Shared\TestNetwork.cs" />
+  </ItemGroup>
+
   <!--
     Sperre 3: ueberschreibt die appsettings.json, die von Quizzer.DataModels
     mitkopiert wird und auf die Produktivdatenbank zeigt.

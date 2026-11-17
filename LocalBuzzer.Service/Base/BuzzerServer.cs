@@ -179,6 +179,16 @@ namespace LocalBuzzer.Service
             var feature = server.Features.Get<IServerAddressesFeature>();
             var urls = (feature?.Addresses?.Count > 0 ? feature.Addresses : _app.Urls).ToList();
 
+            return ListeningIpPortsFor(urls, () => GetLocalIPs(includeLoopback, includeIPv6));
+        }
+
+        /// <summary>
+        /// Was ein Telefon ansteuern kann: eine feste Bindung steht für sich, eine auf alle Adressen
+        /// wird zu den Adressen dieses Rechners. Ohne laufenden Server prüfbar, denn Tests binden
+        /// nur an 127.0.0.1 (V14).
+        /// </summary>
+        public static IReadOnlyList<string> ListeningIpPortsFor(IEnumerable<string> urls, Func<IEnumerable<string>> localIps)
+        {
             var results = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var url in urls)
@@ -201,7 +211,7 @@ namespace LocalBuzzer.Service
                 }
 
                 // Expand wildcard/localhost to actual interface IPs
-                foreach (var ip in GetLocalIPs(includeLoopback, includeIPv6))
+                foreach (var ip in localIps())
                     results.Add($"{ip}:{port}");
             }
 

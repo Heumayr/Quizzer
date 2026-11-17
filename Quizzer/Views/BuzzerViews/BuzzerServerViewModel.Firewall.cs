@@ -31,6 +31,13 @@ namespace Quizzer.Views.BuzzerViews
         /// </summary>
         internal int BuzzerPort { get; set; } = 5000;
 
+        /// <summary>
+        /// Im Betrieb alle Adressen, sonst kommt kein Telefon hin. Wie <see cref="BuzzerPort"/> nur als
+        /// Testnaht veränderbar: Tests binden an 127.0.0.1, sonst fragt Windows je Arbeitsbaum nach dem
+        /// Netzzugriff (V14).
+        /// </summary>
+        internal string BuzzerBindAddress { get; set; } = LocalBuzzer.Service.Base.BuzzerServerOptions.AnyAddress;
+
         private const string RuleName = "Quizzer Buzzer (TCP 5000)";
 
         private IFirewallReader? firewallReader;

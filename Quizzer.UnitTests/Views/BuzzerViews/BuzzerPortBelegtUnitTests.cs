@@ -20,10 +20,10 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
     /// </para>
     /// </summary>
     [TestClass]
-    public class BuzzerPortBelegtUnitTests
+    public class BuzzerPortBelegtUnitTests : BuzzerServerTestBasis
     {
         /// <summary>Ein Port, den in diesem Testlauf sonst niemand benutzt.</summary>
-        private const int Port = 5407;
+        protected override int Port => 5407;
 
         private RecordingUserPrompt prompt = null!;
 
@@ -43,25 +43,25 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
         [TestMethod]
         public async Task ABlockedPortIsReportedWithItsNumber()
         {
-            // IPAddress.Any, nicht Loopback: Kestrel bindet auf 0.0.0.0. Gemessen 2026-09-07 -
-            // ein Blockierer auf 127.0.0.1 stoert dabei NICHT, der Server startete munter, und
-            // die Zusicherung war aus dem falschen Grund rot.
-            var blockierer = new TcpListener(IPAddress.Any, Port);
+            // Dieselbe Adresse, auf der der Testserver bindet (V14). Gemessen 2026-09-07, als er noch
+            // auf 0.0.0.0 band: ein Blockierer auf 127.0.0.1 stoerte NICHT, der Server startete
+            // munter, und die Zusicherung war aus dem falschen Grund rot.
+            var blockierer = new TcpListener(IPAddress.Loopback, Port);
 
             blockierer.Start();
 
-            var vm = new BuzzerServerViewModel { BuzzerPort = Port };
+            var vm = new BuzzerServerViewModel();
 
             try
             {
-                await ((AsyncRelayCommand)vm.StartServerCommand).ExecuteAsync(null);
+                await StarteServerAsync(vm);
 
                 Assert.AreEqual(1, prompt.Informs.Count,
                     "Der gescheiterte Start wurde nicht gemeldet - der Spielleiter steht vor "
                     + "einem Knopf, der nichts tut.");
 
                 // NUR der eigene Satz, nicht die angehaengte Ausnahmemeldung. Die von Kestrel
-                // enthaelt den Port ohnehin ("Failed to bind to address http://0.0.0.0:5407") -
+                // enthaelt den Port ohnehin ("Failed to bind to address http://127.0.0.1:5407") -
                 // gemessen 2026-09-07: gegen die ganze Meldung geprueft blieb diese Zusicherung
                 // gruen, als die 5000 absichtlich wieder fest in den Satz geschrieben wurde. Sie
                 // mass nichts.
@@ -99,11 +99,11 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
         [TestMethod]
         public async Task AFreePortStartsWithoutAWord()
         {
-            var vm = new BuzzerServerViewModel { BuzzerPort = Port };
+            var vm = new BuzzerServerViewModel();
 
             try
             {
-                await ((AsyncRelayCommand)vm.StartServerCommand).ExecuteAsync(null);
+                await StarteServerAsync(vm);
 
                 Assert.AreEqual(0, prompt.Informs.Count,
                     "Es wurde gemeldet, obwohl der Port frei ist: "

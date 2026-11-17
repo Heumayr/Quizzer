@@ -298,6 +298,7 @@ namespace Quizzer.Views.BuzzerViews
                 await _server.StartAsync(new BuzzerServerOptions
                 {
                     Port = BuzzerPort,
+                    BindAddress = BuzzerBindAddress,
                     WebRootPath = Path.Combine(AppContext.BaseDirectory, "wwwroot")
                 });
 

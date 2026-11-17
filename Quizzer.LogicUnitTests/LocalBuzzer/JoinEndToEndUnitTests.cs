@@ -42,7 +42,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
                 GetJoinCandidates = () => [new JoinCandidate(anna.Id, "Anna"), new JoinCandidate(bert.Id, "Bert")],
             };
 
-            await server.StartAsync(new BuzzerServerOptions { Port = TestPort, BindAddress = "127.0.0.1" });
+            await HubTest.StartAsync(server, TestPort);
             Assert.AreEqual(ServerState.Running, server.ServerState);
 
             http = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{TestPort}") };

@@ -1,3 +1,4 @@
+using LocalBuzzer.Service.Base;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.Base;
@@ -5,6 +6,7 @@ using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.Buzzer;
 using Quizzer.DataModels.Models.QuestionTypes;
+using Quizzer.TestShared;
 using Quizzer.UnitTests.PlayThrough;
 using Quizzer.Views.BuzzerViews;
 using Quizzer.Views.StaticRessources;
@@ -24,7 +26,7 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
     /// </para>
     /// </summary>
     [TestClass]
-    public class BuzzerHandshakeUnitTests
+    public class BuzzerHandshakeUnitTests : BuzzerServerTestBasis
     {
         /// <summary>
         /// Ein eigener Port, wie ihn die uebrigen Buzzer-Proben auch nehmen (5399, 5401).
@@ -37,7 +39,7 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
         /// roter."
         /// </para>
         /// </summary>
-        private const int Port = 5403;
+        protected override int Port => 5403;
 
         private TestGameBuilder? world;
         private BuzzerServerViewModel? serverVm;
@@ -106,9 +108,7 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
 
             // Eigener Port statt des 5000 der Anwendung - sonst meldet sich die Klasse ab,
             // sobald ein Quizzer-Fenster offen ist.
-            serverVm.BuzzerPort = Port;
-
-            await ((AsyncRelayCommand)serverVm.StartServerCommand).ExecuteAsync(null);
+            await StarteServerAsync(serverVm);
         }
 
         /// <summary>Verbindet sich wie ein Telefon und sammelt alles, was der Server schickt.</summary>
@@ -151,25 +151,36 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
             return condition();
         }
 
+        /// <summary>
+        /// Seit V14 bindet kein Test ins Heimnetz, geprueft wird der Weg dorthin in Teilen: das Programm
+        /// verlangt alle Adressen, ein Server auf allen Adressen bietet die LAN-Adressen an, und der
+        /// Testserver meldet nur die eine, auf der er wirklich lauscht.
+        /// </summary>
         [TestMethod]
         public async Task StartingTheServer_PutsItOnTheLan()
         {
             // Ein Rechner ohne echten Netzadapter kann nichts anbieten - der GitHub-Runner etwa
             // laeuft in einer Hyper-V-Maschine, und virtuelle Adapter schliesst der Picker
             // absichtlich aus (AdressauswahlUnitTests). Dann sagt diese Probe nichts.
-            if (global::LocalBuzzer.Service.BuzzerServer.LanAdressenDiesesRechners().Count == 0)
+            var lan = global::LocalBuzzer.Service.BuzzerServer.LanAdressenDiesesRechners();
+            if (lan.Count == 0)
                 Assert.Inconclusive("Dieser Rechner hat keinen echten Netzadapter - nur virtuelle.");
+
+            Assert.AreEqual(BuzzerServerOptions.AnyAddress, new BuzzerServerViewModel().BuzzerBindAddress,
+                "Das Programm bindet nicht mehr auf alle Adressen - kein Telefon kaeme hin.");
+
+            var angeboten = global::LocalBuzzer.Service.BuzzerServer.ListeningIpPortsFor(
+                [$"http://{BuzzerServerOptions.AnyAddress}:{Port}"], () => lan);
+
+            // Gegen die LAN-Adressen, nicht gegen "nicht 127.": auch ein "0.0.0.0:5403" ist nicht 127.
+            CollectionAssert.AreEquivalent(lan.Distinct().Select(ip => $"{ip}:{Port}").ToList(), angeboten.ToList(),
+                $"Auf allen Adressen bietet der Server [{string.Join(", ", angeboten)}] an - ein Telefon kaeme nicht hin.");
 
             await StartServerAsync(QuestionType.Default);
 
             Assert.IsTrue(serverVm!.IsBuzzerServerRunning, "Der Server ist nicht hochgekommen.");
-
-            var endpoint = serverVm._server?.GetBestListeningIpPort();
-
-            Assert.IsNotNull(endpoint,
-                "Ohne LAN-Endpunkt kann das QR-Fenster keine erreichbare Adresse anbieten.");
-            Assert.IsFalse(endpoint!.StartsWith("127."),
-                $"Der angebotene Endpunkt {endpoint} ist nur oertlich - ein Telefon kaeme nicht hin.");
+            Assert.AreEqual($"{TestNetwork.Address}:{Port}", serverVm._server?.GetBestListeningIpPort(),
+                "Der Testserver meldet eine Adresse, auf der er nicht lauscht.");
         }
 
         [TestMethod]
