@@ -95,5 +95,10 @@
         <Viewbox Visibility="{Binding RueckblickVisibility, FallbackValue=Collapsed}" Stretch="Uniform" StretchDirection="DownOnly">
             <local:UcAbendrueckblickView DataContext="{Binding Rueckblick}" />
         </Viewbox>
+
+        <!-- M37 E06: Punkteverlauf, dieselbe Fassung wie der Rueckblick -->
+        <Viewbox Visibility="{Binding VerlaufVisibility, FallbackValue=Collapsed}" Stretch="Uniform" StretchDirection="DownOnly">
+            <local:UcPunkteverlaufView DataContext="{Binding Verlauf}" />
+        </Viewbox>
     </Grid>
 </UserControl>

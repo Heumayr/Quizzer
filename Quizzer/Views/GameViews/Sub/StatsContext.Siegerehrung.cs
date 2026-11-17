@@ -7,6 +7,7 @@ namespace Quizzer.Views.GameViews.Sub
     {
         Sieger,
         Rueckblick,
+        Verlauf,
     }
 
     /// <summary>
@@ -22,9 +23,14 @@ namespace Quizzer.Views.GameViews.Sub
         /// <summary>Der Rückblick auf den Abend (M37 E04); <c>null</c>, solange keiner geladen ist oder er leer war.</summary>
         public AbendrueckblickViewModel? Rueckblick { get; private set; }
 
+        /// <summary>Der Punkteverlauf (M37 E06); <c>null</c>, solange keiner geladen ist oder einer gespielten Zelle der Zeitpunkt fehlt.</summary>
+        public PunkteverlaufViewModel? Verlauf { get; private set; }
+
         public Visibility SiegerVisibility => Zeigt(SiegerehrungTafel.Sieger);
 
         public Visibility RueckblickVisibility => Zeigt(SiegerehrungTafel.Rueckblick);
+
+        public Visibility VerlaufVisibility => Zeigt(SiegerehrungTafel.Verlauf);
 
         /// <summary>Die Tafeln mit Inhalt, in ihrer Reihenfolge.</summary>
         public IReadOnlyList<SiegerehrungTafel> Tafeln
@@ -35,6 +41,9 @@ namespace Quizzer.Views.GameViews.Sub
 
                 if (Rueckblick is { IstLeer: false })
                     tafeln.Add(SiegerehrungTafel.Rueckblick);
+
+                if (Verlauf != null)
+                    tafeln.Add(SiegerehrungTafel.Verlauf);
 
                 return tafeln;
             }
@@ -56,6 +65,7 @@ namespace Quizzer.Views.GameViews.Sub
             : NaechsteTafel switch
             {
                 SiegerehrungTafel.Rueckblick => "Rückblick zeigen",
+                SiegerehrungTafel.Verlauf => "Punkteverlauf zeigen",
                 _ => "Sieger zeigen",
             };
 
@@ -63,6 +73,13 @@ namespace Quizzer.Views.GameViews.Sub
         {
             Rueckblick = rueckblick;
             OnPropertyChanged(nameof(Rueckblick));
+            OnPropertyChanged(nameof(NaechsteTafelText));
+        }
+
+        internal void SetzeVerlauf(PunkteverlaufViewModel? verlauf)
+        {
+            Verlauf = verlauf;
+            OnPropertyChanged(nameof(Verlauf));
             OnPropertyChanged(nameof(NaechsteTafelText));
         }
 
@@ -78,6 +95,7 @@ namespace Quizzer.Views.GameViews.Sub
         {
             OnPropertyChanged(nameof(SiegerVisibility));
             OnPropertyChanged(nameof(RueckblickVisibility));
+            OnPropertyChanged(nameof(VerlaufVisibility));
             OnPropertyChanged(nameof(NaechsteTafelText));
         }
 
