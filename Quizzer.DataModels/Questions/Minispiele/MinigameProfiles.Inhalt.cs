@@ -100,6 +100,9 @@ namespace Quizzer.DataModels.Questions.Minispiele
             MinOptions = 4,
             OptionsName = "Aussagen",
             ShowTruePerRow = true,
+
+            // Wie MinispielInhalt.Zeilen: eine Zeile aus Leerzeichen spielt das Spiel nicht, also zaehlt sie nicht (V13).
+            CountsAsOption = t => !string.IsNullOrWhiteSpace(t),
         };
 
         private static readonly MinigameProfile WordScramble = new()

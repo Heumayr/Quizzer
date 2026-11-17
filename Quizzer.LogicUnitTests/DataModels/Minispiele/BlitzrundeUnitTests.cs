@@ -123,6 +123,23 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
             Assert.IsFalse(MinigameChecks.Content(frage).Any(m => m.Code == MinigameChecks.TooFewOptions), "Vier Aussagen sind zu wenige.");
         }
 
+        /// <summary>V13: eine Zeile aus Leerzeichen zaehlt in der Pruefung so wenig wie im Spiel - drei echte und eine leere sind zu wenige.</summary>
+        [TestMethod]
+        public void ABlankRowCountsNeitherInTheCheckNorInTheGame()
+        {
+            var frage = new MinigameQuestion();
+            MinigameProfiles.For(MinigameKind.LightningRound).ApplyDefaults(frage);
+
+            for (var i = 1; i <= 3; i++)
+                frage.Steps.Add(new QuestionStepResource { Id = Guid.NewGuid(), SequenceNumber = i * 10, StepText = $"Aussage {i}" });
+
+            frage.Steps.Add(new QuestionStepResource { Id = Guid.NewGuid(), SequenceNumber = 40, StepText = "   ", Designation = " " });
+
+            Assert.AreEqual(3, MinispielInhalt.Zeilen(frage).Count, "Das Spiel spielt die leere Zeile - dann misst die Probe das Falsche.");
+            Assert.IsTrue(MinigameChecks.Content(frage).Any(m => m.Code == MinigameChecks.TooFewOptions),
+                "Die Pruefung zaehlt die leere Zeile als vierte Aussage.");
+        }
+
         /// <summary>Der Inhalt: gewoehnliche Zeilen in ihrer Reihenfolge, mit Haken; Start, Abschluss und leere zaehlen nicht.</summary>
         [TestMethod]
         public void TheContentIsTheOrdinaryRowsWithTheirTicks()
