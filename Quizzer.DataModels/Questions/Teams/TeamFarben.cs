@@ -32,5 +32,12 @@ namespace Quizzer.DataModels.Questions.Teams
 
         /// <summary>Ob es den Platz in der Palette gibt.</summary>
         public static bool IsValid(int index) => index >= 0 && index < Alle.Count;
+
+        /// <summary>Die erste Farbe, die noch kein Team trägt, oder <c>null</c>, wenn alle vergeben sind (M37 T2).</summary>
+        public static TeamFarbe? ErsteFreie(IEnumerable<int> belegt)
+        {
+            var vergeben = belegt.ToHashSet();
+            return Alle.FirstOrDefault(f => !vergeben.Contains(f.Index));
+        }
     }
 }

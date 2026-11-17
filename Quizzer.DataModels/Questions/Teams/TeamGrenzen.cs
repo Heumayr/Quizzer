@@ -13,6 +13,12 @@ namespace Quizzer.DataModels.Questions.Teams
         /// <summary>Längste Beratungszeit der Teamberatung in Sekunden; 0 heißt ohne Countdown.</summary>
         public const int MaxCouncilSeconds = 600;
 
+        /// <summary>Ein Teamspiel braucht mindestens zwei Teams - mit einem gäbe es keinen Gegner (M37 T2).</summary>
+        public const int MinTeams = 2;
+
+        /// <summary>Höchstens so viele Teams, wie die Palette Farben hat - zwei Teams in einer Farbe verwechselt man.</summary>
+        public static int MaxTeams => TeamFarben.Alle.Count;
+
         /// <summary>Was an einem Team nicht stimmt, oder <c>null</c>.</summary>
         public static string? TeamProblem(string? name, int colorIndex, int speakerTurn)
         {
