@@ -94,14 +94,18 @@ namespace Quizzer.Views.GameViews.Sonderregeln
         {
             var vorschlaege = new Dictionary<Guid, Punktevorschlag>();
 
-            foreach (var (spieler, eingang) in Zu ? eingaenge : new Dictionary<Guid, SonderregelEingang>())
+            foreach (var (spieler, eingang) in eingaenge)
             {
-                if (eingeloest.TryGetValue(spieler, out var joker) && JokerRegel.Werte(joker.Kind, eingang) is { } vorschlag)
+                if (Werte(spieler, eingang) is { } vorschlag)
                     vorschlaege[spieler] = vorschlag;
             }
 
             return vorschlaege;
         }
+
+        /// <summary>Der Vorschlag des Jokers dieses Spielers auf seinen Eingang - an einer Teamregel auf seinen Anteil (M37 T5).</summary>
+        public Punktevorschlag? Werte(Guid spieler, SonderregelEingang eingang)
+            => Zu && eingeloest.TryGetValue(spieler, out var joker) ? JokerRegel.Werte(joker.Kind, eingang) : null;
 
         /// <summary>Was die Karte dieses Spielers zeigt: sein Joker und ob ihn einer gesperrt hat; leer, solange die Runde laeuft.</summary>
         public string Abgabe(Guid spieler)

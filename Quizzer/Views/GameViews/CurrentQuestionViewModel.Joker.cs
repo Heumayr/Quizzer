@@ -15,7 +15,7 @@ namespace Quizzer.Views.GameViews
 {
     /// <summary>
     /// Joker-Runde vor einer gewoehnlichen Frage (M35 C7b): sie oeffnet von selbst, wenn ein Mitspieler einen offenen
-    /// Joker haelt und die Zelle weder Sonderregel noch Minispiel traegt. Sie laeuft im Minispiel-Rahmen wie die
+    /// Joker haelt und die Zelle weder Sonderregel noch Minispiel traegt - eine Teamregel darf sie tragen (M37 T5). Sie laeuft im Minispiel-Rahmen wie die
     /// Vorphase einer Sonderregel; beim Schliessen wird sofort eingeloest, danach wirken Doppelt und Schutz als
     /// Vorschlag auf der Karte (E1) und die Sperre ueber die Antwortsperre.
     /// </summary>
@@ -37,7 +37,7 @@ namespace Quizzer.Views.GameViews
         private async Task<bool> StarteJokerRundeAsync()
         {
             if (jokerRundeGespielt || Coordinate is not { IsDone: false } zelle || Question is not { } frage
-                || frage.Typ == DataModels.Enumerations.QuestionType.Minigame || zelle.SpecialRule != CellSpecialRule.None
+                || frage.Typ == DataModels.Enumerations.QuestionType.Minigame || (zelle.SpecialRule != CellSpecialRule.None && Teamregel == null)
                 || BuzzerControlsViewModel is not { MinigameState: not null } steuerung)
                 return false;
 
@@ -230,7 +230,7 @@ namespace Quizzer.Views.GameViews
             if (BuzzerControlsViewModel == null || JokerSperreVisibility != Visibility.Visible)
                 return;
 
-            await BuzzerControlsViewModel.SetAnswerersAsync(null);
+            await (Teamregel != null ? HebeTeamregelJokerSperreAufAsync() : BuzzerControlsViewModel.SetAnswerersAsync(null));
             jokerSperreAufgehoben = true;
             OnPropertyChanged(nameof(JokerSperreVisibility));
         }
@@ -265,11 +265,5 @@ namespace Quizzer.Views.GameViews
                 ExceptionManager.HandleException(ex);
             }
         }
-
-        /// <summary>Was auf den Karten wirkt: die Sonderregel nach ihrer Vorphase, sonst die Joker nach ihrer Runde.</summary>
-        private Func<IReadOnlyDictionary<Guid, SonderregelEingang>, IReadOnlyDictionary<Guid, Punktevorschlag>>? ZellenWertung()
-            => sonderregel is { VorphaseZu: true } regel ? regel.WerteAlle
-                : joker is { Zu: true } ablauf ? ablauf.WerteAlle
-                : null;
     }
 }

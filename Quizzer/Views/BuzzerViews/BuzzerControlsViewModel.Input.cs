@@ -38,6 +38,13 @@ namespace Quizzer.Views.BuzzerViews
             return Task.CompletedTask;
         }
 
+        /// <summary>Freie Texteingabe (M37 T5): der Sprecher einer Teamregel tippt die Antwort seines Teams.</summary>
+        public void SetTextInputInfo(string placeholder, Guid? questionId)
+        {
+            if (BuzzerController?.StateManager.BuzzerInputState is { } state)
+                state.Infos = new BuzzerInputInfo { InputType = "text", Placeholder = placeholder, QuestionId = questionId };
+        }
+
         internal void SubscribeInputEvents(LocalBuzzer.Service.Base.BuzzerController? ctrl)
         {
             if (ctrl == null)

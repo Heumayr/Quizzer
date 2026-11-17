@@ -33,6 +33,9 @@ namespace Quizzer.UnitTests.Views.GameViews
         /// <summary>Schreibt vor dem Oeffnen in die Datenbank - Joker (M35 C7b).</summary>
         private protected Func<TestGameBuilder, Task>? VorDemOeffnen { get; set; }
 
+        /// <summary>Richtet das Fragefenster vor dem Laden ein - Spielfenster, getrenntes Telefon (M37 T5).</summary>
+        private protected Func<TestableCurrentQuestionViewModel, Task>? FensterEinrichten { get; set; }
+
         [TestInitialize]
         public void SetUpBasis()
         {
@@ -89,6 +92,9 @@ namespace Quizzer.UnitTests.Views.GameViews
 
             if (fabrik != null)
                 vm.SonderregelFabrik = fabrik;
+
+            if (FensterEinrichten != null)
+                await FensterEinrichten(vm);
 
             await vm.LoadForTestAsync();
             TestEnvironment.ThrowIfAnythingWasSwallowed();

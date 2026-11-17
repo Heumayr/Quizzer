@@ -2,6 +2,7 @@ using LocalBuzzer.Service.Base.States.Minispiele;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Questions.Minispiele;
 using Quizzer.DataModels.Questions.Sonderregeln;
+using Quizzer.Views.GameViews.Teamregeln;
 
 namespace Quizzer.Views.GameViews.Sonderregeln
 {
@@ -12,9 +13,10 @@ namespace Quizzer.Views.GameViews.Sonderregeln
     /// <param name="Ausloeser">Wer das Feld aufgedeckt hat, wenn er mitspielt (Allianz).</param>
     /// <param name="Anteil">Anteil der Zelle in Prozent, Vorgabe schon eingesetzt (M35 C3b).</param>
     /// <param name="Spielweise">Spielweise der Zelle, Index im Profil (M35 C3b).</param>
+    /// <param name="Teams">Die Teams der Zelle samt Sprecherfolge - nur im Teamspiel (M37 T5).</param>
     internal sealed record VorphaseGrundlage(
         int Feldpunkte, IReadOnlyDictionary<Guid, int> Kontostaende, IReadOnlyDictionary<Guid, string>? Namen = null, Guid? Ausloeser = null,
-        int Anteil = 0, int Spielweise = 0, IReadOnlyList<Guid>? Reihenfolge = null)
+        int Anteil = 0, int Spielweise = 0, IReadOnlyList<Guid>? Reihenfolge = null, IReadOnlyList<Teamaufstellung>? Teams = null)
     {
         public static VorphaseGrundlage Leer { get; } = new(0, new Dictionary<Guid, int>());
 
@@ -40,11 +42,14 @@ namespace Quizzer.Views.GameViews.Sonderregeln
 
         public SpecialRuleProfile Profil { get; }
 
-        /// <summary>„Sonderregel: Einsatz" - Ueberschrift an Beamer und Telefon.</summary>
-        public string Titel => $"Sonderregel: {Profil.DisplayName}";
+        /// <summary>„Sonderregel: Einsatz", „Teamregel: Teamberatung" (M37 T5) - Ueberschrift an Beamer und Telefon.</summary>
+        public string Titel => $"{(Profil.IstTeamregel ? "Teamregel" : "Sonderregel")}: {Profil.DisplayName}";
 
         /// <summary>Wer die Frage nach der Vorphase beantworten darf (M35 C3b); <c>null</c>: alle.</summary>
         public virtual IReadOnlyCollection<Guid>? Antwortende => null;
+
+        /// <summary>Je Gesperrtem der Satz fuer sein Telefon (M37 T5: „Berate dich mit Anna"); <c>null</c>: das Telefon sagt es allgemein.</summary>
+        public virtual IReadOnlyDictionary<Guid, string>? Sperrsaetze => null;
 
         /// <summary>Ob die Regel eine Vorphase am Telefon spielt (M35 C3b) - das Kopfgeld nicht, es steht beim Oeffnen fest.</summary>
         public virtual bool HatVorphase => Profil.HasPrePhase;
@@ -89,6 +94,7 @@ namespace Quizzer.Views.GameViews.Sonderregeln
             CellSpecialRule.Expert => new ExperteAblauf(),
             CellSpecialRule.Alliance => new AllianzAblauf(),
             CellSpecialRule.Bounty => new KopfgeldAblauf(),
+            CellSpecialRule.TeamCouncil => new TeamberatungAblauf(),
             _ => null,
         };
 

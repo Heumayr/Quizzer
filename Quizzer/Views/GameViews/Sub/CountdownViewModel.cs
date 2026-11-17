@@ -56,7 +56,8 @@ namespace Quizzer.Views.GameViews.Sub
 
         public bool Laeuft => laufend != null;
 
-        private void Weiter(DateTime jetzt)
+        /// <summary>Ein Takt der Uhr; <c>internal</c>, weil ohne Dispatcher-Schleife kein Takt kommt - ein Test treibt sie selbst.</summary>
+        internal void Weiter(DateTime jetzt)
         {
             if (laufend is { } c)
             {

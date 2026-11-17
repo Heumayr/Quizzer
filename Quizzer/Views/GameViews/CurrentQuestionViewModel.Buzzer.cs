@@ -65,10 +65,13 @@ namespace Quizzer.Views.GameViews
             if (await StarteJokerRundeAsync())
                 return;
 
-            // Auktion, Experte, Allianz (M35 C3b): nur einige duerfen antworten - am Server geprueft.
+            // Teamregel (M37 T5): nach den Jokern die Sprecher - an Hub und Telefone, dazu die Beratungszeit.
+            await BereiteTeamregelVorAsync();
+
+            // Auktion, Experte, Allianz (M35 C3b), Teamregel: nur einige duerfen antworten - am Server geprueft.
             await SetzeAntwortendeAsync();
 
-            var layout = Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None;
+            var layout = AntwortLayout;
 
             // Der Spielleiter soll waehrend der Runde sehen, worauf er wartet und was richtig
             // waere - bis hierher stand beides erst im Ergebnisfenster, also erst danach.
@@ -125,6 +128,8 @@ namespace Quizzer.Views.GameViews
                         await BuzzerControlsViewModel.SetInputInfo(
                             appreciate.ValueKind, appreciate.Unit, appreciate.Id);
                     }
+                    else if (Teamregel != null)
+                        BuzzerControlsViewModel.SetTextInputInfo(TeamregelEingabe, Question?.Id);
 
                     BuzzerControlsViewModel.PlayerSubmittedInput = OnPlayerSubmittedInput;
                     BuzzerControlsViewModel.AllPlayersSubmittedInput = OnAllPlayersSubmittedInput;
@@ -183,6 +188,7 @@ namespace Quizzer.Views.GameViews
                 ClearAppreciateOutcome();
                 ClearMinigame();
                 ClearSonderregel();
+                await RaeumeTeamregelAufAsync();
                 BuzzerControlsViewModel.ClearTeamLock(); // M37 T4: die Team-Sperre gilt nur dieser Frage (F-M37-09)
                 BuzzerControlsViewModel.SetRoundInfo(null);
 
@@ -192,6 +198,6 @@ namespace Quizzer.Views.GameViews
 
         /// <summary>Was gerade auf den Telefonen liegt - in der Vorphase einer Sonderregel deren Rahmen (M35 C3).</summary>
         public BuzzerControlsLayout CurrentBuzzerLayout
-            => VorphaseLaeuft ? BuzzerControlsLayout.Minigame : Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None;
+            => VorphaseLaeuft ? BuzzerControlsLayout.Minigame : AntwortLayout;
     }
 }

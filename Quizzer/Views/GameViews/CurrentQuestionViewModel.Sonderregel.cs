@@ -57,7 +57,8 @@ namespace Quizzer.Views.GameViews
         }
 
         /// <summary>Was der Spieler in der Vorphase abgegeben hat - fuer seine Karte.</summary>
-        internal string SonderregelAbgabe(Guid spieler) => sonderregel?.Abgabe(spieler) ?? joker?.Abgabe(spieler) ?? string.Empty;
+        internal string SonderregelAbgabe(Guid spieler)
+            => Teamregel is { } team ? TeamregelAbgabe(team, spieler) : sonderregel?.Abgabe(spieler) ?? joker?.Abgabe(spieler) ?? string.Empty;
 
         /// <summary>
         /// Startet die Vorphase, wenn die Zelle eine gespielte Regel traegt. <c>true</c>: die Frage geht
@@ -115,7 +116,8 @@ namespace Quizzer.Views.GameViews
                 Ausloeser,
                 Coordinate is { } zelle ? SpecialRuleProfiles.ShareOf(zelle) : 0,
                 Coordinate?.SpecialRuleVariant ?? 0,
-                karten.Select(k => k.Player.Id).ToList());
+                karten.Select(k => k.Player.Id).ToList(),
+                Teamspiel ? TeamaufstellungDerZelle(karten) : null);
         }
 
         /// <summary>Der Spielleiter schliesst die Vorphase (E1) - wer nichts abgegeben hat, fuer den greift die Regel nicht.</summary>
@@ -259,7 +261,7 @@ namespace Quizzer.Views.GameViews
         private async Task SetzeAntwortendeAsync()
         {
             if (sonderregel != null && BuzzerControlsViewModel != null)
-                await BuzzerControlsViewModel.SetAnswerersAsync(sonderregel.Antwortende);
+                await BuzzerControlsViewModel.SetAnswerersAsync(sonderregel.Antwortende, sonderregel.Sperrsaetze);
         }
 
         private void ClearSonderregel()
