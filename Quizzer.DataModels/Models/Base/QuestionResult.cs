@@ -62,6 +62,12 @@ namespace Quizzer.DataModels.Models.Base
         /// <summary>Wie viele gespeicherte Klaus dieser Spieler in dieser Zelle geschafft hat (M35 C9).</summary>
         public int Steals { get; set; }
 
+        /// <summary>
+        /// Das Team des Spielers beim Öffnen der Zelle (M37 T1, Stempel nach F-M37-07): wechselt er später das
+        /// Team, bleiben diese Punkte beim alten. <c>null</c>: kein Teamspiel oder vor dem Stempel (T2). NO ACTION.
+        /// </summary>
+        public Guid? GameTeamId { get; set; }
+
         /// <summary>Endgültiger Punktestand: <c>Score + Correction - MinusScore</c>.</summary>
         public int FinalScore => Score + Correction - MinusScore;
 
@@ -95,6 +101,7 @@ namespace Quizzer.DataModels.Models.Base
                 RecordValue = RecordValue,
                 RecordedAt = RecordedAt,
                 Steals = Steals,
+                GameTeamId = GameTeamId,
                 QuestionBase = null!,
                 Game = null!,
                 Player = null!,

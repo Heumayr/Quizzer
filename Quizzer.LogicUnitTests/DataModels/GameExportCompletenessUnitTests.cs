@@ -67,6 +67,14 @@ namespace Quizzer.LogicUnitTests.DataModels
                 ["RowVersion"] = "gehoert der Zieldatenbank",
                 ["GameId"] = "wird beim Anlegen gesetzt",
             },
+            [typeof(GameTeam)] = new()
+            {
+                ["Id"] = "wird neu vergeben",
+                ["RowVersion"] = "gehoert der Zieldatenbank",
+                ["GameId"] = "wird beim Anlegen gesetzt",
+                ["Designation"] = "ein Team traegt seinen Namen in Name",
+                ["SpeakerTurn"] = "Verlauf (M37 T1) - der Sprecher beginnt beim ersten",
+            },
             [typeof(QuestionStepResource)] = new()
             {
                 ["Id"] = "wird neu vergeben",
@@ -179,6 +187,13 @@ namespace Quizzer.LogicUnitTests.DataModels
             var spiel = new Game { Id = Guid.NewGuid() };
             Fuelle(spiel, ref streuung);
 
+            // Die Pruefung laesst 0 bis 600 s und Farben 0 bis 7 durch (M37 T1) - abweichend von der Vorgabe bleiben sie.
+            spiel.TeamCouncilSeconds = 45;
+            var team = new GameTeam { Id = Guid.NewGuid() };
+            Fuelle(team, ref streuung);
+            team.ColorIndex = 6;
+            spiel.GameTeams.Add(team);
+
             var kopf = new Header { Id = Guid.NewGuid() };
             Fuelle(kopf, ref streuung);
             spiel.Headers.Add(kopf);
@@ -214,6 +229,7 @@ namespace Quizzer.LogicUnitTests.DataModels
             var funde = new List<string>();
 
             Vergleiche(spiel, bausatz.Spiel, funde);
+            Vergleiche(team, bausatz.Spiel.GameTeams.Single(), funde);
             Vergleiche(kopf, bausatz.Kopfzeilen.Single(), funde);
             Vergleiche(zelle, bausatz.Zellen.Single().Zelle, funde);
             Vergleiche(frage, bausatz.Fragen.Single(), funde);

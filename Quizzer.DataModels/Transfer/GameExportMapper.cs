@@ -58,7 +58,15 @@ namespace Quizzer.DataModels.Transfer
                     PhaseAddition = spiel.PhaseAddition,
                     SuggestedPhases = spiel.SuggestedPhases,
                     AllowNegativeScore = spiel.AllowNegativeScore,
+                    IsTeamGame = spiel.IsTeamGame,
+                    TeamMinigameScoring = spiel.TeamMinigameScoring,
+                    TeamCouncilSeconds = spiel.TeamCouncilSeconds,
                 },
+
+                // Ohne Mitglieder und ohne Sprecherstand - wer in welchem Team sitzt, entscheidet der Abend (M37 T1).
+                Teams = spiel.GameTeams.OrderBy(t => t.SortOrder)
+                    .Select(t => new GameExportDocument.TeamData { Name = t.Name, ColorIndex = t.ColorIndex, SortOrder = t.SortOrder })
+                    .ToList(),
             };
 
             var kategorieIndex = new Dictionary<Guid, int>();
@@ -255,6 +263,9 @@ namespace Quizzer.DataModels.Transfer
                 PhaseAddition = dokument.Spiel.PhaseAddition,
                 SuggestedPhases = dokument.Spiel.SuggestedPhases,
                 AllowNegativeScore = dokument.Spiel.AllowNegativeScore,
+                IsTeamGame = dokument.Spiel.IsTeamGame,
+                TeamMinigameScoring = dokument.Spiel.TeamMinigameScoring,
+                TeamCouncilSeconds = dokument.Spiel.TeamCouncilSeconds,
 
                 // Ein importiertes Spiel beginnt am Anfang, nicht dort, wo das andere aufhoerte.
                 State = GameState.Building,
@@ -295,6 +306,11 @@ namespace Quizzer.DataModels.Transfer
                 CellTextColor = dokument.Design.CellTextColor,
                 HeaderTextColor = dokument.Design.HeaderTextColor,
             };
+
+            // Die Teams haengen am Spiel; der Importeur legt sie mit neuen Ids an. Der Sprecher beginnt beim ersten.
+            spiel.GameTeams = dokument.Teams
+                .Select(t => new GameTeam { Name = t.Name, ColorIndex = t.ColorIndex, SortOrder = t.SortOrder })
+                .ToList();
 
             return new ImportBausatz(
                 spiel,

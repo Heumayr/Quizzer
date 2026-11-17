@@ -300,6 +300,47 @@ namespace Quizzer.LogicUnitTests.Logic
         }
 
         /// <summary>
+        /// M37 T1: ein Teamspiel kommt mit Einstellungen und Teams zurück - Name, Farbe, Reihenfolge, neue Ids, ohne
+        /// Mitglieder und mit dem Sprecher am Anfang. Gegen die Datenbank, weil der Importeur die Teams selbst anlegt.
+        /// </summary>
+        [TestMethod]
+        public async Task ATeamGameComesBackWithItsTeamsButWithoutMembers()
+        {
+            var demo = await DemoDataSeeder.CreateAsync();
+            var rot = new GameTeam { Id = Guid.NewGuid(), GameId = demo.Spiel.Id, Name = "Rot", ColorIndex = 5, SortOrder = 1, SpeakerTurn = 4 };
+            var blau = new GameTeam { Id = Guid.NewGuid(), GameId = demo.Spiel.Id, Name = "Blau", ColorIndex = 4, SortOrder = 0 };
+
+            using (var ctrl = new GamesController())
+            using (var ctrlTeams = new GameTeamsController(ctrl))
+            {
+                var spiel = await ctrl.GetAsync(demo.Spiel.Id);
+                spiel!.IsTeamGame = true;
+                spiel.TeamMinigameScoring = TeamMinigameScoring.Sum;
+                spiel.TeamCouncilSeconds = 45;
+                await ctrl.UpdateAsync(spiel);
+                await ctrlTeams.InsertAsync(rot);
+                await ctrlTeams.InsertAsync(blau);
+                await ctrl.SaveChangesAsync();
+            }
+
+            var datei = Path.Combine(arbeitsordner, "teams" + GameExporter.Extension);
+            await GameExporter.ExportAsync(demo.Spiel.Id, datei, tresor);
+            var moderator = await LegeModeratorAnAsync();
+
+            var ergebnis = await GameImporter.ImportAsync(datei, tresor, moderator, [moderator]);
+
+            using var ctrlSpiele = new GamesController();
+            var importiert = (await ctrlSpiele.GetAsync(ergebnis.Spiel.Id))!;
+
+            Assert.AreEqual((true, TeamMinigameScoring.Sum, 45),
+                (importiert.IsTeamGame, importiert.TeamMinigameScoring, importiert.TeamCouncilSeconds));
+            CollectionAssert.AreEqual(new[] { ("Blau", 4, 0, 0), ("Rot", 5, 1, 0) },
+                importiert.GameTeams.OrderBy(t => t.SortOrder).Select(t => (t.Name, t.ColorIndex, t.SortOrder, t.SpeakerTurn)).ToList());
+            Assert.IsFalse(importiert.GameTeams.Any(t => t.Id == rot.Id || t.Id == blau.Id), "Ein Team kam mit seiner alten Id an.");
+            Assert.IsTrue(importiert.PlayerXGames.All(x => x.GameTeamId == null), "Ein Mitspieler kam schon zugeteilt an.");
+        }
+
+        /// <summary>
         /// Zweimal importieren legt <b>neben</b> den Bestand, nicht darüber - und die Kategorien
         /// wachsen dabei nicht mit.
         /// <para>

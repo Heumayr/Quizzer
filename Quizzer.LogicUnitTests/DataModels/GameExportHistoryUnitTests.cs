@@ -70,6 +70,11 @@ namespace Quizzer.LogicUnitTests.DataModels
                 CurrentMinusPoints = 450,
             });
 
+            // M37 T1: ein Team, dessen Sprecher schon dreimal weitergerückt ist, und ein zugeteilter Mitspieler.
+            var team = new GameTeam { Id = Guid.NewGuid(), GameId = spiel.Id, Name = "Team Rot", ColorIndex = 5, SpeakerTurn = 3 };
+            spiel.GameTeams.Add(team);
+            spiel.PlayerXGames.Add(new PlayerXGame { Id = Guid.NewGuid(), GameId = spiel.Id, PlayerId = spielerId, GameTeamId = team.Id });
+
             return (spiel, frage, kategorie, spielerId);
         }
 
@@ -94,7 +99,7 @@ namespace Quizzer.LogicUnitTests.DataModels
                      {
                          "IsDone", "PlayedAt", "CurrentPoints", "CurrentMinusPoints", "CurrentRound",
                          "State", "Restart", "ChoosingPlayerId", "ModeratorPlayerId",
-                         "OwnerPlayerId", "RowVersion",
+                         "OwnerPlayerId", "RowVersion", "SpeakerTurn", "GameTeamId",
                      })
             {
                 if (json.Contains("\"" + feld + "\"", StringComparison.Ordinal))
@@ -102,7 +107,7 @@ namespace Quizzer.LogicUnitTests.DataModels
             }
 
             // Auch die Ids der Entitaeten selbst haben in einem Bauplan nichts zu suchen.
-            foreach (var id in new[] { spiel.Id, frage.Id, kategorie.Id })
+            foreach (var id in new[] { spiel.Id, frage.Id, kategorie.Id, spiel.GameTeams[0].Id })
             {
                 if (json.Contains(id.ToString(), StringComparison.OrdinalIgnoreCase))
                     funde.Add("eine Entitaets-Id");
@@ -137,6 +142,9 @@ namespace Quizzer.LogicUnitTests.DataModels
 
             Assert.IsTrue(json.Contains("Musik", StringComparison.Ordinal),
                 "Die Kategorie steht nicht in der Datei.");
+
+            Assert.IsTrue(json.Contains("Team Rot", StringComparison.Ordinal),
+                "Das Team steht nicht in der Datei (M37 T1) - dann misst der Test oben bei den Teams nichts.");
 
             Assert.IsTrue(json.Contains("\"Points\"", StringComparison.Ordinal),
                 "Die Punktevorgabe der Frage steht nicht in der Datei - die gehoert zum Bauplan, "

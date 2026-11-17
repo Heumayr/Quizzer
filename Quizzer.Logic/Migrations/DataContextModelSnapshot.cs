@@ -222,6 +222,9 @@ namespace Quizzer.Logic.Migrations
                     b.Property<int>("Height")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsTeamGame")
+                        .HasColumnType("bit");
+
                     b.Property<Guid?>("ModeratorPlayerId")
                         .HasColumnType("uniqueidentifier");
 
@@ -249,6 +252,12 @@ namespace Quizzer.Logic.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("SuggestedPhases")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TeamCouncilSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TeamMinigameScoring")
                         .HasColumnType("int");
 
                     b.Property<int>("Width")
@@ -327,6 +336,45 @@ namespace Quizzer.Logic.Migrations
                     b.HasIndex("QuestionBaseId");
 
                     b.ToTable("GameGridCoordinate", "base");
+                });
+
+            modelBuilder.Entity("Quizzer.DataModels.Models.Base.GameTeam", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ColorIndex")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Designation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("GameId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SpeakerTurn")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GameId");
+
+                    b.ToTable("GameTeam", "base");
                 });
 
             modelBuilder.Entity("Quizzer.DataModels.Models.Base.GameTheme", b =>
@@ -506,6 +554,9 @@ namespace Quizzer.Logic.Migrations
                     b.Property<Guid>("GameId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("GameTeamId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("PlayerId")
                         .HasColumnType("uniqueidentifier");
 
@@ -517,6 +568,8 @@ namespace Quizzer.Logic.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GameId");
+
+                    b.HasIndex("GameTeamId");
 
                     b.HasIndex("PlayerId", "GameId")
                         .IsUnique();
@@ -547,6 +600,9 @@ namespace Quizzer.Logic.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("GameId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("GameTeamId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("MinusScore")
@@ -586,6 +642,8 @@ namespace Quizzer.Logic.Migrations
                     b.HasIndex("GameGridCoordinateId");
 
                     b.HasIndex("GameId");
+
+                    b.HasIndex("GameTeamId");
 
                     b.HasIndex("QuestionBaseId");
 
@@ -914,6 +972,15 @@ namespace Quizzer.Logic.Migrations
                     b.Navigation("QuestionBase");
                 });
 
+            modelBuilder.Entity("Quizzer.DataModels.Models.Base.GameTeam", b =>
+                {
+                    b.HasOne("Quizzer.DataModels.Models.Base.Game", null)
+                        .WithMany("GameTeams")
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Quizzer.DataModels.Models.Base.Header", b =>
                 {
                     b.HasOne("Quizzer.DataModels.Models.Base.Game", "Game")
@@ -958,6 +1025,11 @@ namespace Quizzer.Logic.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Quizzer.DataModels.Models.Base.GameTeam", null)
+                        .WithMany()
+                        .HasForeignKey("GameTeamId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Quizzer.DataModels.Models.Base.Player", "Player")
                         .WithMany()
                         .HasForeignKey("PlayerId")
@@ -982,6 +1054,11 @@ namespace Quizzer.Logic.Migrations
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("Quizzer.DataModels.Models.Base.GameTeam", null)
+                        .WithMany()
+                        .HasForeignKey("GameTeamId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Quizzer.DataModels.Models.Base.Player", "Player")
                         .WithMany("CurrentQuestionResults")
@@ -1113,6 +1190,8 @@ namespace Quizzer.Logic.Migrations
             modelBuilder.Entity("Quizzer.DataModels.Models.Base.Game", b =>
                 {
                     b.Navigation("GameGridCoordinates");
+
+                    b.Navigation("GameTeams");
 
                     b.Navigation("Headers");
 

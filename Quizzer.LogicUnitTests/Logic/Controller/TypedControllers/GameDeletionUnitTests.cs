@@ -244,6 +244,43 @@ namespace Quizzer.LogicUnitTests.Logic.Controller.TypedControllers
         }
 
         /// <summary>
+        /// M37 T1: ein Teamspiel lässt sich löschen. Das Team hängt mit NO ACTION am Spiel, Platz und Ergebnis mit NO
+        /// ACTION am Team - ohne den Aufräumschritt scheiterte das Löschen des Spiels am Team.
+        /// </summary>
+        [TestMethod]
+        public async Task ATeamGameWithAssignedPlayersAndStampedResultsCanBeDeleted()
+        {
+            var team = new GameTeam { Id = Guid.NewGuid(), GameId = spiel.Id, Name = "Rot", ColorIndex = 5 };
+
+            using (var ctrl = new GameTeamsController())
+            {
+                await ctrl.InsertAsync(team);
+                await ctrl.SaveChangesAsync();
+            }
+
+            await using (var context = new Quizzer.Logic.Context.DataContext())
+            {
+                var platz = context.PlayerXGames.Single(x => x.GameId == spiel.Id);
+                var ergebnis = context.QuestionResults.Single(r => r.GameId == spiel.Id);
+                platz.GameTeamId = team.Id;
+                ergebnis.GameTeamId = team.Id;
+                await context.SaveChangesAsync();
+            }
+
+            using (var ctrl = new GamesController())
+            {
+                await ctrl.DeleteAsync(spiel.Id);
+                await ctrl.SaveChangesAsync();
+            }
+
+            using var spiele = new GamesController();
+            using var teams = new GameTeamsController();
+
+            Assert.IsNull(await spiele.GetAsync(spiel.Id), "Das Spiel steht noch da.");
+            Assert.AreEqual(0, (await teams.GetForGameAsync(spiel.Id)).Count, "Das Team des gelöschten Spiels ist übrig.");
+        }
+
+        /// <summary>
         /// V05 (M37 D2): scheitert das Speichern nach dem Aufräumen, steht der vorherige Zustand - Joker,
         /// Ergebnis, Zelle und Platz, nicht nur das Spiel. Die Störung ist eine Zelle zu einem Spiel, das es
         /// nicht gibt: ihr Fremdschlüssel scheitert im selben Speichern.

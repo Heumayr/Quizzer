@@ -53,7 +53,8 @@ namespace Quizzer.Logic.Controller.TypedControllers
                  .Include(q => q.GameGridCoordinates).ThenInclude(t => t.QuestionResults)
                  .Include(q => q.PlayerXGames).ThenInclude(t => t.Player)
                  .Include(q => q.Moderator)
-                 .Include(q => q.GameTheme);
+                 .Include(q => q.GameTheme)
+                 .Include(q => q.GameTeams);
             }
 
             return base.SetQueryAttributes(query, action);
@@ -71,12 +72,16 @@ namespace Quizzer.Logic.Controller.TypedControllers
                 using var ctrlResults = new QuestionResultsController(this);
                 using var ctrlCoordinate = new GameGridCoordinatesController(this);
                 using var ctrlJoker = new PlayerJokersController(this);
+                using var ctrlTeams = new GameTeamsController(this);
 
                 // Joker vor den Zellen: sie haengen mit NO ACTION an Spiel und Zelle (M35 C7).
                 await ctrlJoker.DeleteByGameIdAsync(entity.Id);
                 await ctrlPlayerXGame.DeleteByGameIdAsync(entity.Id);
                 await ctrlResults.DeleteByGameIdAsync(entity.Id);
                 await ctrlCoordinate.DeleteByGameIdAsync(entity.Id);
+
+                // Teams nach Zuteilungen und Ergebnissen: alle drei haengen mit NO ACTION (M37 T1).
+                await ctrlTeams.DeleteByGameIdAsync(entity.Id);
             }
 
             return await base.BeforeActionAsync(entity, action);

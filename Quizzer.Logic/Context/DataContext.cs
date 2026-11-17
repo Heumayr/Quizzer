@@ -87,6 +87,7 @@ namespace Quizzer.Logic.Context
                 .OnDelete(DeleteBehavior.SetNull);
 
             ConfigurePlayerJoker(modelBuilder);
+            ConfigureTeams(modelBuilder);
 
             // M9: ein Konto haengt an genau einem Mitspieler. Restrict statt Cascade - ein
             // Mitspieler mit Konto laesst sich nicht nebenbei loeschen, erst das Konto.

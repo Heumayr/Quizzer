@@ -21,6 +21,12 @@ namespace Quizzer.DataModels.Models.Base
         /// <summary>Fremdschlüssel zum Spiel.</summary>
         public Guid GameId { get; set; }
 
+        /// <summary>
+        /// Das Team im Teamspiel (M37 T1); <c>null</c>: keinem zugeteilt. Das Team gehört zu demselben Spiel - das
+        /// prüft der Server (<c>WriteRules.CheckTeamRefAsync</c>). NO ACTION: Löschen über <c>GameTeamsController</c>.
+        /// </summary>
+        public Guid? GameTeamId { get; set; }
+
         /// <summary>Navigation-Property zum verknüpften Spieler.</summary>
         public Player Player { get; set; } = null!;
 
@@ -33,6 +39,7 @@ namespace Quizzer.DataModels.Models.Base
             {
                 PlayerId = PlayerId,
                 GameId = GameId,
+                GameTeamId = GameTeamId,
                 Player = null!,
                 Game = null!
             };

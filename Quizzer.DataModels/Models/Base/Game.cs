@@ -61,6 +61,15 @@ namespace Quizzer.DataModels.Models.Base
         /// <summary>Darf ein Kontostand unter 0 fallen? Nein kappt jeden Minus-Vorschlag am Kontostand (M35 E2).</summary>
         public bool AllowNegativeScore { get; set; } = true;
 
+        /// <summary>Ein Teamspiel (M37 T1): die Spielleitung teilt die Mitspieler in <see cref="GameTeams"/> ein.</summary>
+        public bool IsTeamGame { get; set; }
+
+        /// <summary>Wie Minispiele im Teamspiel je Team zählen (F-M37-11, Vorgabe Durchschnitt).</summary>
+        public TeamMinigameScoring TeamMinigameScoring { get; set; } = TeamMinigameScoring.Average;
+
+        /// <summary>Beratungszeit der Teamberatung in Sekunden, 0 bis <c>TeamGrenzen.MaxCouncilSeconds</c>; 0 heißt ohne Countdown.</summary>
+        public int TeamCouncilSeconds { get; set; } = 30;
+
         [NotMapped]
         public List<int> PhaseTrashholds { get; set; } = new();
 
@@ -145,6 +154,9 @@ namespace Quizzer.DataModels.Models.Base
 
         public List<PlayerXGame> PlayerXGames { get; set; } = new();
 
+        /// <summary>Die Teams eines Teamspiels (M37 T1); geladen mit <c>GamesController.Get</c>.</summary>
+        public List<GameTeam> GameTeams { get; set; } = new();
+
         [NotMapped]
         public IEnumerable<Header> Columns => Headers.Where(h => h.HeaderType == HeaderType.Column);
 
@@ -189,9 +201,13 @@ namespace Quizzer.DataModels.Models.Base
                 RegularChoosingPlayerId = RegularChoosingPlayerId,
                 CurrentChoosingPlayerId = CurrentChoosingPlayerId,
                 AllowNegativeScore = AllowNegativeScore,
+                IsTeamGame = IsTeamGame,
+                TeamMinigameScoring = TeamMinigameScoring,
+                TeamCouncilSeconds = TeamCouncilSeconds,
                 Headers = new List<Header>(),
                 GameGridCoordinates = new List<GameGridCoordinate>(),
-                PlayerXGames = new List<PlayerXGame>()
+                PlayerXGames = new List<PlayerXGame>(),
+                GameTeams = new List<GameTeam>()
             };
 
             CopyBaseValuesTo(clone, copyIdentity);

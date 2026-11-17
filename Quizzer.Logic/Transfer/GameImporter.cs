@@ -309,6 +309,17 @@ namespace Quizzer.Logic.Transfer
                 await ctrlKopf.InsertAsync(kopf);
             }
 
+            // Die Teams ohne Mitglieder (M37 T1) - zugeteilt wird am Abend.
+            using var ctrlTeams = new GameTeamsController(ctrlSpiele);
+
+            foreach (var team in spiel.GameTeams)
+            {
+                team.Id = Guid.NewGuid();
+                team.GameId = spiel.Id;
+
+                await ctrlTeams.InsertAsync(team);
+            }
+
             foreach (var (zelle, frageIndex) in bausatz.Zellen)
             {
                 zelle.Id = Guid.NewGuid();

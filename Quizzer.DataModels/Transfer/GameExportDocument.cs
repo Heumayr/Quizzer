@@ -49,6 +49,9 @@ namespace Quizzer.DataModels.Transfer
 
         public List<CoordinateData> Zellen { get; set; } = new();
 
+        /// <summary>Die Teams eines Teamspiels (M37 T1) - Name und Farbe, ohne Mitglieder: die gehören zum Abend.</summary>
+        public List<TeamData> Teams { get; set; } = new();
+
         /// <summary>Das Design des Spiels. <c>null</c> heißt: der Auslieferungsstand.</summary>
         public ThemeData? Design { get; set; }
 
@@ -81,6 +84,19 @@ namespace Quizzer.DataModels.Transfer
 
             /// <summary>Fehlt in Buendeln von vor M35 - dann gilt die Vorgabe des Spiels (erlaubt).</summary>
             public bool AllowNegativeScore { get; set; } = true;
+
+            /// <summary>Die Teameinstellungen (M37 T1); fehlen sie, gilt die Vorgabe des Spiels.</summary>
+            public bool IsTeamGame { get; set; }
+            public TeamMinigameScoring TeamMinigameScoring { get; set; } = TeamMinigameScoring.Average;
+            public int TeamCouncilSeconds { get; set; } = 30;
+        }
+
+        /// <summary>Ein Team: Name, Farbe, Platz in der Reihenfolge. Kein Sprecherstand - der gehört zum Abend.</summary>
+        public sealed class TeamData
+        {
+            public string Name { get; set; } = string.Empty;
+            public int ColorIndex { get; set; }
+            public int SortOrder { get; set; }
         }
 
         /// <summary>Eine Kategorie - außer ihrer Bezeichnung hat sie keine Nutzlast.</summary>

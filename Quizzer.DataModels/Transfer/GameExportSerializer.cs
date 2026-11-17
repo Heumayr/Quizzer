@@ -1,4 +1,5 @@
 using Quizzer.DataModels.Questions.Sonderregeln;
+using Quizzer.DataModels.Questions.Teams;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -154,6 +155,23 @@ namespace Quizzer.DataModels.Transfer
                 if (!medienSchluessel.Contains(textur.Value))
                     throw new InvalidDataException(
                         $"Das Design verweist auf eine Textur, die im Bündel fehlt ({textur.Key}).");
+            }
+
+            PruefeTeams(dokument);
+        }
+
+        /// <summary>Teameinstellungen und Teams (M37 T1) nach denselben Grenzen wie am Server (<see cref="TeamGrenzen"/>).</summary>
+        private static void PruefeTeams(GameExportDocument dokument)
+        {
+            if (TeamGrenzen.SettingsProblem(dokument.Spiel.TeamMinigameScoring, dokument.Spiel.TeamCouncilSeconds) is { } spiel)
+                throw new InvalidDataException(spiel);
+
+            for (var i = 0; i < dokument.Teams.Count; i++)
+            {
+                var team = dokument.Teams[i];
+
+                if (TeamGrenzen.TeamProblem(team.Name, team.ColorIndex, speakerTurn: 0) is { } problem)
+                    throw new InvalidDataException($"Team {i + 1}: {problem}");
             }
         }
     }
