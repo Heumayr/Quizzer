@@ -21,6 +21,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         public const string ShareOutOfRange = "minigame-share-out-of-range";
         public const string NotInTeamGame = "minigame-not-in-team-game";
         public const string NoOpponent = "minigame-no-opponent";
+        public const string OnlyInTeamGame = "minigame-only-in-team-game";
 
         /// <summary>Prueft den Inhalt: bekannte Art, bekannte Spielweise, genug Zeilen.</summary>
         public static IEnumerable<ValidationIssue> Content(MinigameQuestion frage)
@@ -81,36 +82,67 @@ namespace Quizzer.DataModels.Questions.Minispiele
                 + $"Spiel sind {spielerzahl}.");
         }
 
-        /// <summary>Prueft, ob das Minispiel ins Teamspiel passt (M37 T8) - ohne Teamspiel nichts, eine unbekannte Art meldet schon <see cref="Content"/>.</summary>
+        /// <summary>
+        /// Prueft, ob das Minispiel zum Spiel passt (M37 T8): im Teamspiel nach Teams, ohne Teamspiel nur die Teamarten (T9). Eine
+        /// unbekannte Art meldet schon <see cref="Content"/>.
+        /// </summary>
         public static IEnumerable<ValidationIssue> ForTeams(MinigameQuestion frage, Models.Base.Game spiel)
         {
             ArgumentNullException.ThrowIfNull(frage);
             ArgumentNullException.ThrowIfNull(spiel);
 
-            return spiel.IsTeamGame && MinigameProfiles.TryFor(frage.Kind, out var art)
-                ? ForTeams(art, Teams.Teamzuordnung.Lager(spiel))
-                : [];
+            if (!MinigameProfiles.TryFor(frage.Kind, out var art))
+                return [];
+
+            if (!spiel.IsTeamGame)
+                return OhneTeamspiel(art);
+
+            // Eine Teamart zählt nur besetzte Teams - wer ohne Team ist, spielt dort nicht mit (T9); sonst zählt er als eigenes Lager.
+            return ForTeams(art, art.TeamScoring == MinispielTeamwertung.NurImTeamspiel
+                ? Teams.Teamzuordnung.BesetzteTeams(spiel)
+                : Teams.Teamzuordnung.Lager(spiel));
         }
 
         /// <summary>
         /// Der Riegel „nicht im Teamspiel“ (M37 T8), fail-closed: eine Art, die es nicht spielt - oder deren Wertung unbekannt
-        /// ist -, ist ein Fehler. Eine Art je Person braucht einen Gegner, also mindestens zwei <paramref name="lager"/>.
+        /// ist -, ist ein Fehler. Eine Art je Person braucht einen Gegner, eine Teamart (T9) ein zweites Team - beide also
+        /// mindestens zwei <paramref name="lager"/>.
         /// </summary>
         public static IEnumerable<ValidationIssue> ForTeams(MinigameProfile art, int lager)
         {
             ArgumentNullException.ThrowIfNull(art);
 
             if (art.TeamScoring == MinispielTeamwertung.Zusammengefasst
-                || art.TeamScoring == MinispielTeamwertung.JePerson && lager >= 2)
+                || art.TeamScoring is MinispielTeamwertung.JePerson or MinispielTeamwertung.NurImTeamspiel && lager >= 2)
                 yield break;
 
-            yield return art.TeamScoring == MinispielTeamwertung.JePerson
-                ? new(NoOpponent, ValidationSeverity.Error,
+            var besetzt = lager == 1 ? "ist eins" : "ist keins";
+
+            yield return art.TeamScoring switch
+            {
+                MinispielTeamwertung.JePerson => new(NoOpponent, ValidationSeverity.Error,
                     $"Minispiel {art.DisplayName}: im Teamspiel nur gegen Gegner – dafür braucht es Mitspieler in mindestens "
-                    + $"zwei Teams, besetzt {(lager == 1 ? "ist eins" : "ist keins")}.")
-                : new(NotInTeamGame, ValidationSeverity.Error,
+                    + $"zwei Teams, besetzt {besetzt}."),
+                MinispielTeamwertung.NurImTeamspiel => new(NoOpponent, ValidationSeverity.Error,
+                    $"Minispiel {art.DisplayName}: Team gegen Team – dafür braucht es Mitspieler in mindestens zwei Teams, "
+                    + $"besetzt {besetzt}."),
+                _ => new(NotInTeamGame, ValidationSeverity.Error,
                     $"Minispiel {art.DisplayName} wird im Teamspiel nicht gespielt – im Spielaufbau ein anderes Minispiel "
-                    + "auf die Zelle legen.");
+                    + "auf die Zelle legen."),
+            };
+        }
+
+        /// <summary>Der Riegel „nur im Teamspiel“ (M37 T9): ohne Teamspiel hätte bei einer Teamart niemand ein Team, das spielt.</summary>
+        public static IEnumerable<ValidationIssue> OhneTeamspiel(MinigameProfile art)
+        {
+            ArgumentNullException.ThrowIfNull(art);
+
+            if (art.TeamScoring != MinispielTeamwertung.NurImTeamspiel)
+                yield break;
+
+            yield return new(OnlyInTeamGame, ValidationSeverity.Error,
+                $"Minispiel {art.DisplayName} gibt es nur im Teamspiel – im Spielaufbau „Teamspiel“ einschalten oder ein "
+                + "anderes Minispiel auf die Zelle legen.");
         }
     }
 }

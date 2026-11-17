@@ -22,6 +22,9 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
         /// <summary>Wird im Teamspiel nicht gespielt - der Spielstart meldet es (<c>MinigameChecks.ForTeams</c>).</summary>
         NichtImTeamspiel = 3,
+
+        /// <summary>Nur im Teamspiel, Team gegen Team (M37 T9, Tauziehen) - ohne Teamspiel meldet es der Spielstart.</summary>
+        NurImTeamspiel = 4,
     }
 
     /// <summary>

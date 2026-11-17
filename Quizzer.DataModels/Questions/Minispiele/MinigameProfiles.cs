@@ -68,6 +68,9 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// <summary>Ebenso fuer <see cref="MinigameQuestion.Share"/> (M35 C2).</summary>
         public const string SharePlaceholder = "{Anteil}";
 
+        /// <summary>Im Teamregeltext einer Teamart (M37 T9): „die Summe“ oder „der Durchschnitt“, wie am Spiel eingestellt.</summary>
+        public const string TeamValuePlaceholder = "{Teamwert}";
+
         /// <summary>
         /// Alle Profile in der Reihenfolge, in der sie angeboten werden. Erst beim ersten Zugriff gebaut: die Profile stehen in
         /// Teildateien, und in welcher Reihenfolge C# deren Feldinitialisierer ausfuehrt, ist nicht festgelegt.
@@ -113,6 +116,8 @@ namespace Quizzer.DataModels.Questions.Minispiele
                 MinispielTeamwertung.Zusammengefasst
                     => "Im Teamspiel zählt der Durchschnitt eures Teams – höchstens die Feldpunkte –, aufgeteilt auf alle.",
                 MinispielTeamwertung.JePerson => art.TeamRulesText ?? NurGegnerText,
+                MinispielTeamwertung.NurImTeamspiel => art.TeamRulesText?.Replace(
+                    TeamValuePlaceholder, spiel.TeamMinigameScoring == TeamMinigameScoring.Sum ? "die Summe" : "der Durchschnitt"),
                 _ => null,
             };
 

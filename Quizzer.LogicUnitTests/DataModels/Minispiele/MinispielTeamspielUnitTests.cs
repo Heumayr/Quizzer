@@ -4,6 +4,7 @@ using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.DataModels.Questions;
 using Quizzer.DataModels.Questions.Minispiele;
+using Quizzer.DataModels.Questions.Teams;
 
 namespace Quizzer.LogicUnitTests.DataModels.Minispiele
 {
@@ -78,6 +79,47 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
 
             Assert.AreEqual((MinigameChecks.NotInTeamGame, ValidationSeverity.Error), (befund.Code, befund.Severity), $"Wertung {(int)wertung}");
             StringAssert.Contains(befund.Message, "im Teamspiel nicht gespielt");
+        }
+
+        /// <summary>M37 T9: eine Teamart spielt Team gegen Team - im Teamspiel braucht sie ein zweites besetztes Team.</summary>
+        [TestMethod]
+        public void ATeamKindNeedsASecondTeam()
+        {
+            Assert.AreEqual(0, MinigameChecks.ForTeams(Profil(MinispielTeamwertung.NurImTeamspiel), 2).Count());
+            Assert.AreEqual(0, MinigameChecks.ForTeams(Profil(MinispielTeamwertung.NurImTeamspiel), 5).Count());
+
+            foreach (var lager in new[] { 0, 1 })
+            {
+                var befund = MinigameChecks.ForTeams(Profil(MinispielTeamwertung.NurImTeamspiel), lager).Single();
+                Assert.AreEqual((MinigameChecks.NoOpponent, ValidationSeverity.Error), (befund.Code, befund.Severity), $"{lager} Teams");
+                StringAssert.Contains(befund.Message, "Team gegen Team");
+            }
+        }
+
+        /// <summary>M37 T9: der Riegel „nur im Teamspiel“ - ohne Teamspiel ein Fehler für die Teamart, für alle übrigen nichts.</summary>
+        [TestMethod]
+        public void ATeamKindIsAnErrorWithoutATeamGame()
+        {
+            var befund = MinigameChecks.OhneTeamspiel(Profil(MinispielTeamwertung.NurImTeamspiel)).Single();
+
+            Assert.AreEqual((MinigameChecks.OnlyInTeamGame, ValidationSeverity.Error), (befund.Code, befund.Severity));
+            StringAssert.Contains(befund.Message, "nur im Teamspiel");
+
+            foreach (var wertung in Enum.GetValues<MinispielTeamwertung>().Where(w => w != MinispielTeamwertung.NurImTeamspiel).Append((MinispielTeamwertung)42))
+                Assert.AreEqual(0, MinigameChecks.OhneTeamspiel(Profil(wertung)).Count(), $"Wertung {(int)wertung} ohne Teamspiel abgewiesen.");
+        }
+
+        /// <summary>M37 T9: für eine Teamart zählen nur besetzte Teams - wer ohne Team ist, ist dort kein Gegner, sondern spielt nicht mit.</summary>
+        [TestMethod]
+        public void OnlyOccupiedTeamsCountForATeamKind()
+        {
+            var spiel = new Game { Id = Guid.NewGuid(), IsTeamGame = true };
+            var rot = new GameTeam { Id = Guid.NewGuid(), GameId = spiel.Id, Name = "Rot" };
+            spiel.GameTeams.Add(rot);
+            spiel.PlayerXGames.AddRange([new PlayerXGame { PlayerId = Guid.NewGuid(), GameTeamId = rot.Id }, new PlayerXGame { PlayerId = Guid.NewGuid() }]);
+
+            Assert.AreEqual(2, Teamzuordnung.Lager(spiel), "Der Spieler ohne Team zählt als eigenes Lager.");
+            Assert.AreEqual(1, Teamzuordnung.BesetzteTeams(spiel), "Ohne Team zählt als besetztes Team.");
         }
 
         /// <summary>Am Spiel: ohne Teamspiel nichts; alle Mitspieler in einem Team lassen dem Duell keinen Gegner.</summary>

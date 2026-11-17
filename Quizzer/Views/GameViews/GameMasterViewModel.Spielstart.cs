@@ -114,7 +114,7 @@ namespace Quizzer.Views.GameViews
 
                     Befunde(frage, dbGame.Players.Count(), beanstandet, angemerkt);
 
-                    // M37 T8: ein Minispiel, das im Teamspiel nicht gespielt wird oder keinen Gegner hat.
+                    // M37 T8/T9: ein Minispiel, das im Teamspiel nicht - oder nur dort - gespielt wird oder keinen Gegner hat.
                     foreach (var befund in frage is MinigameQuestion minispiel ? MinigameChecks.ForTeams(minispiel, dbGame) : [])
                         (befund.IsError ? beanstandet : angemerkt).Add($"{frage.Designation}: {befund.Message}");
 

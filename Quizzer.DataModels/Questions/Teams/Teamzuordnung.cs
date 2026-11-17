@@ -34,6 +34,9 @@ namespace Quizzer.DataModels.Questions.Teams
         /// <summary>Wie viele Lager unter den Teilnehmern sind (M37 T8): besetzte Teams; wer ohne Team ist, zählt für sich.</summary>
         public static int Lager(Game spiel) => Teilnehmer(spiel).Select(x => TeamVon(spiel, x.PlayerId) ?? x.PlayerId).Distinct().Count();
 
+        /// <summary>Wie viele Teams unter den Teilnehmern besetzt sind (M37 T9) - wer ohne Team ist, zählt hier nicht.</summary>
+        public static int BesetzteTeams(Game spiel) => Teilnehmer(spiel).Select(x => TeamVon(spiel, x.PlayerId)).OfType<Guid>().Distinct().Count();
+
         /// <summary>Teilnehmer ohne ein Team dieses Spiels.</summary>
         public static IReadOnlyList<PlayerXGame> OhneTeam(Game spiel) =>
             Teilnehmer(spiel).Where(x => x.GameTeamId is not { } id || spiel.GameTeams.All(t => t.Id != id)).ToList();
