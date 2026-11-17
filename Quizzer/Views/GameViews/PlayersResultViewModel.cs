@@ -175,7 +175,7 @@ namespace Quizzer.Views.GameViews
                 contextList.Add(newContext);
             }
 
-            PlayerResultContextList = contextList;
+            PlayerResultContextList = NachTeams(contextList);
             OnPropertyChanged(nameof(Columns));
             OnPropertyChanged(nameof(WindowTitle));
         }

@@ -56,7 +56,8 @@
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
-            <ItemsControl ItemsSource="{Binding PlayerResultContextList}">
+            <Grid>
+            <ItemsControl ItemsSource="{Binding PlayerResultContextList}" Visibility="{Binding EinzelkartenVisibility}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <!-- Hoechstens vier je Zeile, der Rest bricht um. Bisher wurde durch die
@@ -72,6 +73,39 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            <!-- M37 T3: im Teamspiel nach Team gruppiert, je Gruppe eine Kopfzeile "Rot: +300 (je +100)". Dieselbe
+                 Spaltenzahl wie oben, damit eine Karte in jeder Gruppe gleich breit ist. -->
+            <ItemsControl ItemsSource="{Binding TeamGruppen}" Visibility="{Binding TeamGruppenVisibility, FallbackValue=Collapsed}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="0,0,0,8">
+                            <Border Background="#1E1E1E" BorderBrush="{Binding Pinsel}" BorderThickness="0,0,0,3"
+                                    Padding="10,6" Margin="4,6,4,2">
+                                <StackPanel Orientation="Horizontal">
+                                    <ContentControl Content="{Binding}" ContentTemplate="{StaticResource TeamAnzeige}" Focusable="False"
+                                                    TextElement.FontSize="20" TextElement.FontWeight="Bold" TextElement.Foreground="White" />
+                                    <TextBlock Text="{Binding VorschlagText}" FontSize="20" FontWeight="Bold" Foreground="White"
+                                               VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+                            <ItemsControl ItemsSource="{Binding Karten}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="{Binding Spalten}" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <sub:UcPlayerResultView />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            </Grid>
         </ScrollViewer>
 
         <Border Grid.Row="2" Background="#161616" Padding="8">
