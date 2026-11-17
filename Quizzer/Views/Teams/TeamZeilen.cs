@@ -1,4 +1,5 @@
 using Quizzer.Base;
+using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Questions.Teams;
 using System.ComponentModel;
 using System.Windows.Media;
@@ -32,6 +33,9 @@ namespace Quizzer.Views.Teams
             get => name;
             set { name = value; OnPropertyChanged(); }
         }
+
+        /// <summary>Die Grenze des Namensfelds - dieselbe wie Spalte, Server und Bündel.</summary>
+        public int MaxNameLength => GameTeam.MaxNameLength;
 
         public TeamFarbe Farbe
         {

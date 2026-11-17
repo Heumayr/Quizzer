@@ -53,7 +53,7 @@
                         <Border Width="22" Height="22" CornerRadius="4" Background="{Binding Pinsel}"
                                 BorderBrush="#BBBBBB" BorderThickness="1" VerticalAlignment="Center" />
                         <TextBlock Grid.Column="1" Text="{Binding Symbol}" FontSize="18" Margin="8,0" VerticalAlignment="Center" />
-                        <TextBox Grid.Column="2" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" MaxLength="30"
+                        <TextBox Grid.Column="2" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" MaxLength="{Binding MaxNameLength, Mode=OneTime}"
                                  Height="32" VerticalContentAlignment="Center" AutomationProperties.Name="Teamname"
                                  ToolTip="Der Name am Beamer und am Telefon, höchstens 30 Zeichen." />
                         <ComboBox Grid.Column="3" Width="150" Margin="8,0,0,0" Height="32"
