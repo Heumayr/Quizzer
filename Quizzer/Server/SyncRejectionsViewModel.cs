@@ -41,7 +41,7 @@ namespace Quizzer.Server
             Rows.Clear();
             foreach (var r in offen)
             {
-                var (grund, hilfe) = Erklaere(r.Reason);
+                var (grund, hilfe) = Erklaere(r.Reason, r.ErstAnlage);
                 var eintrag = r.Loeschung ? "(lokal gelöscht)" : r.Bezeichnung.Length > 0 ? r.Bezeichnung : "-";
                 Rows.Add(new Row(Art(r.Type), eintrag, grund, hilfe, r.Message));
             }
@@ -116,9 +116,15 @@ namespace Quizzer.Server
             }
         }
 
-        /// <summary>Was der Grund heißt und was dagegen hilft.</summary>
-        internal static (string Grund, string Hilfe) Erklaere(SyncRejectReason? reason) => reason switch
+        /// <summary>
+        /// Was der Grund heißt und was dagegen hilft. Ein Konflikt bei einer Zeile, die dieser Rechner nie vom Server hatte,
+        /// heißt „schon angelegt" - zwei Konten legten dieselbe feste Id an, etwa beim Vorrat (V12).
+        /// </summary>
+        internal static (string Grund, string Hilfe) Erklaere(SyncRejectReason? reason, bool erstAnlage = false) => reason switch
         {
+            SyncRejectReason.Conflict when erstAnlage => (
+                "Am Server schon angelegt",
+                "Ein anderer Rechner hat denselben Eintrag zuerst übertragen, etwa beim Minispiel-Vorrat. „Serverstand übernehmen\" holt ihn ab – noch einmal anlegen ist nicht nötig."),
             SyncRejectReason.Conflict => (
                 "Am Server inzwischen geändert",
                 "Ein anderer Rechner war schneller. „Serverstand übernehmen\", dann die Änderung noch einmal machen."),

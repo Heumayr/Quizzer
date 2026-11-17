@@ -175,6 +175,7 @@ namespace Quizzer.Server.Tests
             Assert.AreEqual(SyncRejectReason.Conflict, offen[0].Reason);
             Assert.AreEqual("Vom Laptop", offen[0].Bezeichnung);
             Assert.IsFalse(offen[0].Loeschung);
+            Assert.IsFalse(offen[0].ErstAnlage, "Der Laptop hatte das Spiel vom Server - kein Erstanlegen (V12).");
             Assert.IsFalse(string.IsNullOrWhiteSpace(offen[0].Message));
 
             // Ein spaeterer Durchlauf ohne neue Ablehnung meldet sie weiter.

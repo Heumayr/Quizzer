@@ -117,6 +117,7 @@ namespace Quizzer.Server.Tests
 
             Assert.AreEqual(1, second.Rejected.Count);
             Assert.AreEqual(SyncRejectReason.Conflict, second.Rejected[0].Reason);
+            Assert.AreEqual("Am Server inzwischen geändert.", second.Rejected[0].Message, "Ein echter Stand-Konflikt heisst anders (V12).");
             Assert.AreEqual("Vom PC", (await SnapshotAsync(alice)).Rows.Single(r => r.Id == set.Game.Id).Values["Designation"].GetString());
         }
 

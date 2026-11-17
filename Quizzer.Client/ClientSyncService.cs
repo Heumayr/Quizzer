@@ -20,7 +20,8 @@ namespace Quizzer.Client
     /// <summary>Eine Aenderung, die der Server abgewiesen hat und die deshalb lokal liegen bleibt.</summary>
     /// <param name="Bezeichnung">Wie der Eintrag lokal heisst - leer, wenn er lokal geloescht ist.</param>
     /// <param name="Loeschung">Die abgewiesene Aenderung war das Loeschen.</param>
-    public sealed record OpenRejection(string Type, Guid Id, SyncRejectReason? Reason, string Message, string Bezeichnung, bool Loeschung);
+    /// <param name="ErstAnlage">Dieser Rechner hat die Zeile nie vom Server gehabt - ein Konflikt heisst dann: schon angelegt (V12).</param>
+    public sealed record OpenRejection(string Type, Guid Id, SyncRejectReason? Reason, string Message, string Bezeichnung, bool Loeschung, bool ErstAnlage = false);
 
     /// <summary>
     /// Der Abgleich auf Seite des WPF (M9: „vorerst sollen alle daten zu beginn geladen werden
@@ -136,6 +137,9 @@ namespace Quizzer.Client
             await using (var store = openStore())
                 local = (await store.ReadAllAsync(ct)).ToDictionary(r => r.Key);
 
+            // Ueber die Id, nicht den Schluessel: nach einem Typwechsel der Frage steht sie unter dem alten Typ.
+            var vomServer = state.Manifest.Keys.Select(k => k.Id).ToHashSet();
+
             return state.Suppressed
                 .Select(s =>
                 {
@@ -146,7 +150,8 @@ namespace Quizzer.Client
                         s.Key.Type, s.Key.Id, warum?.Reason,
                         warum?.Message ?? "Der Grund wurde nicht gespeichert (Ablehnung von vor 2026-10-22).",
                         row == null ? string.Empty : Bezeichnung(row),
-                        s.Value == DeletedMarker);
+                        s.Value == DeletedMarker,
+                        s.Value != DeletedMarker && !vomServer.Contains(s.Key.Id));
                 })
                 .OrderBy(r => r.Type).ThenBy(r => r.Bezeichnung)
                 .ToList();

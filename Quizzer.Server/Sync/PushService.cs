@@ -58,8 +58,7 @@ namespace Quizzer.Server.Sync
 
                     if (IsConflict(upsert.BaseHash, serverHash, row.Hash))
                     {
-                        Reject(response, row.Type, row.Id, SyncRejectReason.Conflict,
-                            serverHash == null ? "Am Server inzwischen gelöscht." : "Am Server inzwischen geändert.");
+                        Reject(response, row.Type, row.Id, SyncRejectReason.Conflict, ConflictMessage.ForUpsert(upsert.BaseHash, serverHash));
                         continue;
                     }
 
@@ -92,7 +91,7 @@ namespace Quizzer.Server.Sync
 
                     if (store.ToRow(serverEntity).Hash != delete.BaseHash)
                     {
-                        Reject(response, delete.Type, delete.Id, SyncRejectReason.Conflict, "Am Server inzwischen geändert.");
+                        Reject(response, delete.Type, delete.Id, SyncRejectReason.Conflict, ConflictMessage.Changed);
                         continue;
                     }
 

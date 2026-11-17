@@ -173,6 +173,10 @@ namespace Quizzer.Server.Tests
             CollectionAssert.AreEquivalent(VorratIds, bPush.Rejected.Select(r => r.Id).ToList(), Abgewiesen(bPush.Rejected));
             Assert.IsTrue(bPush.Rejected.All(r => r.Reason == SyncRejectReason.Conflict), Abgewiesen(bPush.Rejected));
             Assert.AreEqual(VorratIds.Count, b.Sync.CountRejections(), "Die Abweisungen sind nicht sichtbar.");
+
+            // V12: B hatte die Zeilen nie - "inzwischen geaendert" fuehrte in die Irre; es heisst "schon angelegt", Rat: abholen.
+            Assert.IsTrue(bPush.Rejected.All(r => r.Message.Contains("schon angelegt") && r.Message.Contains("Abholen")), Abgewiesen(bPush.Rejected));
+            Assert.IsTrue((await b.Sync.GetRejectionsAsync()).All(o => o.ErstAnlage), "B erkennt das Erstanlegen nicht an seinem Manifest.");
             await AmServerGenauEinmalVonAsync(aId);
 
             await b.Sync.PullAsync();
