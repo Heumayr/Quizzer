@@ -90,6 +90,13 @@
                     <TextBlock Style="{StaticResource SectionHeader}" Text="Joker" Margin="0,18,0,4" />
                     <Button Content="Joker vergeben …" Command="{Binding JokerCommand}"
                             ToolTip="Einem Mitspieler einen Joker geben, seine Joker sehen und einen offenen zurücknehmen." />
+
+                    <!-- M37 T2: zwischen zwei Zellen umsetzen - nur im Teamspiel -->
+                    <StackPanel Visibility="{Binding TeamsVisibility}">
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Teams" Margin="0,18,0,4" />
+                        <Button Content="{Binding TeamsUmsetzenText}" Command="{Binding TeamsUmsetzenCommand}"
+                                ToolTip="Mitspieler in ein anderes Team setzen, Teams umbenennen oder neu auslosen. Bisherige Punkte bleiben beim alten Team." />
+                    </StackPanel>
                 </StackPanel>
             </ScrollViewer>
         </Border>

@@ -13,6 +13,9 @@ namespace Quizzer.Views.GameViews
 
             InitStatContext(Game);
             OnPropertyChanged(nameof(Players));
+
+            // M37 T2: im Teamspiel ist der Neue ohne Team - der Knopf „Teams umsetzen“ sagt es.
+            TeamsAnzeigeAktualisieren();
         }
 
         private void InitStatContext(Game game)
