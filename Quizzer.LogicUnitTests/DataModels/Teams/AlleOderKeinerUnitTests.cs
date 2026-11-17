@@ -104,5 +104,28 @@ namespace Quizzer.LogicUnitTests.DataModels.Teams
             Assert.AreEqual(-60, AlleOderKeiner.Werte(100, 60, team, Niemand, falsch)!.Anteile.Values.Sum());
             Assert.AreEqual(-60, AlleOderKeiner.Werte(100, -60, team, Niemand, falsch)!.Anteile.Values.Sum());
         }
+
+        /// <summary>A08 über viele Bewertungen: das Team bekommt genau den Feldwert, genau das Minus oder nichts - nie etwas dazwischen.</summary>
+        [TestMethod]
+        public void TheTeamGetsExactlyTheFieldValueTheMinusOrNothing()
+        {
+            var arten = new[] { RatingKind.None, RatingKind.Right, RatingKind.Wrong, RatingKind.Partial };
+            var zufall = new Random(37);
+
+            for (var groesse = 1; groesse <= TeamGrenzen.MaxTeams; groesse++)
+            for (var runde = 0; runde < 40; runde++)
+            {
+                var team = Ids(groesse);
+                var bewertungen = team.ToDictionary(m => m, _ => arten[zufall.Next(arten.Length)]);
+                var gesperrt = team.Where(_ => zufall.Next(4) == 0).ToHashSet();
+
+                var ergebnis = AlleOderKeiner.Werte(300, 120, team, gesperrt, bewertungen);
+                var summe = ergebnis?.Anteile.Values.Sum() ?? 0;
+                var fall = $"{string.Join("/", team.Select(m => bewertungen[m] + (gesperrt.Contains(m) ? "(gesperrt)" : "")))}";
+
+                Assert.IsTrue(summe is 300 or -120 or 0, $"Das Team bekommt {summe}. {fall}");
+                Assert.AreEqual(summe == 0 ? 0 : groesse, ergebnis?.Anteile.Count ?? 0, "Nicht jedes Mitglied hat seinen Anteil. " + fall);
+            }
+        }
     }
 }

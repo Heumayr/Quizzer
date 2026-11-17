@@ -139,5 +139,39 @@ namespace Quizzer.LogicUnitTests.DataModels.Teams
             var dritte = GleichGedacht.Werte(400, team, antworten, gelegt);
             CollectionAssert.AreEquivalent(new[] { team[0], team[1], team[2] }, dritte.Anteile.Keys.ToArray(), "Das zweite Zusammenlegen verliert das erste.");
         }
+
+        /// <summary>
+        /// A08 über viele Antwortmuster: ein Team bekommt nie mehr als den Feldwert, nur Mitglieder bekommen etwas, und jeder genau
+        /// seinen Anteil am ganzen Team; alle gleich heißt der ganze Feldwert. Ein leeres Team wirft nicht.
+        /// </summary>
+        [TestMethod]
+        public void ATeamNeverGetsMoreThanTheFieldValue()
+        {
+            var woerter = new[] { "Paris", "Rom", "", "paris", "Wien" };
+            var zufall = new Random(37);
+            var geprueft = 0;
+
+            for (var groesse = 1; groesse <= TeamGrenzen.MaxTeams; groesse++)
+            for (var runde = 0; runde < 40; runde++)
+            {
+                var team = Ids(groesse);
+                var antworten = team.ToDictionary(m => m, _ => (string?)woerter[zufall.Next(woerter.Length)]);
+                antworten[Guid.NewGuid()] = "Paris";
+                var feld = zufall.Next(0, 1000);
+                var verteilt = Aufteilung.Verteile(feld, team);
+
+                var ergebnis = GleichGedacht.Werte(feld, team, antworten);
+                var fall = $"{feld} auf {groesse}: {string.Join("/", team.Select(m => antworten[m]))}";
+
+                Assert.IsTrue(ergebnis.Anteile.Values.Sum() <= feld, "Mehr als der Feldwert. " + fall);
+                Assert.IsTrue(ergebnis.Anteile.All(a => team.Contains(a.Key) && a.Value == verteilt[a.Key]), "Ein Anteil ist falsch oder geht an einen Fremden. " + fall);
+                geprueft++;
+            }
+
+            var alle = Ids(3);
+            Assert.AreEqual(300, GleichGedacht.Werte(300, alle, alle.ToDictionary(m => m, _ => (string?)"Rom")).Anteile.Values.Sum());
+            Assert.AreEqual(0, GleichGedacht.Werte(300, [], new Dictionary<Guid, string?>()).Gruppen.Count);
+            Assert.IsTrue(geprueft > 300);
+        }
     }
 }
