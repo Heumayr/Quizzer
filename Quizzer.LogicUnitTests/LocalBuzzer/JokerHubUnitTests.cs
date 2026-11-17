@@ -111,7 +111,9 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             await StarteRundeAsync();
 
             Assert.IsTrue(await WarteAsync(() => Letzter(b) is { CurrentLayoutLocked: false }), "Bert bekommt die Joker-Runde nicht.");
-            Assert.IsTrue(await WarteAsync(() => Letzter(c) is { CurrentLayoutLocked: true }), "Carl ohne Joker ist offen.");
+            // Gesperrt ist Carl schon vor dem Start - gezaehlt wird erst ab dem Startzustand (V18).
+            Assert.IsTrue(await WarteAsync(() => Letzter(c) is { CurrentLayoutLocked: true } && HubTest.Phase(Letzter(c)) == (int)MinigamePhase.Running),
+                "Carl ohne Joker ist offen oder bekommt die Runde nicht.");
             var bertVorher = Anzahl(b);
             var carlVorher = Anzahl(c);
 
