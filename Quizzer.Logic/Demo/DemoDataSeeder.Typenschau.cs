@@ -82,26 +82,7 @@ namespace Quizzer.Logic.Demo
         /// Die Demo-Mitspieler - vorhandene werden wiederverwendet, sonst angelegt. Zwei Läufe
         /// sollen nicht zweimal „Anna" in die Spielerliste schreiben.
         /// </summary>
-        private static async Task<List<Player>> DemoSpielerAsync()
-        {
-            using (var ctrl = new PlayersController())
-            {
-                var namen = new[] { "Anna", "Bert", "Clara", "Dennis", "Moderator" };
-
-                var vorhanden = (await ctrl.GetAllAsync())
-                    .Where(p => p.Designation.StartsWith(Marke, StringComparison.Ordinal))
-                    .ToList();
-
-                var gefunden = namen
-                    .Select(n => vorhanden.FirstOrDefault(p => p.Designation == $"{Marke} {n}"))
-                    .ToList();
-
-                if (gefunden.All(p => p != null))
-                    return gefunden!;
-            }
-
-            return await CreatePlayersAsync();
-        }
+        private static async Task<List<Player>> DemoSpielerAsync() => (await CreatePlayersAsync()).Spieler;
 
         private static IEnumerable<QuestionBase> BaueTypenschau(Guid kat, bool mitBildern)
         {

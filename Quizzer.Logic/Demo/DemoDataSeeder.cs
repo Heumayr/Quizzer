@@ -41,11 +41,11 @@ namespace Quizzer.Logic.Demo
         public static async Task<Ergebnis> CreateAsync()
         {
             var kategorien = await CreateCategoriesAsync();
-            var spieler = await CreatePlayersAsync();
+            var (spieler, neu) = await CreatePlayersAsync();
             var fragen = await CreateQuestionsAsync(kategorien, spieler);
             var spiel = await CreateGameAsync(kategorien, fragen, spieler);
 
-            return new Ergebnis(spiel, kategorien.Count, fragen.Count, spieler.Count,
+            return new Ergebnis(spiel, kategorien.Count, fragen.Count, neu,
                 spiel.GameGridCoordinates.Count(c => c.QuestionBaseId.HasValue));
         }
 
@@ -73,7 +73,8 @@ namespace Quizzer.Logic.Demo
             return ergebnis;
         }
 
-        private static async Task<List<Player>> CreatePlayersAsync()
+        /// <summary>Die fuenf Demo-Personen, der Moderator zuletzt: vorhandene bleiben, nur Fehlende entstehen (V13).</summary>
+        private static async Task<(List<Player> Spieler, int Neu)> CreatePlayersAsync()
         {
             // Alle duerfen leiten - so ist es seit dem 2026-09-06 voreingestellt, und der
             // Wechsel des Spielleiters laesst sich damit an jeder Person vorfuehren.
@@ -82,9 +83,16 @@ namespace Quizzer.Logic.Demo
             var ergebnis = new List<Player>();
 
             using var ctrl = new PlayersController();
+            var vorhanden = (await ctrl.GetAllAsync()).Where(p => p.Designation.StartsWith(Marke, StringComparison.Ordinal)).ToList();
 
             foreach (var kurz in namen)
             {
+                if (vorhanden.FirstOrDefault(p => p.Designation == $"{Marke} {kurz}") is { } da)
+                {
+                    ergebnis.Add(da);
+                    continue;
+                }
+
                 // IsModerator bleibt auf der Voreinstellung - es zu setzen waere eine zweite
                 // Quelle fuer dieselbe Regel.
                 var spieler = new Player
@@ -100,7 +108,7 @@ namespace Quizzer.Logic.Demo
 
             await ctrl.SaveChangesAsync();
 
-            return ergebnis;
+            return (ergebnis, ergebnis.Count(p => !vorhanden.Contains(p)));
         }
 
         /// <summary>
