@@ -49,6 +49,9 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
         /// <summary>Eine Teamregel: sie gibt es nur im Teamspiel.</summary>
         public bool IstTeamregel => Teamspiel == TeamspielEignung.Nur;
 
+        /// <summary>Höchstens eine Zelle je Spiel trägt die Regel, und das Verteilen setzt sie nie (M37 E4: das Finale).</summary>
+        public bool EinmalJeSpiel { get; init; }
+
         /// <summary>Ob die Regel in einem Spiel mit oder ohne Teams gespielt wird; eine unbekannte Eignung nie (fail-closed).</summary>
         public bool PasstZu(bool teamspiel) => Teamspiel switch
         {
@@ -144,6 +147,14 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
             {
                 HasPrePhase = false,
                 Teamspiel = TeamspielEignung.Nur,
+            },
+            new(CellSpecialRule.Final, "Finale",
+                "Vor der Frage setzt jeder geheim am Telefon Punkte – höchstens seinen Kontostand oder die Feldpunkte, je "
+                + "nachdem, was mehr ist; wer nichts setzt, setzt 0. Dann antwortet jeder am Telefon, im Teamspiel der Sprecher "
+                + "für sein Team. Der Beamer löst einen nach dem anderen auf, vom Letzten zum Ersten: richtig gewinnt den "
+                + "eigenen Einsatz, falsch verliert ihn.")
+            {
+                EinmalJeSpiel = true,
             },
         ];
 

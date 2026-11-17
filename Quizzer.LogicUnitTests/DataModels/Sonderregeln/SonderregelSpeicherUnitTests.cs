@@ -152,6 +152,7 @@ namespace Quizzer.LogicUnitTests.DataModels.Sonderregeln
                 [CellSpecialRule.Alliance] = 12,
                 [CellSpecialRule.Bounty] = 13,
                 [CellSpecialRule.TeamCouncil] = 27,
+                [CellSpecialRule.Final] = 28,
             };
 
             var ohne = Enum.GetValues<CellSpecialRule>().Where(r => !seitFormat.ContainsKey(r)).ToList();

@@ -68,7 +68,7 @@ namespace LocalBuzzer.Service.Base.States.Sonderregeln
         /// <summary>Die Vorphase zur Regel; <c>null</c> bei einer unbekannten und bei einer ohne Vorphase (Kopfgeld).</summary>
         public static IMinigameRules? For(MinigameSetup setup, MinigameRulesContext kontext) => setup.SpecialRule switch
         {
-            CellSpecialRule.Stake => new StakeRules(setup),
+            CellSpecialRule.Stake or CellSpecialRule.Final => new StakeRules(setup),
             CellSpecialRule.Risk => new RiskRules(),
             CellSpecialRule.Auction => new AuctionRules(setup),
             CellSpecialRule.Bet => new BetRules(setup, kontext),

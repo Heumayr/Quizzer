@@ -60,15 +60,24 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
         {
             ArgumentNullException.ThrowIfNull(eingang);
 
-            int? punkte = eingang.Bewertung switch
+            return Rohwert(einsatz, eingang) is { } wert ? Sonderregelwertung.Gekappt(wert, $"Einsatz {einsatz}", eingang.Konto) : null;
+        }
+
+        /// <summary>
+        /// Der Wert noch ungekappt; <c>null</c>, wenn nicht bewertet. Das Finale im Teamspiel (M37 E4) setzt hier die Bewertung
+        /// des Teams ein und kappt danach je Mitglied.
+        /// </summary>
+        public static int? Rohwert(int einsatz, SonderregelEingang eingang)
+        {
+            ArgumentNullException.ThrowIfNull(eingang);
+
+            return eingang.Bewertung switch
             {
                 RatingKind.Right => einsatz,
                 RatingKind.Wrong => -einsatz,
                 RatingKind.Partial => Anteil(einsatz, eingang.Grundwert, eingang.Feldpunkte),
                 _ => null,
             };
-
-            return punkte is { } wert ? Sonderregelwertung.Gekappt(wert, $"Einsatz {einsatz}", eingang.Konto) : null;
         }
 
         /// <summary>Der Teilwert als Anteil der Feldpunkte, auf den Einsatz uebertragen - kaufmaennisch, hoechstens der Einsatz.</summary>

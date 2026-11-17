@@ -39,5 +39,11 @@ namespace Quizzer.DataModels.Enumerations
         /// aufgeteilt an alle Mitglieder. Nur im Teamspiel.
         /// </summary>
         TeamCouncil = 8,
+
+        /// <summary>
+        /// Finale (M37 E4, E01): jeder setzt verdeckt von seinem Kontostand, alle antworten am Telefon - im Teamspiel der
+        /// Sprecher fuers Team -, der Beamer loest einen nach dem anderen auf. Hoechstens eine je Spiel.
+        /// </summary>
+        Final = 9,
     }
 }

@@ -26,6 +26,7 @@ namespace LocalBuzzer.Service.Base.States.Sonderregeln
     /// <summary>
     /// Vorphase Einsatz (M35 C3): 0 bis max(Kontostand, Feldpunkte) je Spieler, am Server geprueft
     /// (<see cref="EinsatzRegel.Zulaessig"/>). Die Kontostaende bringt der Spielleiter beim Einstellen mit.
+    /// <para>Das Finale (M37 E4) spielt dieselbe Vorphase - jeder setzt verdeckt, gesehen wird nur der eigene Einsatz.</para>
     /// </summary>
     public sealed class StakeRules : SpecialRuleRules<int>
     {
@@ -38,9 +39,10 @@ namespace LocalBuzzer.Service.Base.States.Sonderregeln
 
             feldpunkte = setup.FieldPoints;
             kontostaende = setup.Balances ?? new Dictionary<Guid, int>();
+            Rule = setup.SpecialRule == CellSpecialRule.Final ? CellSpecialRule.Final : CellSpecialRule.Stake;
         }
 
-        public override CellSpecialRule Rule => CellSpecialRule.Stake;
+        public override CellSpecialRule Rule { get; }
 
         /// <summary>Die Obergrenze dieses Spielers.</summary>
         public int Max(Guid playerId) => EinsatzRegel.Obergrenze(kontostaende.GetValueOrDefault(playerId), feldpunkte);

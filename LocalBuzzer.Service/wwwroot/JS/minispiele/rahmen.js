@@ -18,6 +18,7 @@ import { EinsatzModul } from "../sonderregeln/einsatz.js";
 import { RisikoModul } from "../sonderregeln/risiko.js";
 import { AuktionModul } from "../sonderregeln/auktion.js";
 import { WahlModul } from "../sonderregeln/wahl.js";
+import { FinaleModul } from "../sonderregeln/finale.js";
 import { JokerModul } from "../joker/joker.js";
 
 // Der Rahmen der Minispiele am Telefon (M35 B3): Ueberschrift, Runde n von m, Warten,
@@ -50,7 +51,8 @@ const SONDERREGELN = new Map([
     [SpecialRules.Auction, () => new AuktionModul()],
     [SpecialRules.Bet, () => new WahlModul()],
     [SpecialRules.Expert, () => new WahlModul()],
-    [SpecialRules.Alliance, () => new WahlModul()]
+    [SpecialRules.Alliance, () => new WahlModul()],
+    [SpecialRules.Final, () => new FinaleModul()]
 ]);
 
 export function rundenText(serverInfo) {

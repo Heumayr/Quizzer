@@ -36,13 +36,17 @@ namespace Quizzer.Logic.Demo
 
         private static string Abend(string name) => $"Minispielabend: {name}";
 
-        /// <summary>Gewöhnliche Fragen ohne Sonderregel - nur dort gibt es die Joker-Runde (C7b).</summary>
+        /// <summary>
+        /// Gewöhnliche Fragen, drei ohne Sonderregel - nur dort gibt es die Joker-Runde (C7b). Die Hauptstadtfrage trägt das
+        /// Finale (M37 E4): eine Textantwort, die sich am Beamer gut auflösen lässt.
+        /// </summary>
         private static List<AbendZelle> Aufwaermen(Guid kat) =>
         [
             new(Standard(kat, Abend("Hauptstadt von Kanada"), "Kanada", 100, Difficulty.Level0,
                 "Wie heißt die Hauptstadt von Kanada?",
                 ["Sie liegt in der Provinz Ontario.", "Es ist nicht Toronto."],
-                "Ottawa")),
+                "Ottawa"),
+                CellSpecialRule.Final, Angekuendigt: true),
             new(MultipleChoice(kat, Abend("Herzen des Oktopus"), "Oktopus", 200, Difficulty.Level0,
                 "Wie viele Herzen hat ein Oktopus?",
                 [("Drei", true), ("Eins", false), ("Zwei", false), ("Acht", false)],

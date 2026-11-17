@@ -82,9 +82,10 @@ namespace Quizzer.UnitTests.Views
             UserPrompt.Current = new RecordingUserPrompt(answer: true);
             await vm.VerteileSonderregelnAsync();
 
-            // Der Wurf bis - 1 trifft die letzte Regel, die ohne Teams angeboten wird - seit M35 C3b nicht mehr Risiko.
-            Assert.AreEqual(Quizzer.DataModels.Questions.Sonderregeln.SpecialRuleProfiles.Angeboten(teamspiel: false)[^1].Rule, mitFrage.SpecialRule,
-                "Mit Zustimmung nicht ersetzt.");
+            // Der Wurf bis - 1 trifft die letzte Regel, die ohne Teams verteilt wird - seit M35 C3b nicht mehr Risiko, seit M37 E4
+            // nicht das Finale (das setzt der Spielleiter selbst).
+            Assert.AreEqual(Quizzer.DataModels.Questions.Sonderregeln.SpecialRuleProfiles.Angeboten(teamspiel: false).Last(p => !p.EinmalJeSpiel).Rule,
+                mitFrage.SpecialRule, "Mit Zustimmung nicht ersetzt.");
         }
 
         [TestMethod]

@@ -64,8 +64,10 @@ namespace Quizzer.DataModels.Transfer.Sync
         ///    Teameinstellungen am Spiel; ein altes WPF nahm beim Push still jede Zuteilung heraus.
         /// 27: Teamberatung (M37 T5) - neuer Wert CellSpecialRule.TeamCouncil; ein altes WPF spielte die Zelle ohne
         ///    Teamregel und schrieb volle Feldpunkte statt der Anteile.
+        /// 28: Finale (M37 E4) - neuer Wert CellSpecialRule.Final; ein altes WPF spielte die Zelle ohne Einsatz und schrieb
+        ///    die Feldpunkte statt der Einsaetze.
         /// </summary>
-        public const int CurrentFormatVersion = 27;
+        public const int CurrentFormatVersion = 28;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

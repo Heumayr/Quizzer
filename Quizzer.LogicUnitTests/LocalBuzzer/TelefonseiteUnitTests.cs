@@ -235,5 +235,9 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// <summary>M37 T4: das Team am Telefon - Symbol und Name auf der Farbe aus der Palette, der Name nur als Text.</summary>
         [TestMethod]
         public void ThePhoneShowsItsTeamWithSymbolNameAndColor() => LaufeMit("team.test.mjs");
+
+        /// <summary>M37 E4: Finale - das Modul des Einsatzes mit eigenen Texten, geheim, genau einmal, ohne Einsatz 0.</summary>
+        [TestMethod]
+        public void TheFinalStakeIsSecretSentOnceAndZeroWithout() => LaufeMit("finale.test.mjs");
     }
 }

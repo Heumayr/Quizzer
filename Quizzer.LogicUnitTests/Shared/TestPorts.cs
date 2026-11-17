@@ -27,6 +27,7 @@ namespace Quizzer.TestShared
         public const int JokerHub = 5447;
         public const int AngeboteneAdressen = 5449;
         public const int TeamHub = 5451;
+        public const int FinaleHub = 5471;
 
         // Quizzer.UnitTests
         public const int BuzzerHandshake = 5403;
