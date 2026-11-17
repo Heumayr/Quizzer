@@ -8,17 +8,7 @@
     <base:WindowBase.DataContext>
         <local:TeamsViewModel />
     </base:WindowBase.DataContext>
-    <base:WindowBase.Resources>
-        <!-- Ein Team: Fläche, Symbol, Name - die Farbe steht nie allein (standards-bedienbarkeit.md Regel 3). -->
-        <DataTemplate x:Key="TeamAnzeige">
-            <StackPanel Orientation="Horizontal">
-                <Border Width="14" Height="14" CornerRadius="3" Background="{Binding Pinsel}"
-                        BorderBrush="#BBBBBB" BorderThickness="1" VerticalAlignment="Center" />
-                <TextBlock Text="{Binding Symbol}" Margin="6,0,4,0" VerticalAlignment="Center" />
-                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
-            </StackPanel>
-        </DataTemplate>
-    </base:WindowBase.Resources>
+    <!-- Die Vorlage TeamAnzeige (Fläche, Symbol, Name) liegt seit T3 in Styles/AppResources.xaml - der Beamer teilt sie. -->
 
     <Grid Background="{StaticResource AppBgBrush}" Margin="20">
         <Grid.RowDefinitions>

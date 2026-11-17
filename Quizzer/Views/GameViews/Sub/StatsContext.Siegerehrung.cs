@@ -2,10 +2,14 @@ using System.Windows;
 
 namespace Quizzer.Views.GameViews.Sub
 {
-    /// <summary>Die Tafeln der Siegerehrung in ihrer Reihenfolge (M37 E3) - der Sieger kommt immer zuerst.</summary>
+    /// <summary>
+    /// Die Tafeln der Siegerehrung in ihrer Reihenfolge (M37 E3) - der Sieger kommt immer zuerst. Im Teamspiel ist der
+    /// Sieger das Team, danach kommt die Einzelwertung (T3); Rückblick und Verlauf bleiben je Person.
+    /// </summary>
     public enum SiegerehrungTafel
     {
         Sieger,
+        Einzelwertung,
         Rueckblick,
         Verlauf,
     }
@@ -26,7 +30,11 @@ namespace Quizzer.Views.GameViews.Sub
         /// <summary>Der Punkteverlauf (M37 E06); <c>null</c>, solange keiner geladen ist oder einer gespielten Zelle der Zeitpunkt fehlt.</summary>
         public PunkteverlaufViewModel? Verlauf { get; private set; }
 
-        public Visibility SiegerVisibility => Zeigt(SiegerehrungTafel.Sieger);
+        /// <summary>Die Spielerkarten der Siegerehrung - ohne Teams als Sieger, im Teamspiel als Einzelwertung danach.</summary>
+        public Visibility SiegerVisibility => Zeigt(IstTeamspiel ? SiegerehrungTafel.Einzelwertung : SiegerehrungTafel.Sieger);
+
+        /// <summary>Die Siegerteams (M37 T3) - im Teamspiel die erste Tafel.</summary>
+        public Visibility TeamSiegerVisibility => IstTeamspiel ? Zeigt(SiegerehrungTafel.Sieger) : Visibility.Collapsed;
 
         public Visibility RueckblickVisibility => Zeigt(SiegerehrungTafel.Rueckblick);
 
@@ -38,6 +46,9 @@ namespace Quizzer.Views.GameViews.Sub
             get
             {
                 var tafeln = new List<SiegerehrungTafel> { SiegerehrungTafel.Sieger };
+
+                if (IstTeamspiel)
+                    tafeln.Add(SiegerehrungTafel.Einzelwertung);
 
                 if (Rueckblick is { IstLeer: false })
                     tafeln.Add(SiegerehrungTafel.Rueckblick);
@@ -59,11 +70,15 @@ namespace Quizzer.Views.GameViews.Sub
             }
         }
 
-        /// <summary>Was der Knopf des Spielleiters als Nächstes tut. Vom Sieger aus lädt er erst - deshalb dort immer „Rückblick".</summary>
-        public string NaechsteTafelText => tafel == SiegerehrungTafel.Sieger
+        /// <summary>
+        /// Was der Knopf des Spielleiters als Nächstes tut. Vom Sieger aus lädt er erst - deshalb dort „Rückblick", im Teamspiel
+        /// die Einzelwertung, die es immer gibt.
+        /// </summary>
+        public string NaechsteTafelText => tafel == SiegerehrungTafel.Sieger && !IstTeamspiel
             ? "Rückblick zeigen"
             : NaechsteTafel switch
             {
+                SiegerehrungTafel.Einzelwertung => "Einzelwertung zeigen",
                 SiegerehrungTafel.Rueckblick => "Rückblick zeigen",
                 SiegerehrungTafel.Verlauf => "Punkteverlauf zeigen",
                 _ => "Sieger zeigen",
@@ -94,6 +109,7 @@ namespace Quizzer.Views.GameViews.Sub
         private void TafelnGeaendert()
         {
             OnPropertyChanged(nameof(SiegerVisibility));
+            OnPropertyChanged(nameof(TeamSiegerVisibility));
             OnPropertyChanged(nameof(RueckblickVisibility));
             OnPropertyChanged(nameof(VerlaufVisibility));
             OnPropertyChanged(nameof(NaechsteTafelText));

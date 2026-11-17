@@ -15,7 +15,7 @@
              rund 14 Bildpunkten an. Ohne Viewbox darum - die Kachel skaliert ihren Inhalt
              selbst und nutzt die ganze Breite. -->
         <Grid Visibility="{Binding ShowNormalStatsView}">
-            <ItemsControl ItemsSource="{Binding PlayerStatsContextList}">
+            <ItemsControl ItemsSource="{Binding PlayerStatsContextList}" Visibility="{Binding EinzelkachelnVisibility}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <UniformGrid Columns="{Binding TileColumns}" />
@@ -28,9 +28,25 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            <!-- M37 T3: im Teamspiel je Team eine Kachel mit der Summe, die Mitglieder klein darunter -->
+            <ItemsControl ItemsSource="{Binding TeamKacheln}" Visibility="{Binding TeamkachelnVisibility, FallbackValue=Collapsed}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="{Binding TeamColumns}" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <local:UcTeamScoreTile />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </Grid>
 
-        <!-- finished view: die erste Tafel der Siegerehrung (M37 E3, StatsContext.Siegerehrung) -->
+        <!-- finished view: die Spielerkarten der Siegerehrung (M37 E3, StatsContext.Siegerehrung) - ohne Teams die erste
+             Tafel, im Teamspiel die Einzelwertung nach dem Siegerteam (T3) -->
         <StackPanel Visibility="{Binding SiegerVisibility}"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Center">
@@ -88,6 +104,47 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </StackPanel>
+
+        <!-- M37 T3: im Teamspiel ist der Sieger das Team - bei Gleichstand alle gleichauf liegenden, darunter die uebrigen.
+             DownOnly wie der Rueckblick: in der schmalen Leiste des Spielleiters verkleinert statt abgeschnitten. -->
+        <Viewbox Visibility="{Binding TeamSiegerVisibility, FallbackValue=Collapsed}" Stretch="Uniform" StretchDirection="DownOnly">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="{Binding SiegerTeamsTitel}" FontSize="56" FontWeight="ExtraBold" Foreground="#E8C87A"
+                           HorizontalAlignment="Center" Margin="0,0,0,16" />
+
+                <ItemsControl ItemsSource="{Binding SiegerTeams}" HorizontalAlignment="Center" Margin="0,0,0,30">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="20,0" Width="560" Height="300"
+                                    base:Bewegung.Einblenden="True" base:Bewegung.Stil="Zoomen">
+                                <local:UcTeamScoreTile />
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <ItemsControl ItemsSource="{Binding UebrigeTeams}" HorizontalAlignment="Center">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="12,0" Width="400" Height="200"
+                                    base:Bewegung.Einblenden="True" base:Bewegung.Stil="Gleiten">
+                                <local:UcTeamScoreTile />
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Viewbox>
 
         <!-- M37 E04: Rueckblick auf den Abend. DownOnly: am Beamer steht er schon in einer Viewbox, in der
              schmalen Leiste des Spielleiters wird er verkleinert statt abgeschnitten. FallbackValue: bis die

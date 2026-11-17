@@ -28,10 +28,11 @@ namespace Quizzer.Views.GameViews
                 TeamsAnzeigeAktualisieren();
         });
 
-        /// <summary>Nach dem Umsetzen und nach einem Beitritt am Telefon: den Knopf neu lesen.</summary>
-        private void TeamsAnzeigeAktualisieren()
+        /// <summary>Nach dem Umsetzen und nach einem Beitritt am Telefon: den Knopf und die Teamkacheln am Beamer (T3) neu lesen.</summary>
+        internal void TeamsAnzeigeAktualisieren()
         {
             OnPropertyChanged(nameof(TeamsUmsetzenText));
+            StatsContext.TeamsAktualisieren(IsGameFinished);
         }
     }
 }

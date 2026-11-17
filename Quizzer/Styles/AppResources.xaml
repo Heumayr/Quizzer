@@ -454,4 +454,15 @@
                 <Setter Property="Background" Value="{StaticResource ControlBgBrush}" />
                 <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
             </Style>
+
+            <!-- Ein Team: Fläche, Symbol, Name - die Farbe steht nie allein (standards-bedienbarkeit.md Regel 3).
+                 Geteilt von Teamdialog (M37 T2) und Beamer (T3); erwartet Pinsel, Symbol und Name. -->
+            <DataTemplate x:Key="TeamAnzeige">
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="14" Height="14" CornerRadius="3" Background="{Binding Pinsel}"
+                            BorderBrush="#BBBBBB" BorderThickness="1" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Symbol}" Margin="6,0,4,0" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                </StackPanel>
+            </DataTemplate>
         </ResourceDictionary>

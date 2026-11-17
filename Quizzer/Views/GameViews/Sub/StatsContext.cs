@@ -135,6 +135,7 @@ namespace Quizzer.Views.GameViews.Sub
             OnPropertyChanged(nameof(IsGameFinished));
             OnPropertyChanged(nameof(ShowNormalStatsView));
             OnPropertyChanged(nameof(ShowFinishedStatsView));
+            TeamsAktualisieren(calulateAndSetWinners);
             TafelnGeaendert();
         }
 

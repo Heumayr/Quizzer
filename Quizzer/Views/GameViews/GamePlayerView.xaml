@@ -220,8 +220,8 @@
             Visibility="{Binding ShowLeftStats}"
             Background="#99000000"
             Margin="5">
-            <ItemsControl DataContext="{Binding StatsContext}"
-                          ItemsSource="{Binding PlayerStatsContextList}">
+            <Grid DataContext="{Binding StatsContext}">
+            <ItemsControl ItemsSource="{Binding PlayerStatsContextList}" Visibility="{Binding EinzelkachelnVisibility}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <UniformGrid Columns="1" />
@@ -233,6 +233,20 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <!-- M37 T3: im Teamspiel die Teamkacheln, ebenso untereinander -->
+            <ItemsControl ItemsSource="{Binding TeamKacheln}" Visibility="{Binding TeamkachelnVisibility, FallbackValue=Collapsed}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="1" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <sub:UcTeamScoreTile MaxHeight="220" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            </Grid>
         </Border>
 
         <!-- FULLSCREEN STATS -->

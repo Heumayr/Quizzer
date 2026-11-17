@@ -73,7 +73,7 @@
                             ToolTip="Punktestand links untereinander oder unten nebeneinander. Die Wahl bleibt für das nächste Spiel gespeichert." />
                     <!-- M37 E3: die Siegerehrung blaettern - per Knopf, der Spielleiter bestimmt den Moment -->
                     <Button Content="{Binding StatsContext.NaechsteTafelText}" Command="{Binding NaechsteTafelCommand}"
-                            ToolTip="Nach der letzten Frage: blättert die Siegerehrung auf dem Beamer weiter - vom Sieger zum Rückblick auf den Abend, zum Punkteverlauf und zurück."
+                            ToolTip="Nach der letzten Frage: blättert die Siegerehrung auf dem Beamer weiter - vom Sieger zum Rückblick auf den Abend, zum Punkteverlauf und zurück. Im Teamspiel kommt nach dem Siegerteam die Einzelwertung."
                             ToolTipService.ShowOnDisabled="True" />
 
                     <TextBlock Style="{StaticResource SectionHeader}" Text="Bei mir" Margin="0,18,0,4" />
