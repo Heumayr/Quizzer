@@ -152,6 +152,12 @@ namespace Quizzer.DataModels.Models.Base
         /// <summary>Summe aller gebuchten Punkte eines Spielers in diesem Spiel - die eine Stelle dafuer.</summary>
         public int Kontostand(Guid playerId) => QuestionResults.Where(r => r.PlayerId == playerId).Sum(r => r.FinalScore);
 
+        /// <summary>
+        /// Summe eines Teams (M37 T3) - gerechnet, nie gespeichert (A08), die eine Stelle dafür. Bei welchem Team ein
+        /// Ergebnis zählt, sagt der Stempel (<see cref="Questions.Teams.Teamwertung.TeamDes"/>), nicht die heutige Zuordnung.
+        /// </summary>
+        public int Teamstand(Guid teamId) => QuestionResults.Where(r => Questions.Teams.Teamwertung.TeamDes(this, r) == teamId).Sum(r => r.FinalScore);
+
         public List<PlayerXGame> PlayerXGames { get; set; } = new();
 
         /// <summary>Die Teams eines Teamspiels (M37 T1); geladen mit <c>GamesController.Get</c>.</summary>
