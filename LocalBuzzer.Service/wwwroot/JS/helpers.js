@@ -5,6 +5,7 @@ export const dom = {
     connection: document.getElementById("connection"),
     status: document.getElementById("status"),
     error: document.getElementById("error_display"),
+    team: document.getElementById("team"),
     host: document.getElementById("layout_host")
 };
 

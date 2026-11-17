@@ -12,11 +12,15 @@ namespace LocalBuzzer.Service.Base.States
     {
         private readonly GameAccessor _gameAccessor;
         private readonly AnswerLock _answerLock;
+        private readonly TeamBuzzLock _teamLock;
+        private readonly Func<TeamRoster> _teams;
 
-        public BuzzerState(GameAccessor gameAccessor, AnswerLock? answerLock = null)
+        public BuzzerState(GameAccessor gameAccessor, AnswerLock? answerLock = null, TeamBuzzLock? teamLock = null, Func<TeamRoster>? teams = null)
         {
             _gameAccessor = gameAccessor;
             _answerLock = answerLock ?? new();
+            _teamLock = teamLock ?? new();
+            _teams = teams ?? (() => TeamRoster.Empty);
         }
 
         public BuzzerControlsLayout BuzzerControlsLayout => BuzzerControlsLayout.Buzzer;
@@ -37,8 +41,18 @@ namespace LocalBuzzer.Service.Base.States
             lock (this)
             {
                 if (Locked) return false;
+
+                // M37 T4: hat das Team bei dieser Frage schon gebuzzert, zaehlt es nicht. Geprueft und gesetzt unter dieser
+                // Sperre: nur der Gewinner sperrt sein Team, nie einer, der zu spaet kam.
+                var team = _teams().KeyFor(player.Id);
+                if (team is { } schon && _teamLock.IsLocked(schon)) return false;
+
                 Locked = true;
                 _winner = player;
+
+                if (team is { } neu)
+                    _teamLock.Lock(neu);
+
                 return true;
             }
         }

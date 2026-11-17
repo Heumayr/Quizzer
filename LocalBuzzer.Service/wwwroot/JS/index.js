@@ -6,6 +6,7 @@ import { BuzzerLayout } from "./layouts/buzzerLayout.js";
 import { KeySelectLayout } from "./layouts/keySelectLayout.js";
 import { InputLayout } from "./layouts/inputLayout.js";
 import { MinigameLayout } from "./minispiele/rahmen.js";
+import { zeigeTeam } from "./team.js";
 import { wachHalten } from "./wachbleiben.js";
 
 const WAITING_FOR_HOST = "Verbunden – warte auf den Spielleiter";
@@ -100,6 +101,7 @@ function applyServerState(serverState) {
 
     dom.name.textContent = state.playerName || "—";
     dom.status.textContent = buildStatusText();
+    zeigeTeam(dom.team, serverState.team ?? null);
 
     const context = buildContext();
 

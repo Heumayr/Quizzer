@@ -58,5 +58,8 @@ namespace Quizzer.DataModels.Models.Buzzer
 
         /// <summary>Name des Gewinners der aktuellen Runde (nach erfolgreichem Buzz); <c>null</c> wenn noch kein Gewinner.</summary>
         public string? Winner { get; set; }
+
+        /// <summary>Das Team dieses Telefons im Teamspiel (M37 T4); <c>null</c> ohne Teamspiel oder ohne Team.</summary>
+        public TeamClientInfo? Team { get; set; }
     }
 }

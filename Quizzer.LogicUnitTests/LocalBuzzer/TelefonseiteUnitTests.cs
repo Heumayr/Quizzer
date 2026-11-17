@@ -231,5 +231,9 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// <summary>M35 C7b: Joker-Runde - nur eigene Joker, Sperre mit Ziel, genau einmal, prePhase im Rahmen, Ende fuer alle.</summary>
         [TestMethod]
         public void TheJokerRoundSendsOwnJokerOnceAndShowsWhoUsedWhat() => LaufeMit("joker.test.mjs");
+
+        /// <summary>M37 T4: das Team am Telefon - Symbol und Name auf der Farbe aus der Palette, der Name nur als Text.</summary>
+        [TestMethod]
+        public void ThePhoneShowsItsTeamWithSymbolNameAndColor() => LaufeMit("team.test.mjs");
     }
 }

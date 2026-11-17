@@ -57,13 +57,23 @@ namespace LocalBuzzer.Service.Base
         /// <summary>Wer die gewoehnliche Frage beantworten darf (M35 C3b) - ueberlebt jedes Zuruecksetzen der Runde.</summary>
         public AnswerLock AnswerLock { get; } = new();
 
+        /// <summary>Welche Teams bei dieser Frage schon gebuzzert haben (M37 T4) - ueberlebt jedes Zuruecksetzen der Runde.</summary>
+        public TeamBuzzLock TeamBuzzLock { get; } = new();
+
+        /// <summary>Die Teams (M37 T4): ein Schnappschuss vom WPF, ersetzt, nie geaendert - gelesen von den Hub-Threads.</summary>
+        public TeamRoster Teams => teams;
+
+        private volatile TeamRoster teams = TeamRoster.Empty;
+
+        public void SetTeams(TeamRoster roster) => teams = roster ?? throw new ArgumentNullException(nameof(roster));
+
         private readonly GameAccessor _gameAccessor;
 
         public LayoutStateManager(GameAccessor gameAccessor)
         {
             _gameAccessor = gameAccessor;
 
-            BuzzerState = new(gameAccessor, AnswerLock);
+            BuzzerState = new(gameAccessor, AnswerLock, TeamBuzzLock, () => teams);
             BuzzerKeySelector = new(gameAccessor, AnswerLock);
             BuzzerInputState = new(gameAccessor, AnswerLock);
             MinigameState = new(gameAccessor);
@@ -112,19 +122,24 @@ namespace LocalBuzzer.Service.Base
             // M35 C3b: wer die Frage nicht beantworten darf, ist gesperrt - die Vorphase im Minispiel-Rahmen nicht.
             var ausgeschlossen = player != null && CurrentLayout != BuzzerControlsLayout.Minigame && !AnswerLock.Allows(player.Id);
 
+            // M37 T4: hat das Team schon gebuzzert, sagt es das Telefon, sobald die Runde wieder offen ist - bis dahin der Gewinner.
+            var teamGesperrt = player != null && !ausgeschlossen && CurrentLayout == BuzzerControlsLayout.Buzzer
+                && BuzzerState.Winner == null && TeamBuzzLock.Blocks(teams, player.Id);
+
             return new ClientLayoutStateDto
             {
                 PlayerName = player?.CalculatedDisplayName,
                 Round = Round,
                 ResetCount = ResetCount,
                 Layout = CurrentLayout,
-                CurrentLayoutLocked = (CurrentState?.IsLockedFor(player) ?? true) || ZeitAbgelaufen || ausgeschlossen,
+                CurrentLayoutLocked = (CurrentState?.IsLockedFor(player) ?? true) || ZeitAbgelaufen || ausgeschlossen || teamGesperrt,
                 ZeitAbgelaufen = ZeitAbgelaufen,
-                ExcludedFromQuestion = ausgeschlossen,
-                ExcludedReason = ausgeschlossen && player != null ? AnswerLock.ReasonFor(player.Id) : null,
+                ExcludedFromQuestion = ausgeschlossen || teamGesperrt,
+                ExcludedReason = ausgeschlossen && player != null ? AnswerLock.ReasonFor(player.Id) : teamGesperrt ? TeamBuzzLock.Satz : null,
                 AllLocked = AllLocked,
                 LayoutInfo = CurrentState?.InfoFor(player),
-                Winner = BuzzerState.Winner?.CalculatedDisplayName
+                Winner = BuzzerState.Winner?.CalculatedDisplayName,
+                Team = player != null ? teams.TeamOf(player.Id)?.ToClientInfo() : null
             };
         }
     }

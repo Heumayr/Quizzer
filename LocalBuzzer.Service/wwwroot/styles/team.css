@@ -1,0 +1,42 @@
+/* Das Team dieses Telefons (M37 T4) - eigene Datei, mainstyles.css waechst nicht mehr.
+   Die acht Farben spiegeln TeamFarben (C#), gehalten von ClientStateContractUnitTests.TheTeamColorsMirrorThePalette.
+   Die Schrift je Farbe steht bei mindestens 4,5:1; die Farbe traegt nie allein, Symbol und Name stehen daneben. */
+
+.team-banner {
+    display: flex;
+    flex: 1 1 100%;
+    align-items: center;
+    gap: var(--space-xs);
+    min-width: 0;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--text-soft);
+    background: var(--team-farbe, var(--panel));
+    color: var(--team-schrift, var(--text));
+    font-weight: 800;
+}
+
+    /* display: flex schlaegt sonst das hidden-Attribut. */
+    .team-banner[hidden] {
+        display: none;
+    }
+
+.team-symbol {
+    font-size: 22px;
+    line-height: 1;
+}
+
+.team-name {
+    min-width: 0;
+    font-size: 18px;
+    overflow-wrap: anywhere;
+}
+
+.team-farbe-0 { --team-farbe: #E69F00; --team-schrift: #000000; }
+.team-farbe-1 { --team-farbe: #56B4E9; --team-schrift: #000000; }
+.team-farbe-2 { --team-farbe: #009E73; --team-schrift: #000000; }
+.team-farbe-3 { --team-farbe: #F0E442; --team-schrift: #000000; }
+.team-farbe-4 { --team-farbe: #0072B2; --team-schrift: #FFFFFF; }
+.team-farbe-5 { --team-farbe: #D55E00; --team-schrift: #000000; }
+.team-farbe-6 { --team-farbe: #CC79A7; --team-schrift: #000000; }
+.team-farbe-7 { --team-farbe: #000000; --team-schrift: #FFFFFF; }
