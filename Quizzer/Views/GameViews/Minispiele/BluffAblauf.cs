@@ -53,7 +53,7 @@ namespace Quizzer.Views.GameViews.Minispiele
 
             if (!runde.Aborted && Zustand?.Lenke(r => (r as BluffRules)?.Auswertung) is { } auswertung)
             {
-                var wertung = BluffEvaluator.Werte(auswertung, Feldpunkte, Konten());
+                var wertung = BluffEvaluator.Werte(auswertung, Feldpunkte, Konten(), Teamkollegen);
                 ergebnis = wertung;
                 Karten?.WerteVorschlaege(wertung.Vorschlaege, id => BluffEvaluator.Karte(wertung, id));
             }

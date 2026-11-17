@@ -70,10 +70,10 @@ namespace Quizzer.Views.GameViews.Sub
             OnPropertyChanged(nameof(ShowKeySelections));
         }
 
-        /// <summary>E1: Gewinner „richtig" mit den Feldpunkten, alle anderen offen - nie „falsch".</summary>
+        /// <summary>E1: Gewinner „richtig" mit den Feldpunkten, alle anderen offen - nie „falsch". Im Teamspiel setzt der Teamanteil.</summary>
         private void WechsleVorschlag(bool? gewinner)
         {
-            if (gewinner == mehrheitGewinner)
+            if (gewinner == mehrheitGewinner || WertetMinispielAlsTeam)
                 return;
 
             if (gewinner == true)

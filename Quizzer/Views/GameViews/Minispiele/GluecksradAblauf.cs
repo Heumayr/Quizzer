@@ -114,8 +114,10 @@ namespace Quizzer.Views.GameViews.Minispiele
         }
 
         private void Drehe()
-            => Anzeige.Zeige("Das Glücksrad dreht sich …",
-                GluecksradTafel.Rad(GluecksradEvaluator.Felder[schritt % GluecksradEvaluator.Felder.Count], false));
+        {
+            var felder = GluecksradEvaluator.FelderFuer(Teamspiel);
+            Anzeige.Zeige("Das Glücksrad dreht sich …", GluecksradTafel.Rad(felder[schritt % felder.Count], false, Teamspiel));
+        }
 
         /// <summary>Das Rad steht: Feld an den Beamer; braucht es ein Ziel, wer es waehlt.</summary>
         private void Lande()
@@ -128,7 +130,7 @@ namespace Quizzer.Views.GameViews.Minispiele
                 : Paar is { } paar ? $"{titel} {Name(paar.A)} trifft {Name(paar.B)}."
                 : $"{titel} {(Regeln.ChooserId is { } d ? Name(d) : "Der Dreher")} wählt am Telefon, wen es trifft …";
 
-            Anzeige.Zeige(kopf, GluecksradTafel.Rad(feld, true));
+            Anzeige.Zeige(kopf, GluecksradTafel.Rad(feld, true, Teamspiel));
 
             // V5: das Ergebnis beim Rad - ohne Ziel folgt gleich der Gong des Rundenendes.
             if (!gelandet && GluecksradEvaluator.BrauchtZiel(feld))

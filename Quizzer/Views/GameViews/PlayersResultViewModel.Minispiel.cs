@@ -42,6 +42,7 @@ namespace Quizzer.Views.GameViews
             foreach (var ctx in PlayerResultContextList)
                 ctx.UebernimmMehrheit(MehrheitErgebnis, frage, minderheit);
 
+            VerteileTeamanteile(MehrheitErgebnis.IstGewinner);
             OnPropertyChanged(nameof(MehrheitErgebnis));
         }
 
@@ -51,6 +52,8 @@ namespace Quizzer.Views.GameViews
             foreach (var ctx in PlayerResultContextList)
                 ctx.UebernimmTippsprint(ergebnis);
 
+            VerteileTeamanteile(ergebnis.IstGewinner);
+
             MerkeMesswerte(Messwerte.Tippsprint(ergebnis, (Coordinate?.QuestionBase as MinigameQuestion)?.DurationSeconds ?? 0));
         }
 
@@ -59,6 +62,8 @@ namespace Quizzer.Views.GameViews
         {
             foreach (var ctx in PlayerResultContextList)
                 ctx.UebernimmStoppuhr(ergebnis);
+
+            VerteileTeamanteile(ergebnis.IstGewinner);
 
             MerkeMesswerte(Messwerte.Stoppuhr(ergebnis));
         }
@@ -70,6 +75,8 @@ namespace Quizzer.Views.GameViews
 
             foreach (var ctx in PlayerResultContextList)
                 ctx.UebernimmReaktion(ergebnis);
+
+            VerteileTeamanteile(ergebnis.IstGewinner);
 
             MerkeMesswerte(Messwerte.Reaktion(ergebnis));
             OnPropertyChanged(nameof(ReaktionErgebnis));
@@ -93,6 +100,8 @@ namespace Quizzer.Views.GameViews
         {
             foreach (var ctx in PlayerResultContextList)
                 ctx.UebernimmVorschlag(vorschlaege.GetValueOrDefault(ctx.Player.Id), satz(ctx.Player.Id));
+
+            VerteileTeamanteile(vorschlaege.ToDictionary(v => v.Key, v => v.Value.Punkte));
         }
     }
 }

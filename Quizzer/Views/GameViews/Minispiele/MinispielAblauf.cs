@@ -3,6 +3,7 @@ using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.DataModels.Questions.Minispiele;
+using Quizzer.DataModels.Questions.Teams;
 using Quizzer.Views.GameViews.Sub;
 
 namespace Quizzer.Views.GameViews.Minispiele
@@ -38,6 +39,12 @@ namespace Quizzer.Views.GameViews.Minispiele
 
         /// <summary>Der Anzeigename zu einer Id - fuer Gruende und Tafel.</summary>
         protected string Name(Guid id) => Spieler().FirstOrDefault(s => s.Id == id).Name ?? "?";
+
+        /// <summary>Ob das Spiel ein Teamspiel ist (M37 T8) - Ziele nur Gegner, das Glücksrad ohne Robin Hood.</summary>
+        protected bool Teamspiel => Fenster.Coordinate?.Game?.IsTeamGame == true;
+
+        /// <summary>Ob zwei Spieler im selben Team spielen - wie die Aufstellung am Hub; ohne Teamspiel nie.</summary>
+        protected bool Teamkollegen(Guid a, Guid b) => Fenster.Coordinate?.Game is { } spiel && Teamzuordnung.Teamkollegen(spiel, a, b);
 
         /// <summary>Was „richtig" in diesem Feld bringt - Topf und Grundlage des Anteils (M35 C2).</summary>
         protected int Feldpunkte => PlayerResultContext.PunkteJetzt(Fenster.Coordinate, Fenster);

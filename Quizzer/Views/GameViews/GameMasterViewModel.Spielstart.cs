@@ -114,6 +114,10 @@ namespace Quizzer.Views.GameViews
 
                     Befunde(frage, dbGame.Players.Count(), beanstandet, angemerkt);
 
+                    // M37 T8: ein Minispiel, das im Teamspiel nicht gespielt wird oder keinen Gegner hat.
+                    foreach (var befund in frage is MinigameQuestion minispiel ? MinigameChecks.ForTeams(minispiel, dbGame) : [])
+                        (befund.IsError ? beanstandet : angemerkt).Add($"{frage.Designation}: {befund.Message}");
+
                     // M35 C3: eine Sonderregel, die nicht gespielt wird (Minispiel, unbekannt, passt nicht zum Teamspiel) - als Warnung.
                     if (DataModels.Questions.Sonderregeln.Sonderregelraster.Startbefund(zelle, frage, dbGame.IsTeamGame) is { } regel)
                         angemerkt.Add(regel.Message);

@@ -77,7 +77,8 @@ namespace Quizzer.Views.GameViews
 
             if (!await BuzzerControlsViewModel.SetMinigamePairAsync(PaarWaehler.Id, PaarPartner?.Id))
             {
-                UserPrompt.Inform("Das Paar ließ sich nicht festlegen – beide müssen in diesem Spiel mitspielen.", SpielerwahlCaption);
+                UserPrompt.Inform("Das Paar ließ sich nicht festlegen – beide müssen in diesem Spiel mitspielen"
+                                  + (Teamspiel ? ", im Teamspiel in verschiedenen Teams." : "."), SpielerwahlCaption);
                 return;
             }
 

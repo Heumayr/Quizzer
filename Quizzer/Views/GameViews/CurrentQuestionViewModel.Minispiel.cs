@@ -64,7 +64,7 @@ namespace Quizzer.Views.GameViews
             var runden = art is { ShowRounds: false } ? art.FixedRounds : Math.Max(1, frage.Rounds);
 
             BuzzerControlsViewModel.SetMinigameInfo(new MinigameSetup(
-                frage.Kind, titel, MinigameProfiles.RulesFor(frage), runden, DurationSeconds: frage.DurationSeconds,
+                frage.Kind, titel, MinigameProfiles.RulesFor(frage, Coordinate?.Game), runden, DurationSeconds: frage.DurationSeconds,
                 TriggerPlayerId: Ausloeser, Variant: frage.Variant, Content: MinispielInhalt.Zeilen(frage)));
             BereitePaarVor();
             BuzzerControlsViewModel.MinigameRoundClosed = OnMinigameRoundClosedAsync;

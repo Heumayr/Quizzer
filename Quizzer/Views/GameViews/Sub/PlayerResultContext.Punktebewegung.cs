@@ -48,7 +48,8 @@ namespace Quizzer.Views.GameViews.Sub
             // Nie allein ueber Farbe: der Satz sagt, was der Spieler gewaehlt hat und was daraus wurde.
             ZeigeMehrheit([], Visibility.Collapsed, satz);
 
-            if (vorschlag == letzterVorschlag)
+            // M37 T8: im Teamspiel steht das eigene Ergebnis nur im Satz, den Vorschlag setzt der Teamanteil.
+            if (vorschlag == letzterVorschlag || WertetMinispielAlsTeam)
                 return;
 
             if (vorschlag != null)

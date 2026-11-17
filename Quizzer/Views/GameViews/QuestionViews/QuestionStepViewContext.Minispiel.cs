@@ -22,9 +22,9 @@ namespace Quizzer.Views.GameViews.QuestionViews
         /// <summary>„Runde n von m" und die Tafel - fuer beide Bildschirme dasselbe Objekt am Owner.</summary>
         public Sub.ReaktionAnzeige? Reaktion => Owner?.Reaktion;
 
-        /// <summary>Der Regeltext der Art und Spielweise - leer bei allen anderen Typen.</summary>
+        /// <summary>Der Regeltext der Art und Spielweise, im Teamspiel samt Teamwertung (M37 T8) - leer bei allen anderen Typen.</summary>
         public string MinispielRegeltext
-            => Question is MinigameQuestion minispiel ? MinigameProfiles.RulesFor(minispiel) : string.Empty;
+            => Question is MinigameQuestion minispiel ? MinigameProfiles.RulesFor(minispiel, Owner?.Coordinate?.Game) : string.Empty;
 
         /// <summary>
         /// Sichtbar, sobald die erste Option steht - wie die Begriffe der Zuordnung, und aus demselben
