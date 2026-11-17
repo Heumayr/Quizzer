@@ -28,13 +28,18 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
             MinigameKind.HotPotato,
         ];
 
+        /// <summary>Die Teamarten (Entwurf Abschnitt 6, T9 ff.) - Team gegen Team, ohne Teamspiel nicht.</summary>
+        private static readonly MinigameKind[] NurImTeamspiel = [MinigameKind.TugOfWar];
+
         [TestMethod]
         public void EveryKindDecidesItsTeamScoring()
         {
             foreach (var art in Enum.GetValues<MinigameKind>())
             {
                 var wertung = MinigameProfiles.For(art).TeamScoring;
-                var erwartet = JePerson.Contains(art) ? MinispielTeamwertung.JePerson : MinispielTeamwertung.Zusammengefasst;
+                var erwartet = JePerson.Contains(art) ? MinispielTeamwertung.JePerson
+                    : NurImTeamspiel.Contains(art) ? MinispielTeamwertung.NurImTeamspiel
+                    : MinispielTeamwertung.Zusammengefasst;
 
                 Assert.IsTrue(Enum.IsDefined(wertung), $"{art} hat keine gültige Teamwertung.");
                 Assert.AreEqual(erwartet, wertung, $"{art}: die Teamwertung weicht vom Entwurf ab - neue Art bewusst entscheiden.");

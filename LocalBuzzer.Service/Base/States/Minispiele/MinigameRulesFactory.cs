@@ -10,9 +10,11 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
     /// <param name="Uhr">Die Serveruhr, monoton (M35 C4) - sie entscheidet alles Zeitkritische; eigene nur fuer Tests.</param>
     /// <param name="TeamVon">Das Team eines Spielers aus der Aufstellung des Hubs (M37 T4); <c>null</c> ohne Teamspiel oder Team.</param>
     /// <param name="Teamspiel">Ob die Aufstellung des Hubs ein Teamspiel ist (M37 T8) - das Glücksrad dreht dann ohne Robin Hood.</param>
+    /// <param name="Team">Der Eintrag der Aufstellung zu einem Spieler - Name, Farbe und Symbol seines Teams (M37 T9, Tauziehen).</param>
     public sealed record MinigameRulesContext(
         Func<int, int, int> Zufall, Func<Guid, string?> NameVon, Func<IReadOnlyList<Player>> Mitspieler,
-        Func<TimeSpan>? Uhr = null, Func<Guid, Guid?>? TeamVon = null, Func<bool>? Teamspiel = null)
+        Func<TimeSpan>? Uhr = null, Func<Guid, Guid?>? TeamVon = null, Func<bool>? Teamspiel = null,
+        Func<Guid, TeamRosterEntry?>? Team = null)
     {
         /// <summary>Ob gerade ein Teamspiel läuft - ohne Angabe nie.</summary>
         public bool IstTeamspiel => Teamspiel?.Invoke() == true;
@@ -52,6 +54,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             MinigameKind.ExplainIt => new ExplainItRules(setup, kontext),
             MinigameKind.Bluff => new BluffRules(setup, kontext),
             MinigameKind.HotPotato => new HotPotatoRules(setup, kontext),
+            MinigameKind.TugOfWar => new TugOfWarRules(setup, kontext),
             _ => null,
         };
     }

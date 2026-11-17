@@ -129,6 +129,17 @@ namespace Quizzer.Server.Tests
             Assert.AreEqual(HttpStatusCode.UpgradeRequired, antwort.StatusCode);
         }
 
+        /// <summary>M37 T9: ein WPF ohne „Tauziehen" kennt die Art nicht, hielte ihr Layout für verbogen und schriebe die Tastenwahl zurück.</summary>
+        [TestMethod]
+        public async Task AProgramWithoutTugOfWarIsStopped()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+
+            var antwort = await LoginWithFormatAsync(factory.CreateClient(), Format(30));
+
+            Assert.AreEqual(HttpStatusCode.UpgradeRequired, antwort.StatusCode);
+        }
+
         [TestMethod]
         public async Task ANewerProgramIsStoppedWithItsOwnMessage()
         {

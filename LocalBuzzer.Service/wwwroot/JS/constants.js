@@ -23,7 +23,8 @@ export const MinigameKinds = Object.freeze({
     WordScramble: 13,
     ExplainIt: 14,
     Bluff: 15,
-    HotPotato: 16
+    HotPotato: 16,
+    TugOfWar: 17
 });
 
 export const MinigamePhases = Object.freeze({

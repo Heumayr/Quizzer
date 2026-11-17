@@ -82,7 +82,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
                 setup = neu with { TotalRounds = Math.Max(1, neu.TotalRounds) };
                 rules = MinigameRulesFactory.For(setup,
                     new((a, b) => Zufall(a, b), NameVon, Mitspieler, () => Uhr.GetElapsedTime(0), id => teams().TeamOf(id)?.TeamId,
-                        () => teams().IsTeamGame));
+                        () => teams().IsTeamGame, id => teams().TeamOf(id)));
                 ClearLocked();
             }
         }

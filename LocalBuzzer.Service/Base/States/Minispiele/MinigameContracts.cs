@@ -112,11 +112,13 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
     /// <param name="Share">Anteil der Sonderregel in Prozent der Feldpunkte (M35 C3b) - die Wette zeigt daraus den Einsatz.</param>
     /// <param name="Content">Die Zeilen der Frage - Aussagen samt Wahrheit, Begriffe (M35 C5); sie bleiben am Server.</param>
     /// <param name="Jokers">Gesetzt: statt einer Art die Joker-Runde (M35 C7b) - je Spieler seine offenen Joker.</param>
+    /// <param name="TeamScoring">Summe oder Durchschnitt des Teams, wie am Spiel eingestellt - beim Tauziehen der Zug (M37 T9).</param>
     public sealed record MinigameSetup(
         MinigameKind Kind, string Title, string RulesText, int TotalRounds, int CountdownSeconds = 3, int DurationSeconds = 0,
         Guid? TriggerPlayerId = null, int Variant = 0, CellSpecialRule SpecialRule = CellSpecialRule.None,
         int FieldPoints = 0, IReadOnlyDictionary<Guid, int>? Balances = null, int Share = 0,
-        IReadOnlyList<MinispielZeile>? Content = null, IReadOnlyDictionary<Guid, IReadOnlyList<JokerOffer>>? Jokers = null)
+        IReadOnlyList<MinispielZeile>? Content = null, IReadOnlyDictionary<Guid, IReadOnlyList<JokerOffer>>? Jokers = null,
+        TeamMinigameScoring TeamScoring = TeamMinigameScoring.Average)
     {
         /// <summary>Die Vorphase, die der Rahmen spielt - einzig aus <see cref="Jokers"/> abgeleitet.</summary>
         public MinigamePrePhase PrePhase => Jokers != null ? MinigamePrePhase.Joker : MinigamePrePhase.None;

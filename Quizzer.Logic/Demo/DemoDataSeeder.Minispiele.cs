@@ -8,7 +8,7 @@ namespace Quizzer.Logic.Demo
     /// <summary>
     /// Die Minispiele der Typenschau (M35 B2) - eigene Teildatei, weil die Typenschau sonst ueber die
     /// Groessen-Obergrenze wuechse. Mehrheit und Reaktion im Raster; Minderheit (B3), Tippsprint und
-    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen, Memory, Blitzrunde und Buchstabensalat (C5), Erklärbär, Bluff und Heiße Kartoffel (C6) im Vorrat - das Raster hat zwei Zeilen.
+    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen, Memory, Blitzrunde und Buchstabensalat (C5), Erklärbär, Bluff und Heiße Kartoffel (C6), Tauziehen (M37 T9) im Vorrat - das Raster hat zwei Zeilen.
     /// </summary>
     public static partial class DemoDataSeeder
     {
@@ -114,6 +114,10 @@ namespace Quizzer.Logic.Demo
                     ("Pinguine leben am Nordpol.", false),
                     ("Bienen können tanzen, um den Weg zu zeigen.", true),
                 ]);
+
+            // M37 T9: nur im Teamspiel - die Typenschau ist keins, also nur im Vorrat; gespielt im Teamabend (T12).
+            yield return OhneZeilen(kat, "Typenschau: Tauziehen", "MIN-18", 300, Difficulty.Level2,
+                "Team gegen Team: Wer zieht das Seil auf seine Seite? Tippen, so schnell ihr könnt!", MinigameKind.TugOfWar);
         }
 
         /// <summary>Arten mit Inhalt (Blitzrunde, Buchstabensalat, M35 C5; Erklärbär, C6): je Zeile ein Schritt, bei der Blitzrunde heisst der Haken „wahr".</summary>

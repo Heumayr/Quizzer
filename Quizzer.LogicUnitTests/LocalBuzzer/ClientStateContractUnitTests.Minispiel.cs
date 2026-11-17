@@ -47,6 +47,8 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [DataRow(typeof(BluffOptionInfo), "bluff.js", "option")]
         [DataRow(typeof(HotPotatoClientInfo), "kartoffel.js", "artInfo")]
         [DataRow(typeof(HotPotatoStatementInfo), "kartoffel.js", "eintrag")]
+        [DataRow(typeof(TugOfWarClientInfo), "tauziehen.js", "artInfo")]
+        [DataRow(typeof(TugOfWarTeamInfo), "tauziehen.js", "seite")]
         [DataRow(typeof(MinigamePlayerOption), "kartoffel.js", "spieler")]
         [DataRow(typeof(MinigamePlayerOption), "spielerwahl.js", "spieler")]
         [DataRow(typeof(MinigamePlayerOption), "raeuber.js", "spieler")]
@@ -85,6 +87,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [DataRow(typeof(ExplainItPayload), "baer.js")]
         [DataRow(typeof(BluffPayload), "bluff.js")]
         [DataRow(typeof(HotPotatoPayload), "kartoffel.js")]
+        [DataRow(typeof(TugOfWarPayload), "tauziehen.js")]
         public void ThePhoneSendsTheFieldsTheServerReads(Type typ, string datei)
         {
             var skript = ReadScript("minispiele", datei);

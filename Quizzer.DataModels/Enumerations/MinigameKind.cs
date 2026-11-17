@@ -56,5 +56,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Heisse Kartoffel: der Halter beantwortet Aussagen, nach einer richtigen gibt er weiter; der Zuender ist geheim (M35 C6).</summary>
         HotPotato = 16,
+
+        /// <summary>Tauziehen: nur im Teamspiel - die Teams tippen gegeneinander, das Seil wandert am Beamer; die Serveruhr entscheidet (M37 T9).</summary>
+        TugOfWar = 17,
     }
 }

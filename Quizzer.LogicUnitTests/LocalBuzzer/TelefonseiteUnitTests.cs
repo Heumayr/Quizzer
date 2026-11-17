@@ -204,6 +204,10 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         public void HotPotatoLetsOnlyTheHolderAnswerAndPassOnce() => LaufeMit("kartoffel.test.mjs");
 
+        /// <summary>M37 T9: Tauziehen - gezählt am Telefon unter der Grenze, im Takt ohne Zeit gemeldet, Teamfarbe nur als Klasse, Seil nur bei zwei Teams.</summary>
+        [TestMethod]
+        public void TheTugOfWarCountsOnThePhoneAndShowsTheRope() => LaufeMit("tauziehen.test.mjs");
+
         /// <summary>M35 C4: Gluecksrad - nur der Dreher waehlt ein Ziel, genau einmal; die Aufloesung vom Server.</summary>
         [TestMethod]
         public void TheWheelLetsOnlyTheSpinnerChooseOnce() => LaufeMit("gluecksrad.test.mjs");

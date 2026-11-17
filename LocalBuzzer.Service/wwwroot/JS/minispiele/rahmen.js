@@ -14,6 +14,7 @@ import { BuchstabensalatModul } from "./buchstabensalat.js";
 import { ErklaerbaerModul } from "./baer.js";
 import { BluffModul } from "./bluff.js";
 import { KartoffelModul } from "./kartoffel.js";
+import { TauziehenModul } from "./tauziehen.js";
 import { EinsatzModul } from "../sonderregeln/einsatz.js";
 import { RisikoModul } from "../sonderregeln/risiko.js";
 import { AuktionModul } from "../sonderregeln/auktion.js";
@@ -42,7 +43,8 @@ const MODULE = new Map([
     [MinigameKinds.WordScramble, (optionen) => new BuchstabensalatModul(optionen)],
     [MinigameKinds.ExplainIt, (optionen) => new ErklaerbaerModul(optionen)],
     [MinigameKinds.Bluff, (optionen) => new BluffModul(optionen)],
-    [MinigameKinds.HotPotato, (optionen) => new KartoffelModul(optionen)]
+    [MinigameKinds.HotPotato, (optionen) => new KartoffelModul(optionen)],
+    [MinigameKinds.TugOfWar, (optionen) => new TauziehenModul(optionen)]
 ]);
 
 const SONDERREGELN = new Map([

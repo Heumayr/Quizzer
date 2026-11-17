@@ -30,6 +30,10 @@ namespace Quizzer.LogicUnitTests.Logic
 
         private static bool IstTeamregel(CellSpecialRule regel) => SpecialRuleProfiles.TryFor(regel, out var profil) && profil.IstTeamregel;
 
+        /// <summary>Eine Teamart (M37 T9) spielt nur im Teamspiel - im Minispielabend meldete sie der Spielstart als Fehler.</summary>
+        private static bool IstTeamart(MinigameKind art)
+            => MinigameProfiles.TryFor(art, out var profil) && profil.TeamScoring == MinispielTeamwertung.NurImTeamspiel;
+
         /// <summary>Das Spiel samt Zellen und je Zelle die Frage mit Schritten, wie Editor und Spielstart sie laden.</summary>
         private static async Task<(Game Spiel, List<(GameGridCoordinate Zelle, QuestionBase Frage)> Zellen)> LadeAsync(Guid spielId)
         {
@@ -55,7 +59,8 @@ namespace Quizzer.LogicUnitTests.Logic
         /// eine abgeschriebene Liste. Eine Regel zählt nur, wo sie auch gespielt wird: auf einer gewöhnlichen Frage.
         /// <para>
         /// <b>Ausnahme Teamregeln</b> (M37 T5, Entwurf Abschnitt 6): sie gibt es nur im Teamspiel, und der Minispielabend ist
-        /// keins - sie gehören in den Teamabend (<c>demo-teams</c>, T12).
+        /// keins - sie gehören in den Teamabend (<c>demo-teams</c>, T12). <b>Ebenso die Teamarten</b> (M37 T9, Tauziehen): im
+        /// Minispielabend meldete sie der Spielstart als Fehler, darum stehen sie dort gerade nicht.
         /// </para>
         /// </summary>
         [TestMethod]
@@ -65,7 +70,9 @@ namespace Quizzer.LogicUnitTests.Logic
             var (_, zellen) = await LadeAsync(abend.Spiel.Id);
 
             var arten = zellen.Select(z => z.Frage).OfType<MinigameQuestion>().Select(m => m.Kind).ToHashSet();
-            var fehlendeArten = Enum.GetValues<MinigameKind>().Where(k => (int)k != 0 && !arten.Contains(k)).ToList();
+            var fehlendeArten = Enum.GetValues<MinigameKind>().Where(k => (int)k != 0 && !arten.Contains(k) && !IstTeamart(k)).ToList();
+
+            Assert.AreEqual(0, arten.Count(IstTeamart), "Eine Teamart steht im Minispielabend - der ist kein Teamspiel.");
 
             var regeln = zellen.Where(z => SpecialRuleProfiles.Applies(z.Zelle, z.Frage, false)).Select(z => z.Zelle.SpecialRule).ToHashSet();
             var fehlendeRegeln = Enum.GetValues<CellSpecialRule>().Where(r => r != CellSpecialRule.None && !regeln.Contains(r) && !IstTeamregel(r)).ToList();

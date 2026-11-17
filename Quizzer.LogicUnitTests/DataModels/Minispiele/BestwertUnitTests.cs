@@ -28,6 +28,9 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
             MinigameKind.ExplainIt,
             MinigameKind.Bluff,
             MinigameKind.HotPotato,
+
+            // M37 T9: gewonnen wird als Team; die Tipps je Person laufen an der Serveruhr samt Nachlauf - mit dem Tippsprint nicht vergleichbar.
+            MinigameKind.TugOfWar,
         ];
 
         [TestMethod]

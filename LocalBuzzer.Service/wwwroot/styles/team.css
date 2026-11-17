@@ -59,3 +59,121 @@
 .team-farbe-5 { --team-farbe: #D55E00; --team-schrift: #000000; }
 .team-farbe-6 { --team-farbe: #CC79A7; --team-schrift: #000000; }
 .team-farbe-7 { --team-farbe: #000000; --team-schrift: #FFFFFF; }
+
+/* ===== Tauziehen (M37 T9) - die grosse Taste wie beim Tippsprint, aber in der Farbe des eigenen Teams =====
+   Die Farbe kommt nur ueber team-farbe-N (oben); ohne Team bleibt die Taste neutral. Nie nur Farbe: Symbol, Zahl und Text
+   stehen auf der Taste, und das Seil nennt beide Teams mit Symbol, Name und Zug. */
+.tauziehen-taste {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    width: 100%;
+    border: 3px solid var(--text-soft);
+    border-radius: var(--radius-xl);
+    background: var(--team-farbe, var(--panel));
+    color: var(--team-schrift, var(--text));
+    font-weight: 900;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.tauziehen-symbol {
+    font-size: 72px;
+    line-height: 1;
+}
+
+.tauziehen-zahl {
+    font-size: 88px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.tauziehen-text {
+    font-size: 30px;
+    text-align: center;
+    padding: 0 var(--space-md);
+}
+
+/* Aktiv: der dicke Rahmen sagt „jetzt ziehen“ zusaetzlich zum Text. */
+.tauziehen-aktiv {
+    border-width: 8px;
+}
+
+.tauziehen-ergebnis .tauziehen-text {
+    font-size: 24px;
+}
+
+/* Das Seil bei zwei Teams: links und rechts die Teams, dazwischen wandert der Knoten (style.left in Prozent). */
+.tauziehen-seil {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--space-sm);
+    min-height: 64px;
+    margin-top: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm) 28px;
+    border-radius: var(--radius-md);
+    background: var(--panel);
+    color: var(--text);
+    font-weight: 800;
+}
+
+    .tauziehen-seil[hidden] {
+        display: none;
+    }
+
+    /* Das Seil selbst als Linie am unteren Rand. */
+    .tauziehen-seil::after {
+        content: "";
+        position: absolute;
+        left: var(--space-sm);
+        right: var(--space-sm);
+        bottom: 12px;
+        height: 6px;
+        border-radius: 3px;
+        background: var(--text-soft);
+    }
+
+.tauziehen-links,
+.tauziehen-rechts {
+    min-width: 0;
+    max-width: 45%;
+    font-size: 16px;
+    overflow-wrap: anywhere;
+}
+
+.tauziehen-rechts {
+    text-align: right;
+}
+
+.tauziehen-knoten {
+    position: absolute;
+    bottom: 2px;
+    transform: translateX(-50%);
+    z-index: 1;
+    font-size: 26px;
+    line-height: 1;
+    transition: left 0.3s ease-out;
+}
+
+.tauziehen-stand {
+    margin: var(--space-xs) 0 0;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+/* Wer am Telefon "Bewegung reduzieren" eingestellt hat, sieht den Knoten springen statt gleiten. */
+@media (prefers-reduced-motion: reduce) {
+    .tauziehen-knoten {
+        transition: none;
+    }
+}
