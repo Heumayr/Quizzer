@@ -138,6 +138,30 @@ namespace Quizzer.UnitTests.Views
             Assert.IsNull(vm.GewaehlteSonderregel, "Eine nicht angebotene Regel steht als gewählt da.");
         }
 
+        /// <summary>M37 T7: die Team-Abstimmung bietet der Auswahldialog nur an einer Multiple-Choice-Frage an; sonst nennt er den Grund.</summary>
+        [TestMethod]
+        public void TheTeamVoteIsOfferedOnlyForAMultipleChoiceQuestion()
+        {
+            var vm = new QuestionSelectorViewModel();
+            var abstimmung = new SonderregelOption(CellSpecialRule.TeamVote, "Team-Abstimmung");
+            var zelle = new GameGridCoordinate { Id = Guid.NewGuid(), QuestionBase = new DefaultQuestion { Id = Guid.NewGuid() } };
+
+            vm.SetDependencys(new Game { IsTeamGame = true }, zelle);
+            Assert.IsFalse(vm.SonderregelOptionen.Any(o => o.Regel == CellSpecialRule.TeamVote), "An einer Buzzerfrage wird die Team-Abstimmung angeboten.");
+            CollectionAssert.Contains(vm.SonderregelOptionen.Select(o => o.Regel).ToList(), CellSpecialRule.TeamCouncil);
+
+            vm.GewaehlteSonderregel = abstimmung;
+            Assert.AreEqual(CellSpecialRule.None, zelle.SpecialRule, "Die Team-Abstimmung ließ sich an einer Buzzerfrage setzen.");
+
+            zelle.SpecialRule = CellSpecialRule.TeamVote;
+            vm.SetDependencys(new Game { IsTeamGame = true }, zelle);
+            Assert.AreEqual("„Team-Abstimmung“ braucht eine Multiple-Choice-Frage – sie wird nicht gespielt.", vm.SonderregelHinweis);
+
+            vm.SelectedQuestion = new MultipleChoiceQuestion { Id = Guid.NewGuid() };
+            Assert.AreEqual(CellSpecialRule.TeamVote, vm.GewaehlteSonderregel?.Regel, "An einer Multiple-Choice-Frage ist die Team-Abstimmung nicht wählbar.");
+            Assert.AreEqual(string.Empty, vm.SonderregelHinweis);
+        }
+
         /// <summary>M35 C3b: eine andere Regel beginnt mit ihrer Vorgabe - Anteil und Spielweise gehoerten der alten.</summary>
         [TestMethod]
         public void AnotherRuleStartsWithItsDefaultsButKeepsTheAnnouncement()

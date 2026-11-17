@@ -118,6 +118,17 @@ namespace Quizzer.Server.Tests
             Assert.AreEqual(HttpStatusCode.UpgradeRequired, antwort.StatusCode);
         }
 
+        /// <summary>M37 T7: ein WPF ohne „Team-Abstimmung" spielte die Zelle ohne Teamregel und schrieb je Mitglied die eigene Wertung.</summary>
+        [TestMethod]
+        public async Task AProgramWithoutTeamVoteIsStopped()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+
+            var antwort = await LoginWithFormatAsync(factory.CreateClient(), Format(29));
+
+            Assert.AreEqual(HttpStatusCode.UpgradeRequired, antwort.StatusCode);
+        }
+
         [TestMethod]
         public async Task ANewerProgramIsStoppedWithItsOwnMessage()
         {

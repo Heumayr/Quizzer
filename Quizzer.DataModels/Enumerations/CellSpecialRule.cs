@@ -57,5 +57,12 @@ namespace Quizzer.DataModels.Enumerations
         /// den Feldwert, einer falsch kostet es das Minus, beides aufgeteilt. Nur im Teamspiel.
         /// </summary>
         AllOrNothing = 11,
+
+        /// <summary>
+        /// Team-Abstimmung (M37 T7), Teamregel ohne Vorphase, nur an Multiple-Choice-Fragen: jedes Mitglied stimmt am Telefon
+        /// ab, die Mehrheit im Team ist seine Antwort - bei Gleichstand die Stimme des Sprechers, sonst entscheidet die
+        /// Spielleitung. Der Wert geht aufgeteilt an alle Mitglieder; geheim bis zum Schluss (F-M37-13). Nur im Teamspiel.
+        /// </summary>
+        TeamVote = 12,
     }
 }

@@ -15,12 +15,13 @@ namespace Quizzer.Views.HelperViewModels
     {
         /// <summary>
         /// „Keine" vorn, dann jede Regel aus den Profilen, die zum Spiel mit oder ohne Teams passt (M37 T5) - das Finale nur,
-        /// solange keine andere Zelle es trägt (M37 E4).
+        /// solange keine andere Zelle es trägt (M37 E4), die Team-Abstimmung nur an einer Multiple-Choice-Frage (M37 T7).
         /// </summary>
         public IReadOnlyList<SonderregelOption> SonderregelOptionen =>
         [
             new(CellSpecialRule.None, SpecialRuleProfiles.NameOf(CellSpecialRule.None)),
-            .. SpecialRuleProfiles.Angeboten(Teamspiel).Where(p => FreiAufDieserZelle(p.Rule)).Select(p => new SonderregelOption(p.Rule, p.DisplayName)),
+            .. SpecialRuleProfiles.Angeboten(Teamspiel).Where(p => FreiAufDieserZelle(p.Rule) && PasstZurFrage(p))
+                .Select(p => new SonderregelOption(p.Rule, p.DisplayName)),
         ];
 
         private bool Teamspiel => Game?.IsTeamGame == true;
@@ -28,6 +29,10 @@ namespace Quizzer.Views.HelperViewModels
         private bool FreiAufDieserZelle(CellSpecialRule regel)
             => Coordinate == null || regel == Coordinate.SpecialRule
                || Sonderregelraster.FreiFuer(regel, Coordinate, Game?.GameGridCoordinates ?? []);
+
+        /// <summary>Wie beim Teamspiel: eine Regel, die an dieser Frage nicht spielt, steht nicht zur Wahl - der Hinweis sagt, warum.</summary>
+        private bool PasstZurFrage(SpecialRuleProfile profil)
+            => Coordinate?.QuestionBase is not { } frage || profil.PasstZuFrage(frage);
 
         /// <summary>Ob diese Zelle eine Regel tragen darf: eine gewoehnliche Frage, noch nicht gespielt.</summary>
         public bool SonderregelMoeglich => Coordinate != null && Sonderregelraster.Erlaubt(Coordinate);
@@ -41,6 +46,7 @@ namespace Quizzer.Views.HelperViewModels
             _ when Profil is { } profil && !profil.PasstZu(Teamspiel) => profil.IstTeamregel
                 ? $"„{profil.DisplayName}“ gibt es nur im Teamspiel – sie wird nicht gespielt."
                 : $"„{profil.DisplayName}“ wird im Teamspiel nicht gespielt.",
+            { } frage when Profil is { } profil && !profil.PasstZuFrage(frage) => $"„{profil.DisplayName}“ {profil.QuestionTypeHint} – sie wird nicht gespielt.",
             _ when Profil is { EinmalJeSpiel: true } einmal && !Sonderregelraster.FreiFuer(einmal.Rule, Coordinate, Game?.GameGridCoordinates ?? [])
                 => $"„{einmal.DisplayName}“ liegt noch auf einer anderen Zelle – gedacht ist es einmal je Spiel.",
             _ => string.Empty,

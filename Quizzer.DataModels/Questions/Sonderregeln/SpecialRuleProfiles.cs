@@ -52,6 +52,15 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
         /// <summary>Höchstens eine Zelle je Spiel trägt die Regel, und das Verteilen setzt sie nie (M37 E4: das Finale).</summary>
         public bool EinmalJeSpiel { get; init; }
 
+        /// <summary>Nur an diesen Fragetypen (M37 T7: die Team-Abstimmung braucht Tasten); <c>null</c>: an jeder gewöhnlichen Frage.</summary>
+        public IReadOnlyList<QuestionType>? QuestionTypes { get; init; }
+
+        /// <summary>Was der Spielaufbau sagt, wenn die Frage nicht passt, etwa „braucht eine Multiple-Choice-Frage".</summary>
+        public string QuestionTypeHint { get; init; } = string.Empty;
+
+        /// <summary>Ob die Regel an dieser Frage gespielt wird - ohne Einschränkung an jeder, ohne Frage nie (fail-closed).</summary>
+        public bool PasstZuFrage(QuestionBase? frage) => frage != null && (QuestionTypes is not { } typen || typen.Contains(frage.Typ));
+
         /// <summary>Ob die Regel in einem Spiel mit oder ohne Teams gespielt wird; eine unbekannte Eignung nie (fail-closed).</summary>
         public bool PasstZu(bool teamspiel) => Teamspiel switch
         {
@@ -172,6 +181,16 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
                 HasPrePhase = false,
                 Teamspiel = TeamspielEignung.Nur,
             },
+            new(CellSpecialRule.TeamVote, "Team-Abstimmung",
+                "Jeder im Team stimmt am Telefon geheim ab, die Mehrheit ist die Antwort des Teams – bei Gleichstand zählt die "
+                + "Stimme des Sprechers, sonst entscheidet die Spielleitung. Richtig bringt dem Team die Feldpunkte, falsch kostet "
+                + "es die Minuspunkte, beides gleich auf die Mitglieder verteilt. Ohne Stimme wird das Team nicht bewertet.")
+            {
+                HasPrePhase = false,
+                Teamspiel = TeamspielEignung.Nur,
+                QuestionTypes = [QuestionType.MultipleChoice],
+                QuestionTypeHint = "braucht eine Multiple-Choice-Frage",
+            },
         ];
 
         private static string AuktionText(string preis)
@@ -212,7 +231,8 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
                && TryFor(zelle.SpecialRule, out var profil)
                && profil.PasstZu(teamspiel)
                && frage != null
-               && frage.Typ != QuestionType.Minigame;
+               && frage.Typ != QuestionType.Minigame
+               && profil.PasstZuFrage(frage);
 
         /// <summary>Was Spielaufbau und Verteilen anbieten: nur Regeln, die zu diesem Spiel passen (M37 T5).</summary>
         public static IReadOnlyList<SpecialRuleProfile> Angeboten(bool teamspiel) => All.Where(p => p.PasstZu(teamspiel)).ToList();

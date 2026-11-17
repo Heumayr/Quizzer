@@ -68,8 +68,10 @@ namespace Quizzer.DataModels.Transfer.Sync
         ///    die Feldpunkte statt der Einsaetze.
         /// 29: Gleich gedacht und Alle oder keiner (M37 T6) - neue Werte CellSpecialRule.SameThought und AllOrNothing; ein
         ///    altes WPF spielte die Zelle ohne Teamregel und schrieb volle Feldpunkte statt der Anteile.
+        /// 30: Team-Abstimmung (M37 T7) - neuer Wert CellSpecialRule.TeamVote; ein altes WPF spielte die Zelle ohne Teamregel
+        ///    und schrieb je Mitglied seine eigene Wertung statt der Anteile an der Mehrheit.
         /// </summary>
-        public const int CurrentFormatVersion = 29;
+        public const int CurrentFormatVersion = 30;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

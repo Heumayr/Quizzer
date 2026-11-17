@@ -91,8 +91,14 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
                 var zelle = frei[auftrag.Zufall(0, frei.Count)];
                 frei.Remove(zelle);
 
+                // M37 T7: nur Regeln, die zur Frage passen - die Team-Abstimmung braucht eine Multiple-Choice-Frage.
+                var passend = regeln.Where(r => SpecialRuleProfiles.TryFor(r, out var profil) && profil.PasstZuFrage(zelle.QuestionBase)).ToList();
+
+                if (passend.Count == 0)
+                    continue;
+
                 Leere(zelle);
-                zelle.SpecialRule = regeln[auftrag.Zufall(0, regeln.Count)];
+                zelle.SpecialRule = passend[auftrag.Zufall(0, passend.Count)];
                 zelle.SpecialRuleAnnounced = auftrag.Angekuendigt;
                 belegt.Add(zelle);
             }
@@ -132,12 +138,20 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
                 return new(MinigameRuleCode, ValidationSeverity.Warning,
                     $"{wo}: Sonderregel „{regel.DisplayName}“ auf einem Minispiel – sie wird nicht gespielt.");
 
+            // M37 T7: passt die Regel zum Spiel, liegt es an der Frage - die Team-Abstimmung braucht Tasten.
+            if (regel.PasstZu(teamspiel))
+                return new(QuestionTypeRuleCode, ValidationSeverity.Warning,
+                    $"{wo}: {(regel.IstTeamregel ? "Teamregel" : "Sonderregel")} „{regel.DisplayName}“ {regel.QuestionTypeHint} – sie wird nicht gespielt.");
+
             return new(TeamGameRuleCode, ValidationSeverity.Warning, regel.IstTeamregel
                 ? $"{wo}: Teamregel „{regel.DisplayName}“ gibt es nur im Teamspiel – sie wird nicht gespielt."
                 : $"{wo}: Sonderregel „{regel.DisplayName}“ wird im Teamspiel nicht gespielt.");
         }
 
         public const string MinigameRuleCode = "special-rule-on-minigame";
+
+        /// <summary>Eine Regel an einer Frage, deren Typ sie nicht spielt (M37 T7).</summary>
+        public const string QuestionTypeRuleCode = "special-rule-question-type";
         /// <summary>
         /// Hinweis zum Spielstart über das ganze Raster (M37 E4): eine Regel, die es nur einmal je Spiel gibt, liegt mehrfach -
         /// aus einem Bündel oder dem Abgleich. Gespielt wird jede; die Spielleitung entscheidet (E1).

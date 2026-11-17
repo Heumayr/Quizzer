@@ -155,6 +155,7 @@ namespace Quizzer.LogicUnitTests.DataModels.Sonderregeln
                 [CellSpecialRule.Final] = 28,
                 [CellSpecialRule.SameThought] = 29,
                 [CellSpecialRule.AllOrNothing] = 29,
+                [CellSpecialRule.TeamVote] = 30,
             };
 
             var ohne = Enum.GetValues<CellSpecialRule>().Where(r => !seitFormat.ContainsKey(r)).ToList();

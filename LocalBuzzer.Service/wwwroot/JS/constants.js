@@ -46,7 +46,8 @@ export const SpecialRules = Object.freeze({
     TeamCouncil: 8,
     Final: 9,
     SameThought: 10,
-    AllOrNothing: 11
+    AllOrNothing: 11,
+    TeamVote: 12
 });
 
 // M35 C7b: die Zahlen von MinigamePrePhase am Server - die Joker-Runde laeuft im Minispiel-Rahmen.
