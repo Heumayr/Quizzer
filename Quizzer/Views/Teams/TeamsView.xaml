@@ -1,0 +1,122 @@
+<base:WindowBase x:Class="Quizzer.Views.Teams.TeamsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:base="clr-namespace:Quizzer.Base"
+        xmlns:local="clr-namespace:Quizzer.Views.Teams"
+        Title="{Binding Titel}" Height="800" Width="680" MinHeight="560" MinWidth="600"
+        WindowStartupLocation="CenterOwner">
+    <base:WindowBase.DataContext>
+        <local:TeamsViewModel />
+    </base:WindowBase.DataContext>
+    <base:WindowBase.Resources>
+        <!-- Ein Team: Fläche, Symbol, Name - die Farbe steht nie allein (standards-bedienbarkeit.md Regel 3). -->
+        <DataTemplate x:Key="TeamAnzeige">
+            <StackPanel Orientation="Horizontal">
+                <Border Width="14" Height="14" CornerRadius="3" Background="{Binding Pinsel}"
+                        BorderBrush="#BBBBBB" BorderThickness="1" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding Symbol}" Margin="6,0,4,0" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+            </StackPanel>
+        </DataTemplate>
+    </base:WindowBase.Resources>
+
+    <Grid Background="{StaticResource AppBgBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="{Binding GameName}" FontSize="22" FontWeight="Bold" />
+            <TextBlock Opacity="0.75" TextWrapping="Wrap" Margin="0,4,0,12"
+                       Text="Die Spielleitung teilt zu oder lost aus. Die Punkte bleiben am Spieler; wer später umgesetzt wird, lässt seine bisherigen Punkte beim alten Team. Erst „Übernehmen“ speichert." />
+            <TextBlock Text="Teams" Style="{StaticResource SectionHeader}" />
+        </StackPanel>
+
+        <!-- Höchstens acht Zeilen: die Palette begrenzt die Liste, ein Rollbalken ist nicht nötig. -->
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding Teams}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="0,3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Width="22" Height="22" CornerRadius="4" Background="{Binding Pinsel}"
+                                BorderBrush="#BBBBBB" BorderThickness="1" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{Binding Symbol}" FontSize="18" Margin="8,0" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="2" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" MaxLength="30"
+                                 Height="32" VerticalContentAlignment="Center" AutomationProperties.Name="Teamname"
+                                 ToolTip="Der Name am Beamer und am Telefon, höchstens 30 Zeichen." />
+                        <ComboBox Grid.Column="3" Width="150" Margin="8,0,0,0" Height="32"
+                                  ItemsSource="{Binding DataContext.Farben, RelativeSource={RelativeSource AncestorType=Window}}"
+                                  SelectedValuePath="Farbe" SelectedValue="{Binding Farbe}"
+                                  ItemTemplate="{StaticResource TeamAnzeige}" AutomationProperties.Name="Teamfarbe"
+                                  ToolTip="Farbe und Symbol des Teams - am Beamer und am Telefon stehen immer beide beim Namen." />
+                        <TextBlock Grid.Column="4" Text="{Binding MitgliederText}" Opacity="0.75" Margin="10,0" MinWidth="90"
+                                   VerticalAlignment="Center" />
+                        <Button Grid.Column="5" Content="Entfernen" Style="{StaticResource DangerButton}"
+                                Command="{Binding DataContext.RemoveTeamCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{Binding}"
+                                ToolTip="Nimmt das Team aus der Aufstellung; seine Mitglieder sind danach ohne Team. Ein Team mit Punkten lässt sich nur umbenennen." />
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,0">
+            <Button Content="Team hinzufügen" Command="{Binding AddTeamCommand}"
+                    ToolTip="Legt ein Team in der nächsten freien Farbe an - höchstens acht." />
+            <Label Content="Auf" Target="{Binding ElementName=AuslosAnzahlBox}" Margin="16,0,0,0" VerticalAlignment="Center" />
+            <TextBox x:Name="AuslosAnzahlBox" Text="{Binding AuslosAnzahl, UpdateSourceTrigger=PropertyChanged}" Width="50" Height="32"
+                     VerticalContentAlignment="Center" AutomationProperties.Name="Anzahl der Teams beim Auslosen"
+                     ToolTip="Auf wie viele Teams ausgelost wird, 2 bis 8. Fehlende Teams werden angelegt." />
+            <Button Content="Teams auslosen" Command="{Binding DrawCommand}" Margin="8,0,0,0"
+                    ToolTip="Verteilt alle Mitspieler zufällig auf so viele Teams, gleich groß bis auf einen. Der Spielleiter ist nie im Los." />
+        </StackPanel>
+
+        <DockPanel Grid.Row="3" Margin="0,16,0,0">
+            <TextBlock DockPanel.Dock="Top" Text="Zuteilung" Style="{StaticResource SectionHeader}" />
+            <Border Background="{StaticResource PanelBgBrush}" BorderBrush="{StaticResource BorderBrushDark}"
+                    BorderThickness="1" CornerRadius="6" Padding="8">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding Mitglieder}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="4,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Name}" FontSize="16" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                    <ComboBox Grid.Column="1" Width="240" Height="32"
+                                              ItemsSource="{Binding DataContext.TeamAuswahl, RelativeSource={RelativeSource AncestorType=Window}}"
+                                              SelectedItem="{Binding Auswahl}" ItemTemplate="{StaticResource TeamAnzeige}"
+                                              AutomationProperties.Name="{Binding Name}"
+                                              ToolTip="In welchem Team dieser Mitspieler spielt." />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+        </DockPanel>
+
+        <TextBlock Grid.Row="4" Text="{Binding Message}" TextWrapping="Wrap" Margin="0,10,0,0" Foreground="#FFD180" />
+
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Abbrechen" Command="{Binding CancelCommand}" MinWidth="110" Height="36" Margin="0,0,8,0"
+                    ToolTip="Schließt ohne zu speichern." />
+            <Button Content="Übernehmen" Command="{Binding SaveCommand}" MinWidth="150" Height="36" FontWeight="Bold" IsDefault="True"
+                    ToolTip="Speichert Teams und Zuteilung in einem Zug." />
+        </StackPanel>
+    </Grid>
+</base:WindowBase>

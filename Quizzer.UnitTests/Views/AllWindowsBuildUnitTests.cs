@@ -49,6 +49,7 @@ namespace Quizzer.UnitTests.Views
             typeof(Quizzer.Views.QuestionTypes.RevealEditorView),
             typeof(Quizzer.Views.GameViews.GamePlayersView),
             typeof(Quizzer.Views.GameViews.JokerView),
+            typeof(Quizzer.Views.Teams.TeamsView),
             typeof(Quizzer.Server.AccountsView),
             typeof(Quizzer.Server.ChangePasswordView),
             typeof(Quizzer.Server.TwoFactorView),

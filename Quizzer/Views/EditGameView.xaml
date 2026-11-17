@@ -121,6 +121,26 @@
                               IsChecked="{Binding AllowNegativeScore}"
                               ToolTip="Ausgeschaltet nimmt kein Minus-Vorschlag auf der Spielerkarte einem Spieler mehr, als er hat - weder eine falsche Antwort noch ein Klau oder ein verlorener Einsatz. Ein eigener Wert, den der Spielleiter selbst einträgt, bleibt frei." />
                 </StackPanel>
+                <!-- M37 T2: Teamspiel. Teams, Zuteilung und Auslosen im eigenen Dialog; die Einstellungen gehen mit „Speichern“. -->
+                <StackPanel Orientation="Horizontal" Margin="5">
+                    <CheckBox Content="Teamspiel" VerticalAlignment="Center" IsChecked="{Binding IsTeamGame}"
+                              ToolTip="Die Mitspieler spielen in Teams. Die Punkte bleiben am Spieler, das Team zählt die Summe." />
+                    <Button Content="Teams bearbeiten …" Command="{Binding EditTeamsCommand}" Margin="10,0,0,0"
+                            ToolTip="Teams anlegen, benennen und färben, die Mitspieler zuteilen oder auslosen. Geht nur im Teamspiel." />
+                    <TextBlock Text="{Binding TeamUebersicht}" Opacity="0.75" VerticalAlignment="Center" Margin="10,0,0,0"
+                               TextWrapping="Wrap" MaxWidth="260" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="5" Visibility="{Binding TeamEinstellungenVisibility}">
+                    <Label Content="Beratungszeit (s):" Target="{Binding ElementName=BeratungszeitBox}" VerticalAlignment="Center" />
+                    <TextBox x:Name="BeratungszeitBox" VerticalContentAlignment="Center" MinWidth="50" Margin="5,8,5,8"
+                             Text="{Binding TeamCouncilSeconds, UpdateSourceTrigger=LostFocus}"
+                             ToolTip="Wie lange ein Team bei der Teamberatung beraten darf, 0 bis 600 Sekunden. 0 heißt: ohne Countdown." />
+                    <Label Content="Minispiele im Team:" VerticalAlignment="Center" Margin="10,0,0,0" />
+                    <RadioButton Content="Durchschnitt" GroupName="TeamWertung" IsChecked="{Binding TeamMinigameAverage}" VerticalAlignment="Center"
+                                 ToolTip="Das Team bekommt den Durchschnitt der Einzelergebnisse - ein großes Team gewinnt nicht durch seine Größe." />
+                    <RadioButton Content="Summe" GroupName="TeamWertung" IsChecked="{Binding TeamMinigameSum}" VerticalAlignment="Center" Margin="8,0,0,0"
+                                 ToolTip="Das Team bekommt die Summe der Einzelergebnisse." />
+                </StackPanel>
                 <!-- M35 C3, V3: Sonderregeln zufaellig verteilen; je Zelle waehlt man sie im Auswahldialog der Zelle. -->
                 <StackPanel Orientation="Horizontal" Margin="5">
                     <Label Content="Sonderregeln:" VerticalAlignment="Center"

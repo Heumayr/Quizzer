@@ -204,6 +204,9 @@ namespace Quizzer.Views
             // Ein zweiter Aufruf statt eines erweiterten: SemaphoreSlim ist nicht
             // wiedereintrittsfaehig, ein Guard im Guard verklemmte sich selbst.
             await RunGuardedAsync(() => LoadModel(Game.Id));
+
+            // Die Teams bleiben, ihre Mitglieder sind mit den Plätzen gegangen.
+            TeamsAktualisieren();
         }
 
         private AsyncRelayCommand? saveAndCloseCommand;
