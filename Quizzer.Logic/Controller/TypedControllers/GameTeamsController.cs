@@ -68,6 +68,14 @@ namespace Quizzer.Logic.Controller.TypedControllers
             return await base.BeforeActionAsync(entity, action);
         }
 
+        /// <summary>Der Sprecherstand ist Verlauf, nicht Bauplan: beim Zurücksetzen des Spielaufbaus geht er auf den Anfang.</summary>
+        public async Task<int> ResetSpeakersAsync(Guid gameId)
+        {
+            return await EntitySet
+                .Where(t => t.GameId == gameId && t.SpeakerTurn != 0)
+                .ExecuteUpdateAsync(s => s.SetProperty(t => t.SpeakerTurn, 0));
+        }
+
         /// <summary>
         /// Für das Löschen eines Spiels: die Teams hängen mit NO ACTION am Spiel. Erst nach Zuteilungen und
         /// Ergebnissen aufrufen - die zeigen ebenfalls mit NO ACTION auf das Team.

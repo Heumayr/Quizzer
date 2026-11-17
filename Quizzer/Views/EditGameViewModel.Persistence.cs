@@ -181,30 +181,22 @@ namespace Quizzer.Views
 
             if (!UserPrompt.Confirm(
                     "Spielaufbau wirklich zurücksetzen? Damit werden alle zugewiesenen Fragen "
-                    + "und Spieler aus dem Spiel entfernt.",
+                    + "und Spieler samt Ergebnissen und Jokern aus dem Spiel entfernt. "
+                    + "Die Teams bleiben mit Namen und Farbe stehen.",
                     "Zurücksetzen bestätigen"))
             {
                 return;
             }
 
+            // V19: Joker vor den Zellen, alles in einer Klammer - vorher scheiterte es an einem
+            // eingelösten Joker, nachdem die Ergebnisse schon weg waren.
             await RunGuardedAsync(async () =>
             {
                 Game.State = GameState.Building;
 
                 using var ctrlGame = new GamesController();
+                await ctrlGame.ResetBuildAsync(Game.Id);
                 await ctrlGame.SaveChangesAsync();
-
-                using var ctrlErgebnisse = new QuestionResultsController(ctrlGame);
-                await ctrlErgebnisse.DeleteByGameIdAsync(Game.Id);
-
-                using var ctrlZellen = new GameGridCoordinatesController(ctrlGame);
-                await ctrlZellen.DeleteByGameIdAsync(Game.Id);
-
-                using var ctrlZuordnungen = new PlayerXGamesController(ctrlGame);
-                await ctrlZuordnungen.DeleteByGameIdAsync(Game.Id);
-
-                using var ctrlKopfzeilen = new HeadersController(ctrlGame);
-                await ctrlKopfzeilen.DeleteByGameIdAsync(Game.Id);
             });
 
             // Das Neuladen baut das Raster neu auf und SCHREIBT dabei (GridBuilder legt

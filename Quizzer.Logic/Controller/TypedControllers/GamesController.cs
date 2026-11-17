@@ -87,6 +87,30 @@ namespace Quizzer.Logic.Controller.TypedControllers
             return await base.BeforeActionAsync(entity, action);
         }
 
+        /// <summary>
+        /// „Spielaufbau zurücksetzen“: Joker, Ergebnisse, Zellen, Zuordnungen und Kopfzeilen gehen, in einer Klammer bis
+        /// zum Speichern (V19, Muster V05). Joker vor den Zellen - sie hängen mit NO ACTION daran. Die Teams bleiben mit
+        /// Name und Farbe stehen, nur ihr Sprecherstand geht auf den Anfang (M37 T2). Schreibt nicht selbst.
+        /// </summary>
+        public async Task ResetBuildAsync(Guid gameId)
+        {
+            await CurrentContext.EnsureTransactionUntilSaveAsync();
+
+            using var ctrlJoker = new PlayerJokersController(this);
+            using var ctrlResults = new QuestionResultsController(this);
+            using var ctrlCells = new GameGridCoordinatesController(this);
+            using var ctrlSeats = new PlayerXGamesController(this);
+            using var ctrlHeaders = new HeadersController(this);
+            using var ctrlTeams = new GameTeamsController(this);
+
+            await ctrlJoker.DeleteByGameIdAsync(gameId);
+            await ctrlResults.DeleteByGameIdAsync(gameId);
+            await ctrlCells.DeleteByGameIdAsync(gameId);
+            await ctrlSeats.DeleteByGameIdAsync(gameId);
+            await ctrlHeaders.DeleteByGameIdAsync(gameId);
+            await ctrlTeams.ResetSpeakersAsync(gameId);
+        }
+
         protected override Task<Game> AfterActionAsync(Game entity, Actions action)
         {
             if (action == Actions.Get)
