@@ -121,15 +121,17 @@ namespace Quizzer.DataModels.Transfer.Server
     /// <summary>
     /// Die Bestenliste ueber Abende (M35 C9) - nur aus den Spielen, die <see cref="StatisticsResponse.Games"/> zeigt.
     /// </summary>
-    /// <param name="Categories">Je Minispiel-Art mit Bestwert eine Liste, auch wenn sie noch leer ist.</param>
+    /// <param name="Categories">Je Minispiel-Art mit Bestwert eine Liste, auch wenn sie noch leer ist; Kopfrechnen je Schwierigkeit.</param>
     /// <param name="MostSteals">Die meisten Klaus, summiert ueber die Spiele.</param>
     public sealed record Leaderboard(IReadOnlyList<LeaderboardCategory> Categories, IReadOnlyList<StealsEntry> MostSteals);
 
-    /// <param name="Title">„Schnellste Reaktion".</param>
+    /// <param name="Variant">Die Spielweise, wo die Art je Spielweise eine eigene Liste hat (Kopfrechnen je Schwierigkeit,
+    /// M37 E05); sonst <c>null</c>. Aeltere WPF kennen das Feld nicht - deshalb nennt der Titel die Spielweise selbst.</param>
+    /// <param name="Title">„Schnellste Reaktion", „Schnellster Rechner – leicht".</param>
     /// <param name="KindName">Der Name der Art, „Reaktion".</param>
     /// <param name="Unit">Die Einheit des Rohwerts, „ms" - der Klartext je Eintrag traegt sie schon.</param>
     public sealed record LeaderboardCategory(
-        MinigameKind Kind, string Title, string KindName, string Unit, bool LowerIsBetter, IReadOnlyList<LeaderboardEntry> Entries);
+        MinigameKind Kind, int? Variant, string Title, string KindName, string Unit, bool LowerIsBetter, IReadOnlyList<LeaderboardEntry> Entries);
 
     /// <summary>Ein Platz: wer, wie gut (Rohwert und Klartext mit Einheit), in welchem Spiel, wann.</summary>
     /// <param name="Rank">Gleichstand teilt den Platz.</param>

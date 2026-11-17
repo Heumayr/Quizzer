@@ -102,7 +102,12 @@ namespace Quizzer.UnitTests.Views
                 inhalt.UpdateLayout();
 
                 var texte = Descendants<TextBlock>(inhalt).Select(t => t.Text).ToList();
-                var titel = MinigameProfiles.All.Where(p => p.Record != null).Select(p => $"{p.Record!.Title} ({p.DisplayName})").Append("Meiste Klaus");
+                var titel = MinigameProfiles.All
+                    .Where(p => p.Record != null)
+                    .SelectMany(p => p.Record!.VariantTitles.Count == 0
+                        ? [$"{p.Record.Title} ({p.DisplayName})"]
+                        : p.Record.VariantTitles.Select(v => $"{p.Record.Title} – {v} ({p.DisplayName})"))
+                    .Append("Meiste Klaus");
 
                 foreach (var t in titel)
                     CollectionAssert.Contains(texte, t, $"Die Kachel {t} fehlt.");

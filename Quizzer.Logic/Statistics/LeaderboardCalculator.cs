@@ -6,15 +6,17 @@ namespace Quizzer.Logic.Statistics
 {
     /// <summary>Eine Ergebniszeile fuer die Bestenliste - die Rechte hat der Aufrufer schon angewandt.</summary>
     /// <param name="Kind">Die Art der Frage, wenn sie ein Minispiel ist; sonst <c>null</c>.</param>
+    /// <param name="Variant">Die Spielweise der Frage (<c>MinigameQuestion.Variant</c>), ohne Minispiel 0 (M37 E05).</param>
     public sealed record LeaderboardRow(
         Guid ResultId, Guid PlayerId, string PlayerName, Guid GameId, string GameName,
-        MinigameKind? Kind, int? RecordValue, DateTimeOffset? RecordedAt, int Steals);
+        MinigameKind? Kind, int Variant, int? RecordValue, DateTimeOffset? RecordedAt, int Steals);
 
     /// <summary>
     /// Die Bestenliste ueber Abende (M35 C9) als reine Rechnung - Server und Tests benutzen dieselbe.
     /// <list type="bullet">
     /// <item>Je Art mit Bestwert die besten <see cref="Top"/> Spieler, je Spieler sein bester Wert; die Richtung legt
     /// <see cref="MinigameRecord.LowerIsBetter"/> fest. Ein Wert ausserhalb des Bereichs zaehlt nicht.</item>
+    /// <item>Wo <see cref="MinigameRecord.VariantTitles"/> es verlangt, je Spielweise eine eigene Liste (M37 E05).</item>
     /// <item>Gleichstand teilt den Platz; die Reihenfolge darin ist fest: wer den Wert zuerst hatte, dann Name, dann Zeile.</item>
     /// <item>Meiste Klaus: Summe je Spieler ueber alle Zeilen, nur wer mindestens einen hat.</item>
     /// </list>
@@ -31,7 +33,7 @@ namespace Quizzer.Logic.Statistics
             var zeilen = rows.ToList();
             var kategorien = MinigameProfiles.All
                 .Where(p => p.Record != null)
-                .Select(p => Kategorie(p, zeilen))
+                .SelectMany(p => Listen(p, zeilen))
                 .ToList();
 
             return new Leaderboard(kategorien, MeisteKlaus(zeilen));
@@ -40,12 +42,27 @@ namespace Quizzer.Logic.Statistics
         /// <summary>Ein gueltiger Rohwert samt seiner Zeile.</summary>
         private sealed record Messung(LeaderboardRow Zeile, int Wert);
 
-        private static LeaderboardCategory Kategorie(MinigameProfile profil, List<LeaderboardRow> zeilen)
+        /// <summary>Eine Liste je Art; trennt der Bestwert nach Spielweise, eine je Spielweise.</summary>
+        private static IEnumerable<LeaderboardCategory> Listen(MinigameProfile profil, List<LeaderboardRow> zeilen)
         {
             var record = profil.Record ?? throw new ArgumentException("Art ohne Bestwert.", nameof(profil));
+            var derArt = zeilen.Where(z => z.Kind == profil.Kind).ToList();
 
+            if (record.VariantTitles.Count == 0)
+                return [Kategorie(profil, record, derArt, null)];
+
+            return record.VariantTitles.Select((_, spielweise) =>
+                Kategorie(profil, record, derArt.Where(z => Spielweise(z, record) == spielweise), spielweise));
+        }
+
+        /// <summary>Ein unbekannter Index zaehlt zur ersten Spielweise - so spielt ihn die Runde (wie <see cref="MinigameProfile.VariantFor"/>).</summary>
+        private static int Spielweise(LeaderboardRow zeile, MinigameRecord record)
+            => zeile.Variant >= 0 && zeile.Variant < record.VariantTitles.Count ? zeile.Variant : 0;
+
+        private static LeaderboardCategory Kategorie(MinigameProfile profil, MinigameRecord record, IEnumerable<LeaderboardRow> zeilen, int? spielweise)
+        {
             var bestJeSpieler = zeilen
-                .Where(z => z.Kind == profil.Kind && z.RecordValue.HasValue)
+                .Where(z => z.RecordValue.HasValue)
                 .Select(z => new Messung(z, z.RecordValue.GetValueOrDefault()))
                 .Where(m => record.IsPlausible(m.Wert))
                 .GroupBy(m => m.Zeile.PlayerId)
@@ -59,7 +76,8 @@ namespace Quizzer.Logic.Statistics
                     m.Zeile.GameId, m.Zeile.GameName, m.Zeile.RecordedAt))
                 .ToList();
 
-            return new LeaderboardCategory(profil.Kind, record.Title, profil.DisplayName, record.Unit, record.LowerIsBetter, eintraege);
+            var titel = spielweise is { } i ? $"{record.Title} – {record.VariantTitles[i]}" : record.Title;
+            return new LeaderboardCategory(profil.Kind, spielweise, titel, profil.DisplayName, record.Unit, record.LowerIsBetter, eintraege);
         }
 
         private static IOrderedEnumerable<Messung> Ordne(IEnumerable<Messung> messungen, MinigameRecord record)

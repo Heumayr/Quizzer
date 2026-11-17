@@ -26,9 +26,9 @@ namespace Quizzer.UnitTests.Server
         {
             var liste = new Leaderboard(
                 [
-                    new LeaderboardCategory(MinigameKind.Reaction, "Schnellste Reaktion", "Reaktion", "ms", true,
+                    new LeaderboardCategory(MinigameKind.Reaction, null, "Schnellste Reaktion", "Reaktion", "ms", true,
                         [new LeaderboardEntry(1, Guid.NewGuid(), "Anna", 187, "187 ms", Guid.NewGuid(), "Spieleabend", Am)]),
-                    new LeaderboardCategory(MinigameKind.Stopwatch, "Genaueste Stoppuhr", "Stoppuhr", "ms daneben", true, []),
+                    new LeaderboardCategory(MinigameKind.Stopwatch, null, "Genaueste Stoppuhr", "Stoppuhr", "ms daneben", true, []),
                 ],
                 [new StealsEntry(1, Guid.NewGuid(), "Bert", 3), new StealsEntry(2, Guid.NewGuid(), "Carl", 1)]);
 

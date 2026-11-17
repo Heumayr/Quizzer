@@ -26,6 +26,12 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// <summary>Der Rohwert im Klartext mit Einheit - Server und Fenster zeigen dieselben Worte.</summary>
         public required Func<int, string> Format { get; init; }
 
+        /// <summary>
+        /// Wo die Werte der Spielweisen nicht vergleichbar sind, je Spielweise eine eigene Liste (M37 E05, Kopfrechnen je
+        /// Schwierigkeit): ihr Kurzname fuer den Titel, Index wie <see cref="MinigameProfile.Variants"/>. Leer: eine Liste.
+        /// </summary>
+        public IReadOnlyList<string> VariantTitles { get; init; } = [];
+
         public bool IsPlausible(int value) => value >= Min && value <= Max;
     }
 
@@ -83,6 +89,9 @@ namespace Quizzer.DataModels.Questions.Minispiele
             Min = 0,
             Max = KopfrechnenEvaluator.MaxAntwortenJeSekunde * 60 * 100,
             Format = wert => $"{Hundertstel(wert)} richtige/min",
+
+            // Bis 20 rechnet man schneller als bis 1000 - eine gemeinsame Liste vergliche das nicht (F-M35-15).
+            VariantTitles = ["leicht", "mittel", "schwer"],
         };
 
         /// <summary>Der Multiplikator beim Ausstieg in Hundertsteln, gemessen an der Serveruhr.</summary>

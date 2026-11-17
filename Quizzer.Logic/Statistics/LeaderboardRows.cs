@@ -32,6 +32,7 @@ namespace Quizzer.Logic.Statistics
                     r.GameId,
                     r.Game.Designation,
                     context.MinigameQuestions.Where(q => q.Id == r.QuestionBaseId).Select(q => (MinigameKind?)q.Kind).FirstOrDefault(),
+                    context.MinigameQuestions.Where(q => q.Id == r.QuestionBaseId).Select(q => q.Variant).FirstOrDefault(),
                     r.RecordValue,
                     r.RecordedAt,
                     r.Steals))

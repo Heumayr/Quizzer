@@ -51,6 +51,26 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
                 Assert.IsNotNull(MinigameProfiles.For(art).Record, $"{art} fuehrt keinen Bestwert.");
         }
 
+        /// <summary>
+        /// M37 E05: nur das Kopfrechnen trennt seine Liste nach Spielweise, und zwar je Schwierigkeit mit ihrem Namen. Eine
+        /// weitere Art mit Unterteilung wird hier bewusst eingetragen.
+        /// </summary>
+        [TestMethod]
+        public void OnlyMentalArithmeticSplitsItsListAndNamesEveryDifficulty()
+        {
+            var unterteilt = MinigameProfiles.All.Where(p => p.Record is { VariantTitles.Count: > 0 }).ToList();
+
+            CollectionAssert.AreEqual(new[] { MinigameKind.MentalArithmetic }, unterteilt.Select(p => p.Kind).ToList());
+
+            foreach (var profil in unterteilt)
+                Assert.AreEqual(profil.Variants.Count, profil.Record!.VariantTitles.Count, $"{profil.Kind}: nicht jede Spielweise hat einen Titel.");
+
+            var titel = MinigameProfiles.For(MinigameKind.MentalArithmetic).Record!.VariantTitles;
+            Assert.AreEqual("leicht", titel[KopfrechnenAufgaben.Leicht]);
+            Assert.AreEqual("mittel", titel[KopfrechnenAufgaben.Mittel]);
+            Assert.AreEqual("schwer", titel[KopfrechnenAufgaben.Schwer]);
+        }
+
         [TestMethod]
         public void TheReactionRangeIsWhatTheRoundCounts()
         {
