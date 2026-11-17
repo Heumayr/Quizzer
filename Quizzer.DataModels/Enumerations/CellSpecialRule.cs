@@ -45,5 +45,17 @@ namespace Quizzer.DataModels.Enumerations
         /// Sprecher fuers Team -, der Beamer loest einen nach dem anderen auf. Hoechstens eine je Spiel.
         /// </summary>
         Final = 9,
+
+        /// <summary>
+        /// Gleich gedacht (M37 T6), Teamregel ohne Vorphase: jedes Mitglied schreibt fuer sich; Punkte bringt nur die
+        /// Uebereinstimmung im Team (F-M37-12), je passendem Mitglied sein Anteil. Kein Minus. Nur im Teamspiel.
+        /// </summary>
+        SameThought = 10,
+
+        /// <summary>
+        /// Alle oder keiner (M37 T6), Teamregel ohne Vorphase: jedes Mitglied antwortet selbst; alle richtig bringt dem Team
+        /// den Feldwert, einer falsch kostet es das Minus, beides aufgeteilt. Nur im Teamspiel.
+        /// </summary>
+        AllOrNothing = 11,
     }
 }

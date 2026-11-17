@@ -101,6 +101,24 @@ namespace Quizzer.LogicUnitTests.DataModels.Sonderregeln
             StringAssert.Contains(befund!.Message, "nur im Teamspiel");
         }
 
+        /// <summary>„Gleich gedacht" und „Alle oder keiner" (M37 T6) sind Teamregeln ohne Vorphase - jeder antwortet am Telefon selbst.</summary>
+        [TestMethod]
+        [DataRow(CellSpecialRule.SameThought, "Gleich gedacht")]
+        [DataRow(CellSpecialRule.AllOrNothing, "Alle oder keiner")]
+        public void SameThoughtAndAllOrNothingAreTeamRulesWithoutPrePhase(CellSpecialRule regel, string name)
+        {
+            var zelle = Zelle(regel);
+
+            Assert.IsTrue(SpecialRuleProfiles.TryFor(regel, out var profil) && profil.IstTeamregel, $"{name} ist keine Teamregel.");
+            Assert.AreEqual(name, profil.DisplayName);
+            Assert.IsFalse(profil.HasPrePhase, $"{name} spielt eine Vorphase.");
+            Assert.IsFalse(profil.EinmalJeSpiel);
+            Assert.IsTrue(SpecialRuleProfiles.Applies(zelle, zelle.QuestionBase, teamspiel: true));
+            Assert.IsFalse(SpecialRuleProfiles.Applies(zelle, zelle.QuestionBase, teamspiel: false), $"{name} spielt ohne Teams.");
+            CollectionAssert.DoesNotContain(SpecialRuleProfiles.Angeboten(teamspiel: false).Select(p => p.Rule).ToList(), regel);
+            Assert.AreEqual(Sonderregelraster.TeamGameRuleCode, Sonderregelraster.Startbefund(zelle, zelle.QuestionBase, teamspiel: false)?.Code);
+        }
+
         [TestMethod]
         public void DistributingWithoutTeamsNeverPlacesATeamRule()
         {

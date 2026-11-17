@@ -107,6 +107,17 @@ namespace Quizzer.Server.Tests
             Assert.AreEqual(HttpStatusCode.UpgradeRequired, antwort.StatusCode);
         }
 
+        /// <summary>M37 T6: ein WPF ohne „Gleich gedacht" und „Alle oder keiner" spielte die Zelle ohne Teamregel und schrieb volle Feldpunkte.</summary>
+        [TestMethod]
+        public async Task AProgramWithoutSameThoughtAndAllOrNothingIsStopped()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+
+            var antwort = await LoginWithFormatAsync(factory.CreateClient(), Format(28));
+
+            Assert.AreEqual(HttpStatusCode.UpgradeRequired, antwort.StatusCode);
+        }
+
         [TestMethod]
         public async Task ANewerProgramIsStoppedWithItsOwnMessage()
         {

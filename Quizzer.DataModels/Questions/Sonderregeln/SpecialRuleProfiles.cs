@@ -156,6 +156,22 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
             {
                 EinmalJeSpiel = true,
             },
+            new(CellSpecialRule.SameThought, "Gleich gedacht",
+                "Jeder schreibt am Telefon für sich, ohne Absprache. Es zählt nur, was im Team gleich ist: Schreiben mindestens "
+                + "zwei dasselbe, bekommt jeder von ihnen seinen Anteil an den Feldpunkten – bei mehreren Gruppen nur die größte, "
+                + "gleich große alle. Ob die Antwort stimmt, zählt nicht; ein Minus gibt es nicht.")
+            {
+                HasPrePhase = false,
+                Teamspiel = TeamspielEignung.Nur,
+            },
+            new(CellSpecialRule.AllOrNothing, "Alle oder keiner",
+                "Jeder im Team antwortet selbst am Telefon. Liegen alle richtig, bringt das dem Team die Feldpunkte; liegt auch "
+                + "nur einer falsch, kostet es das Team die Minuspunkte – beides gleich auf die Mitglieder verteilt. Wer per "
+                + "Joker gesperrt ist, muss nicht antworten.")
+            {
+                HasPrePhase = false,
+                Teamspiel = TeamspielEignung.Nur,
+            },
         ];
 
         private static string AuktionText(string preis)
