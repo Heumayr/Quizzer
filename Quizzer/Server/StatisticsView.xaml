@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:base="clr-namespace:Quizzer.Base"
         xmlns:local="clr-namespace:Quizzer.Server"
+        xmlns:bl="clr-namespace:Quizzer.Views.Bestenliste"
         Title="Meine Statistik" Height="760" Width="900"
         WindowStartupLocation="CenterOwner">
     <base:WindowBase.DataContext>
@@ -37,30 +38,7 @@
         <TextBlock Grid.Row="2" Text="Bestenliste über alle Abende" Style="{StaticResource SectionHeader}" Margin="0,16,0,6" />
 
         <ScrollViewer Grid.Row="3" MaxHeight="260" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <ItemsControl ItemsSource="{Binding Bestenliste}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Background="{StaticResource PanelBgBrush}" BorderBrush="{StaticResource BtnBorderBrush}"
-                                BorderThickness="1" Padding="10,6" Margin="0,0,8,8" Width="275">
-                            <StackPanel>
-                                <TextBlock Text="{Binding Titel}" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,4" />
-                                <ItemsControl ItemsSource="{Binding Zeilen}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="12" />
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <bl:BestenlisteKachelnView DataContext="{Binding Bestenliste}" />
         </ScrollViewer>
     </Grid>
 </base:WindowBase>

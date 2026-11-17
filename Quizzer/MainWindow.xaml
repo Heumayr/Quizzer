@@ -61,6 +61,12 @@
                         FontWeight="Bold"
                         ToolTip="Spielfeld bauen, Mitspieler zuordnen und den Abend starten." />
 
+                <!-- M37 E03: in jeder Betriebsart, ohne Server aus den Spielen auf diesem Rechner. -->
+                <Button Content="Bestenliste"
+                        Command="{Binding BestenlisteCommand}"
+                        Height="32" Margin="0,4,0,0"
+                        ToolTip="Die besten Werte aus den Minispielen über alle Abende. Ohne Server gerechnet aus den Spielen auf diesem Rechner, im Servermodus online vom Server." />
+
                 <!--
                     B38: die Anmeldung entscheidet, welche Fragen sichtbar sind und wem eine neue
                     Frage gehoert - und bis 2026-09-06 stand sie in keinem einzigen Fenster.

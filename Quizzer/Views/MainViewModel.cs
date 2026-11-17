@@ -140,6 +140,11 @@ namespace Quizzer.Views
             _ => new Server.StatisticsView().ShowDialog(),
             _ => !Server.ServerSession.IsOffline);
 
+        private RelayCommand? bestenlisteCommand;
+
+        /// <summary>M37 E03: die Bestenliste in jeder Betriebsart - ohne Server lokal gerechnet.</summary>
+        public ICommand BestenlisteCommand => bestenlisteCommand ??= new RelayCommand(_ => new Bestenliste.BestenlisteView().ShowDialog());
+
         private RelayCommand? accountsCommand;
 
         public ICommand AccountsCommand => accountsCommand ??= new RelayCommand(

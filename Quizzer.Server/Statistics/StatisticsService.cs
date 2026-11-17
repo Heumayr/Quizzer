@@ -89,27 +89,7 @@ namespace Quizzer.Server.Statistics
                 played.Sum(g => g.FinalScore),
                 list.Count(g => g.IsGameMaster),
                 list.OrderBy(g => g.GameName).ToList(),
-                await LeaderboardAsync(context, gameIds, ct));
-        }
-
-        /// <summary>Die Bestenliste ueber die Spiele, die die Statistik zeigt - nur Zeilen mit Rohwert oder Klau.</summary>
-        private static async Task<Leaderboard> LeaderboardAsync(DataContext context, List<Guid> gameIds, CancellationToken ct)
-        {
-            var rows = await context.QuestionResults.AsNoTracking()
-                .Where(r => gameIds.Contains(r.GameId) && (r.RecordValue != null || r.Steals > 0))
-                .Select(r => new LeaderboardRow(
-                    r.Id,
-                    r.PlayerId,
-                    r.Player.DisplayName != "" ? r.Player.DisplayName : r.Player.Designation,
-                    r.GameId,
-                    r.Game.Designation,
-                    context.MinigameQuestions.Where(q => q.Id == r.QuestionBaseId).Select(q => (MinigameKind?)q.Kind).FirstOrDefault(),
-                    r.RecordValue,
-                    r.RecordedAt,
-                    r.Steals))
-                .ToListAsync(ct);
-
-            return LeaderboardCalculator.Calculate(rows);
+                await LeaderboardRows.CalculateAsync(context, gameIds, ct));
         }
     }
 }

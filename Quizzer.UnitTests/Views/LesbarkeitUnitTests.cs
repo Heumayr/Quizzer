@@ -65,6 +65,7 @@ namespace Quizzer.UnitTests.Views
             typeof(Quizzer.Server.TwoFactorView),
             typeof(Quizzer.Server.ServerLoginView),
             typeof(Quizzer.Server.StatisticsView),
+            typeof(Quizzer.Views.Bestenliste.BestenlisteView),
             typeof(Quizzer.Server.SyncRejectionsView),
             typeof(Quizzer.Views.HelperViewModels.PromptView),
             typeof(Quizzer.Server.KiEinstellungenView),

@@ -2,6 +2,8 @@
 using Quizzer.DataModels.Anzeige;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.DataModels.Transfer.Server;
+using Quizzer.Logic.Statistics;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -56,6 +58,9 @@ namespace Quizzer.Logic.Controller.TypedControllers
 
             return zeilen.ToDictionary(z => z.Frage, z => new FragenStatistik(z.Gespielt, z.Antworten, z.Richtig, z.Punkte));
         }
+
+        /// <summary>Die Bestenliste ueber alle Spiele dieser Datenbank, gerechnet wie am Server (M37 E03).</summary>
+        public Task<Leaderboard> BestenlisteAsync() => LeaderboardRows.CalculateAsync(CurrentContext, gameIds: null);
 
         public async Task<int> DeleteByGameIdAsync(Guid gameId)
         {
