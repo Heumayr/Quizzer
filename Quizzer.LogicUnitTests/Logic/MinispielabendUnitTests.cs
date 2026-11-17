@@ -28,6 +28,8 @@ namespace Quizzer.LogicUnitTests.Logic
             TestDatabase.ClearDiscardedChanges();
         }
 
+        private static bool IstTeamregel(CellSpecialRule regel) => SpecialRuleProfiles.TryFor(regel, out var profil) && profil.IstTeamregel;
+
         /// <summary>Das Spiel samt Zellen und je Zelle die Frage mit Schritten, wie Editor und Spielstart sie laden.</summary>
         private static async Task<(Game Spiel, List<(GameGridCoordinate Zelle, QuestionBase Frage)> Zellen)> LadeAsync(Guid spielId)
         {
@@ -51,6 +53,10 @@ namespace Quizzer.LogicUnitTests.Logic
         /// <summary>
         /// Jede Art (ausser 0) und jede Sonderregel (ausser „Keine") steht im Abend - über die Aufzählungen, nicht über
         /// eine abgeschriebene Liste. Eine Regel zählt nur, wo sie auch gespielt wird: auf einer gewöhnlichen Frage.
+        /// <para>
+        /// <b>Ausnahme Teamregeln</b> (M37 T5, Entwurf Abschnitt 6): sie gibt es nur im Teamspiel, und der Minispielabend ist
+        /// keins - sie gehören in den Teamabend (<c>demo-teams</c>, T12).
+        /// </para>
         /// </summary>
         [TestMethod]
         public async Task EveryMinigameKindAndEverySpecialRuleIsPlayedInTheEvening()
@@ -61,8 +67,8 @@ namespace Quizzer.LogicUnitTests.Logic
             var arten = zellen.Select(z => z.Frage).OfType<MinigameQuestion>().Select(m => m.Kind).ToHashSet();
             var fehlendeArten = Enum.GetValues<MinigameKind>().Where(k => (int)k != 0 && !arten.Contains(k)).ToList();
 
-            var regeln = zellen.Where(z => SpecialRuleProfiles.Applies(z.Zelle, z.Frage)).Select(z => z.Zelle.SpecialRule).ToHashSet();
-            var fehlendeRegeln = Enum.GetValues<CellSpecialRule>().Where(r => r != CellSpecialRule.None && !regeln.Contains(r)).ToList();
+            var regeln = zellen.Where(z => SpecialRuleProfiles.Applies(z.Zelle, z.Frage, false)).Select(z => z.Zelle.SpecialRule).ToHashSet();
+            var fehlendeRegeln = Enum.GetValues<CellSpecialRule>().Where(r => r != CellSpecialRule.None && !regeln.Contains(r) && !IstTeamregel(r)).ToList();
 
             Assert.AreEqual(0, fehlendeArten.Count, "Ohne Demozelle: " + string.Join(", ", fehlendeArten));
             Assert.AreEqual(0, fehlendeRegeln.Count, "Ohne gespielte Demozelle: " + string.Join(", ", fehlendeRegeln));
@@ -88,7 +94,7 @@ namespace Quizzer.LogicUnitTests.Logic
                 if (frage is MinigameQuestion minispiel)
                     befunde.AddRange(MinigameChecks.ForPlayers(minispiel, spielerzahl));
 
-                if (Sonderregelraster.Startbefund(zelle, frage) is { } regel)
+                if (Sonderregelraster.Startbefund(zelle, frage, spiel.IsTeamGame) is { } regel)
                     befunde.Add(regel);
 
                 maengel.AddRange(befunde.Select(b => $"{frage.Designation}: {b.Severity} {b.Message}"));

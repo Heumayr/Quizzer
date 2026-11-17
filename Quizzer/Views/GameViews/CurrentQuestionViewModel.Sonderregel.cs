@@ -67,7 +67,7 @@ namespace Quizzer.Views.GameViews
         private async Task<bool> StarteVorphaseAsync()
         {
             if (vorphaseGespielt || Coordinate is not { IsDone: false } zelle || BuzzerControlsViewModel == null
-                || !SpecialRuleProfiles.Applies(zelle, Question) || SonderregelFabrik(zelle.SpecialRule) is not { } regel)
+                || !SpecialRuleProfiles.Applies(zelle, Question, Teamspiel) || SonderregelFabrik(zelle.SpecialRule) is not { } regel)
                 return false;
 
             SetzeSonderregel(regel);

@@ -13,12 +13,14 @@ namespace Quizzer.Views.HelperViewModels
     /// </summary>
     public partial class QuestionSelectorViewModel
     {
-        /// <summary>„Keine" vorn, dann jede Regel aus den Profilen.</summary>
-        public IReadOnlyList<SonderregelOption> SonderregelOptionen { get; } =
+        /// <summary>„Keine" vorn, dann jede Regel aus den Profilen, die zum Spiel mit oder ohne Teams passt (M37 T5).</summary>
+        public IReadOnlyList<SonderregelOption> SonderregelOptionen =>
         [
             new(CellSpecialRule.None, SpecialRuleProfiles.NameOf(CellSpecialRule.None)),
-            .. SpecialRuleProfiles.All.Select(p => new SonderregelOption(p.Rule, p.DisplayName)),
+            .. SpecialRuleProfiles.Angeboten(Teamspiel).Select(p => new SonderregelOption(p.Rule, p.DisplayName)),
         ];
+
+        private bool Teamspiel => Game?.IsTeamGame == true;
 
         /// <summary>Ob diese Zelle eine Regel tragen darf: eine gewoehnliche Frage, noch nicht gespielt.</summary>
         public bool SonderregelMoeglich => Coordinate != null && Sonderregelraster.Erlaubt(Coordinate);
@@ -29,6 +31,9 @@ namespace Quizzer.Views.HelperViewModels
             null => "Erst eine Frage wählen – eine leere Zelle trägt keine Sonderregel.",
             { Typ: QuestionType.Minigame } => "Ein Minispiel trägt keine Sonderregel.",
             _ when Coordinate.IsDone => "Die Zelle ist schon gespielt.",
+            _ when Profil is { } profil && !profil.PasstZu(Teamspiel) => profil.IstTeamregel
+                ? $"„{profil.DisplayName}“ gibt es nur im Teamspiel – sie wird nicht gespielt."
+                : $"„{profil.DisplayName}“ wird im Teamspiel nicht gespielt.",
             _ => string.Empty,
         };
 
@@ -43,8 +48,8 @@ namespace Quizzer.Views.HelperViewModels
                 if (value.Regel == Coordinate.SpecialRule)
                     return;
 
-                // Fail-closed: auf einem Minispiel oder einer leeren Zelle bleibt es bei „Keine".
-                var regel = value.Regel == CellSpecialRule.None || SonderregelMoeglich ? value.Regel : CellSpecialRule.None;
+                // Fail-closed: auf einem Minispiel, einer leeren Zelle oder mit einer Regel, die nicht zum Spiel passt, bleibt es bei „Keine".
+                var regel = value.Regel == CellSpecialRule.None || (SonderregelMoeglich && SonderregelOptionen.Contains(value)) ? value.Regel : CellSpecialRule.None;
                 var angekuendigt = Coordinate.SpecialRuleAnnounced && regel != CellSpecialRule.None;
 
                 // Eine andere Regel beginnt mit ihrer Vorgabe: Anteil und Spielweise gehoerten der alten.
@@ -116,6 +121,7 @@ namespace Quizzer.Views.HelperViewModels
 
         private void SonderregelGeaendert()
         {
+            OnPropertyChanged(nameof(SonderregelOptionen));
             OnPropertyChanged(nameof(GewaehlteSonderregel));
             OnPropertyChanged(nameof(SonderregelAngekuendigt));
             OnPropertyChanged(nameof(SonderregelMoeglich));

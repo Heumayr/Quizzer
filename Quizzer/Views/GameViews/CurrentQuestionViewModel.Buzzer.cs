@@ -34,7 +34,7 @@ namespace Quizzer.Views.GameViews
         public bool BuzzerFehlt =>
             StaticManager.BuzzerServerViewModel?.IsBuzzerServerRunning != true
             && ((Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None) != BuzzerControlsLayout.None
-                || (Coordinate != null && DataModels.Questions.Sonderregeln.SpecialRuleProfiles.Applies(Coordinate, Question)));
+                || (Coordinate != null && DataModels.Questions.Sonderregeln.SpecialRuleProfiles.Applies(Coordinate, Question, Teamspiel)));
 
         /// <summary>Der Satz dazu - leer, solange nichts fehlt.</summary>
         public string BuzzerFehltText => BuzzerFehlt

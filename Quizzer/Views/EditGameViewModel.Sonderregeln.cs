@@ -74,7 +74,7 @@ namespace Quizzer.Views
 
             var geaendert = Sonderregelraster.Entferne(zellen).ToHashSet();
             var auftrag = new Verteilauftrag(SonderregelAnzahl, SonderregelnAngekuendigt,
-                SpecialRuleProfiles.All.Select(p => p.Rule).ToList(), Zufall);
+                SpecialRuleProfiles.Angeboten(Game.IsTeamGame).Select(p => p.Rule).ToList(), Zufall) { Teamspiel = Game.IsTeamGame };
             var neu = Sonderregelraster.Verteile(zellen, auftrag);
             geaendert.UnionWith(neu);
 

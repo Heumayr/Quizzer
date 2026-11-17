@@ -146,14 +146,14 @@ namespace Quizzer.LogicUnitTests.DataModels.Sonderregeln
             var gut = Zelle(2, Frage());
             gut.SpecialRule = CellSpecialRule.Risk;
 
-            Assert.AreEqual(Sonderregelraster.MinigameRuleCode, Sonderregelraster.Startbefund(minispiel, minispielFrage)?.Code);
-            Assert.AreEqual(Sonderregelraster.UnknownRuleCode, Sonderregelraster.Startbefund(unbekannt, unbekannt.QuestionBase)?.Code);
-            Assert.IsNull(Sonderregelraster.Startbefund(gut, gut.QuestionBase));
-            Assert.IsFalse(Sonderregelraster.Startbefund(minispiel, minispielFrage)!.IsError, "Eine nicht gespielte Regel haelt den Start an.");
+            Assert.AreEqual(Sonderregelraster.MinigameRuleCode, Sonderregelraster.Startbefund(minispiel, minispielFrage, false)?.Code);
+            Assert.AreEqual(Sonderregelraster.UnknownRuleCode, Sonderregelraster.Startbefund(unbekannt, unbekannt.QuestionBase, false)?.Code);
+            Assert.IsNull(Sonderregelraster.Startbefund(gut, gut.QuestionBase, false));
+            Assert.IsFalse(Sonderregelraster.Startbefund(minispiel, minispielFrage, false)!.IsError, "Eine nicht gespielte Regel haelt den Start an.");
 
-            Assert.IsFalse(SpecialRuleProfiles.Applies(minispiel, minispielFrage), "Ein Minispiel spielt mit Sonderregel.");
-            Assert.IsFalse(SpecialRuleProfiles.Applies(unbekannt, unbekannt.QuestionBase));
-            Assert.IsTrue(SpecialRuleProfiles.Applies(gut, gut.QuestionBase));
+            Assert.IsFalse(SpecialRuleProfiles.Applies(minispiel, minispielFrage, false), "Ein Minispiel spielt mit Sonderregel.");
+            Assert.IsFalse(SpecialRuleProfiles.Applies(unbekannt, unbekannt.QuestionBase, false));
+            Assert.IsTrue(SpecialRuleProfiles.Applies(gut, gut.QuestionBase, false));
         }
     }
 }

@@ -82,8 +82,8 @@ namespace Quizzer.UnitTests.Views
             UserPrompt.Current = new RecordingUserPrompt(answer: true);
             await vm.VerteileSonderregelnAsync();
 
-            // Der Wurf bis - 1 trifft die letzte Regel der Profile - seit M35 C3b nicht mehr Risiko.
-            Assert.AreEqual(Quizzer.DataModels.Questions.Sonderregeln.SpecialRuleProfiles.All[^1].Rule, mitFrage.SpecialRule,
+            // Der Wurf bis - 1 trifft die letzte Regel, die ohne Teams angeboten wird - seit M35 C3b nicht mehr Risiko.
+            Assert.AreEqual(Quizzer.DataModels.Questions.Sonderregeln.SpecialRuleProfiles.Angeboten(teamspiel: false)[^1].Rule, mitFrage.SpecialRule,
                 "Mit Zustimmung nicht ersetzt.");
         }
 
@@ -110,6 +110,31 @@ namespace Quizzer.UnitTests.Views
 
             Assert.AreEqual(CellSpecialRule.Stake, gewoehnlich.SpecialRule, "Die gewoehnliche Frage nahm die Regel nicht.");
             Assert.IsTrue(gewoehnlich.SpecialRuleAnnounced);
+        }
+
+        /// <summary>
+        /// M37 T5: im Teamspiel bietet der Auswahldialog nur, was dort gespielt wird; eine Auktion lässt sich nicht wählen, und
+        /// eine schon liegende nennt den Grund.
+        /// </summary>
+        [TestMethod]
+        public void TheTeamGameDialogOffersOnlyWhatIsPlayedThere()
+        {
+            var vm = new QuestionSelectorViewModel();
+            var auktion = vm.SonderregelOptionen.Single(o => o.Regel == CellSpecialRule.Auction);
+            var zelle = new GameGridCoordinate { Id = Guid.NewGuid(), QuestionBase = new DefaultQuestion { Id = Guid.NewGuid() } };
+
+            vm.SetDependencys(new Game { IsTeamGame = true }, zelle);
+
+            Assert.IsFalse(vm.SonderregelOptionen.Any(o => o.Regel == CellSpecialRule.Auction), "Das Teamspiel bietet die Auktion an.");
+            CollectionAssert.Contains(vm.SonderregelOptionen.Select(o => o.Regel).ToList(), CellSpecialRule.Stake);
+
+            vm.GewaehlteSonderregel = auktion;
+            Assert.AreEqual(CellSpecialRule.None, zelle.SpecialRule, "Die Auktion ließ sich im Teamspiel trotzdem setzen.");
+
+            zelle.SpecialRule = CellSpecialRule.Auction;
+            vm.SetDependencys(new Game { IsTeamGame = true }, zelle);
+            StringAssert.Contains(vm.SonderregelHinweis, "im Teamspiel nicht gespielt");
+            Assert.IsNull(vm.GewaehlteSonderregel, "Eine nicht angebotene Regel steht als gewählt da.");
         }
 
         /// <summary>M35 C3b: eine andere Regel beginnt mit ihrer Vorgabe - Anteil und Spielweise gehoerten der alten.</summary>

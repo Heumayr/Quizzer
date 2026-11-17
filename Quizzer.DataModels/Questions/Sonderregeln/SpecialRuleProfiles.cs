@@ -9,6 +9,19 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
     /// <param name="RulesText">Der Regeltext dieser Spielweise; <see cref="SpecialRuleProfiles.SharePlaceholder"/> wird ersetzt.</param>
     public sealed record SpecialRuleVariant(string Name, string RulesText);
 
+    /// <summary>Ob eine Regel im Teamspiel gespielt wird (M37 T5, Entwurf Abschnitt 7).</summary>
+    public enum TeamspielEignung
+    {
+        /// <summary>Mit und ohne Teams - Einsatz und Risiko wirken je Person.</summary>
+        Erlaubt = 0,
+
+        /// <summary>Nur im Teamspiel - eine Teamregel wie die Teamberatung.</summary>
+        Nur = 1,
+
+        /// <summary>Nie im Teamspiel - Auktion, Wette, Experte, Allianz und Kopfgeld rechnen Spieler gegeneinander.</summary>
+        Nie = 2,
+    }
+
     /// <summary>Was eine Sonderregel ausmacht - Name und Regeltext fuer Beamer, Telefon und Spielaufbau.</summary>
     /// <param name="Rule">Der Wert an der Zelle.</param>
     /// <param name="DisplayName">„Einsatz" - im Spielaufbau, auf der Marke und am Beamer.</param>
@@ -29,6 +42,21 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
 
         /// <summary>Ob die Regel eine Vorphase am Telefon spielt - das Kopfgeld nicht, es steht beim Oeffnen fest.</summary>
         public bool HasPrePhase { get; init; } = true;
+
+        /// <summary>Ob die Regel im Teamspiel gespielt wird (M37 T5).</summary>
+        public TeamspielEignung Teamspiel { get; init; } = TeamspielEignung.Erlaubt;
+
+        /// <summary>Eine Teamregel: sie gibt es nur im Teamspiel.</summary>
+        public bool IstTeamregel => Teamspiel == TeamspielEignung.Nur;
+
+        /// <summary>Ob die Regel in einem Spiel mit oder ohne Teams gespielt wird; eine unbekannte Eignung nie (fail-closed).</summary>
+        public bool PasstZu(bool teamspiel) => Teamspiel switch
+        {
+            TeamspielEignung.Erlaubt => true,
+            TeamspielEignung.Nur => teamspiel,
+            TeamspielEignung.Nie => !teamspiel,
+            _ => false,
+        };
 
         /// <summary>Der Regeltext der Spielweise mit eingesetztem Anteil; eine unbekannte Spielweise liest sich wie die erste.</summary>
         public string RulesTextFor(int variant, int share)
@@ -73,6 +101,7 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
                     new("Höchstpreis", AuktionText("zahlt sein Gebot")),
                     new("Zweitpreis", AuktionText("zahlt nur das zweithöchste Gebot (allein geboten: nichts)")),
                 ],
+                Teamspiel = TeamspielEignung.Nie,
             },
             new(CellSpecialRule.Bet, "Wette",
                 "Vor der Frage wettet jeder am Telefon auf einen Mitspieler – auch auf sich selbst. Einsatz: "
@@ -81,6 +110,7 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
                 + "Die eigene Antwort zählt wie immer dazu.")
             {
                 DefaultShare = 50,
+                Teamspiel = TeamspielEignung.Nie,
             },
             new(CellSpecialRule.Expert, "Experte",
                 "Vor der Frage wählt jeder am Telefon, wer für alle antworten soll – nicht sich selbst. Der "
@@ -89,11 +119,15 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
                 + "niemand, spielen alle wie immer.")
             {
                 DefaultShare = 25,
+                Teamspiel = TeamspielEignung.Nie,
             },
             new(CellSpecialRule.Alliance, "Allianz",
                 "Wer das Feld aufgedeckt hat, wählt am Telefon einen Partner. Nur die beiden antworten. Sind beide "
                 + "richtig, bekommen beide die vollen Punkte – sonst gibt es für beide kein Plus, ein Minus bleibt. Hat "
-                + "niemand das Feld aufgedeckt, gibt es keine Allianz."),
+                + "niemand das Feld aufgedeckt, gibt es keine Allianz.")
+            {
+                Teamspiel = TeamspielEignung.Nie,
+            },
             new(CellSpecialRule.Bounty, "Kopfgeld",
                 "Auf den Führenden ist ein Kopfgeld ausgesetzt – er wird am Beamer genannt. Antwortet ein anderer "
                 + $"richtig und der Führende nicht, nimmt er ihm {SharePlaceholder} % der Feldpunkte ab, jeder Jäger "
@@ -101,6 +135,7 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
             {
                 DefaultShare = 50,
                 HasPrePhase = false,
+                Teamspiel = TeamspielEignung.Nie,
             },
         ];
 
@@ -133,13 +168,18 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
             => TryFor(zelle.SpecialRule, out var profil) ? profil.RulesTextFor(zelle.SpecialRuleVariant, ShareOf(zelle)) : string.Empty;
 
         /// <summary>
-        /// Ob die Regel dieser Zelle gespielt wird: bekannt, und die Frage ist eine gewoehnliche. Ein
-        /// Minispiel spielt nie mit Sonderregel - fail-closed auch, wenn der Typ nicht geladen ist.
+        /// Ob die Regel dieser Zelle gespielt wird: bekannt, die Frage ist eine gewoehnliche, und die Regel passt zum Spiel
+        /// mit oder ohne Teams (M37 T5). Ein Minispiel spielt nie mit Sonderregel - fail-closed auch, wenn der Typ nicht
+        /// geladen ist.
         /// </summary>
-        public static bool Applies(GameGridCoordinate zelle, QuestionBase? frage)
+        public static bool Applies(GameGridCoordinate zelle, QuestionBase? frage, bool teamspiel)
             => zelle.SpecialRule != CellSpecialRule.None
-               && TryFor(zelle.SpecialRule, out _)
+               && TryFor(zelle.SpecialRule, out var profil)
+               && profil.PasstZu(teamspiel)
                && frage != null
                && frage.Typ != QuestionType.Minigame;
+
+        /// <summary>Was Spielaufbau und Verteilen anbieten: nur Regeln, die zu diesem Spiel passen (M37 T5).</summary>
+        public static IReadOnlyList<SpecialRuleProfile> Angeboten(bool teamspiel) => All.Where(p => p.PasstZu(teamspiel)).ToList();
     }
 }
