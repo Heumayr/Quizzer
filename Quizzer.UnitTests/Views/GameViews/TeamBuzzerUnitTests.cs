@@ -195,6 +195,8 @@ namespace Quizzer.UnitTests.Views.GameViews
         {
             await BuzzerUndZurueckAsync();
             var steuerung = serverVm.BuzzerControlsViewModel!;
+            var gemeldet = new List<string?>();
+            steuerung.PropertyChanged += (_, e) => { lock (gemeldet) gemeldet.Add(e.PropertyName); };
 
             Assert.IsTrue(steuerung.TeamFreigebenCommand.CanExecute(null));
             await ((AsyncRelayCommand)steuerung.TeamFreigebenCommand).ExecuteAsync(null);
@@ -202,6 +204,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.IsTrue(await WarteAsync(() => Stand(1) is { ExcludedFromQuestion: false, CurrentLayoutLocked: false }),
                 "Nach „Team wieder freigeben“ ist das Telefon des Teamkollegen weiter gesperrt.");
             Assert.AreEqual(Visibility.Collapsed, steuerung.TeamSperreVisibility);
+            lock (gemeldet) CollectionAssert.Contains(gemeldet, nameof(BuzzerControlsViewModel.TeamSperreVisibility), "Der Knopf erfährt nicht, dass er weg muss.");
 
             await phones[1].InvokeAsync("Buzz");
             Assert.IsTrue(await WarteAsync(() => Hub.BuzzerState.Winner?.Id == world.Players[1].Id), "Nach dem Freigeben kann der Teamkollege nicht buzzern.");
