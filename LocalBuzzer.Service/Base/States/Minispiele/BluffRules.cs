@@ -233,7 +233,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
             if (aufgeloest && Auswertung is { } runde)
             {
-                var wertung = new BluffErgebnis(runde, 0, 0, new Dictionary<Guid, Punktevorschlag>());
+                var wertung = new BluffErgebnis(runde, 0, 0, new Dictionary<Guid, Punktevorschlag>()) { Teamkollegen = kontext.Teamkollegen };
                 info.FoundReal = wertung.Gefunden(player.Id);
                 info.FooledCount = wertung.Reinfaelle(player.Id);
                 info.OwnStruck = optionen.Any(o => o.Gestrichen && o.Urheber.Contains(player.Id));

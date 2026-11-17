@@ -312,12 +312,12 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         }
 
         /// <summary>
-        /// Wohin der Halter weitergeben darf: verbundene Mitspieler ausser ihm selbst. Direkt zurueck an den, der sie ihm gab,
-        /// nur wenn sonst niemand da ist (Annahme C6b) - sonst spielten zwei sie sich zu, und mit zweien steckte sie fest.
+        /// Wohin der Halter weitergeben darf: verbundene Mitspieler ausser ihm selbst, im Teamspiel nur Gegner (M37 T8). Direkt
+        /// zurueck an den, der sie ihm gab, nur wenn sonst niemand da ist (Annahme C6b) - sonst spielten zwei sie sich zu.
         /// </summary>
         private List<Player> Ziele(Guid spieler)
         {
-            var verbunden = kontext.Mitspieler().Where(p => p.Id != spieler && p.ConnectionState == PlayerConnection.Connected).ToList();
+            var verbunden = kontext.Mitspieler().Where(p => kontext.IstZiel(spieler, p.Id) && p.ConnectionState == PlayerConnection.Connected).ToList();
             var ohneRueckgabe = verbunden.Where(p => p.Id != zuschieber).ToList();
             return ohneRueckgabe.Count > 0 ? ohneRueckgabe : verbunden;
         }

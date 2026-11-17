@@ -18,9 +18,10 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
     }
 
     /// <summary>
-    /// Der Ausloeser waehlt einen Mitspieler (M35 C2) - Duell und Teilen oder Nehmen teilen sich das.
+    /// Der Ausloeser waehlt einen Mitspieler (M35 C2) - Duell, Teilen oder Nehmen und Gluecksrad teilen sich das.
     /// Vor der Wahl spielt nur er, danach die beiden. <b>Gewaehlt werden darf nur ein Mitspieler des
-    /// laufenden Spiels, nie der Waehlende selbst</b> - die Wahl kommt aus dem WLAN.
+    /// laufenden Spiels, nie der Waehlende selbst, im Teamspiel nur ein Gegner</b> (M37 T8) - die Wahl kommt aus dem WLAN,
+    /// und auch der Spielleiter legt kein Paar aus einem Team fest.
     /// </summary>
     public sealed class PartnerChoice
     {
@@ -57,8 +58,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             if (!ChoosesNow(player.Id))
                 return null;
 
-            if (MinigamePayload.Read<PlayerChoicePayload>(payload)?.Chosen is not { } gewaehlt
-                || gewaehlt == player.Id || !IstMitspieler(gewaehlt))
+            if (MinigamePayload.Read<PlayerChoicePayload>(payload)?.Chosen is not { } gewaehlt || !kontext.IstZiel(player.Id, gewaehlt))
                 return null;
 
             Partner = gewaehlt;
@@ -68,7 +68,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         /// <summary>Der Spielleiter legt das Paar fest (E1); ohne Partner waehlt danach der Ausloeser am Telefon.</summary>
         public bool SetPair(Guid chooser, Guid? partner)
         {
-            if (!IstMitspieler(chooser) || partner is { } p && (p == chooser || !IstMitspieler(p)))
+            if (!IstMitspieler(chooser) || partner is { } p && !kontext.IstZiel(chooser, p))
                 return false;
 
             Chooser = chooser;
@@ -83,7 +83,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         public List<MinigamePlayerOption> OptionsFor(Player? player)
             => player != null && ChoosesNow(player.Id)
                 ? kontext.Mitspieler()
-                    .Where(p => p.Id != player.Id)
+                    .Where(p => kontext.IstZiel(player.Id, p.Id))
                     .Select(p => new MinigamePlayerOption { Id = p.Id, Name = Name(p.Id) })
                     .OrderBy(o => o.Name, StringComparer.CurrentCulture)
                     .ToList()

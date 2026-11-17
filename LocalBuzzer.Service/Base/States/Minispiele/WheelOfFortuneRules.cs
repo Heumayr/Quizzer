@@ -83,7 +83,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
         public void StartRound(int round)
         {
-            segment = GluecksradEvaluator.Segment(kontext.Zufall(0, GluecksradEvaluator.Felder.Count));
+            // Im Teamspiel ohne Robin Hood (M37 T8) - die Aufstellung des Hubs sagt, ob es eines ist.
+            var teamspiel = kontext.IstTeamspiel;
+            segment = GluecksradEvaluator.Segment(kontext.Zufall(0, GluecksradEvaluator.FelderFuer(teamspiel).Count), teamspiel);
             start = kontext.Jetzt();
             laeuft = true;
             gezaehlt = false;

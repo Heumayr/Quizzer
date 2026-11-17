@@ -29,7 +29,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
     /// <summary>
     /// Raeuber und Waechter am Server (M35 C2): alle waehlen geheim und gleichzeitig. Geprueft wird, dass
-    /// das Opfer ein Mitspieler des laufenden Spiels ist und nicht der Waehlende selbst. Gewertet wird im
+    /// das Opfer ein Mitspieler des laufenden Spiels ist, nicht der Waehlende selbst und im Teamspiel ein Gegner (M37 T8). Gewertet wird im
     /// Fragefenster (<see cref="RaeuberEvaluator"/>) - hier steht nur, was jedes Telefon sehen darf.
     /// </summary>
     public sealed class RobberRules : IMinigameRules
@@ -63,7 +63,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
             if (abgabe.Shield)
                 wahl = RaeuberWahl.MitSchild;
-            else if (abgabe.Victim is { } opfer && opfer != player.Id && kontext.Mitspieler().Any(p => p.Id == opfer))
+            else if (abgabe.Victim is { } opfer && kontext.IstZiel(player.Id, opfer))
                 wahl = RaeuberWahl.Raub(opfer);
             else
                 return null;
@@ -96,7 +96,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             if (phase == MinigamePhase.Running && eigene == null)
             {
                 info.Options = kontext.Mitspieler()
-                    .Where(p => p.Id != player.Id)
+                    .Where(p => kontext.IstZiel(player.Id, p.Id))
                     .Select(p => new MinigamePlayerOption { Id = p.Id, Name = Name(p.Id) })
                     .OrderBy(o => o.Name, StringComparer.CurrentCulture)
                     .ToList();
