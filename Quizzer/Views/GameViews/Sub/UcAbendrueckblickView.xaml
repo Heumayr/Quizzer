@@ -1,0 +1,52 @@
+<UserControl x:Class="Quizzer.Views.GameViews.Sub.UcAbendrueckblickView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:base="clr-namespace:Quizzer.Base"
+             mc:Ignorable="d"
+             d:DesignHeight="900" d:DesignWidth="1600">
+
+    <!-- M37 E04: der Rueckblick nach dem Sieger. Feste Breite, damit der Text in der Viewbox des Beamers
+         umbricht; ein leerer Abschnitt ist Collapsed, nicht Hidden - sonst bliebe eine Luecke. -->
+    <Border Width="1500" Padding="56,40" CornerRadius="18"
+            Background="#E6101010" BorderBrush="WhiteSmoke" BorderThickness="2"
+            base:Bewegung.Einblenden="True" base:Bewegung.Stil="Zoomen">
+        <StackPanel>
+            <TextBlock Text="Rückblick auf diesen Abend" FontSize="60" FontWeight="Bold" Foreground="Wheat"
+                       HorizontalAlignment="Center" Margin="0,0,0,28" />
+
+            <StackPanel x:Name="BestwerteAbschnitt" Visibility="{Binding BestwerteVisibility}" Margin="0,0,0,24">
+                <TextBlock Text="Bestwerte des Abends" FontSize="40" FontWeight="SemiBold" Foreground="Gold" />
+                <ItemsControl ItemsSource="{Binding BestwertZeilen}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" FontSize="36" Foreground="WhiteSmoke" TextWrapping="Wrap" Margin="28,6,0,0" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <StackPanel x:Name="KlausAbschnitt" Visibility="{Binding KlausVisibility}" Margin="0,0,0,24">
+                <TextBlock Text="Meiste Klaus" FontSize="40" FontWeight="SemiBold" Foreground="Gold" />
+                <TextBlock Text="{Binding KlausZeile}" FontSize="36" Foreground="WhiteSmoke" TextWrapping="Wrap" Margin="28,6,0,0" />
+            </StackPanel>
+
+            <StackPanel x:Name="JokerAbschnitt" Visibility="{Binding JokerVisibility}" Margin="0,0,0,24">
+                <TextBlock Text="Eingelöste Joker" FontSize="40" FontWeight="SemiBold" Foreground="Gold" />
+                <ItemsControl ItemsSource="{Binding JokerZeilen}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" FontSize="36" Foreground="WhiteSmoke" TextWrapping="Wrap" Margin="28,6,0,0" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <StackPanel x:Name="RichtigeAbschnitt" Visibility="{Binding RichtigeVisibility}">
+                <TextBlock Text="Meiste richtige Antworten" FontSize="40" FontWeight="SemiBold" Foreground="Gold" />
+                <TextBlock Text="{Binding RichtigeZeile}" FontSize="36" Foreground="WhiteSmoke" TextWrapping="Wrap" Margin="28,6,0,0" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

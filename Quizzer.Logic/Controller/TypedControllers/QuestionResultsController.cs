@@ -65,6 +65,27 @@ namespace Quizzer.Logic.Controller.TypedControllers
         /// <summary>Dieselben Zeilen ungerechnet - der bisherige Stand fuer <see cref="Rekordpruefung"/> (M37 E02).</summary>
         public Task<List<LeaderboardRow>> BestenlistenZeilenAsync() => LeaderboardRows.LoadAsync(CurrentContext, gameIds: null);
 
+        /// <summary>Der Rückblick auf ein Spiel (M37 E04) - Bestwerte und Klaus über dieselbe Abfrage wie die Bestenliste.</summary>
+        public async Task<Rueckblick> AbendrueckblickAsync(Guid gameId)
+        {
+            var zeilen = await LeaderboardRows.LoadAsync(CurrentContext, [gameId]);
+            var ergebnisse = await EntitySet.AsNoTracking().Where(r => r.GameId == gameId).ToListAsync();
+            var joker = await CurrentContext.PlayerJokers.AsNoTracking().Where(j => j.GameId == gameId).ToListAsync();
+
+            var ids = ergebnisse.Select(r => r.PlayerId)
+                .Concat(joker.Select(j => j.PlayerId))
+                .Concat(joker.Where(j => j.TargetPlayerId.HasValue).Select(j => j.TargetPlayerId.GetValueOrDefault()))
+                .Distinct()
+                .ToList();
+
+            // Anzeigename, sonst Bezeichnung - wie LeaderboardRows, damit alle Abschnitte denselben Namen zeigen.
+            var namen = await CurrentContext.Players.AsNoTracking()
+                .Where(p => ids.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id, p => p.CalculatedDisplayName);
+
+            return Abendrueckblick.Rechne(new RueckblickDaten(gameId, zeilen, ergebnisse, joker, namen));
+        }
+
         public async Task<int> DeleteByGameIdAsync(Guid gameId)
         {
             return await EntitySet

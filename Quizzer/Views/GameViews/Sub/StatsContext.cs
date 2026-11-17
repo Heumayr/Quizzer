@@ -11,7 +11,7 @@ using System.Windows.Input;
 
 namespace Quizzer.Views.GameViews.Sub
 {
-    public class StatsContext : UcViewModelBase
+    public partial class StatsContext : UcViewModelBase
     {
         private List<PlayerStatsContext> playerStatsContextList = new();
         private Game game = null!;
@@ -115,6 +115,10 @@ namespace Quizzer.Views.GameViews.Sub
             {
                 CalculateAndSetWinners();
             }
+            else
+            {
+                ZurueckZumSieger();
+            }
 
             foreach (var item in PlayerStatsContextList)
             {
@@ -131,6 +135,7 @@ namespace Quizzer.Views.GameViews.Sub
             OnPropertyChanged(nameof(IsGameFinished));
             OnPropertyChanged(nameof(ShowNormalStatsView));
             OnPropertyChanged(nameof(ShowFinishedStatsView));
+            TafelnGeaendert();
         }
 
         private void CalculateAndSetWinners()

@@ -106,8 +106,8 @@ namespace Quizzer.Logic.Statistics
 
         private static bool Besser(int wert, int bisher, MinigameRecord record) => record.LowerIsBetter ? wert < bisher : wert > bisher;
 
-        /// <summary>„Anna", „Anna und Bert", „Anna, Bert und Carl".</summary>
-        private static string Aufzaehlung(IReadOnlyList<string> namen)
+        /// <summary>„Anna", „Anna und Bert", „Anna, Bert und Carl" - auch für den Abendrückblick (M37 E04).</summary>
+        internal static string Aufzaehlung(IReadOnlyList<string> namen)
             => namen.Count <= 1 ? string.Concat(namen) : $"{string.Join(", ", namen.Take(namen.Count - 1))} und {namen[^1]}";
     }
 }

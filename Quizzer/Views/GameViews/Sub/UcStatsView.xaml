@@ -30,8 +30,8 @@
             </ItemsControl>
         </Grid>
 
-        <!-- finished view -->
-        <StackPanel Visibility="{Binding ShowFinishedStatsView}"
+        <!-- finished view: die erste Tafel der Siegerehrung (M37 E3, StatsContext.Siegerehrung) -->
+        <StackPanel Visibility="{Binding SiegerVisibility}"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Center">
 
@@ -88,5 +88,12 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </StackPanel>
+
+        <!-- M37 E04: Rueckblick auf den Abend. DownOnly: am Beamer steht er schon in einer Viewbox, in der
+             schmalen Leiste des Spielleiters wird er verkleinert statt abgeschnitten. FallbackValue: bis die
+             Bindung greift, stuende er sonst sichtbar und 1500 breit im Fenster (AllWindowsBuildUnitTests). -->
+        <Viewbox Visibility="{Binding RueckblickVisibility, FallbackValue=Collapsed}" Stretch="Uniform" StretchDirection="DownOnly">
+            <local:UcAbendrueckblickView DataContext="{Binding Rueckblick}" />
+        </Viewbox>
     </Grid>
 </UserControl>

@@ -71,6 +71,10 @@
                             ToolTip="Blendet den Punktestand auf dem Spielerbildschirm ein oder aus." />
                     <Button Content="{Binding StatsPlacementButtonText}" Command="{Binding ToggleStatsPlacementCommand}"
                             ToolTip="Punktestand links untereinander oder unten nebeneinander. Die Wahl bleibt für das nächste Spiel gespeichert." />
+                    <!-- M37 E3: die Siegerehrung blaettern - per Knopf, der Spielleiter bestimmt den Moment -->
+                    <Button Content="{Binding StatsContext.NaechsteTafelText}" Command="{Binding NaechsteTafelCommand}"
+                            ToolTip="Nach der letzten Frage: blättert die Siegerehrung auf dem Beamer weiter - vom Sieger zum Rückblick auf den Abend und zurück."
+                            ToolTipService.ShowOnDisabled="True" />
 
                     <TextBlock Style="{StaticResource SectionHeader}" Text="Bei mir" Margin="0,18,0,4" />
                     <Button Content="Vollbild umschalten" Command="{Binding ToggleFullScreenCommand}"
