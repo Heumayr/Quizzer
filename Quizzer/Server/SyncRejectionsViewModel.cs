@@ -150,6 +150,7 @@ namespace Quizzer.Server
             "PlayerJoker" => "Joker",
             "Player" => "Mitspieler",
             "PlayerXGame" => "Teilnahme",
+            "GameTeam" => "Team",
             "GameTheme" => "Design",
             _ when type.EndsWith("Question", StringComparison.Ordinal) => "Frage",
             _ => type,

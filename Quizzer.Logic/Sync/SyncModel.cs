@@ -39,7 +39,10 @@ namespace Quizzer.Logic.Sync
             new(typeof(Game), 4, typeof(Game)),
             new(typeof(Header), 5, typeof(Header)),
             new(typeof(GameGridCoordinate), 5, typeof(GameGridCoordinate)),
-            new(typeof(PlayerXGame), 5, typeof(PlayerXGame)),
+            new(typeof(GameTeam), 5, typeof(GameTeam)),
+
+            // Der Platz zeigt seit M37 T1 auf ein Team - deshalb nach ihm.
+            new(typeof(PlayerXGame), 6, typeof(PlayerXGame)),
             new(typeof(QuestionResult), 6, typeof(QuestionResult)),
             new(typeof(PlayerJoker), 6, typeof(PlayerJoker)),
         ];

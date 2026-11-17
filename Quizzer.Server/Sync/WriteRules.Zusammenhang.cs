@@ -29,7 +29,14 @@ namespace Quizzer.Server.Sync
                     ? "Der Joker verweist auf eine Zelle eines anderen Spiels."
                     : "Das Ergebnis verweist auf eine Zelle eines anderen Spiels.";
 
-            return row.Type == nameof(PlayerJoker) ? await CheckJokerAsync(row, gameId, ct) : null;
+            return row.Type switch
+            {
+                nameof(PlayerJoker) => await CheckJokerAsync(row, gameId, ct),
+
+                // Zuteilung und Ergebnis zeigen auf ein Team desselben Spiels (M37 T1).
+                nameof(PlayerXGame) or nameof(QuestionResult) => await CheckTeamRefAsync(row, gameId, ct),
+                _ => null,
+            };
         }
     }
 }

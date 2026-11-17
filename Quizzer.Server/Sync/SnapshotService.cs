@@ -26,6 +26,7 @@ namespace Quizzer.Server.Sync
             await store.AddAsync(rows, context.Games.Where(g => games.Contains(g.Id)), ct);
             await store.AddAsync(rows, context.Headers.Where(h => games.Contains(h.GameId)), ct);
             await store.AddAsync(rows, context.GameGridCoordinates.Where(c => games.Contains(c.GameId)), ct);
+            await store.AddAsync(rows, context.GameTeams.Where(t => games.Contains(t.GameId)), ct);
             await store.AddAsync(rows, context.PlayerXGames.Where(x => games.Contains(x.GameId)), ct);
             await store.AddAsync(rows, context.QuestionResults.Where(r => games.Contains(r.GameId)), ct);
             await store.AddAsync(rows, context.PlayerJokers.Where(j => games.Contains(j.GameId)), ct);

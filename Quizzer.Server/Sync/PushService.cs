@@ -40,7 +40,8 @@ namespace Quizzer.Server.Sync
                 foreach (var upsert in request.Upserts)
                 {
                     var row = upsert.Row;
-                    var problem = store.Validate(row) ?? SyncDateifelder.Pruefe(row) ?? await ResultRecordCheck.CheckAsync(row, store.Context, acceptedUpserts, ct);
+                    var problem = store.Validate(row) ?? SyncDateifelder.Pruefe(row) ?? TeamRowCheck.Pruefe(row)
+                        ?? await ResultRecordCheck.CheckAsync(row, store.Context, acceptedUpserts, ct);
 
                     if (problem != null)
                     {
@@ -162,8 +163,8 @@ namespace Quizzer.Server.Sync
     /// <list type="bullet">
     /// <item><b>Spiel</b>: nur der Gamemaster - wer es angelegt hat. Ein neues Spiel bekommt den
     /// Anlegenden als Gamemaster, egal was der Client schickt.</item>
-    /// <item><b>Kopfzeilen, Zellen, Mitspieler im Spiel, Ergebnisse, Joker</b>: wer das Spiel schreiben darf;
-    /// Joker nur für Mitspieler des Spiels (<see cref="CheckJokerAsync"/>).</item>
+    /// <item><b>Kopfzeilen, Zellen, Mitspieler im Spiel, Ergebnisse, Joker, Teams</b>: wer das Spiel schreiben darf;
+    /// Joker nur für Mitspieler des Spiels (<see cref="CheckJokerAsync"/>), Teams nur aus diesem Spiel (<see cref="CheckTeamRefAsync"/>).</item>
     /// <item><b>Frage samt Schritten</b>: nur der Besitzer; eine besitzerlose Frage nimmt, wer sie
     /// aendert (wie <c>QuestionOwnership.ClaimIfUnowned</c> lokal).</item>
     /// <item><b>Mitspieler</b>: neue Gaeste darf jeder anlegen; aendern darf man sich selbst und
@@ -268,6 +269,10 @@ namespace Quizzer.Server.Sync
 
         public async Task<string?> CheckDeleteAsync(SyncDelete delete, object serverEntity, CancellationToken ct)
         {
+            // Zusammenhang vor den Rechten, auch beim Admin (V09): ein Team mit Ergebnissen bleibt stehen (M37 T1).
+            if (await CheckTeamDeleteAsync(serverEntity, ct) is { } zusammenhang)
+                return zusammenhang;
+
             if (account.IsAdmin)
                 return null;
 
@@ -304,33 +309,6 @@ namespace Quizzer.Server.Sync
                     var gameId = (Guid)context.Entry(serverEntity).Property("GameId").CurrentValue!;
                     return await CanWriteGameAsync(gameId, ct) ? null : "Nur der Gamemaster darf das Spiel ändern.";
             }
-        }
-
-        /// <summary>
-        /// Ein geloeschtes Spiel nimmt alles mit, was an ihm haengt - die Fremdschluessel stehen
-        /// auf NO ACTION, also muss der Server es selbst tun (wie <c>GamesController</c> lokal).
-        /// </summary>
-        public async Task<List<SyncKey>> DependentsOfDeletedGamesAsync(IReadOnlyCollection<SyncKey> deletes, CancellationToken ct)
-        {
-            var gameIds = deletes.Where(d => d.Type == nameof(Game)).Select(d => d.Id).ToList();
-
-            if (gameIds.Count == 0)
-                return [];
-
-            var keys = new List<SyncKey>();
-
-            keys.AddRange((await context.QuestionResults.Where(r => gameIds.Contains(r.GameId)).Select(r => r.Id).ToListAsync(ct))
-                .Select(id => new SyncKey(nameof(QuestionResult), id)));
-            keys.AddRange((await context.PlayerJokers.Where(j => gameIds.Contains(j.GameId)).Select(j => j.Id).ToListAsync(ct))
-                .Select(id => new SyncKey(nameof(PlayerJoker), id)));
-            keys.AddRange((await context.PlayerXGames.Where(x => gameIds.Contains(x.GameId)).Select(x => x.Id).ToListAsync(ct))
-                .Select(id => new SyncKey(nameof(PlayerXGame), id)));
-            keys.AddRange((await context.GameGridCoordinates.Where(c => gameIds.Contains(c.GameId)).Select(c => c.Id).ToListAsync(ct))
-                .Select(id => new SyncKey(nameof(GameGridCoordinate), id)));
-            keys.AddRange((await context.Headers.Where(h => gameIds.Contains(h.GameId)).Select(h => h.Id).ToListAsync(ct))
-                .Select(id => new SyncKey(nameof(Header), id)));
-
-            return keys;
         }
 
         /// <summary>

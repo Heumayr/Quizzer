@@ -74,6 +74,17 @@ namespace Quizzer.Server.Tests
             Assert.AreEqual(HttpStatusCode.UpgradeRequired, antwort.StatusCode);
         }
 
+        /// <summary>M37 T1: ein WPF ohne Teams kennt GameTeam nicht und nahm beim Push still jede Zuteilung heraus.</summary>
+        [TestMethod]
+        public async Task AProgramWithoutTeamsIsStopped()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+
+            var antwort = await LoginWithFormatAsync(factory.CreateClient(), Format(25));
+
+            Assert.AreEqual(HttpStatusCode.UpgradeRequired, antwort.StatusCode);
+        }
+
         [TestMethod]
         public async Task ANewerProgramIsStoppedWithItsOwnMessage()
         {

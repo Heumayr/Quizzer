@@ -46,6 +46,7 @@ namespace Quizzer.Logic.Sync
             await AddAsync(rows, context.Games, cancellationToken);
             await AddAsync(rows, context.Headers, cancellationToken);
             await AddAsync(rows, context.GameGridCoordinates, cancellationToken);
+            await AddAsync(rows, context.GameTeams, cancellationToken);
             await AddAsync(rows, context.PlayerXGames, cancellationToken);
             await AddAsync(rows, context.QuestionResults, cancellationToken);
             await AddAsync(rows, context.PlayerJokers, cancellationToken);
@@ -147,6 +148,8 @@ namespace Quizzer.Logic.Sync
 
             await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
+            await ReleaseTeamReferencesAsync(deletes, cancellationToken);
+
             var orderedDeletes = deletes
                 .Select(d => (Key: d, Entry: SyncModel.Get(d.Type)))
                 .OrderByDescending(d => d.Entry.Rank)
@@ -191,6 +194,28 @@ namespace Quizzer.Logic.Sync
 
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Ein gelöschtes Team gibt vorher frei, was auf es zeigt (M37 T1): Platz und Ergebnis stehen auf NO ACTION, und die
+        /// neue Zuteilung derselben Plätze kommt erst mit den Zeilen - wie <c>GameTeamsController</c> lokal. Über verfolgte
+        /// Einträge, nicht <c>ExecuteUpdate</c>: der Server verfolgt die Zeilen des Pushs schon, und deren RowVersion muss
+        /// mitziehen. Ein Ergebnis am Team weist der Server vorher ab; beim Abholen hält das Freigeben das Abholen am Leben.
+        /// </summary>
+        private async Task ReleaseTeamReferencesAsync(IReadOnlyList<SyncKey> deletes, CancellationToken cancellationToken)
+        {
+            var teams = deletes.Where(d => d.Type == nameof(GameTeam)).Select(d => d.Id).ToList();
+
+            if (teams.Count == 0)
+                return;
+
+            foreach (var platz in await context.PlayerXGames.Where(x => x.GameTeamId != null && teams.Contains(x.GameTeamId.Value)).ToListAsync(cancellationToken))
+                platz.GameTeamId = null;
+
+            foreach (var ergebnis in await context.QuestionResults.Where(r => r.GameTeamId != null && teams.Contains(r.GameTeamId.Value)).ToListAsync(cancellationToken))
+                ergebnis.GameTeamId = null;
+
+            await context.SaveChangesAsync(cancellationToken);
         }
 
         private async Task ConvertChangedQuestionTypesAsync(IReadOnlyList<SyncRow> upserts, CancellationToken cancellationToken)

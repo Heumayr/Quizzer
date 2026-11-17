@@ -14,7 +14,7 @@ namespace Quizzer.Server.Tests
     /// zwei lokalen Datenbanken und demselben Abgleich wie im Programm.
     /// </summary>
     [TestClass]
-    public sealed class ClientSyncTests
+    public sealed partial class ClientSyncTests
     {
         private static async Task<(ClientHarness Pc, ClientHarness Laptop, Guid Me)> SignedInPairAsync(Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> factory)
         {

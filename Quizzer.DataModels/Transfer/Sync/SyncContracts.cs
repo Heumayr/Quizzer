@@ -60,8 +60,10 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// 24: Bestenliste (M35 C9) - Spalten QuestionResult.RecordValue, RecordedAt und Steals; ein altes WPF
         ///    setzte beim Push still null und 0 ein.
         /// 25: Punkteverlauf (M37 E06) - Spalte GameGridCoordinate.PlayedAt; ein altes WPF setzte beim Push still null ein.
+        /// 26: Teams (M37 T1) - neuer Zeilentyp GameTeam, Spalten PlayerXGame.GameTeamId, QuestionResult.GameTeamId und die
+        ///    Teameinstellungen am Spiel; ein altes WPF nahm beim Push still jede Zuteilung heraus.
         /// </summary>
-        public const int CurrentFormatVersion = 25;
+        public const int CurrentFormatVersion = 26;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 
