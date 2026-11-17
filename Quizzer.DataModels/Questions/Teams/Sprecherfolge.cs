@@ -1,3 +1,5 @@
+using Quizzer.DataModels.Models.Base;
+
 namespace Quizzer.DataModels.Questions.Teams
 {
     /// <summary>Ein Mitglied, wie die Sprecherfolge es braucht: Kennung und Anzeigename.</summary>
@@ -29,6 +31,22 @@ namespace Quizzer.DataModels.Questions.Teams
             var start = (turn % sortiert.Count + sortiert.Count) % sortiert.Count;
 
             return [.. sortiert.Skip(start), .. sortiert.Take(start)];
+        }
+
+        /// <summary>
+        /// Die Sprecherfolge eines Teams nach der heutigen Zuteilung (<see cref="Teamzuordnung.TeamVon"/>), ohne den
+        /// Spielleiter - für die Aufstellung am Hub und die Anzeige im Spielfenster.
+        /// </summary>
+        public static IReadOnlyList<Guid> Folge(Game spiel, GameTeam team)
+        {
+            ArgumentNullException.ThrowIfNull(spiel);
+            ArgumentNullException.ThrowIfNull(team);
+
+            var mitglieder = Teamzuordnung.Teilnehmer(spiel)
+                .Where(x => Teamzuordnung.TeamVon(spiel, x.PlayerId) == team.Id)
+                .Select(x => new Teammitglied(x.PlayerId, x.Player?.CalculatedDisplayName ?? string.Empty));
+
+            return Folge(mitglieder, team.SpeakerTurn);
         }
 
         /// <summary>Der Sprecher: der Erste der Folge, der nicht ausgelassen ist; <c>null</c>, wenn keiner bleibt.</summary>

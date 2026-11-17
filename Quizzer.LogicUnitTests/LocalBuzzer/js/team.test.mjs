@@ -1,5 +1,6 @@
 // Das Team am Telefon (M37 T4): Symbol und Name auf der Farbe des Teams, die Farbe nur als Klasse aus der Palette,
 // der Name nur als Text. Ohne Team verschwindet das Banner, beim Wechsel bleibt keine alte Farbe stehen.
+// M37 T5: darunter „Sprecher: Anna“, ebenfalls nur als Text; ohne Sprecher verborgen.
 
 import { readFileSync } from "node:fs";
 import { baueDom } from "./dom-ersatz.mjs";
@@ -20,6 +21,7 @@ function pruefe(bedingung, satz) {
 const farben = () => [...wurzel.classList.werte].filter(k => k.startsWith("team-farbe-"));
 const symbol = () => wurzel.querySelector(".team-symbol");
 const name = () => wurzel.querySelector(".team-name");
+const sprecher = () => wurzel.querySelector(".team-sprecher");
 
 // --- Ein Team: Symbol, Name, Farbe ---
 zeigeTeam(wurzel, { name: "Die Füchse", symbol: "▲", colorIndex: 1 });
@@ -34,6 +36,16 @@ const boese = "<img src=x onerror=alert(1)>";
 zeigeTeam(wurzel, { name: boese, symbol: "●", colorIndex: 0 });
 pruefe(name()?.textContent === boese, "Der Name kam nicht als Text an: " + name()?.textContent);
 pruefe(!/innerHTML/.test(readFileSync(modulPfad, "utf8")), "team.js benutzt innerHTML - ein Teamname ist frei gewählt.");
+
+// --- Sprecher (M37 T5): „Sprecher: Anna“, als Text, ohne Sprecher verborgen ---
+zeigeTeam(wurzel, { name: "Rot", symbol: "✚", colorIndex: 5, speaker: "Anna" });
+pruefe(sprecher()?.textContent === "Sprecher: Anna", "Der Sprecher steht nicht da: " + sprecher()?.textContent);
+pruefe(sprecher()?.hidden === false, "Der Sprecher ist verborgen.");
+zeigeTeam(wurzel, { name: "Rot", symbol: "✚", colorIndex: 5, speaker: boese });
+pruefe(sprecher()?.textContent === "Sprecher: " + boese, "Der Sprecher kam nicht als Text an: " + sprecher()?.textContent);
+zeigeTeam(wurzel, { name: "Rot", symbol: "✚", colorIndex: 5, speaker: "" });
+pruefe(sprecher()?.hidden === true, "Ohne Sprecher steht die Zeile da.");
+pruefe(wurzel.querySelectorAll(".team-sprecher").length === 1, "Der Wechsel legte ein zweites Sprecherfeld an.");
 
 // --- Wechsel: keine alte Farbe, kein zweites Paar ---
 zeigeTeam(wurzel, { name: "Blau", symbol: "★", colorIndex: 4 });

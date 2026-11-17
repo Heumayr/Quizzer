@@ -4,6 +4,7 @@
 
 .team-banner {
     display: flex;
+    flex-wrap: wrap;
     flex: 1 1 100%;
     align-items: center;
     gap: var(--space-xs);
@@ -29,6 +30,15 @@
 .team-name {
     min-width: 0;
     font-size: 18px;
+    overflow-wrap: anywhere;
+}
+
+/* M37 T5: „Sprecher: Anna“ in einer eigenen Zeile unter dem Teamnamen. */
+.team-sprecher {
+    flex: 1 1 100%;
+    min-width: 0;
+    font-size: 15px;
+    font-weight: 600;
     overflow-wrap: anywhere;
 }
 

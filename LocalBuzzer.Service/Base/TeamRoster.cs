@@ -7,8 +7,11 @@ namespace LocalBuzzer.Service.Base
     /// <summary>Das Team eines Spielers, wie der Hub es kennt: Kennung, Name, Platz in der Palette und Symbol.</summary>
     public sealed record TeamRosterEntry(Guid TeamId, string Name, int ColorIndex, string Symbol)
     {
+        /// <summary>Der Name des Sprechers (M37 T5); leer, wenn das Team keinen hat.</summary>
+        public string Speaker { get; init; } = string.Empty;
+
         /// <summary>Was das Telefon davon zeigt - die Kennung bleibt am Server.</summary>
-        public TeamClientInfo ToClientInfo() => new() { Name = Name, Symbol = Symbol, ColorIndex = ColorIndex };
+        public TeamClientInfo ToClientInfo() => new() { Name = Name, Symbol = Symbol, ColorIndex = ColorIndex, Speaker = Speaker };
     }
 
     /// <summary>
@@ -43,13 +46,19 @@ namespace LocalBuzzer.Service.Base
         /// <summary>Wofür die Team-Sperre gilt: das Team, ohne Team der Spieler selbst; <c>null</c> ohne Teamspiel.</summary>
         public Guid? KeyFor(Guid playerId) => IsTeamGame ? TeamOf(playerId)?.TeamId ?? playerId : null;
 
-        /// <summary>Der Schnappschuss des geladenen Spiels - die Zuordnung nach <see cref="Teamzuordnung.TeamVon"/>, wie beim Stempel.</summary>
-        public static TeamRoster From(Game? spiel)
+        /// <summary>
+        /// Der Schnappschuss des geladenen Spiels - die Zuordnung nach <see cref="Teamzuordnung.TeamVon"/>, wie beim Stempel,
+        /// der Sprecher nach <see cref="Sprecherfolge"/> (M37 T5). <paramref name="sprecher"/>: je Team der Sprecher dieser
+        /// Frage, wenn er vom Stand abweicht (Joker-Sperre, getrennt) - das Telefon zeigt, wer wirklich antworten darf.
+        /// </summary>
+        public static TeamRoster From(Game? spiel, IReadOnlyDictionary<Guid, Guid>? sprecher = null)
         {
             if (spiel is not { IsTeamGame: true })
                 return Empty;
 
             var eintraege = new Dictionary<Guid, TeamRosterEntry>();
+            var namen = spiel.PlayerXGames.Where(x => x.Player != null).DistinctBy(x => x.PlayerId)
+                .ToDictionary(x => x.PlayerId, x => x.Player.CalculatedDisplayName);
 
             foreach (var platz in spiel.PlayerXGames)
             {
@@ -58,7 +67,12 @@ namespace LocalBuzzer.Service.Base
 
                 var team = spiel.GameTeams.First(t => t.Id == teamId);
                 var farbe = TeamFarben.IsValid(team.ColorIndex) ? TeamFarben.Alle[team.ColorIndex] : null;
-                eintraege[platz.PlayerId] = new TeamRosterEntry(team.Id, team.Name, farbe?.Index ?? -1, farbe?.Symbol ?? string.Empty);
+                var wer = sprecher?.GetValueOrDefault(team.Id) is { } fest && fest != Guid.Empty ? fest : Sprecherfolge.Sprecher(Sprecherfolge.Folge(spiel, team));
+
+                eintraege[platz.PlayerId] = new TeamRosterEntry(team.Id, team.Name, farbe?.Index ?? -1, farbe?.Symbol ?? string.Empty)
+                {
+                    Speaker = wer is { } id ? namen.GetValueOrDefault(id) ?? string.Empty : string.Empty,
+                };
             }
 
             return new TeamRoster(true, eintraege);

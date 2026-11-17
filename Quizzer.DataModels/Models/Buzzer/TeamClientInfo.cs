@@ -15,5 +15,8 @@ namespace Quizzer.DataModels.Models.Buzzer
 
         /// <summary>Der Platz in der Palette, 0 bis 7; -1, wenn das Team keinen gültigen trägt.</summary>
         public int ColorIndex { get; set; }
+
+        /// <summary>Wer für das Team spricht (M37 T5), als Anzeigename - am Telefon „Sprecher: Anna“, nur als Text; leer ohne.</summary>
+        public string Speaker { get; set; } = string.Empty;
     }
 }
