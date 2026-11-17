@@ -21,13 +21,17 @@ namespace Quizzer.DataModels.Questions.Minispiele
     {
         public int PunkteVon(Guid spieler) => Vorschlaege.GetValueOrDefault(spieler)?.Punkte ?? 0;
 
+        /// <summary>Ob zwei Spieler im selben Team spielen (M37 T8) - ein Teamkollege, der hereinfällt, zählt nicht. Ohne Teamspiel nie.</summary>
+        public Func<Guid, Guid, bool> Teamkollegen { get; init; } = (_, _) => false;
+
         /// <summary>Ob dieser Spieler die echte Antwort gewaehlt hat.</summary>
         public bool Gefunden(Guid spieler)
             => Runde.Wahl.TryGetValue(spieler, out var nummer) && Option(nummer) is { Echt: true };
 
-        /// <summary>So viele sind auf einen Bluff dieses Spielers hereingefallen.</summary>
+        /// <summary>So viele sind auf einen Bluff dieses Spielers hereingefallen - im Teamspiel nur Gegner (M37 T8).</summary>
         public int Reinfaelle(Guid spieler)
-            => Runde.Wahl.Count(w => w.Key != spieler && Option(w.Value) is { Echt: false, Gestrichen: false } o && o.Urheber.Contains(spieler));
+            => Runde.Wahl.Count(w => w.Key != spieler && !Teamkollegen(w.Key, spieler)
+                                     && Option(w.Value) is { Echt: false, Gestrichen: false } o && o.Urheber.Contains(spieler));
 
         /// <summary>Die meisten Punkte; leer, wenn keiner welche hat.</summary>
         public IReadOnlySet<Guid> Gewinner
@@ -57,13 +61,19 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
         public static int PunkteReinfall(int feldpunkte) => (int)Math.Round(Math.Max(0, feldpunkte) / 2.0, MidpointRounding.AwayFromZero);
 
-        /// <summary>Die Wertung als Vorschlag mit Grund je Spieler (E1); gekappt wird nur ein Minus (E2).</summary>
-        public static BluffErgebnis Werte(BluffRunde runde, int feldpunkte, Kontostaende konten)
+        /// <summary>
+        /// Die Wertung als Vorschlag mit Grund je Spieler (E1); gekappt wird nur ein Minus (E2). Im Teamspiel zählen nur
+        /// hereingelegte Gegner (<paramref name="teamkollegen"/>, M37 T8).
+        /// </summary>
+        public static BluffErgebnis Werte(BluffRunde runde, int feldpunkte, Kontostaende konten, Func<Guid, Guid, bool>? teamkollegen = null)
         {
             ArgumentNullException.ThrowIfNull(runde);
             ArgumentNullException.ThrowIfNull(konten);
 
-            var roh = new BluffErgebnis(runde, PunkteEcht(feldpunkte), PunkteReinfall(feldpunkte), new Dictionary<Guid, Punktevorschlag>());
+            var roh = new BluffErgebnis(runde, PunkteEcht(feldpunkte), PunkteReinfall(feldpunkte), new Dictionary<Guid, Punktevorschlag>())
+            {
+                Teamkollegen = teamkollegen ?? ((_, _) => false),
+            };
             var vorschlaege = new Dictionary<Guid, Punktevorschlag>();
             var spieler = runde.Wahl.Keys.Concat(runde.Optionen.SelectMany(o => o.Urheber)).Distinct();
 

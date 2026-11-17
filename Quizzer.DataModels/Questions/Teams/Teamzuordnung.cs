@@ -25,6 +25,15 @@ namespace Quizzer.DataModels.Questions.Teams
             return teamId is { } id && spiel.GameTeams.Any(t => t.Id == id) ? id : null;
         }
 
+        /// <summary>
+        /// Ob zwei Spieler im selben Team spielen (M37 T8) - ohne Teamspiel nie; wer ohne Team ist, ist niemandes Teamkollege.
+        /// Dieselbe Regel wie <c>MinigameRulesContext.Teamkollegen</c> am Hub, dessen Aufstellung hieraus entsteht.
+        /// </summary>
+        public static bool Teamkollegen(Game spiel, Guid a, Guid b) => TeamVon(spiel, a) is { } team && TeamVon(spiel, b) == team;
+
+        /// <summary>Wie viele Lager unter den Teilnehmern sind (M37 T8): besetzte Teams; wer ohne Team ist, zählt für sich.</summary>
+        public static int Lager(Game spiel) => Teilnehmer(spiel).Select(x => TeamVon(spiel, x.PlayerId) ?? x.PlayerId).Distinct().Count();
+
         /// <summary>Teilnehmer ohne ein Team dieses Spiels.</summary>
         public static IReadOnlyList<PlayerXGame> OhneTeam(Game spiel) =>
             Teilnehmer(spiel).Where(x => x.GameTeamId is not { } id || spiel.GameTeams.All(t => t.Id != id)).ToList();

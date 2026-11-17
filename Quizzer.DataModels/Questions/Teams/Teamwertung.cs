@@ -8,9 +8,9 @@ namespace Quizzer.DataModels.Questions.Teams
     /// <summary>
     /// Die Teamwertung (M37 T3, Entwurf Abschnitt 3) - rein, liest nur das geladene Spiel. Die Summe selbst rechnet
     /// <see cref="Game.Teamstand"/>, die eine Stelle, nie gespeichert (A08). Hier steht, bei welchem Team ein Ergebnis
-    /// zählt, und die Rangfolge.
+    /// zählt, und die Rangfolge. Minispiele je Team: <c>Teamwertung.Minispiel.cs</c> (M37 T8).
     /// </summary>
-    public static class Teamwertung
+    public static partial class Teamwertung
     {
         /// <summary>
         /// Bei welchem Team ein Ergebnis zählt: beim Stempel (F-M37-07 - Umsetzen lässt die Punkte beim alten Team), ohne

@@ -46,8 +46,23 @@ namespace Quizzer.DataModels.Questions.Minispiele
         public static IReadOnlyList<WheelSegment> Felder { get; } =
             [WheelSegment.Double, WheelSegment.Steal, WheelSegment.Gift, WheelSegment.BadLuck, WheelSegment.RobinHood];
 
+        /// <summary>
+        /// Die Felder im Spiel mit oder ohne Teams - im Teamspiel ohne Robin Hood (M37 T8): Führender und Letzter sind dort
+        /// Einzelne, die Rechnung ginge an den Teams vorbei, und beide können im selben Team spielen.
+        /// </summary>
+        public static IReadOnlyList<WheelSegment> FelderFuer(bool teamspiel) => teamspiel ? FelderImTeamspiel : Felder;
+
+        private static readonly IReadOnlyList<WheelSegment> FelderImTeamspiel = [.. Felder.Where(f => f != WheelSegment.RobinHood)];
+
         /// <summary>Das Feld zum Wurf in [0, Anzahl); ein Wurf ausserhalb wird an den Rand gelegt.</summary>
-        public static WheelSegment Segment(int wurf) => Felder[Math.Clamp(wurf, 0, Felder.Count - 1)];
+        public static WheelSegment Segment(int wurf) => Segment(wurf, false);
+
+        /// <summary>Wie <see cref="Segment(int)"/>, aus den Feldern des Spiels mit oder ohne Teams.</summary>
+        public static WheelSegment Segment(int wurf, bool teamspiel)
+        {
+            var felder = FelderFuer(teamspiel);
+            return felder[Math.Clamp(wurf, 0, felder.Count - 1)];
+        }
 
         public static string Name(WheelSegment segment) => segment switch
         {

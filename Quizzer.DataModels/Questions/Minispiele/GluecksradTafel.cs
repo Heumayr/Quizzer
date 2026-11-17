@@ -9,9 +9,9 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// <summary>Steht vor dem Feld, auf dem das Rad gerade steht.</summary>
         public const string Zeiger = "▶ ";
 
-        /// <summary>Das Rad mit dem markierten Feld; gelandet sagt es die Zeile dazu.</summary>
-        public static IReadOnlyList<ReaktionTafelZeile> Rad(WheelSegment? markiert, bool gelandet)
-            => GluecksradEvaluator.Felder
+        /// <summary>Das Rad mit dem markierten Feld; gelandet sagt es die Zeile dazu. Im Teamspiel ohne Robin Hood (M37 T8).</summary>
+        public static IReadOnlyList<ReaktionTafelZeile> Rad(WheelSegment? markiert, bool gelandet, bool teamspiel = false)
+            => GluecksradEvaluator.FelderFuer(teamspiel)
                 .Select(f => new ReaktionTafelZeile(
                     (f == markiert ? Zeiger : string.Empty) + GluecksradEvaluator.Name(f),
                     f == markiert && gelandet

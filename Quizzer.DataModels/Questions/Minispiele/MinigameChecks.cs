@@ -19,6 +19,8 @@ namespace Quizzer.DataModels.Questions.Minispiele
         public const string RoundsOutOfRange = "minigame-rounds-out-of-range";
         public const string DurationOutOfRange = "minigame-duration-out-of-range";
         public const string ShareOutOfRange = "minigame-share-out-of-range";
+        public const string NotInTeamGame = "minigame-not-in-team-game";
+        public const string NoOpponent = "minigame-no-opponent";
 
         /// <summary>Prueft den Inhalt: bekannte Art, bekannte Spielweise, genug Zeilen.</summary>
         public static IEnumerable<ValidationIssue> Content(MinigameQuestion frage)
@@ -77,6 +79,38 @@ namespace Quizzer.DataModels.Questions.Minispiele
             yield return new(TooFewPlayers, ValidationSeverity.Error,
                 $"Minispiel {art.DisplayName}: braucht mindestens {art.MinPlayers} Mitspieler, im "
                 + $"Spiel sind {spielerzahl}.");
+        }
+
+        /// <summary>Prueft, ob das Minispiel ins Teamspiel passt (M37 T8) - ohne Teamspiel nichts, eine unbekannte Art meldet schon <see cref="Content"/>.</summary>
+        public static IEnumerable<ValidationIssue> ForTeams(MinigameQuestion frage, Models.Base.Game spiel)
+        {
+            ArgumentNullException.ThrowIfNull(frage);
+            ArgumentNullException.ThrowIfNull(spiel);
+
+            return spiel.IsTeamGame && MinigameProfiles.TryFor(frage.Kind, out var art)
+                ? ForTeams(art, Teams.Teamzuordnung.Lager(spiel))
+                : [];
+        }
+
+        /// <summary>
+        /// Der Riegel „nicht im Teamspiel“ (M37 T8), fail-closed: eine Art, die es nicht spielt - oder deren Wertung unbekannt
+        /// ist -, ist ein Fehler. Eine Art je Person braucht einen Gegner, also mindestens zwei <paramref name="lager"/>.
+        /// </summary>
+        public static IEnumerable<ValidationIssue> ForTeams(MinigameProfile art, int lager)
+        {
+            ArgumentNullException.ThrowIfNull(art);
+
+            if (art.TeamScoring == MinispielTeamwertung.Zusammengefasst
+                || art.TeamScoring == MinispielTeamwertung.JePerson && lager >= 2)
+                yield break;
+
+            yield return art.TeamScoring == MinispielTeamwertung.JePerson
+                ? new(NoOpponent, ValidationSeverity.Error,
+                    $"Minispiel {art.DisplayName}: im Teamspiel nur gegen Gegner – dafür braucht es Mitspieler in mindestens "
+                    + $"zwei Teams, besetzt {(lager == 1 ? "ist eins" : "ist keins")}.")
+                : new(NotInTeamGame, ValidationSeverity.Error,
+                    $"Minispiel {art.DisplayName} wird im Teamspiel nicht gespielt – im Spielaufbau ein anderes Minispiel "
+                    + "auf die Zelle legen.");
         }
     }
 }

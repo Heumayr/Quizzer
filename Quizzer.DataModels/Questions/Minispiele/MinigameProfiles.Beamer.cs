@@ -8,6 +8,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         private static readonly MinigameProfile Crash = new()
         {
             Kind = MinigameKind.Crash,
+            TeamScoring = MinispielTeamwertung.Zusammengefasst,
             DisplayName = "Zocker",
             Description = "Am Beamer steigt ein Multiplikator ab ×1,00, bis er an einem geheimen Punkt abstürzt "
                         + "(spätestens bei ×10). Jeder tippt am Telefon „Aussteigen“, wann er will. Ohne Einsatz: "
@@ -36,6 +37,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         private static readonly MinigameProfile WheelOfFortune = new()
         {
             Kind = MinigameKind.WheelOfFortune,
+            TeamScoring = MinispielTeamwertung.JePerson,
             DisplayName = "Glücksrad",
             Description = "Der Spielleiter dreht im Fragefenster, der Beamer zeigt das Rad. Fünf gleich große Felder für "
                         + "den, der das Feld aufgedeckt hat: Verdoppeln (der doppelte Anteil der Feldpunkte), Klauen "
@@ -59,6 +61,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
             MinPlayers = 2,
             PartnerLabel = "Ziel",
             ChooserLabel = "Wer dreht",
+            TeamRulesText = "Im Teamspiel ohne Robin Hood; Klauen und Verschenken treffen nur Gegner aus anderen Teams.",
         };
     }
 }

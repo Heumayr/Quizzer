@@ -8,6 +8,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         private static readonly MinigameProfile MentalArithmetic = new()
         {
             Kind = MinigameKind.MentalArithmetic,
+            TeamScoring = MinispielTeamwertung.Zusammengefasst,
             DisplayName = "Kopfrechnen",
             Description = "Alle bekommen am Telefon dieselbe Folge von Rechenaufgaben und tippen die Ergebnisse ein. "
                         + "Jede Antwort prüft der Server, danach kommt sofort die nächste Aufgabe – eine falsche kostet "
@@ -46,6 +47,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         private static readonly MinigameProfile Memory = new()
         {
             Kind = MinigameKind.Memory,
+            TeamScoring = MinispielTeamwertung.Zusammengefasst,
             DisplayName = "Memory",
             Description = "Jeder spielt auf seinem Telefon ein eigenes Memory mit derselben Belegung. Jede umgedrehte Karte "
                         + "fragt den Server – die Belegung bleibt dort, das Telefon kennt nur die offenen Karten und seine "
@@ -78,6 +80,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         private static readonly MinigameProfile LightningRound = new()
         {
             Kind = MinigameKind.LightningRound,
+            TeamScoring = MinispielTeamwertung.Zusammengefasst,
             DisplayName = "Blitzrunde",
             Description = "Alle beurteilen am Telefon dieselben Aussagen, eine nach der anderen: wahr oder falsch? Die nächste "
                         + "kommt erst nach der Antwort; die Reihenfolge wird je Runde gemischt und ist für alle gleich. Wahr ist "
@@ -108,6 +111,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         private static readonly MinigameProfile WordScramble = new()
         {
             Kind = MinigameKind.WordScramble,
+            TeamScoring = MinispielTeamwertung.Zusammengefasst,
             DisplayName = "Buchstabensalat",
             Description = "Alle sehen am Telefon denselben Begriff mit verwürfelten Buchstaben und tippen die Lösung. Wer ihn "
                         + "zuerst richtig hat (gemessen an der Uhr des Servers), löst ihn, und für alle kommt der nächste. Groß "

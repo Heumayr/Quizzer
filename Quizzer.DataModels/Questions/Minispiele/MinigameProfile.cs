@@ -9,6 +9,22 @@ namespace Quizzer.DataModels.Questions.Minispiele
     public sealed record MinigameVariant(string Name, string RulesText);
 
     /// <summary>
+    /// Wie eine Art im Teamspiel gewertet wird (M37 T8, Entwurf Abschnitt 7). Kein Wert 0 - ein Profil ohne Angabe ist
+    /// kaputt, nicht „Standard"; ein unbekannter Wert wird wie <see cref="NichtImTeamspiel"/> behandelt (fail-closed).
+    /// </summary>
+    public enum MinispielTeamwertung
+    {
+        /// <summary>Die Einzelvorschläge eines Teams als Summe oder Durchschnitt (F-M37-11), auf die Mitglieder aufgeteilt.</summary>
+        Zusammengefasst = 1,
+
+        /// <summary>Je Person gewertet, jedes Ziel nur ein Gegner - Räuber, Duell, Teilen, Kartoffel, Glücksrad, Bluff.</summary>
+        JePerson = 2,
+
+        /// <summary>Wird im Teamspiel nicht gespielt - der Spielstart meldet es (<c>MinigameChecks.ForTeams</c>).</summary>
+        NichtImTeamspiel = 3,
+    }
+
+    /// <summary>
     /// Beschreibt eine Minispiel-Art: wie sie heisst, wie sie gespielt wird, welche der allgemeinen
     /// Parameter sie liest und was sie mindestens braucht (M35 B2).
     /// <para>
@@ -116,6 +132,12 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
         /// <summary>Was der Rohwert am Ergebnis bei dieser Art bedeutet (M35 C9); <c>null</c>: kein Messwert, keine Bestenliste.</summary>
         public MinigameRecord? Record { get; init; }
+
+        /// <summary>Wie die Art im Teamspiel gewertet wird (M37 T8) - Pflicht, damit eine neue Art es bewusst entscheidet.</summary>
+        public required MinispielTeamwertung TeamScoring { get; init; }
+
+        /// <summary>Was im Teamspiel hinter dem Regeltext steht, wo eine Art je Person mehr sagt als „nur gegen Gegner“ (M37 T8).</summary>
+        public string? TeamRulesText { get; init; }
 
         /// <summary>Die Spielweise zum gespeicherten Index; ein unbekannter faellt auf die Vorgabe.</summary>
         public MinigameVariant VariantFor(int variant)

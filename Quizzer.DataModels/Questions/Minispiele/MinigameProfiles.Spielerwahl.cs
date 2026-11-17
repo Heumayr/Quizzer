@@ -9,6 +9,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         private static readonly MinigameProfile Duel = new()
         {
             Kind = MinigameKind.Duel,
+            TeamScoring = MinispielTeamwertung.JePerson,
             DisplayName = "Duell",
             Description = "Wer das Feld aufgedeckt hat, wählt am Telefon einen Gegner; nur die beiden spielen, "
                         + "die anderen schauen zu. Der Sieger bekommt den Vorschlag „Anteil der Feldpunkte“, "
@@ -39,6 +40,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         private static readonly MinigameProfile RobberAndGuard = new()
         {
             Kind = MinigameKind.RobberAndGuard,
+            TeamScoring = MinispielTeamwertung.JePerson,
             DisplayName = "Räuber und Wächter",
             Description = "Alle wählen am Telefon geheim und gleichzeitig: einen Mitspieler bestehlen oder das "
                         + "Schild heben. Raub bei jemandem ohne Schild: Dieb plus Anteil der Feldpunkte, Opfer "
@@ -64,6 +66,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         private static readonly MinigameProfile ShareOrTake = new()
         {
             Kind = MinigameKind.ShareOrTake,
+            TeamScoring = MinispielTeamwertung.JePerson,
             DisplayName = "Teilen oder Nehmen",
             Description = "Wer das Feld aufgedeckt hat, wählt am Telefon einen Partner. Beide entscheiden geheim: "
                         + "teilen oder nehmen. Beide teilen: je die Hälfte der Feldpunkte; einer nimmt: er bekommt "
@@ -80,6 +83,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
             OptionsName = "Zeilen",
             MinPlayers = 2,
             PartnerLabel = "Partner",
+            TeamRulesText = "Im Teamspiel ist der Partner aus einem anderen Team.",
         };
     }
 }

@@ -13,6 +13,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         private static readonly MinigameProfile Majority = new()
         {
             Kind = MinigameKind.Majority,
+            TeamScoring = MinispielTeamwertung.Zusammengefasst,
             DisplayName = "Mehrheit",
             Description = "Jeder wählt am Telefon geheim eine der Optionen. Wer zur größten Gruppe "
                         + "gehört, bekommt den Vorschlag „richtig“ mit den Punkten des Felds; bei "
@@ -35,6 +36,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         private static readonly MinigameProfile Reaction = new()
         {
             Kind = MinigameKind.Reaction,
+            TeamScoring = MinispielTeamwertung.Zusammengefasst,
             DisplayName = "Reaktion",
             Description = "Alle Telefone zeigen Rot und schalten nach einer zufälligen Wartezeit auf Grün "
                         + "mit „JETZT!“. Wer zu früh tippt, verliert die Runde. Über alle Runden zählt "
@@ -88,6 +90,33 @@ namespace Quizzer.DataModels.Questions.Minispiele
         {
             profil = All.FirstOrDefault(p => p.Kind == kind);
             return profil != null;
+        }
+
+        /// <summary>Was im Teamspiel hinter dem Regeltext einer Art je Person steht, wenn sie selbst nichts sagt (M37 T8).</summary>
+        public const string NurGegnerText = "Im Teamspiel nur gegen Gegner aus anderen Teams.";
+
+        /// <summary>
+        /// Der Regeltext im Spiel mit oder ohne Teams (M37 T8): im Teamspiel steht dahinter, wie gewertet wird - Summe oder
+        /// Durchschnitt des Teams, aufgeteilt, oder nur gegen Gegner. Ohne Teamspiel derselbe wie <see cref="RulesFor(MinigameQuestion)"/>.
+        /// </summary>
+        public static string RulesFor(MinigameQuestion frage, Models.Base.Game? spiel)
+        {
+            var text = RulesFor(frage);
+
+            if (spiel is not { IsTeamGame: true } || text.Length == 0 || !TryFor(frage.Kind, out var art))
+                return text;
+
+            var satz = art.TeamScoring switch
+            {
+                MinispielTeamwertung.Zusammengefasst when spiel.TeamMinigameScoring == TeamMinigameScoring.Sum
+                    => "Im Teamspiel zählt die Summe eures Teams, aufgeteilt auf alle.",
+                MinispielTeamwertung.Zusammengefasst
+                    => "Im Teamspiel zählt der Durchschnitt eures Teams – höchstens die Feldpunkte –, aufgeteilt auf alle.",
+                MinispielTeamwertung.JePerson => art.TeamRulesText ?? NurGegnerText,
+                _ => null,
+            };
+
+            return satz == null ? text : $"{text} {satz}";
         }
 
         /// <summary>Der Regeltext, wie er am Beamer steht - leer bei einer unbekannten Art.</summary>

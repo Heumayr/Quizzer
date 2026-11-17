@@ -11,6 +11,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         private static readonly MinigameProfile TapSprint = new()
         {
             Kind = MinigameKind.TapSprint,
+            TeamScoring = MinispielTeamwertung.Zusammengefasst,
             DisplayName = "Tippsprint",
             Description = "Nach dem Countdown tippen alle so oft wie möglich auf ihr Telefon, bis die Zeit "
                         + "um ist; am Beamer läuft das Rennen mit. Wer am häufigsten getippt hat, bekommt "
@@ -40,6 +41,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         private static readonly MinigameProfile Stopwatch = new()
         {
             Kind = MinigameKind.Stopwatch,
+            TeamScoring = MinispielTeamwertung.Zusammengefasst,
             DisplayName = "Stoppuhr",
             Description = "Jeder startet am Telefon seine Uhr. Sie ist drei Sekunden lang zu sehen und "
                         + "verschwindet dann; gestoppt wird mit einem Tipp bei der Zielzeit. Wer am nächsten "

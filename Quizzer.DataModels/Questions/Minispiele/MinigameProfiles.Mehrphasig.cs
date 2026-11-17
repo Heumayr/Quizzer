@@ -8,6 +8,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         private static readonly MinigameProfile ExplainIt = new()
         {
             Kind = MinigameKind.ExplainIt,
+            TeamScoring = MinispielTeamwertung.Zusammengefasst,
             DisplayName = "Erklärbär",
             Description = "Je Runde ein Begriff aus den Zeilen: nur das Telefon des Erklärers zeigt ihn, er beschreibt ihn laut, "
                         + "ohne ihn zu sagen. Die anderen tippen ihre Rateversuche ins Telefon; wer zuerst richtig liegt "
@@ -46,6 +47,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         private static readonly MinigameProfile Bluff = new()
         {
             Kind = MinigameKind.Bluff,
+            TeamScoring = MinispielTeamwertung.JePerson,
             DisplayName = "Bluff",
             Description = "Zwei Phasen. Zuerst tippt jeder am Telefon eine falsche Antwort auf die Frage, die echt klingt. Dann "
                         + "wählt jeder unter allen Bluffs und der echten Antwort, gemischt – den eigenen Bluff sieht er nicht. Wer "
@@ -74,11 +76,13 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
             // Mit zweien gaebe es nur einen fremden Bluff - die Wahl waere ein Muenzwurf (Annahme C6a).
             MinPlayers = 3,
+            TeamRulesText = "Im Teamspiel zählen nur Gegner, die auf deinen Bluff hereinfallen.",
         };
 
         private static readonly MinigameProfile HotPotato = new()
         {
             Kind = MinigameKind.HotPotato,
+            TeamScoring = MinispielTeamwertung.JePerson,
             DisplayName = "Heiße Kartoffel",
             Description = "Wer die Kartoffel hält, beantwortet am Telefon Aussagen mit wahr oder falsch – wahr ist eine Aussage mit "
                         + "Haken. Nur nach einer richtigen Antwort gibt er sie an einen Mitspieler seiner Wahl weiter, nach einer "
@@ -116,6 +120,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
             MinPlayers = 2,
             ChooserOnly = true,
             ChooserLabel = "Wer hält zuerst",
+            TeamRulesText = "Im Teamspiel geht die Kartoffel nur an Gegner aus anderen Teams.",
         };
     }
 }
