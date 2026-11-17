@@ -11,6 +11,10 @@ using Quizzer.Logic.Vorrat;
 // Ohne Argument passiert nichts ausser dieser Hilfe. Die Verbindungszeichenfolge kommt aus
 // derselben appsettings.json wie in der Anwendung, zeigt also auf die *echte* Spieldatenbank.
 
+// Die Ausgaben tragen Umlaute. Ohne das schreibt .NET in der Codepage der Konsole (850: "Ü" = 0x9A),
+// und wer die Ausgabe als UTF-8 liest, sieht "?" (V13).
+Console.OutputEncoding = System.Text.Encoding.UTF8;
+
 if (args.Length == 0)
 {
     Console.WriteLine("Quizzer.EF - Startprojekt fuer die EF-Werkzeuge.");
