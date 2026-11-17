@@ -236,6 +236,13 @@
                             CommandParameter="{Binding CurrentBuzzerLayout}"
                             ToolTip="Schickt die laufende Runde neu auf die Telefone." />
 
+                    <!-- M37 T4: im Teamspiel buzzert jedes Team einmal je Frage (F-M37-09) - die Spielleitung kann freigeben (E1). -->
+                    <StackPanel Visibility="{Binding BuzzerControlsViewModel.TeamSperreVisibility}" Margin="4,10,4,0">
+                        <TextBlock Text="{Binding BuzzerControlsViewModel.TeamSperreText}" FontSize="12" TextWrapping="Wrap" Opacity="0.8" />
+                        <Button Content="Team wieder freigeben" Command="{Binding BuzzerControlsViewModel.TeamFreigebenCommand}" Margin="0,6,0,0"
+                                ToolTip="Wer bei dieser Frage schon gebuzzert hat, darf wieder buzzern – etwa nach einem Versehen. Sonst bleibt das Team bis zum Schließen der Frage gesperrt." />
+                    </StackPanel>
+
                     <!-- M35 B3: der Spielleiter hat die Hand (E1) - starten, wiederholen, abbrechen. -->
                     <StackPanel Visibility="{Binding MinispielSteuerungVisibility}">
                         <Separator Margin="4,18,4,2" />

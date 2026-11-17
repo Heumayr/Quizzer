@@ -39,6 +39,7 @@ namespace Quizzer.TestShared
         public const int SonderregelAllianz = 5429;
         public const int SonderregelKopfgeld = 5431;
         public const int JokerRunde = 5445;
+        public const int TeamBuzzer = 5453;
 
         // Quizzer.Server.Tests: keine festen Ports (In-Memory-Server, sonst Port 0).
     }

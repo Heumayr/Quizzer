@@ -246,6 +246,9 @@ namespace Quizzer.Views.BuzzerViews
 
                 await RunOnUiAsync(async () =>
                 {
+                    // M37 T4: mit dem Gewinner ist sein Team gesperrt - der Knopf „Team wieder freigeben“ erscheint.
+                    TeamSperreGeaendert();
+
                     if (WinnerDeclared != null)
                         await WinnerDeclared.Invoke(player, round);
                 });

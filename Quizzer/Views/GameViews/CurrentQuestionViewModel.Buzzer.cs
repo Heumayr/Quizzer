@@ -183,6 +183,7 @@ namespace Quizzer.Views.GameViews
                 ClearAppreciateOutcome();
                 ClearMinigame();
                 ClearSonderregel();
+                BuzzerControlsViewModel.ClearTeamLock(); // M37 T4: die Team-Sperre gilt nur dieser Frage (F-M37-09)
                 BuzzerControlsViewModel.SetRoundInfo(null);
 
                 await BuzzerControlsViewModel.ResetRoundAsync(null);

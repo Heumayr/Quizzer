@@ -155,6 +155,7 @@ namespace Quizzer.Views.BuzzerViews
 
                 OnPropertyChanged(nameof(Game));
                 OnPropertyChanged(nameof(Players));
+                ApplyTeams();
 
                 // Re-evaluate state when game/players change
                 RecalcServerState();
@@ -305,6 +306,7 @@ namespace Quizzer.Views.BuzzerViews
                 BuzzerControlsViewModel?.Dispose();
                 BuzzerControlsViewModel = new();
                 BuzzerControlsViewModel.SetBuzzerVerverViewModel(this);
+                await SendTeamsAsync();
 
                 PendingJoins.Clear();
                 OnPropertyChanged(nameof(PendingJoinsVisibility));
