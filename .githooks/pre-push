@@ -60,17 +60,47 @@ done <<EOF
 $pfade
 EOF
 
-# 3. Bau. Der erste Bau nach einer WPF-Aenderung scheitert gelegentlich mit CS2001 im
-#    *_wpftmp.csproj (quizzer-testaufbau.md) - deshalb genau ein zweiter Versuch, angesagt.
-echo "pre-push 1/2: Bau (Quizzer.slnx)"
-if ! dotnet build Quizzer.slnx -m:1 --nologo -v q; then
-  echo "pre-push: erster Bau gescheitert - zweiter Versuch (bekannter WPF-Wettlauf)."
-  dotnet build Quizzer.slnx -m:1 --nologo -v q
+# 3. Welche Staende pruefen? Bis V20 pruefte der Hook immer den Arbeitsbaum - ein Push eines
+#    anderen Zweigs ging damit ungeprueft hinaus (gemessen 2026-11-17). Jetzt: der Arbeitsbaum, wenn
+#    sein HEAD mitgeht (oder keine Refs kommen), jeder andere Stand in einem Wegwerf-Arbeitsbaum.
+kopf=$(git rev-parse HEAD)
+teste_kopf=0
+fremde=''
+if [ -z "$refs" ]; then teste_kopf=1; fi
+while read -r lokale_ref lokale_sha rest; do
+  [ -z "$lokale_sha" ] && continue
+  case "$lokale_sha" in *[!0]*) ;; *) continue ;; esac
+  if [ "$lokale_sha" = "$kopf" ]; then teste_kopf=1; continue; fi
+  case " $fremde " in *" $lokale_sha "*) ;; *) fremde="$fremde $lokale_sha" ;; esac
+done <<EOF
+$refs
+EOF
+
+# Bau mit genau einem zweiten Versuch: der erste Bau nach einer WPF-Aenderung scheitert gelegentlich
+# mit CS2001 im *_wpftmp.csproj (quizzer-testaufbau.md). Bewusst nur die Logiktests (etwa eine
+# Minute, samt Telefonseite in Node); WPF- und Servertests bleiben ein bewusster Aufruf (CLAUDE.md).
+pruefe() {
+  echo "pre-push 1/2: Bau ($1)"
+  if ! dotnet build Quizzer.slnx -m:1 --nologo -v q; then
+    echo "pre-push: erster Bau gescheitert - zweiter Versuch (bekannter WPF-Wettlauf)."
+    dotnet build Quizzer.slnx -m:1 --nologo -v q
+  fi
+  echo "pre-push 2/2: Logiktests ($1; WPF- und Servertests bewusst ausgenommen)"
+  dotnet test Quizzer.LogicUnitTests/Quizzer.LogicUnitTests.csproj --no-build --nologo -v q
+}
+
+if [ "$teste_kopf" -eq 1 ]; then
+  pruefe "Arbeitsbaum"
 fi
 
-# 4. Bewusst nur die Logiktests (etwa eine Minute, samt Telefonseite in Node). WPF- und
-#    Servertests brauchen mehrere Minuten und bleiben ein bewusster Aufruf (CLAUDE.md).
-echo "pre-push 2/2: Logiktests (WPF- und Servertests bewusst ausgenommen)"
-dotnet test Quizzer.LogicUnitTests/Quizzer.LogicUnitTests.csproj --no-build --nologo -v q
+for sha in $fremde; do
+  baum=$(mktemp -d)/pruefbaum
+  git worktree add --detach "$baum" "$sha" > /dev/null
+  # Aufraeumen auch bei Fehlschlag; set -e beendet sonst vor dem remove.
+  trap 'git worktree remove --force "$baum" > /dev/null 2>&1' EXIT
+  ( cd "$baum" && pruefe "Stand ${sha%"${sha#???????}"}" )
+  git worktree remove --force "$baum" > /dev/null 2>&1
+  trap - EXIT
+done
 
 echo "pre-push: alles gruen"
