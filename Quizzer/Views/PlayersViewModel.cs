@@ -192,23 +192,39 @@ namespace Quizzer.Views
             }
 
             int ergebnisse;
+            int joker;
 
             using (var ctrlResults = new QuestionResultsController())
+            using (var ctrlJoker = new PlayerJokersController(ctrlResults))
             {
                 ergebnisse = await ctrlResults.CountResultsOfPlayersAsync(toRemove.Select(p => p.Id));
+                joker = await ctrlJoker.CountOfPlayersAsync(toRemove.Select(p => p.Id));
             }
 
             var namen = string.Join(", ", toRemove.Select(p => p.CalculatedDisplayName));
 
-            var zeilen = ergebnisse == 1 ? "1 Ergebniszeile" : $"{ergebnisse} Ergebniszeilen";
+            return UserPrompt.Confirm($"{namen} entfernen?" + Verlust(ergebnisse, joker, toRemove.Count), "Mitspieler entfernen");
+        }
 
-            var frage = ergebnisse == 0
-                ? $"{namen} entfernen?"
-                : $"{namen} entfernen?" + Environment.NewLine + Environment.NewLine
-                  + $"Dabei wird die gesamte Punktehistorie mitgelöscht: {zeilen} aus allen "
-                  + "Spielen. Das lässt sich nicht rückgängig machen.";
+        /// <summary>
+        /// Was mit den Mitspielern geht, als Absatz - leer, wenn nichts. V12: die Joker dazu, eigene (CASCADE) und
+        /// Sperren gegen sie (<c>PlayersController.BeforeActionAsync</c>).
+        /// </summary>
+        private static string Verlust(int ergebnisse, int joker, int personen)
+        {
+            var saetze = new List<string>();
 
-            return UserPrompt.Confirm(frage, "Mitspieler entfernen");
+            if (ergebnisse > 0)
+                saetze.Add("Dabei wird die gesamte Punktehistorie mitgelöscht: "
+                           + (ergebnisse == 1 ? "1 Ergebniszeile" : $"{ergebnisse} Ergebniszeilen") + " aus allen Spielen.");
+
+            if (joker > 0)
+                saetze.Add($"{(ergebnisse > 0 ? "Dazu" : "Dabei")} gehen {joker} Joker mit: eigene und Sperren gegen "
+                           + (personen == 1 ? "diesen Mitspieler." : "diese Mitspieler."));
+
+            return saetze.Count == 0
+                ? string.Empty
+                : Environment.NewLine + Environment.NewLine + string.Join(" ", saetze) + " Das lässt sich nicht rückgängig machen.";
         }
     }
 }

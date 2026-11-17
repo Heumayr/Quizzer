@@ -204,10 +204,13 @@ namespace Quizzer.Views
         private static async Task<bool> BestaetigeEntfernenAsync(List<Game> toRemove)
         {
             int ergebnisse;
+            int joker;
 
             using (var ctrl = new QuestionResultsController())
+            using (var ctrlJoker = new PlayerJokersController(ctrl))
             {
                 ergebnisse = await ctrl.CountResultsOfGamesAsync(toRemove.Select(g => g.Id));
+                joker = await ctrlJoker.CountOfGamesAsync(toRemove.Select(g => g.Id));
             }
 
             var namen = string.Join(", ", toRemove.Select(g => g.Designation));
@@ -218,10 +221,17 @@ namespace Quizzer.Views
             {
                 var zeilen = ergebnisse == 1 ? "1 Ergebniszeile" : $"{ergebnisse} Ergebniszeilen";
 
+                // V12: die Joker gehen mit (GamesController.BeforeActionAsync) - genannt wie die Ergebnisse.
                 frage += Environment.NewLine + Environment.NewLine
-                       + $"Dabei geht der gesamte Punktestand dieses Abends verloren: {zeilen}, "
+                       + $"Dabei geht der gesamte Punktestand dieses Abends verloren: {zeilen}"
+                       + (joker > 0 ? $" und {joker} Joker" : string.Empty) + ", "
                        + "dazu das Spielfeld und die Zuordnung der Mitspieler. Das lässt sich "
                        + "nicht rückgängig machen.";
+            }
+            else if (joker > 0)
+            {
+                frage += Environment.NewLine + Environment.NewLine
+                       + $"Dabei gehen {joker} vergebene Joker verloren. Das lässt sich nicht rückgängig machen.";
             }
 
             return UserPrompt.Confirm(frage, "Spiel entfernen");

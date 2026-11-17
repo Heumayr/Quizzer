@@ -163,6 +163,28 @@ namespace Quizzer.Logic.Controller.TypedControllers
                 .ExecuteDeleteAsync();
         }
 
+        /// <summary>Wie viele Joker mit diesen Spielen gehen (<see cref="DeleteByGameIdAsync"/>) - fuer die Rueckfrage (V12).</summary>
+        public async Task<int> CountOfGamesAsync(IEnumerable<Guid> gameIds)
+        {
+            var ids = gameIds?.Distinct().ToList() ?? [];
+
+            return ids.Count == 0 ? 0 : await EntitySet.CountAsync(j => ids.Contains(j.GameId));
+        }
+
+        /// <summary>
+        /// Wie viele Joker mit diesen Mitspielern gehen - ihre eigenen (CASCADE) und die Sperren gegen sie
+        /// (<see cref="DeleteTargetingPlayerAsync"/>), jeder einmal. Fuer die Rueckfrage (V12).
+        /// </summary>
+        public async Task<int> CountOfPlayersAsync(IEnumerable<Guid> playerIds)
+        {
+            var ids = playerIds?.Distinct().ToList() ?? [];
+
+            if (ids.Count == 0)
+                return 0;
+
+            return await EntitySet.CountAsync(j => ids.Contains(j.PlayerId) || (j.TargetPlayerId != null && ids.Contains(j.TargetPlayerId.Value)));
+        }
+
         /// <summary>Ob an einer der Zellen ein Joker eingelöst wurde (NO ACTION auf die Zelle).</summary>
         public async Task<bool> AnyRedeemedAtAsync(IEnumerable<Guid> cellIds)
         {

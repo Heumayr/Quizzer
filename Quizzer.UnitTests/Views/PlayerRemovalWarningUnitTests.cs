@@ -152,9 +152,40 @@ namespace Quizzer.UnitTests.Views
 
             Assert.AreEqual(1, prompt.Confirms.Count, "Es wurde gar nicht gefragt.");
 
-            Assert.IsFalse(prompt.Confirms[0].Message.Contains("Ergebniszeilen"),
-                "Ohne Ergebnisse gehoert der Zusatz nicht in die Frage: "
+            Assert.IsFalse(prompt.Confirms[0].Message.Contains("Ergebniszeilen") || prompt.Confirms[0].Message.Contains("Joker"),
+                "Ohne Ergebnisse und Joker gehoert der Zusatz nicht in die Frage: "
                 + prompt.Confirms[0].Message);
+        }
+
+        /// <summary>
+        /// V12: mit dem Mitspieler gehen seine eigenen Joker und die Sperren anderer gegen ihn - beide gezaehlt. Ein
+        /// Joker eines anderen ohne Bezug zu ihm bleibt und zaehlt nicht.
+        /// </summary>
+        [TestMethod]
+        public async Task TheQuestionCountsOwnJokersAndBlocksAgainstThePlayer()
+        {
+            var anna = world.Players[0];
+            var bert = world.Players[1];
+
+            using (var ctrl = new PlayerJokersController())
+            {
+                await ctrl.GrantAsync(world.Game.Id, anna.Id, JokerKind.Double, "verdient", DateTimeOffset.Now);
+                await ctrl.GrantAsync(world.Game.Id, bert.Id, JokerKind.Shield, "verdient", DateTimeOffset.Now);
+                await ctrl.InsertAsync(new PlayerJoker
+                {
+                    Id = Guid.NewGuid(), GameId = world.Game.Id, PlayerId = bert.Id, Kind = JokerKind.Block, Reason = "verdient",
+                    GrantedAt = DateTimeOffset.Now, GameGridCoordinateId = world.Coordinate.Id, RedeemedAt = DateTimeOffset.Now, TargetPlayerId = anna.Id,
+                });
+                await ctrl.SaveChangesAsync();
+            }
+
+            var vm = await BuildViewModelAsync();
+
+            await TestEnvironment.RunCommandAsync(vm.RemovePlayerCommand);
+
+            Assert.AreEqual(1, prompt.Confirms.Count, "Es wurde gar nicht gefragt.");
+            StringAssert.Contains(prompt.Confirms[0].Message, "gehen 2 Joker mit", "Die Rueckfrage zaehlt die Joker falsch: " + prompt.Confirms[0].Message);
+            StringAssert.Contains(prompt.Confirms[0].Message, "nicht rückgängig", "Ohne Ergebnisse fehlt der Satz, dass es endgueltig ist.");
         }
 
         /// <summary>Trägt dem Testspiel die Spielleitung des ersten Mitspielers ein.</summary>

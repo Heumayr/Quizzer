@@ -66,6 +66,16 @@ namespace Quizzer.UnitTests.Views
             await ctrl.SaveChangesAsync();
         }
 
+        private static async Task GrantJokersAsync(TestGameBuilder welt, int anzahl)
+        {
+            using var ctrl = new PlayerJokersController();
+
+            for (var i = 0; i < anzahl; i++)
+                await ctrl.GrantAsync(welt.Game.Id, welt.Players[i % welt.Players.Count].Id, JokerKind.Double, "verdient", DateTimeOffset.Now);
+
+            await ctrl.SaveChangesAsync();
+        }
+
         private async Task<GamesViewModel> BuildViewModelAsync()
         {
             var vm = new GamesViewModel();
@@ -131,12 +141,45 @@ namespace Quizzer.UnitTests.Views
 
             Assert.AreEqual(1, prompt.Confirms.Count, "Es wurde gar nicht gefragt.");
 
-            Assert.IsFalse(prompt.Confirms[0].Message.Contains("Ergebniszeile"),
-                "Ohne gespielte Runde gehoert der Zusatz nicht in die Frage: "
+            Assert.IsFalse(prompt.Confirms[0].Message.Contains("Ergebniszeile") || prompt.Confirms[0].Message.Contains("Joker"),
+                "Ohne gespielte Runde und ohne Joker gehoert der Zusatz nicht in die Frage: "
                 + prompt.Confirms[0].Message);
 
             StringAssert.Contains(prompt.Confirms[0].Message, world.Game.Designation,
                 "Auch die schlichte Rueckfrage muss sagen, welches Spiel gemeint ist.");
+        }
+
+        /// <summary>
+        /// V12: die Joker des Spiels gehen mit und werden genannt - auch ohne gespielte Runde. Gezaehlt wird nur dieses
+        /// Spiel: der Joker eines anderen Spiels bleibt und zaehlt nicht.
+        /// </summary>
+        [TestMethod]
+        public async Task TheQuestionCountsTheJokersOfThisGameOnly()
+        {
+            await using var fremd = await TestGameBuilder.CreateAsync(QuestionType.Default, normalStepCount: 1, playerCount: 1);
+            await GrantJokersAsync(world, 2);
+            await GrantJokersAsync(fremd, 1);
+
+            var vm = await BuildViewModelAsync();
+
+            await TestEnvironment.RunCommandAsync(vm.RemoveGameCommand);
+
+            Assert.AreEqual(1, prompt.Confirms.Count, "Es wurde gar nicht gefragt.");
+            StringAssert.Contains(prompt.Confirms[0].Message, "2 vergebene Joker", "Die Rueckfrage nennt die Joker nicht: " + prompt.Confirms[0].Message);
+        }
+
+        /// <summary>V12: mit Ergebnissen stehen die Joker im selben Satz wie der Punktestand.</summary>
+        [TestMethod]
+        public async Task WithResultsTheJokersStandNextToTheScore()
+        {
+            await AddResultsAsync(2);
+            await GrantJokersAsync(world, 1);
+
+            var vm = await BuildViewModelAsync();
+
+            await TestEnvironment.RunCommandAsync(vm.RemoveGameCommand);
+
+            StringAssert.Contains(prompt.Confirms[0].Message, "2 Ergebniszeilen und 1 Joker", "Die Rueckfrage nennt die Joker nicht: " + prompt.Confirms[0].Message);
         }
 
         /// <summary>
