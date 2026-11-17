@@ -261,7 +261,7 @@
                                       Visibility="{Binding PaarPartnerVisibility}"
                                       DisplayMemberPath="CalculatedDisplayName"
                                       ToolTip="Leer lassen: der Auslöser wählt am Telefon. Gesetzt: der Spielleiter legt fest, wer mitspielt." />
-                            <Button Content="Paar festlegen" Command="{Binding SetMinigamePairCommand}" Margin="0,6,0,0"
+                            <Button Content="{Binding PaarKnopfBeschriftung}" Command="{Binding SetMinigamePairCommand}" Margin="0,6,0,0"
                                     ToolTip="Legt fest, wer spielt. Mitten in der Runde zählt, was schon abgegeben war, nicht mehr." />
                         </StackPanel>
                         <!-- M35 C6: Erklaerbaer - den Begriff sieht nur der Spielleiter, damit er „Verraten" werten kann. -->

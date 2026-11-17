@@ -36,6 +36,9 @@ namespace Quizzer.Views.GameViews
         /// <summary>Die Beschriftung des Waehlenden - beim Gluecksrad dreht er (M35 C4).</summary>
         public string PaarWaehlerBeschriftung => $"{SpielerwahlArt?.ChooserLabel ?? "Wer fordert"} (Auslöser)";
 
+        /// <summary>Ein Paar nur, wo es ein Gegenueber gibt - Erklaerbaer und Kartoffel waehlen einen (V12).</summary>
+        public string PaarKnopfBeschriftung => SpielerwahlArt?.ChooserOnly == true ? "Spieler festlegen" : "Paar festlegen";
+
         private AsyncRelayCommand? setMinigamePairCommand;
 
         public ICommand SetMinigamePairCommand
@@ -90,7 +93,7 @@ namespace Quizzer.Views.GameViews
                 return true;
 
             UserPrompt.Inform("Wer das Feld aufgedeckt hat, ist nicht bekannt. Bitte unter „Minispiel“ wählen, wer "
-                              + "fordert, und „Paar festlegen“ drücken.", SpielerwahlCaption);
+                              + $"fordert, und „{PaarKnopfBeschriftung}“ drücken.", SpielerwahlCaption);
             return false;
         }
     }

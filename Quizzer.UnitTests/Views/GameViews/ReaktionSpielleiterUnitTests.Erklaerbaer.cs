@@ -34,6 +34,7 @@ namespace Quizzer.UnitTests.Views.GameViews
 
             Assert.AreEqual(Visibility.Visible, vm.MinispielPaarVisibility, "Die Wahl des Erklaerers fehlt im Spielleiterfenster.");
             Assert.AreEqual(Visibility.Collapsed, vm.PaarPartnerVisibility, "Der Erklaerbaer fragt nach einem Gegenueber.");
+            Assert.AreEqual("Spieler festlegen", vm.PaarKnopfBeschriftung, "Der Knopf spricht beim Erklaerbaer von einem Paar.");
 
             await vm.StartMinispielRundeAsync();
             StringAssert.Contains(vm.Reaktion.Kopfzeile, $"{anna.CalculatedDisplayName} erklärt");

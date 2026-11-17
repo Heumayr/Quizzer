@@ -35,6 +35,7 @@ namespace Quizzer.UnitTests.Views.GameViews
 
             Assert.AreEqual(Visibility.Visible, vm.MinispielPaarVisibility, "Wer zuerst haelt, ist nicht waehlbar.");
             Assert.AreEqual(Visibility.Collapsed, vm.PaarPartnerVisibility, "Die Kartoffel fragt nach einem Gegenueber.");
+            Assert.AreEqual("Spieler festlegen", vm.PaarKnopfBeschriftung, "Der Knopf spricht bei der Kartoffel von einem Paar.");
 
             await vm.StartMinispielRundeAsync();
             StringAssert.Contains(vm.Reaktion.Kopfzeile, $"{anna.CalculatedDisplayName} hält sie");

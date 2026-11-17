@@ -30,6 +30,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             var einsatz = Punkteanteil.Von(Feldpunkte(vm), 50);
 
             Assert.AreEqual(System.Windows.Visibility.Visible, vm.MinispielPaarVisibility, "Die Paarwahl des Spielleiters fehlt.");
+            Assert.AreEqual("Paar festlegen", vm.PaarKnopfBeschriftung, "Beim Duell heisst der Knopf nicht mehr nach dem Paar.");
             Assert.AreEqual(anna.Id, vm.PaarWaehler?.Id, "Der Ausloeser ist nicht vorbelegt.");
 
             await vm.StartMinispielRundeAsync();
@@ -64,6 +65,7 @@ namespace Quizzer.UnitTests.Views.GameViews
 
             await vm.StartMinispielRundeAsync();
             Assert.AreEqual(1, prompt.Informs.Count, "Ohne Ausloeser startet die Runde ohne Hinweis.");
+            StringAssert.Contains(prompt.Informs[0].Message, "„Paar festlegen“", "Der Hinweis nennt den Knopf nicht, wie er heisst.");
             Assert.AreEqual(MinigamePhase.Waiting, serverVm!.BuzzerControlsViewModel!.MinigameState!.Phase);
 
             vm.PaarWaehler = bert;

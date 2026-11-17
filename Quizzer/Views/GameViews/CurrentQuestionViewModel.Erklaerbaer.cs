@@ -38,6 +38,7 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(ErklaerbaerBegriff));
             OnPropertyChanged(nameof(ErklaerbaerVisibility));
             OnPropertyChanged(nameof(PaarPartnerVisibility));
+            OnPropertyChanged(nameof(PaarKnopfBeschriftung));
         }
     }
 }
