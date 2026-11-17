@@ -325,6 +325,24 @@
                                       DisplayMemberPath="CalculatedDisplayName"
                                       ToolTip="Mehrere wurden gleich oft gewählt. Vorgabe ist der erste in der Spielerreihenfolge – hier legst du fest, wer allein antwortet." />
                         </StackPanel>
+                        <!-- M37 T6: Gleich gedacht - nach dem Vergleich legt der Spielleiter Gruppen eines Teams zusammen (E1). -->
+                        <StackPanel Visibility="{Binding GleichGedachtVisibility}" Margin="4,6,4,0">
+                            <TextBlock Text="Gruppen" FontWeight="Bold" />
+                            <ItemsControl ItemsSource="{Binding GleichGedachtGruppen}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding Markiert}" Margin="0,2"
+                                                  ToolTip="Anhaken, um diese Gruppe mit anderen Gruppen desselben Teams zusammenzulegen.">
+                                            <TextBlock Text="{Binding Beschriftung}" TextWrapping="Wrap" />
+                                        </CheckBox>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Content="Angehakte zusammenlegen" Command="{Binding GruppenZusammenlegenCommand}" Margin="0,6,0,0"
+                                    ToolTip="Die angehakten Gruppen eines Teams zählen als eine – etwa bei einem Tippfehler. Die erste angehakte gibt den Namen; Karten und Beamer rechnen sofort neu." />
+                            <Button Content="Zusammenlegen aufheben" Command="{Binding ZusammenlegenAufhebenCommand}" Margin="0,4,0,0"
+                                    ToolTip="Jede Gruppe zählt wieder für sich, wie die Antworten verglichen wurden." />
+                        </StackPanel>
                     </StackPanel>
 
                     <!-- V5: Countdown auf dem Beamer. Ein Buzzer haelt ihn an. -->

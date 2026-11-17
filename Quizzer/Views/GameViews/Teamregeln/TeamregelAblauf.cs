@@ -34,6 +34,21 @@ namespace Quizzer.Views.GameViews.Teamregeln
         /// <summary>Die Teams der Zelle, wie sie beim Öffnen standen.</summary>
         public IReadOnlyList<Teamaufstellung> Teams => Grundlage.Teams ?? [];
 
+        /// <summary>Wer diese Frage nicht antworten kann (Joker-Sperre mit Satz, getrennt ohne) - für Regeln ohne Sprecher (M37 T6).</summary>
+        protected IReadOnlyDictionary<Guid, string?> Ausgelassen => ausgelassen;
+
+        /// <summary>Der Platzhalter der Texteingabe am Telefon.</summary>
+        public virtual string Eingabehinweis => CurrentQuestionViewModel.TeamregelEingabe;
+
+        /// <summary>Was Beamer und Spielleiter unter dem Titel lesen, solange geantwortet wird.</summary>
+        public virtual string Standtext => "Nur die Sprecher antworten";
+
+        /// <summary>Ob immer per Text geantwortet wird, auch wo die Frage Tasten hat (M37 T6: Gleich gedacht vergleicht Texte).</summary>
+        public virtual bool NurTexteingabe => false;
+
+        /// <summary>Je Team der Sprecher dieser Frage für die Telefone; <c>null</c>: sie zeigen den Sprecher des Stands.</summary>
+        public virtual IReadOnlyDictionary<Guid, Guid>? SprecherAmTelefon => Sprecher;
+
         /// <summary>Dieser Spieler spricht bei dieser Frage nicht; der Nächste der Folge übernimmt.</summary>
         public void LasseAus(Guid spieler, string? satz = null) => ausgelassen[spieler] = satz;
 

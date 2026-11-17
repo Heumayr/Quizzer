@@ -45,7 +45,7 @@ namespace Quizzer.Views.GameViews
             {
                 var layout = Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None;
 
-                return Finale != null ? BuzzerControlsLayout.Input
+                return Finale != null || Teamregel is { NurTexteingabe: true } ? BuzzerControlsLayout.Input
                     : Teamregel == null || layout is BuzzerControlsLayout.KeySelect or BuzzerControlsLayout.Input ? layout
                     : BuzzerControlsLayout.Input;
             }
@@ -110,15 +110,16 @@ namespace Quizzer.Views.GameViews
                 karte.SonderregelGeaendert();
 
             WerteSonderregel();
-            await StaticManager.BuzzerServerViewModel.SendTeamsAsync(regel.Sprecher);
+            await StaticManager.BuzzerServerViewModel.SendTeamsAsync(regel.SprecherAmTelefon);
         }
 
-        private void ZeigeTeamregel(TeamregelAblauf regel)
+        /// <param name="stand">Was unter dem Titel steht; ohne: was die Regel sagt, solange geantwortet wird.</param>
+        private void ZeigeTeamregel(TeamregelAblauf regel, string? stand = null)
         {
             var sekunden = Coordinate?.Game?.TeamCouncilSeconds ?? 0;
-            var stand = regel is TeamberatungAblauf && sekunden > 0
+            stand ??= regel is TeamberatungAblauf && sekunden > 0
                 ? $"Beratung: {sekunden} s – nur die Sprecher antworten"
-                : "Nur die Sprecher antworten";
+                : regel.Standtext;
             var hinweis = joker is { Zu: true, Hinweis.Length: > 0 } ablauf ? $"{regel.Hinweis} · {ablauf.Hinweis}" : regel.Hinweis;
 
             Sonderregel.Zeige(regel.Titel, regel.Regeltext, stand, false, hinweis, TeamregelBereich);

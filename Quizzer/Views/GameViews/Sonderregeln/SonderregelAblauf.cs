@@ -20,6 +20,9 @@ namespace Quizzer.Views.GameViews.Sonderregeln
     {
         public static VorphaseGrundlage Leer { get; } = new(0, new Dictionary<Guid, int>());
 
+        /// <summary>Was „falsch" in der Zelle kostet, als positive Zahl - „Alle oder keiner" (M37 T6) verliert es auch bei einem Teilwert.</summary>
+        public int Minuspunkte { get; init; }
+
         /// <summary>Die Spieler in der Reihenfolge der Karten - beim Experten entscheidet sie den Gleichstand vor.</summary>
         public IReadOnlyList<Guid> Spielerfolge => Reihenfolge ?? Kontostaende.Keys.ToList();
 
@@ -96,6 +99,8 @@ namespace Quizzer.Views.GameViews.Sonderregeln
             CellSpecialRule.Bounty => new KopfgeldAblauf(),
             CellSpecialRule.TeamCouncil => new TeamberatungAblauf(),
             CellSpecialRule.Final => new FinalAblauf(),
+            CellSpecialRule.SameThought => new GleichGedachtAblauf(),
+            CellSpecialRule.AllOrNothing => new AlleOderKeinerAblauf(),
             _ => null,
         };
 

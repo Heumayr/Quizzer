@@ -129,7 +129,7 @@ namespace Quizzer.Views.GameViews
                             appreciate.ValueKind, appreciate.Unit, appreciate.Id);
                     }
                     else if (Teamregel != null || Finale != null)
-                        BuzzerControlsViewModel.SetTextInputInfo(Teamregel != null ? TeamregelEingabe : FinaleEingabe, Question?.Id);
+                        BuzzerControlsViewModel.SetTextInputInfo(Teamregel?.Eingabehinweis ?? FinaleEingabe, Question?.Id);
 
                     // M37 E4: im Finale gibt jeder genau einmal ab.
                     BereiteFinaleAntwortenVor();

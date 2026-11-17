@@ -44,6 +44,8 @@ namespace Quizzer.TestShared
         public const int Teamberatung = 5455;
         public const int Finale = 5473;
         public const int FinaleTeam = 5475;
+        public const int GleichGedacht = 5477;
+        public const int AlleOderKeiner = 5479;
 
         // Quizzer.Server.Tests: keine festen Ports (In-Memory-Server, sonst Port 0).
     }

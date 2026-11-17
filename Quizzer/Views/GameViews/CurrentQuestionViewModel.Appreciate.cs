@@ -40,8 +40,9 @@ namespace Quizzer.Views.GameViews
             OnPropertyChanged(nameof(AppreciateOutcome));
             OnPropertyChanged(nameof(AppreciateSummary));
 
-            // M37 E4: erst jetzt darf das Finale aufgelöst werden - vorher läse jemand am Beamer ab.
+            // M37 E4: erst jetzt darf das Finale aufgelöst werden - vorher läse jemand am Beamer ab. Ebenso der Vergleich (M37 T6).
             FinaleAntwortenGeschlossen();
+            GleichGedachtAntwortenZu(inputs);
 
             await OpenResultsAsync();
         }

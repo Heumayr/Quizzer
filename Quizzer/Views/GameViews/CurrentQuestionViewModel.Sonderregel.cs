@@ -123,7 +123,10 @@ namespace Quizzer.Views.GameViews
                 Coordinate is { } zelle ? SpecialRuleProfiles.ShareOf(zelle) : 0,
                 Coordinate?.SpecialRuleVariant ?? 0,
                 karten.Select(k => k.Player.Id).ToList(),
-                Teamspiel ? TeamaufstellungDerZelle(karten) : null);
+                Teamspiel ? TeamaufstellungDerZelle(karten) : null)
+            {
+                Minuspunkte = Coordinate?.CurrentMinusPoints ?? 0,
+            };
         }
 
         /// <summary>Der Spielleiter schliesst die Vorphase (E1) - wer nichts abgegeben hat, fuer den greift die Regel nicht.</summary>
@@ -282,6 +285,7 @@ namespace Quizzer.Views.GameViews
             VorphaseLaeuft = false;
             Sonderregel.Leere();
             LeereFinale();
+            LeereGleichGedacht();
             KandidatenGeaendert();
         }
     }
