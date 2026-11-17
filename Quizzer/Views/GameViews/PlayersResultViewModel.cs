@@ -1,5 +1,6 @@
 ﻿using Quizzer.Base;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.DataModels.Questions.Teams;
 using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.Views.GameViews.Sub;
 using Quizzer.Views.StaticRessources;
@@ -149,6 +150,8 @@ namespace Quizzer.Views.GameViews
                         GameId = Coordinate.GameId,
                         GameGridCoordinateId = Coordinate.Id,
                         QuestionBaseId = Coordinate.QuestionBaseId.Value,
+                        // Stempel (F-M37-07): nur beim Anlegen - wer später umgesetzt wird, lässt diese Punkte beim alten Team.
+                        GameTeamId = Teamzuordnung.TeamVon(Coordinate.Game, player.Id),
                     };
 
                     await ctrlResults.InsertAsync(result);
