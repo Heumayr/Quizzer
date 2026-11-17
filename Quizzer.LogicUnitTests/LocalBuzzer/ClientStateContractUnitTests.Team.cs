@@ -32,6 +32,11 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
 
             StringAssert.Contains(index, "import { zeigeTeam } from \"./team.js\"");
             Assert.IsTrue(Regex.IsMatch(index, @"zeigeTeam\(dom\.team,\s*serverState\.team\b"), "index.js gibt das Team nicht an team.js.");
+
+            // Ohne das Element bliebe dom.team leer, und zeigeTeam kehrte still zurück - kein Fehler, nur kein Team.
+            StringAssert.Contains(ReadScript("helpers.js"), "team: document.getElementById(\"team\")");
+            Assert.IsTrue(Regex.IsMatch(File.ReadAllText(Path.Combine(ScriptFolder, "..", "index.html")), @"<div id=""team"" class=""team-banner"" hidden>"),
+                "index.html hat kein verborgenes Teambanner mit der Kennung team.");
         }
 
         /// <summary>Je Platz der Palette eine Klasse mit genau ihrem Farbwert - und team.js kennt dieselbe Zahl Plätze.</summary>
