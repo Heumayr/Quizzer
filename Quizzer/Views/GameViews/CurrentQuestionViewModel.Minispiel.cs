@@ -131,8 +131,11 @@ namespace Quizzer.Views.GameViews
 
             Ablauf.TonZu(runde); // V5: Ergebnis, je Art
 
-            if (runde.Finished)
-                await OpenResultsAsync();
+            if (!runde.Finished)
+                return;
+
+            await OpenResultsAsync();
+            await PruefeRekordAsync(); // M37 E02: erst nach dem Bewertungsfenster - die Ansage haelt nichts an
         }
 
         /// <summary>Eine Abgabe ist angenommen - der Tippsprint treibt damit sein Rennen am Beamer.</summary>

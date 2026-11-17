@@ -62,6 +62,9 @@ namespace Quizzer.Logic.Controller.TypedControllers
         /// <summary>Die Bestenliste ueber alle Spiele dieser Datenbank, gerechnet wie am Server (M37 E03).</summary>
         public Task<Leaderboard> BestenlisteAsync() => LeaderboardRows.CalculateAsync(CurrentContext, gameIds: null);
 
+        /// <summary>Dieselben Zeilen ungerechnet - der bisherige Stand fuer <see cref="Rekordpruefung"/> (M37 E02).</summary>
+        public Task<List<LeaderboardRow>> BestenlistenZeilenAsync() => LeaderboardRows.LoadAsync(CurrentContext, gameIds: null);
+
         public async Task<int> DeleteByGameIdAsync(Guid gameId)
         {
             return await EntitySet

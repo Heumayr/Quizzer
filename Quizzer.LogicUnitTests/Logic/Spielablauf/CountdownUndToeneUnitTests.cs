@@ -59,9 +59,13 @@ namespace Quizzer.LogicUnitTests.Logic.Spielablauf
         [DataRow("Tick")]
         [DataRow("Ende")]
         [DataRow("Absturz")]
+        [DataRow("Rekord")]
         public void TheTonesAreValidPcmWavs(string welcher)
         {
-            var wav = welcher switch { "Buzzer" => Toene.Buzzer(), "Tick" => Toene.Tick(), "Absturz" => Toene.Absturz(), _ => Toene.Ende() };
+            var wav = welcher switch
+            {
+                "Buzzer" => Toene.Buzzer(), "Tick" => Toene.Tick(), "Absturz" => Toene.Absturz(), "Rekord" => Toene.Rekord(), _ => Toene.Ende(),
+            };
 
             Assert.AreEqual("RIFF", System.Text.Encoding.ASCII.GetString(wav, 0, 4));
             Assert.AreEqual("WAVE", System.Text.Encoding.ASCII.GetString(wav, 8, 4));

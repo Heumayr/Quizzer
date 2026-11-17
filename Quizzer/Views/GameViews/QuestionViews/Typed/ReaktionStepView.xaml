@@ -22,6 +22,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -37,13 +38,26 @@
                        Foreground="WhiteSmoke" TextAlignment="Center" />
         </Viewbox>
 
-        <Border Grid.Row="2" Margin="10,4" Padding="8" CornerRadius="8" Background="#33000000"
+        <!-- M37 E02: ein geschlagener Bestwert nach dem Ende - die Kopfzeile sagt es in Worten, nicht nur die Farbe. -->
+        <Border Grid.Row="2" Margin="10,4" Padding="16,8" CornerRadius="12" Background="#E6141008"
+                BorderBrush="Gold" BorderThickness="3" Visibility="{Binding Reaktion.RekordVisibility}">
+            <Viewbox Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="130">
+                <StackPanel Width="1400">
+                    <TextBlock Text="{Binding Reaktion.Rekord.Titel}" FontSize="52" FontWeight="Bold" Foreground="Gold"
+                               TextWrapping="Wrap" TextAlignment="Center" />
+                    <TextBlock Text="{Binding Reaktion.Rekord.Zeile}" FontSize="40" FontWeight="SemiBold" Foreground="WhiteSmoke"
+                               TextWrapping="Wrap" TextAlignment="Center" />
+                </StackPanel>
+            </Viewbox>
+        </Border>
+
+        <Border Grid.Row="3" Margin="10,4" Padding="8" CornerRadius="8" Background="#33000000"
                 Visibility="{Binding HasStepTextVisibility}">
             <TextBlock Text="{Binding Step.StepText}" Foreground="{Binding TextForgroundBrush}" FontSize="28"
                        TextWrapping="Wrap" TextAlignment="Center" />
         </Border>
 
-        <Viewbox Grid.Row="3" Stretch="Uniform" StretchDirection="DownOnly" VerticalAlignment="Top" Margin="10,8"
+        <Viewbox Grid.Row="4" Stretch="Uniform" StretchDirection="DownOnly" VerticalAlignment="Top" Margin="10,8"
                  Visibility="{Binding Reaktion.ZeilenVisibility}">
             <StackPanel Width="900">
             <ItemsControl ItemsSource="{Binding Reaktion.Zeilen}">

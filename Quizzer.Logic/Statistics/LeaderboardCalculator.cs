@@ -7,9 +7,10 @@ namespace Quizzer.Logic.Statistics
     /// <summary>Eine Ergebniszeile fuer die Bestenliste - die Rechte hat der Aufrufer schon angewandt.</summary>
     /// <param name="Kind">Die Art der Frage, wenn sie ein Minispiel ist; sonst <c>null</c>.</param>
     /// <param name="Variant">Die Spielweise der Frage (<c>MinigameQuestion.Variant</c>), ohne Minispiel 0 (M37 E05).</param>
+    /// <param name="CoordinateId">Die Zelle des Ergebnisses - die Rekordpruefung laesst die laufende weg (M37 E02).</param>
     public sealed record LeaderboardRow(
         Guid ResultId, Guid PlayerId, string PlayerName, Guid GameId, string GameName,
-        MinigameKind? Kind, int Variant, int? RecordValue, DateTimeOffset? RecordedAt, int Steals);
+        MinigameKind? Kind, int Variant, int? RecordValue, DateTimeOffset? RecordedAt, int Steals, Guid CoordinateId);
 
     /// <summary>
     /// Die Bestenliste ueber Abende (M35 C9) als reine Rechnung - Server und Tests benutzen dieselbe.
@@ -52,12 +53,12 @@ namespace Quizzer.Logic.Statistics
                 return [Kategorie(profil, record, derArt, null)];
 
             return record.VariantTitles.Select((_, spielweise) =>
-                Kategorie(profil, record, derArt.Where(z => Spielweise(z, record) == spielweise), spielweise));
+                Kategorie(profil, record, derArt.Where(z => Spielweise(z.Variant, record) == spielweise), spielweise));
         }
 
         /// <summary>Ein unbekannter Index zaehlt zur ersten Spielweise - so spielt ihn die Runde (wie <see cref="MinigameProfile.VariantFor"/>).</summary>
-        private static int Spielweise(LeaderboardRow zeile, MinigameRecord record)
-            => zeile.Variant >= 0 && zeile.Variant < record.VariantTitles.Count ? zeile.Variant : 0;
+        internal static int Spielweise(int variant, MinigameRecord record)
+            => variant >= 0 && variant < record.VariantTitles.Count ? variant : 0;
 
         private static LeaderboardCategory Kategorie(MinigameProfile profil, MinigameRecord record, IEnumerable<LeaderboardRow> zeilen, int? spielweise)
         {

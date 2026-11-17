@@ -25,6 +25,9 @@ namespace Quizzer.Logic.Spielablauf
         /// <summary>Drei fallende Toene - „abgestuerzt" beim Zocker (M35 C4).</summary>
         public static byte[] Absturz() => Wav(Folge((523, 0.12), (392, 0.12), (262, 0.4)), 0.6);
 
+        /// <summary>Ein aufsteigender Dreiklang bis zur Oktave - „neuer Rekord" (M37 E02).</summary>
+        public static byte[] Rekord() => Wav(Folge((523, 0.1), (659, 0.1), (784, 0.1), (1047, 0.4)), 0.6);
+
         private static float[] Folge(params (double Hz, double Sekunden)[] toene)
         {
             var teile = toene.Select(t => Ton(t.Hz, t.Sekunden)).ToList();

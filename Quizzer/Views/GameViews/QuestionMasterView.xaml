@@ -242,6 +242,8 @@
                         <TextBlock Style="{StaticResource SectionHeader}" Text="Minispiel" Margin="4,0,4,4" />
                         <TextBlock Text="{Binding Reaktion.Kopfzeile}" FontSize="12" Opacity="0.8"
                                    TextWrapping="Wrap" Margin="4,0,4,6" />
+                        <TextBlock Text="{Binding Reaktion.Rekord.Text}" Visibility="{Binding Reaktion.RekordVisibility}"
+                                   FontWeight="Bold" TextWrapping="Wrap" Margin="4,0,4,6" />
                         <Button Content="Runde starten" Command="{Binding StartMinigameRoundCommand}" FontWeight="Bold"
                                 ToolTip="Startet die nächste Runde auf allen Telefonen. Nach der letzten Runde geht nichts mehr – dann wiederholen oder abschließen." />
                         <Button Content="Runde wiederholen" Command="{Binding RepeatMinigameRoundCommand}" Margin="4,6,4,0"

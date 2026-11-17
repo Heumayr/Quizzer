@@ -1,5 +1,6 @@
 using Quizzer.Base;
 using Quizzer.DataModels.Questions.Minispiele;
+using Quizzer.Logic.Statistics;
 using System.Windows;
 
 namespace Quizzer.Views.GameViews.Sub
@@ -21,17 +22,31 @@ namespace Quizzer.Views.GameViews.Sub
 
         public Visibility AufloesungVisibility => Aufloesung.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
+        /// <summary>„Neuer Rekord!" zur Tafel nach dem Ende (M37 E02); <c>null</c>: keiner. Jede neue Tafel nimmt ihn weg.</summary>
+        public RekordAnsage? Rekord { get; private set; }
+
+        public Visibility RekordVisibility => Rekord != null ? Visibility.Visible : Visibility.Collapsed;
+
         internal void Zeige(string kopfzeile, IReadOnlyList<ReaktionTafelZeile>? zeilen = null, IReadOnlyList<string>? aufloesung = null)
         {
             Kopfzeile = kopfzeile;
             Zeilen = zeilen ?? [];
             Aufloesung = aufloesung ?? [];
+            ZeigeRekord(null);
 
             OnPropertyChanged(nameof(Kopfzeile));
             OnPropertyChanged(nameof(Zeilen));
             OnPropertyChanged(nameof(ZeilenVisibility));
             OnPropertyChanged(nameof(Aufloesung));
             OnPropertyChanged(nameof(AufloesungVisibility));
+        }
+
+        internal void ZeigeRekord(RekordAnsage? ansage)
+        {
+            Rekord = ansage;
+
+            OnPropertyChanged(nameof(Rekord));
+            OnPropertyChanged(nameof(RekordVisibility));
         }
     }
 }

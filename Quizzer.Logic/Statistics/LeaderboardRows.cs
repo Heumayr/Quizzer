@@ -35,7 +35,8 @@ namespace Quizzer.Logic.Statistics
                     context.MinigameQuestions.Where(q => q.Id == r.QuestionBaseId).Select(q => q.Variant).FirstOrDefault(),
                     r.RecordValue,
                     r.RecordedAt,
-                    r.Steals))
+                    r.Steals,
+                    r.GameGridCoordinateId))
                 .ToListAsync(ct);
         }
 

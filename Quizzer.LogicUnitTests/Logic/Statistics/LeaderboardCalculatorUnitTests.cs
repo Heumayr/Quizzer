@@ -29,7 +29,7 @@ namespace Quizzer.LogicUnitTests.Logic.Statistics
         private static LeaderboardRow Zeile(string spieler, MinigameKind? art, int? wert, int klaus = 0, Guid? spiel = null, int minute = 0,
             int spielweise = 0)
             => new(Guid.NewGuid(), Id(spieler), spieler, spiel ?? SpielA, spiel == SpielB ? "Abend B" : "Abend A",
-                art, spielweise, wert, wert == null ? null : Abend.AddMinutes(minute), klaus);
+                art, spielweise, wert, wert == null ? null : Abend.AddMinutes(minute), klaus, Guid.NewGuid());
 
         private static LeaderboardCategory Liste(Leaderboard board, MinigameKind art) => board.Categories.Single(c => c.Kind == art);
 
