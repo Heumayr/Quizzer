@@ -16,7 +16,7 @@ namespace Quizzer.Logic.Controller.TypedControllers
     /// Teams eines Spiels (M37 T1). Alle drei Fremdschlüssel stehen auf NO ACTION; die Riegel dazu sitzen hier:
     /// Löschen nimmt die Mitglieder am selben DataContext heraus und lehnt ein Team mit Ergebnissen ab.
     /// </summary>
-    public class GameTeamsController : GenericController<GameTeam>
+    public partial class GameTeamsController : GenericController<GameTeam>
     {
         public GameTeamsController()
         {

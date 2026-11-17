@@ -48,5 +48,30 @@ namespace Quizzer.DataModels.Questions.Teams
 
             return null;
         }
+
+        /// <summary>
+        /// Was an der Aufstellung eines Spiels als Ganzes nicht stimmt, oder <c>null</c> (M37 T2): jedes Team für sich,
+        /// höchstens <see cref="MaxTeams"/>, keine Farbe und kein Name doppelt. Unter <see cref="MinTeams"/> ist erlaubt -
+        /// der Aufbau darf halb fertig sein, erst der Spielstart verlangt zwei.
+        /// </summary>
+        public static string? AufstellungProblem(IReadOnlyCollection<GameTeam> teams)
+        {
+            if (teams.Count > MaxTeams)
+                return $"Höchstens {MaxTeams} Teams – so viele Farben hat die Palette.";
+
+            foreach (var team in teams)
+            {
+                if (TeamProblem(team.Name, team.ColorIndex, team.SpeakerTurn) is { } problem)
+                    return problem;
+            }
+
+            if (teams.GroupBy(t => t.ColorIndex).FirstOrDefault(g => g.Count() > 1) is { } farbe)
+                return $"Zwei Teams tragen die Farbe {TeamFarben.Alle[farbe.Key].Name}.";
+
+            if (teams.GroupBy(t => t.Name.Trim(), StringComparer.CurrentCultureIgnoreCase).FirstOrDefault(g => g.Count() > 1) is { } name)
+                return $"Zwei Teams heißen „{name.Key}“.";
+
+            return null;
+        }
     }
 }
