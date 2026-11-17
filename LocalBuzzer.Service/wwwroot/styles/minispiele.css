@@ -1,4 +1,347 @@
-/* Minispiele ab M35 C5b - eigene Datei, weil mainstyles.css nicht weiter wachsen soll. */
+/* Minispiele (M35): Rahmen, alle Arten und Sonderregeln am Telefon - eigene Datei, damit mainstyles.css nicht weiter waechst. */
+
+/* ===== Minispiele (M35 B3): Rahmen und Reaktion ===== */
+.layout-minispiel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    height: 100%;
+    padding-bottom: var(--safe-bottom);
+    box-sizing: border-box;
+}
+
+.minispiel-titel {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.minispiel-runde {
+    color: var(--text-soft);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.minispiel-status {
+    margin: 0;
+    font-size: 17px;
+    overflow-wrap: break-word;
+}
+
+.minispiel-feld {
+    flex: 1 1 auto;
+    display: flex;
+    min-height: 0;
+}
+
+/* Nie nur Farbe: jeder Zustand hat dazu ein Symbol und einen Text (reaktion.js, M35 C1 auch
+   tippsprint.js und stoppuhr.js - dieselbe grosse Taste). */
+.reaktion-taste,
+.tippsprint-taste,
+.stoppuhr-taste {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    width: 100%;
+    border: 0;
+    border-radius: var(--radius-xl);
+    background: var(--panel);
+    color: var(--text);
+    font-weight: 900;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.reaktion-symbol,
+.tippsprint-symbol,
+.stoppuhr-symbol {
+    font-size: 72px;
+    line-height: 1;
+}
+
+.reaktion-text,
+.tippsprint-text,
+.stoppuhr-text {
+    font-size: 30px;
+    text-align: center;
+    padding: 0 var(--space-md);
+}
+
+.reaktion-warten {
+    background: #b91c1c;
+}
+
+.reaktion-jetzt {
+    background: var(--success);
+}
+
+    .reaktion-jetzt .reaktion-text {
+        font-size: 56px;
+    }
+
+.reaktion-ergebnis {
+    background: var(--secondary);
+}
+
+/* ===== Tippsprint und Stoppuhr (M35 C1) ===== */
+.tippsprint-zahl,
+.stoppuhr-anzeige {
+    font-size: 88px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.tippsprint-aktiv,
+.stoppuhr-sichtbar {
+    background: var(--primary);
+}
+
+.stoppuhr-bereit {
+    background: var(--success);
+}
+
+.stoppuhr-verdeckt {
+    background: #4c1d95;
+}
+
+.tippsprint-ergebnis,
+.stoppuhr-ergebnis {
+    background: var(--secondary);
+}
+
+    .tippsprint-ergebnis .tippsprint-text,
+    .stoppuhr-ergebnis .stoppuhr-text {
+        font-size: 24px;
+    }
+
+    .reaktion-ergebnis .reaktion-text {
+        font-size: 24px;
+    }
+
+/* ===== Spielerwahl, Duell, Raeuber und Waechter, Teilen oder Nehmen (M35 C2) =====
+   Nie nur Farbe: die gewaehlte Taste bekommt einen Rahmen, der Satz darunter nennt die Wahl. */
+.duell-inhalt,
+.raeuber-inhalt,
+.teilen-inhalt,
+.risiko-inhalt,
+.wahl-inhalt {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    overflow-y: auto;
+}
+
+.duell-kopf,
+.teilen-kopf,
+.einsatz-kopf,
+.risiko-kopf {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.duell-text,
+.raeuber-text,
+.teilen-text,
+.spielerwahl-frage,
+.raeuber-ergebnis,
+.einsatz-text,
+.risiko-text,
+.wahl-text {
+    margin: 0;
+    font-size: 20px;
+    overflow-wrap: break-word;
+}
+
+.spielerwahl-taste,
+.duell-zug,
+.raeuber-schild,
+.raeuber-opfer,
+.teilen-taste,
+.einsatz-taste,
+.risiko-taste {
+    min-height: var(--input-height);
+    border-radius: var(--radius-lg);
+    font-size: 22px;
+    font-weight: 800;
+    background: var(--primary);
+    touch-action: manipulation;
+}
+
+.raeuber-schild {
+    background: var(--secondary);
+}
+
+.spielerwahl-aktiv,
+.duell-zug-aktiv,
+.raeuber-aktiv,
+.teilen-aktiv,
+.risiko-aktiv {
+    outline: 4px solid var(--text);
+    outline-offset: 2px;
+}
+
+/* M35 C3: Sonderregel Einsatz - dasselbe Eingabefeld wie die Schaetzfrage. */
+.einsatz-eingabe {
+    min-height: var(--input-height);
+    padding: 0 var(--space-xl);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-lg);
+    box-sizing: border-box;
+    font-size: 20px;
+    background: var(--input-bg);
+    color: var(--text);
+}
+
+    .einsatz-eingabe:disabled,
+    .einsatz-taste:disabled,
+    .risiko-taste:disabled {
+        opacity: 0.7;
+    }
+
+/* M35 C4: Zocker - ein grosser Knopf; was geschah, sagt der Satz darunter, nie nur die Farbe. */
+.zocker-taste {
+    min-height: calc(var(--input-height) * 2);
+    border-radius: var(--radius-lg);
+    font-size: 30px;
+    font-weight: 800;
+    background: var(--primary);
+    touch-action: manipulation;
+}
+
+    .zocker-taste:disabled {
+        opacity: 0.7;
+    }
+
+.zocker-text {
+    margin: 0;
+    font-size: 20px;
+    overflow-wrap: break-word;
+}
+
+/* M35 C4: Gluecksrad - Kopf, Spielerwahl und Satz wie bei Teilen oder Nehmen. */
+.gluecksrad-inhalt {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    overflow-y: auto;
+}
+
+.gluecksrad-kopf {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.gluecksrad-text {
+    margin: 0;
+    font-size: 20px;
+    overflow-wrap: break-word;
+}
+
+/* M35 C5: Kopfrechnen - Aufgabe gross, eigener Ziffernblock; richtig/falsch sagt der Satz, nie nur die Farbe. */
+.kopfrechnen-inhalt {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.kopfrechnen-stand,
+.kopfrechnen-hinweis {
+    margin: 0;
+    font-size: 18px;
+    color: var(--text-soft);
+}
+
+.kopfrechnen-aufgabe {
+    margin: 0;
+    font-size: 40px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.kopfrechnen-eingabe {
+    margin: 0;
+    min-height: 48px;
+    font-size: 36px;
+    text-align: center;
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-lg);
+    background: var(--input-bg);
+}
+
+.kopfrechnen-tasten {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-xs);
+}
+
+.kopfrechnen-taste {
+    min-height: var(--input-height);
+    border-radius: var(--radius-md);
+    font-size: 26px;
+    font-weight: 700;
+    background: var(--secondary);
+    touch-action: manipulation;
+}
+
+.kopfrechnen-senden {
+    background: var(--primary);
+}
+
+/* M35 C5: Memory - vier Spalten; verdeckt "?", offen und gefunden das Motiv. Gefunden ist zusaetzlich
+   gestrichelt umrandet und blasser - der Unterschied haengt nie allein an der Farbe. */
+.memory-inhalt {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.memory-stand,
+.memory-hinweis {
+    margin: 0;
+    font-size: 18px;
+    color: var(--text-soft);
+}
+
+.memory-raster {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-xs);
+}
+
+.memory-karte {
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    font-size: 34px;
+    line-height: 1;
+    touch-action: manipulation;
+}
+
+.memory-verdeckt {
+    background: var(--secondary);
+    font-weight: 800;
+}
+
+.memory-offen {
+    background: var(--primary);
+}
+
+.memory-gefunden {
+    background: transparent;
+    border: 2px dashed var(--border-soft);
+    opacity: 0.6;
+}
 
 /* Blitzrunde - eine Aussage gross, zwei Knoepfe; wahr und falsch tragen Zeichen und Wort, nie nur die Farbe. */
 .blitzrunde-inhalt {
