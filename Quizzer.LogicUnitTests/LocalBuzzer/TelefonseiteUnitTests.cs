@@ -239,5 +239,9 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// <summary>M37 E4: Finale - das Modul des Einsatzes mit eigenen Texten, geheim, genau einmal, ohne Einsatz 0.</summary>
         [TestMethod]
         public void TheFinalStakeIsSecretSentOnceAndZeroWithout() => LaufeMit("finale.test.mjs");
+
+        /// <summary>M37 T7: Team-Abstimmung - vor dem Schluss die eigene Stimme und der Stand, danach die Antwort des eigenen Teams, nur als Text.</summary>
+        [TestMethod]
+        public void TheTeamVoteShowsOwnVoteThenTheTeamsAnswer() => LaufeMit("abstimmung.test.mjs");
     }
 }

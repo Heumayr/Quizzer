@@ -25,6 +25,18 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
                 "team.js liest nicht genau, was TeamClientInfo schickt: " + string.Join(", ", zugriffe));
         }
 
+        /// <summary>M37 T7: <c>abstimmung.js</c> liest genau, was <see cref="TeamVoteClientInfo"/> schickt, und team.js bindet es ein.</summary>
+        [TestMethod]
+        public void TheVoteModuleReadsExactlyTheFieldsTheServerSends()
+        {
+            var zugriffe = Zugriffe(Regex.Replace(ReadScript("abstimmung.js"), @"//.*", string.Empty), "vote");
+
+            Assert.IsTrue(zugriffe.Count > 0, "Kein Zugriff auf vote in abstimmung.js - das Muster greift nicht, die Zusicherung waere immer gruen.");
+            CollectionAssert.AreEquivalent(Felder(typeof(TeamVoteClientInfo)).ToList(), zugriffe,
+                "abstimmung.js liest nicht genau, was TeamVoteClientInfo schickt: " + string.Join(", ", zugriffe));
+            StringAssert.Contains(ReadScript("team.js"), "import { zeigeAbstimmung } from \"./abstimmung.js\"");
+        }
+
         [TestMethod]
         public void TheIndexPageHandsTheTeamToTheModule()
         {

@@ -25,5 +25,29 @@ namespace LocalBuzzer.Service.Base
 
             await SendStateAsync(ct);
         }
+
+        /// <summary>Die Team-Abstimmung beginnt (M37 T7) - die Telefone erfahren es mit dem Ausspielen der Runde danach.</summary>
+        public void StartTeamVote()
+        {
+            CheckServerRunning();
+
+            StateManager.TeamVote.Start();
+        }
+
+        /// <summary>
+        /// Die Antworten der Teams nach dem Schluss, je Team so, wie sein Telefon sie zeigt (M37 T7) - jedes Telefon bekommt nur die
+        /// seines Teams. Erneut nach einem Entscheid der Spielleitung.
+        /// </summary>
+        public async Task SetTeamVoteResultsAsync(IReadOnlyDictionary<Guid, string> ergebnisse, CancellationToken ct = default)
+        {
+            CheckServerRunning();
+
+            StateManager.TeamVote.SetResults(ergebnisse);
+
+            await SendStateAsync(ct);
+        }
+
+        /// <summary>Die Frage ist zu: keine Abstimmung mehr - das Zurücksetzen danach sagt es den Telefonen.</summary>
+        public void EndTeamVote() => StateManager?.TeamVote.End();
     }
 }

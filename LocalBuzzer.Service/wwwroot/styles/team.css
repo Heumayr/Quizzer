@@ -42,6 +42,15 @@
     overflow-wrap: anywhere;
 }
 
+/* M37 T7: die Team-Abstimmung - „Deine Stimme: B · 2 von 3 haben abgestimmt“, danach „Euer Team: B (2 von 3)“. */
+.team-abstimmung {
+    flex: 1 1 100%;
+    min-width: 0;
+    font-size: 16px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
 .team-farbe-0 { --team-farbe: #E69F00; --team-schrift: #000000; }
 .team-farbe-1 { --team-farbe: #56B4E9; --team-schrift: #000000; }
 .team-farbe-2 { --team-farbe: #009E73; --team-schrift: #000000; }

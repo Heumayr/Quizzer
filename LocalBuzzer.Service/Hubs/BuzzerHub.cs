@@ -202,6 +202,10 @@ namespace LocalBuzzer.Service.Hubs
             if (!_stateManager.AnswerLock.Allows(player.Id))
                 return;
 
+            // M37 T7: in der Team-Abstimmung geht jede Stimme an das ganze Team - je Telefon höchstens fünf in zehn Sekunden.
+            if (!_stateManager.TeamVote.TryTakeVote(player.Id))
+                return;
+
             results.PlayerId = player.Id;
             results.Player = player;
             keySelector.SetSelectedKeys(results);
@@ -218,6 +222,11 @@ namespace LocalBuzzer.Service.Hubs
                 _stateManager.LockAll();
                 _bus.OnAllPlayersSelectedKeys(keySelector.KeyResultsForPlayer);
                 await SendStateToEachAsync();
+            }
+            else if (_stateManager.TeamVote.Active)
+            {
+                // „2 von 3 haben abgestimmt" - nur am eigenen Team.
+                await ClientStateSender.SendToTeamAsync(Clients, _registry, _stateManager, player.Id);
             }
         }
     }

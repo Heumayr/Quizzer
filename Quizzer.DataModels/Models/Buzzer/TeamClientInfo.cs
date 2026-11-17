@@ -18,5 +18,8 @@ namespace Quizzer.DataModels.Models.Buzzer
 
         /// <summary>Wer für das Team spricht (M37 T5), als Anzeigename - am Telefon „Sprecher: Anna“, nur als Text; leer ohne.</summary>
         public string Speaker { get; set; } = string.Empty;
+
+        /// <summary>Die Team-Abstimmung dieses Telefons (M37 T7); <c>null</c>, solange keine läuft.</summary>
+        public TeamVoteClientInfo? Vote { get; set; }
     }
 }

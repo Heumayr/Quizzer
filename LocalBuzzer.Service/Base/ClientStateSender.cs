@@ -19,6 +19,22 @@ namespace LocalBuzzer.Service.Base
                 await clients.Client(verbindung).SendAsync(StateChanged, states.CreateClientState(spieler), ct);
         }
 
+        /// <summary>
+        /// Dem Abgebenden und den Verbindungen seines Teams ihren Zustand (M37 T7): eine Stimme der Team-Abstimmung geht nur das
+        /// eigene Team an - ein Gegnertelefon erfährt nicht einmal, dass abgestimmt wurde.
+        /// </summary>
+        public static async Task SendToTeamAsync(
+            IHubClients<IClientProxy> clients, PlayerConnectionRegistry registry, LayoutStateManager states, Guid playerId, CancellationToken ct = default)
+        {
+            var aufstellung = states.Teams;
+
+            foreach (var (verbindung, spieler) in registry.Snapshot())
+            {
+                if (spieler.Id == playerId || TeamVoteBoard.SameTeam(aufstellung, spieler.Id, playerId))
+                    await clients.Client(verbindung).SendAsync(StateChanged, states.CreateClientState(spieler), ct);
+            }
+        }
+
         /// <summary>Nur einer Verbindung ihren Zustand - nach einer Abgabe, die die Runde nicht schliesst.</summary>
         public static Task SendToAsync(
             IHubClients<IClientProxy> clients, string connectionId, PlayerConnectionRegistry registry, LayoutStateManager states, CancellationToken ct = default)

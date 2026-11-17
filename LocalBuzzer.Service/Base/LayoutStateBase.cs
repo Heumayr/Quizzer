@@ -67,6 +67,9 @@ namespace LocalBuzzer.Service.Base
 
         public void SetTeams(TeamRoster roster) => teams = roster ?? throw new ArgumentNullException(nameof(roster));
 
+        /// <summary>Die Team-Abstimmung (M37 T7): jedes Telefon sieht nur die eigene Stimme und sein eigenes Team.</summary>
+        public TeamVoteBoard TeamVote { get; } = new();
+
         private readonly GameAccessor _gameAccessor;
 
         public LayoutStateManager(GameAccessor gameAccessor)
@@ -92,6 +95,9 @@ namespace LocalBuzzer.Service.Base
             zeitAbgelaufen = false;
 
             ResetCount++;
+
+            // M37 T7: eine neue Runde stimmt neu ab - eine Antwort aus der alten gilt nicht mehr.
+            TeamVote.Reopen();
 
             CurrentState = States.SingleOrDefault(s => s.BuzzerControlsLayout == layout);
 
@@ -139,8 +145,23 @@ namespace LocalBuzzer.Service.Base
                 AllLocked = AllLocked,
                 LayoutInfo = CurrentState?.InfoFor(player),
                 Winner = BuzzerState.Winner?.CalculatedDisplayName,
-                Team = player != null ? teams.TeamOf(player.Id)?.ToClientInfo() : null
+                Team = TeamFor(player)
             };
+        }
+
+        /// <summary>Das Team des Telefons, bei der Tastenwahl samt Team-Abstimmung (M37 T7) - nur seine eigene.</summary>
+        private TeamClientInfo? TeamFor(Player? player)
+        {
+            if (player == null || teams.TeamOf(player.Id)?.ToClientInfo() is not { } team)
+                return null;
+
+            if (CurrentLayout == BuzzerControlsLayout.KeySelect)
+            {
+                var spieler = _gameAccessor.GetGame?.Invoke()?.Players.Where(p => p != null).Select(p => p.Id) ?? [];
+                team.Vote = TeamVote.InfoFor(player.Id, teams, spieler, BuzzerKeySelector, AnswerLock, AllLocked || BuzzerKeySelector.Locked);
+            }
+
+            return team;
         }
     }
 }
