@@ -4,6 +4,7 @@ using LocalBuzzer.Service.Base;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.TestShared;
 using System.Net;
 using System.Net.Http.Json;
 
@@ -16,7 +17,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
     [TestClass]
     public sealed class JoinEndToEndUnitTests
     {
-        private const int TestPort = 5397;
+        private const int TestPort = TestPorts.JoinEndToEnd;
 
         private BuzzerServer server = null!;
         private HttpClient http = null!;

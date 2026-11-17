@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.Buzzer;
+using Quizzer.TestShared;
 
 namespace Quizzer.LogicUnitTests.LocalBuzzer
 {
@@ -19,7 +20,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
     public class BuzzerReconnectUnitTests
     {
         /// <summary>Eigener Port, damit ein laufendes Spielfenster auf 5000 nicht stoert.</summary>
-        private const int TestPort = 5401;
+        private const int TestPort = TestPorts.BuzzerReconnect;
 
         private BuzzerServer server = null!;
         private Game game = null!;
@@ -104,20 +105,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             return phone;
         }
 
-        private static async Task<bool> WaitForAsync(Func<bool> condition, int millis = 4000)
-        {
-            var until = DateTime.UtcNow.AddMilliseconds(millis);
-
-            while (DateTime.UtcNow < until)
-            {
-                if (condition())
-                    return true;
-
-                await Task.Delay(50);
-            }
-
-            return condition();
-        }
+        private static Task<bool> WaitForAsync(Func<bool> condition, int millis = 4000) => TestNetwork.WarteAsync(condition, millis);
 
         /// <summary>
         /// Der gemeldete Fall: das Telefon meldet sich neu an, waehrend der Server die alte

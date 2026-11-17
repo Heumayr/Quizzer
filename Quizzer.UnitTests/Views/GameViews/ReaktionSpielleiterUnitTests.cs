@@ -8,6 +8,7 @@ using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.Buzzer;
 using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.DataModels.Questions.Minispiele;
+using Quizzer.TestShared;
 using Quizzer.UnitTests.PlayThrough;
 using Quizzer.UnitTests.Views.BuzzerViews;
 using Quizzer.Views.BuzzerViews;
@@ -28,7 +29,7 @@ namespace Quizzer.UnitTests.Views.GameViews
     [TestClass]
     public partial class ReaktionSpielleiterUnitTests : BuzzerServerTestBasis
     {
-        protected override int Port => 5413;
+        protected override int Port => TestPorts.ReaktionSpielleiter;
 
         private TestGameBuilder? world;
         private BuzzerServerViewModel? serverVm;
@@ -45,8 +46,6 @@ namespace Quizzer.UnitTests.Views.GameViews
 
             Klang.Aktiv = false;
             Klang.Mitschnitt = name => { lock (toene) toene.Add(name); };
-
-            Assert.IsTrue(PortIsFree(Port), $"Port {Port} ist belegt - er gehoert allein dieser Testklasse.");
         }
 
         [TestCleanup]
@@ -70,21 +69,6 @@ namespace Quizzer.UnitTests.Views.GameViews
                 await world.DisposeAsync();
 
             UserPrompt.Reset();
-        }
-
-        private static bool PortIsFree(int port)
-        {
-            try
-            {
-                var listener = new TcpListener(IPAddress.Loopback, port);
-                listener.Start();
-                listener.Stop();
-                return true;
-            }
-            catch (SocketException)
-            {
-                return false;
-            }
         }
 
         private Task<TestableCurrentQuestionViewModel> OeffneReaktionAsync(int runden)
@@ -140,21 +124,6 @@ namespace Quizzer.UnitTests.Views.GameViews
                 durchgang = serverVm!.BuzzerControlsViewModel!.MinigameState!.Durchgang,
                 payload,
             });
-
-        private static async Task<bool> WarteAsync(Func<bool> bedingung, int millis = 4000)
-        {
-            var bis = DateTime.UtcNow.AddMilliseconds(millis);
-
-            while (DateTime.UtcNow < bis)
-            {
-                if (bedingung())
-                    return true;
-
-                await Task.Delay(30);
-            }
-
-            return bedingung();
-        }
 
         private bool Gespielt(string ton) { lock (toene) return toene.Contains(ton); }
 

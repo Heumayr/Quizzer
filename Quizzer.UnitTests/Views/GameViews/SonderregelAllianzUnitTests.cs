@@ -1,6 +1,7 @@
 using LocalBuzzer.Service.Base.States.Minispiele;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
+using Quizzer.TestShared;
 using static Quizzer.Views.GameViews.Sub.PlayerResultContext;
 
 namespace Quizzer.UnitTests.Views.GameViews
@@ -12,7 +13,7 @@ namespace Quizzer.UnitTests.Views.GameViews
     [TestClass]
     public class SonderregelAllianzUnitTests : SonderregelServerTestBasis
     {
-        protected override int Port => 5429;
+        protected override int Port => TestPorts.SonderregelAllianz;
 
         [TestMethod]
         public async Task OnlyTheTriggerChoosesOnlyThePairAnswersAndPlusNeedsBoth()

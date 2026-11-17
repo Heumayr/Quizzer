@@ -7,7 +7,10 @@ using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.Buzzer;
 using Quizzer.DataModels.Questions.Minispiele;
+using Quizzer.TestShared;
 using System.Text.Json;
+using static Quizzer.TestShared.TestNetwork;
+using static Quizzer.LogicUnitTests.LocalBuzzer.HubTest;
 
 namespace Quizzer.LogicUnitTests.LocalBuzzer
 {
@@ -21,7 +24,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
     [DoNotParallelize]
     public class BuchstabensalatHubUnitTests
     {
-        private const int TestPort = 5439;
+        private const int TestPort = TestPorts.BuchstabensalatHub;
         private static readonly TimeSpan Vorlauf = TimeSpan.FromSeconds(3);
         private static readonly string[] Begriffe = ["Käse", "Regenbogen"];
 
@@ -94,28 +97,11 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
                 payload = new { termNumber = begriff, guess = eingabe },
             });
 
-        private static int Phase(ClientLayoutStateDto? dto)
-            => dto?.LayoutInfo is JsonElement { ValueKind: JsonValueKind.Object } info && info.TryGetProperty("phase", out var p) ? p.GetInt32() : -1;
-
-        private static JsonElement Art(ClientLayoutStateDto dto) => ((JsonElement)dto.LayoutInfo!).GetProperty("kindInfo");
-
         private static int Begriff(ClientLayoutStateDto? dto) => dto == null ? -1 : Art(dto).GetProperty("termNumber").GetInt32();
 
         private static ClientLayoutStateDto? Letzter(Telefon t) { lock (t.Zustaende) return t.Zustaende.LastOrDefault(); }
 
         private static List<ClientLayoutStateDto> Alle(Telefon t) { lock (t.Zustaende) return t.Zustaende.ToList(); }
-
-        private static async Task<bool> WarteAsync(Func<bool> bedingung, int millis = 4000)
-        {
-            var bis = DateTime.UtcNow.AddMilliseconds(millis);
-            while (DateTime.UtcNow < bis)
-            {
-                if (bedingung())
-                    return true;
-                await Task.Delay(30);
-            }
-            return bedingung();
-        }
 
         private async Task StarteAsync()
         {

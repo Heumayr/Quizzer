@@ -5,6 +5,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.Buzzer;
+using Quizzer.TestShared;
+using static Quizzer.TestShared.TestNetwork;
 
 namespace Quizzer.LogicUnitTests.LocalBuzzer
 {
@@ -16,7 +18,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
     [TestClass]
     public class AntwortsperreUnitTests
     {
-        private const int TestPort = 5419;
+        private const int TestPort = TestPorts.Antwortsperre;
 
         private BuzzerServer server = null!;
         private Player anna = null!;
@@ -72,21 +74,6 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         private static ClientLayoutStateDto Letzter(List<ClientLayoutStateDto> staende)
         {
             lock (staende) return staende[^1];
-        }
-
-        private static async Task<bool> WarteAsync(Func<bool> bedingung, int millis = 4000)
-        {
-            var bis = DateTime.UtcNow.AddMilliseconds(millis);
-
-            while (DateTime.UtcNow < bis)
-            {
-                if (bedingung())
-                    return true;
-
-                await Task.Delay(30);
-            }
-
-            return bedingung();
         }
 
         [TestMethod]

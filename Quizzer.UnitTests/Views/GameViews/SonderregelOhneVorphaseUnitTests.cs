@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Questions.Minispiele;
 using Quizzer.DataModels.Questions.Sonderregeln;
+using Quizzer.TestShared;
 using Quizzer.Views.GameViews.Sonderregeln;
 using System.Windows;
 using static Quizzer.Views.GameViews.Sub.PlayerResultContext;
@@ -16,7 +17,7 @@ namespace Quizzer.UnitTests.Views.GameViews
     [TestClass]
     public class SonderregelOhneVorphaseUnitTests : SonderregelServerTestBasis
     {
-        protected override int Port => 5421;
+        protected override int Port => TestPorts.SonderregelOhneVorphase;
 
         /// <summary>Richtig zaehlt dreifach; ohne Vorphase laut Profil.</summary>
         private sealed class SofortRegel()

@@ -18,9 +18,10 @@
     <ProjectReference Include="..\Quizzer\Quizzer.csproj" />
   </ItemGroup>
 
-  <!-- Eine Quelle fuer alle Testprojekte: Adresse der Testserver (V14). -->
+  <!-- Eine Quelle fuer alle Testprojekte: Adresse der Testserver (V14), Portliste (V10). -->
   <ItemGroup>
     <Compile Include="..\Quizzer.LogicUnitTests\Shared\TestNetwork.cs" Link="Shared\TestNetwork.cs" />
+    <Compile Include="..\Quizzer.LogicUnitTests\Shared\TestPorts.cs" Link="Shared\TestPorts.cs" />
   </ItemGroup>
 
   <!--

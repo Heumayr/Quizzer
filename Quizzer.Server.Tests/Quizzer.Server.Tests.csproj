@@ -20,4 +20,9 @@
     <ProjectReference Include="..\Quizzer.DataModels\Quizzer.DataModels.csproj" />
   </ItemGroup>
 
+  <!-- Eine Portliste fuer alle Testprojekte (V10); ein fester Port gehoert dorthin, sonst Port 0. -->
+  <ItemGroup>
+    <Compile Include="..\Quizzer.LogicUnitTests\Shared\TestPorts.cs" Link="Shared\TestPorts.cs" />
+  </ItemGroup>
+
 </Project>

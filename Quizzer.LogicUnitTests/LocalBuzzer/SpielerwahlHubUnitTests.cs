@@ -6,7 +6,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.Buzzer;
+using Quizzer.TestShared;
 using System.Text.Json;
+using static Quizzer.TestShared.TestNetwork;
 
 namespace Quizzer.LogicUnitTests.LocalBuzzer
 {
@@ -19,7 +21,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
     [DoNotParallelize]
     public class SpielerwahlHubUnitTests
     {
-        private const int TestPort = 5415;
+        private const int TestPort = TestPorts.SpielerwahlHub;
 
         private sealed record Telefon(HubConnection Verbindung, List<ClientLayoutStateDto> Zustaende, List<ClientLayoutStateDto> Anmeldungen);
 
@@ -89,18 +91,6 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         private static JsonElement Art(ClientLayoutStateDto? dto) => ((JsonElement)dto!.LayoutInfo!).GetProperty("kindInfo");
 
         private static int Durchgang(ClientLayoutStateDto? dto) => ((JsonElement)dto!.LayoutInfo!).GetProperty("durchgang").GetInt32();
-
-        private static async Task<bool> WarteAsync(Func<bool> bedingung, int millis = 4000)
-        {
-            var bis = DateTime.UtcNow.AddMilliseconds(millis);
-            while (DateTime.UtcNow < bis)
-            {
-                if (bedingung())
-                    return true;
-                await Task.Delay(30);
-            }
-            return bedingung();
-        }
 
         [TestMethod]
         public async Task TheDuelRunsOverTheHubAndKeepsTheMovesSecret()

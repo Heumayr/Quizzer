@@ -7,7 +7,10 @@ using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.Buzzer;
 using Quizzer.DataModels.Questions.Minispiele;
+using Quizzer.TestShared;
 using System.Text.Json;
+using static Quizzer.TestShared.TestNetwork;
+using static Quizzer.LogicUnitTests.LocalBuzzer.HubTest;
 
 namespace Quizzer.LogicUnitTests.LocalBuzzer
 {
@@ -20,7 +23,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
     [DoNotParallelize]
     public class GluecksradHubUnitTests
     {
-        private const int TestPort = 5423;
+        private const int TestPort = TestPorts.GluecksradHub;
 
         private sealed record Telefon(HubConnection Verbindung, List<ClientLayoutStateDto> Zustaende);
 
@@ -80,29 +83,12 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             return telefon;
         }
 
-        private static int Phase(ClientLayoutStateDto? dto)
-            => dto?.LayoutInfo is JsonElement { ValueKind: JsonValueKind.Object } info && info.TryGetProperty("phase", out var p) ? p.GetInt32() : -1;
-
-        private static JsonElement Art(ClientLayoutStateDto dto) => ((JsonElement)dto.LayoutInfo!).GetProperty("kindInfo");
-
         private static ClientLayoutStateDto? Letzter(Telefon t) { lock (t.Zustaende) return t.Zustaende.LastOrDefault(); }
 
         private static List<ClientLayoutStateDto> Laufend(Telefon t)
         {
             lock (t.Zustaende)
                 return t.Zustaende.Where(z => Phase(z) == (int)MinigamePhase.Running).ToList();
-        }
-
-        private static async Task<bool> WarteAsync(Func<bool> bedingung, int millis = 4000)
-        {
-            var bis = DateTime.UtcNow.AddMilliseconds(millis);
-            while (DateTime.UtcNow < bis)
-            {
-                if (bedingung())
-                    return true;
-                await Task.Delay(30);
-            }
-            return bedingung();
         }
 
         private async Task DreheAsync(WheelSegment gedreht)

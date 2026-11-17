@@ -13,7 +13,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
     [DoNotParallelize]
     public class AngeboteneAdressenUnitTests
     {
-        private const int TestPort = 5449;
+        private const int TestPort = TestPorts.AngeboteneAdressen;
 
         [TestMethod]
         public async Task TheTestServerListensOnLoopbackOnlyAndSaysSo()

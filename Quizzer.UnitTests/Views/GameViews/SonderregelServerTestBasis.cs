@@ -39,8 +39,6 @@ namespace Quizzer.UnitTests.Views.GameViews
             UserPrompt.Current = new RecordingUserPrompt(answer: true);
             TestEnvironment.ClearSwallowedExceptions();
             Klang.Aktiv = false;
-
-            Assert.IsTrue(PortIsFree(Port), $"Port {Port} ist belegt - er gehoert allein dieser Testklasse.");
         }
 
         [TestCleanup]
@@ -63,21 +61,6 @@ namespace Quizzer.UnitTests.Views.GameViews
                 await world.DisposeAsync();
 
             UserPrompt.Reset();
-        }
-
-        private static bool PortIsFree(int port)
-        {
-            try
-            {
-                var listener = new TcpListener(IPAddress.Loopback, port);
-                listener.Start();
-                listener.Stop();
-                return true;
-            }
-            catch (SocketException)
-            {
-                return false;
-            }
         }
 
         /// <summary>Spiel mit <paramref name="spieler"/> Spielern, Kontostaende vorweg, Server, Telefone, Frage offen.</summary>
@@ -159,21 +142,6 @@ namespace Quizzer.UnitTests.Views.GameViews
                 durchgang = Zustand.Durchgang,
                 payload,
             });
-
-        protected static async Task<bool> WarteAsync(Func<bool> bedingung, int millis = 4000)
-        {
-            var bis = DateTime.UtcNow.AddMilliseconds(millis);
-
-            while (DateTime.UtcNow < bis)
-            {
-                if (bedingung())
-                    return true;
-
-                await Task.Delay(30);
-            }
-
-            return bedingung();
-        }
 
         protected PlayerResultContext Karte(TestableCurrentQuestionViewModel vm, int spieler)
             => vm.PlayersResultViewModel!.PlayerResultContextList.Single(k => k.Player.Id == world!.Players[spieler].Id);

@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.Logic.Spielablauf;
+using Quizzer.TestShared;
 using Quizzer.UnitTests.PlayThrough;
 using static Quizzer.Views.GameViews.Sub.PlayerResultContext;
 
@@ -14,7 +15,7 @@ namespace Quizzer.UnitTests.Views.GameViews
     [TestClass]
     public class SonderregelAuktionUnitTests : SonderregelServerTestBasis
     {
-        protected override int Port => 5423;
+        protected override int Port => TestPorts.SonderregelAuktion;
 
         private async Task BieteAsync(TestableCurrentQuestionViewModel vm, int telefon, int betrag, int abgegeben)
         {

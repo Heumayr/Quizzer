@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Questions.Minispiele;
+using static Quizzer.TestShared.TestNetwork;
 
 namespace Quizzer.LogicUnitTests.LocalBuzzer
 {

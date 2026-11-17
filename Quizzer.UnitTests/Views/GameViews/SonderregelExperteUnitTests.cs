@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Questions.Minispiele;
+using Quizzer.TestShared;
 using System.Windows;
 using static Quizzer.Views.GameViews.Sub.PlayerResultContext;
 
@@ -14,7 +15,7 @@ namespace Quizzer.UnitTests.Views.GameViews
     [TestClass]
     public class SonderregelExperteUnitTests : SonderregelServerTestBasis
     {
-        protected override int Port => 5427;
+        protected override int Port => TestPorts.SonderregelExperte;
 
         private async Task WaehleAsync(int telefon, Guid gewaehlt)
             => await AbgebenAsync(telefon, CellSpecialRule.Expert, new { chosen = gewaehlt });

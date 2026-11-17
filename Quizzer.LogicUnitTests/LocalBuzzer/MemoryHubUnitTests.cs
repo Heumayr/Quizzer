@@ -7,7 +7,10 @@ using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.Buzzer;
 using Quizzer.DataModels.Questions.Minispiele;
+using Quizzer.TestShared;
 using System.Text.Json;
+using static Quizzer.TestShared.TestNetwork;
+using static Quizzer.LogicUnitTests.LocalBuzzer.HubTest;
 
 namespace Quizzer.LogicUnitTests.LocalBuzzer
 {
@@ -20,7 +23,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
     [DoNotParallelize]
     public class MemoryHubUnitTests
     {
-        private const int TestPort = 5435;
+        private const int TestPort = TestPorts.MemoryHub;
         private const int Paare = 6;
         private static readonly TimeSpan Vorlauf = TimeSpan.FromSeconds(3);
 
@@ -99,13 +102,6 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             });
         }
 
-        private static JsonElement Info(ClientLayoutStateDto dto) => (JsonElement)dto.LayoutInfo!;
-
-        private static int Phase(ClientLayoutStateDto? dto)
-            => dto?.LayoutInfo is JsonElement { ValueKind: JsonValueKind.Object } info && info.TryGetProperty("phase", out var p) ? p.GetInt32() : -1;
-
-        private static JsonElement Art(ClientLayoutStateDto dto) => Info(dto).GetProperty("kindInfo");
-
         private static List<int> Indizes(JsonElement karten) => karten.EnumerateArray().Select(k => k.GetProperty("index").GetInt32()).ToList();
 
         private static ClientLayoutStateDto? Letzter(Telefon t) { lock (t.Zustaende) return t.Zustaende.LastOrDefault(); }
@@ -113,18 +109,6 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         private static List<ClientLayoutStateDto> Alle(Telefon t) { lock (t.Zustaende) return t.Zustaende.ToList(); }
 
         private int Abgaben() { lock (abgaben) return abgaben.Count; }
-
-        private static async Task<bool> WarteAsync(Func<bool> bedingung, int millis = 4000)
-        {
-            var bis = DateTime.UtcNow.AddMilliseconds(millis);
-            while (DateTime.UtcNow < bis)
-            {
-                if (bedingung())
-                    return true;
-                await Task.Delay(30);
-            }
-            return bedingung();
-        }
 
         private async Task StarteAsync()
         {

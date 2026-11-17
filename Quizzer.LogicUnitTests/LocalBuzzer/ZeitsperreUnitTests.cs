@@ -5,6 +5,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.Buzzer;
+using Quizzer.TestShared;
+using static Quizzer.TestShared.TestNetwork;
 
 namespace Quizzer.LogicUnitTests.LocalBuzzer
 {
@@ -15,7 +17,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
     [TestClass]
     public class ZeitsperreUnitTests
     {
-        private const int TestPort = 5397;
+        private const int TestPort = TestPorts.Zeitsperre;
 
         private BuzzerServer server = null!;
         private Game game = null!;
@@ -59,18 +61,6 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             // Erst mit "Assigned" ist die Verbindung am Server eingetragen (siehe BuzzerEndToEndUnitTests.ConnectAsync).
             Assert.IsTrue(await WarteAsync(() => zugeordnet.Task.IsCompleted), $"{player.Designation} bekam keine Zuordnung.");
             return (verbindung, zustaende);
-        }
-
-        private static async Task<bool> WarteAsync(Func<bool> bedingung, int millis = 4000)
-        {
-            var bis = DateTime.UtcNow.AddMilliseconds(millis);
-            while (DateTime.UtcNow < bis)
-            {
-                if (bedingung())
-                    return true;
-                await Task.Delay(50);
-            }
-            return bedingung();
         }
 
         private static ClientLayoutStateDto? Letzter(List<ClientLayoutStateDto> z)

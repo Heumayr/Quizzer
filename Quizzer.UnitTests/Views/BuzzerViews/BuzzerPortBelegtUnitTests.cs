@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.Base;
+using Quizzer.TestShared;
 using Quizzer.Views.BuzzerViews;
 using System.Net;
 using System.Net.Sockets;
@@ -23,7 +24,7 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
     public class BuzzerPortBelegtUnitTests : BuzzerServerTestBasis
     {
         /// <summary>Ein Port, den in diesem Testlauf sonst niemand benutzt.</summary>
-        protected override int Port => 5407;
+        protected override int Port => TestPorts.BuzzerPortBelegt;
 
         private RecordingUserPrompt prompt = null!;
 

@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.Buzzer;
+using Quizzer.TestShared;
 using System.Collections.Concurrent;
 using System.Text.Json;
 
@@ -23,7 +24,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
     public class BuzzerEndToEndUnitTests
     {
         /// <summary>Eigener Port, damit ein laufendes Spielfenster auf 5000 nicht stoert.</summary>
-        private const int TestPort = 5399;
+        private const int TestPort = TestPorts.BuzzerEndToEnd;
 
         private BuzzerServer server = null!;
         private Game game = null!;
@@ -91,20 +92,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             return (connection, states);
         }
 
-        private static async Task<bool> WaitForAsync(Func<bool> condition, int millis = 4000)
-        {
-            var until = DateTime.UtcNow.AddMilliseconds(millis);
-
-            while (DateTime.UtcNow < until)
-            {
-                if (condition())
-                    return true;
-
-                await Task.Delay(50);
-            }
-
-            return condition();
-        }
+        private static Task<bool> WaitForAsync(Func<bool> condition, int millis = 4000) => TestNetwork.WarteAsync(condition, millis);
 
         [TestMethod]
         public async Task APhoneCanConnect()

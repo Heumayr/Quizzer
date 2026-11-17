@@ -7,6 +7,7 @@ using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Questions;
 using Quizzer.DataModels.Questions.Sonderregeln;
 using Quizzer.Logic.Spielablauf;
+using Quizzer.TestShared;
 using Quizzer.UnitTests.PlayThrough;
 using Quizzer.UnitTests.Views.BuzzerViews;
 using Quizzer.Views.BuzzerViews;
@@ -27,7 +28,7 @@ namespace Quizzer.UnitTests.Views.GameViews
     [TestClass]
     public class SonderregelSpielleiterUnitTests : BuzzerServerTestBasis
     {
-        protected override int Port => 5417;
+        protected override int Port => TestPorts.SonderregelSpielleiter;
 
         private TestGameBuilder? world;
         private BuzzerServerViewModel? serverVm;
@@ -39,8 +40,6 @@ namespace Quizzer.UnitTests.Views.GameViews
             UserPrompt.Current = new RecordingUserPrompt(answer: true);
             TestEnvironment.ClearSwallowedExceptions();
             Klang.Aktiv = false;
-
-            Assert.IsTrue(PortIsFree(Port), $"Port {Port} ist belegt - er gehoert allein dieser Testklasse.");
         }
 
         [TestCleanup]
@@ -62,21 +61,6 @@ namespace Quizzer.UnitTests.Views.GameViews
                 await world.DisposeAsync();
 
             UserPrompt.Reset();
-        }
-
-        private static bool PortIsFree(int port)
-        {
-            try
-            {
-                var listener = new TcpListener(IPAddress.Loopback, port);
-                listener.Start();
-                listener.Stop();
-                return true;
-            }
-            catch (SocketException)
-            {
-                return false;
-            }
         }
 
         private async Task<TestableCurrentQuestionViewModel> OeffneAsync(CellSpecialRule regel, QuestionType typ = QuestionType.Default)
@@ -121,21 +105,6 @@ namespace Quizzer.UnitTests.Views.GameViews
                 durchgang = Zustand.Durchgang,
                 payload,
             });
-
-        private static async Task<bool> WarteAsync(Func<bool> bedingung, int millis = 4000)
-        {
-            var bis = DateTime.UtcNow.AddMilliseconds(millis);
-
-            while (DateTime.UtcNow < bis)
-            {
-                if (bedingung())
-                    return true;
-
-                await Task.Delay(30);
-            }
-
-            return bedingung();
-        }
 
         private PlayerResultContext Karte(TestableCurrentQuestionViewModel vm, int spieler)
             => vm.PlayersResultViewModel!.PlayerResultContextList.Single(k => k.Player.Id == world!.Players[spieler].Id);

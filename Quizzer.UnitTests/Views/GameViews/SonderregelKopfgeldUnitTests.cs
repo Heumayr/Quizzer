@@ -4,6 +4,7 @@ using Quizzer.DataModels.Questions.Minispiele;
 using Quizzer.DataModels.Questions.Sonderregeln;
 using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.Logic.Spielablauf;
+using Quizzer.TestShared;
 using System.Windows;
 using static Quizzer.Views.GameViews.Sub.PlayerResultContext;
 
@@ -17,7 +18,7 @@ namespace Quizzer.UnitTests.Views.GameViews
     [TestClass]
     public class SonderregelKopfgeldUnitTests : SonderregelServerTestBasis
     {
-        protected override int Port => 5431;
+        protected override int Port => TestPorts.SonderregelKopfgeld;
 
         [TestMethod]
         public async Task EveryRightHunterTakesTheBountyFromTheLeaderWhoIsNotRight()

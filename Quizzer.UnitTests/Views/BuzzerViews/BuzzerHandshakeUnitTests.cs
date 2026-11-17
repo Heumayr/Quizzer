@@ -29,17 +29,10 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
     public class BuzzerHandshakeUnitTests : BuzzerServerTestBasis
     {
         /// <summary>
-        /// Ein eigener Port, wie ihn die uebrigen Buzzer-Proben auch nehmen (5399, 5401).
-        /// <para>
-        /// <b>Bis 2026-09-07 stand hier 5000</b> - derselbe Port, auf dem die laufende
-        /// Anwendung bindet. War ein Quizzer-Fenster offen, meldete <c>Assert.Inconclusive</c>
-        /// im <c>TestInitialize</c> die <b>ganze Klasse</b> ab: elf Testfaelle, die im Bericht
-        /// aussahen wie keine. Das Projekt hat dieses Muster selbst als Falle beschrieben
-        /// (<c>UiTestHost</c>): „Ein Test, der sich selbst abmeldet, ist schlimmer als ein
-        /// roter."
-        /// </para>
+        /// Ein eigener Port aus <see cref="TestPorts"/>, nie die 5000 der Anwendung: war ein Quizzer-Fenster
+        /// offen, meldete sich die ganze Klasse sonst ab und sah aus wie keine.
         /// </summary>
-        protected override int Port => 5403;
+        protected override int Port => TestPorts.BuzzerHandshake;
 
         private TestGameBuilder? world;
         private BuzzerServerViewModel? serverVm;
@@ -50,12 +43,6 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
         {
             UserPrompt.Current = new RecordingUserPrompt(answer: true);
             TestEnvironment.ClearSwallowedExceptions();
-
-            // Kein Assert.Inconclusive mehr: ein belegter Port ist kein Umstand, unter dem der
-            // Testlauf gruen sein darf. Der Port gehoert dieser Klasse allein.
-            Assert.IsTrue(PortIsFree(Port),
-                $"Port {Port} ist belegt - ein abgebrochener Testlauf haelt ihn noch. Dieser "
-                + "Port gehoert allein dieser Testklasse; die Anwendung nimmt 5000.");
         }
 
         [TestCleanup]
@@ -80,21 +67,6 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
             }
 
             UserPrompt.Reset();
-        }
-
-        private static bool PortIsFree(int port)
-        {
-            try
-            {
-                var listener = new TcpListener(IPAddress.Loopback, port);
-                listener.Start();
-                listener.Stop();
-                return true;
-            }
-            catch (SocketException)
-            {
-                return false;
-            }
         }
 
         /// <summary>Legt ein Spiel an und startet den Server so, wie es die Oberflaeche tut.</summary>
@@ -136,20 +108,7 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
             return received;
         }
 
-        private static async Task<bool> WaitForAsync(Func<bool> condition, int millis = 4000)
-        {
-            var until = DateTime.UtcNow.AddMilliseconds(millis);
-
-            while (DateTime.UtcNow < until)
-            {
-                if (condition())
-                    return true;
-
-                await Task.Delay(50);
-            }
-
-            return condition();
-        }
+        private static Task<bool> WaitForAsync(Func<bool> condition, int millis = 4000) => WarteAsync(condition, millis);
 
         /// <summary>
         /// Seit V14 bindet kein Test ins Heimnetz, geprueft wird der Weg dorthin in Teilen: das Programm

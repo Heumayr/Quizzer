@@ -4,6 +4,7 @@ using Quizzer.Base;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Logic.Controller.TypedControllers;
+using Quizzer.TestShared;
 using Quizzer.UnitTests.PlayThrough;
 using Quizzer.Views.GameViews;
 using System.Windows;
@@ -20,7 +21,7 @@ namespace Quizzer.UnitTests.Views.GameViews
     [TestClass]
     public class JokerRundeUnitTests : SonderregelServerTestBasis
     {
-        protected override int Port => 5445;
+        protected override int Port => TestPorts.JokerRunde;
 
         private readonly Dictionary<int, PlayerJoker> joker = new();
 
