@@ -11,7 +11,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base.States
     /// erst wenn alle Mitspieler abgegeben haben, sonst kommt der Letzte nie dazu.
     /// </summary>
     [TestClass]
-    public class BuzzerInputStateUnitTests
+    public partial class BuzzerInputStateUnitTests
     {
         private static Player NewPlayer(string name) => new() { Id = Guid.NewGuid(), Designation = name };
 

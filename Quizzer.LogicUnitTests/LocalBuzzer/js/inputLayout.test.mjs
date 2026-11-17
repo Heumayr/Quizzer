@@ -41,6 +41,9 @@ const feld = () => wurzel.querySelector(".input-field");
 const knopf = () => wurzel.querySelector(".commit-btn");
 const zeile = () => wurzel.querySelector(".input-submitted");
 
+// M37 E4: das Feld nimmt hoechstens so viel an, wie der Server behaelt (BuzzerInputState.MaxLength).
+pruefe(feld().getAttribute("maxlength") === "80", "Das Feld hat keine Grenze von 80 Zeichen: " + feld().getAttribute("maxlength"));
+
 pruefe(feld().disabled === false, "Das Eingabefeld ist gesperrt, obwohl die Runde offen ist.");
 
 // --- Abgeben ---

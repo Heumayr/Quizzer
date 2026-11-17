@@ -169,7 +169,11 @@ namespace LocalBuzzer.Service.Hubs
             // fuer sich selbst abgeben, egal was er mitschickt.
             result.PlayerId = player.Id;
             result.Player = player;
-            inputState.SetInput(result);
+
+            // Verworfen (Finale: zweite Abgabe, M37 E4) erreicht nichts den Spielleiter - gekuerzt ist der Wert hier schon.
+            if (!inputState.SetInput(result))
+                return;
+
             _bus.OnPlayerSubmittedInput(result);
 
             await SendStateToEachAsync();

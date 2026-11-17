@@ -3,6 +3,9 @@
 const COMMIT_LABEL = "Eingabe bestätigen";
 const RESUBMIT_LABEL = "Erneut abgeben";
 
+// M37 E4: mehr nimmt der Server nicht an (BuzzerInputState.MaxLength) - das Feld sagt es vorher.
+export const MAX_EINGABE = 80;
+
 export class InputLayout {
     constructor(actions) {
         this.actions = actions;
@@ -30,6 +33,7 @@ export class InputLayout {
         input.className = "input-field";
         input.id = "input_field";
         input.autocomplete = "off";
+        input.setAttribute("maxlength", String(MAX_EINGABE));
 
         const submittedLine = document.createElement("div");
         submittedLine.className = "input-submitted";

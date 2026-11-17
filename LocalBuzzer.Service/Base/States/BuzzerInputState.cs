@@ -71,16 +71,38 @@ namespace LocalBuzzer.Service.Base.States
         };
 
         /// <summary>
-        /// Nimmt den Tipp eines Spielers an. Ein zweiter Tipp desselben Spielers ersetzt den
-        /// ersten, solange die Runde offen ist. Gesperrt wird, sobald alle abgegeben haben.
+        /// So viele Zeichen nimmt eine Eingabe hoechstens an (M37 E4, Entwurf Abschnitt 4) - der Rest wird abgeschnitten.
+        /// Ohne Grenze trug SignalR bis zu 32 KB je Abgabe bis auf den Beamer.
         /// </summary>
-        public void SetInput(InputResult result)
+        public const int MaxLength = 80;
+
+        /// <summary>
+        /// Jeder gibt genau einmal ab (M37 E4, Finale): eine zweite Abgabe wird verworfen, und das Telefon ist danach gesperrt -
+        /// auch nach dem Wiederverbinden. Gilt bis zum naechsten Layout; „Runde zuruecksetzen" laesst neu abgeben.
+        /// </summary>
+        public bool EinmalAbgabe { get; set; }
+
+        /// <summary>Gesperrt fuer alle - oder beim Finale fuer den, der schon abgegeben hat.</summary>
+        public bool IsLockedFor(Player? player)
+            => Locked || (EinmalAbgabe && player != null && InputsForPlayer.TryGetValue(player.Id, out var eigene) && eigene.CommittedResult);
+
+        /// <summary>
+        /// Nimmt den Tipp eines Spielers an. Ein zweiter Tipp desselben Spielers ersetzt den
+        /// ersten, solange die Runde offen ist - ausser beim Finale (<see cref="EinmalAbgabe"/>). Gesperrt wird, sobald alle
+        /// abgegeben haben. <c>false</c>: verworfen, nichts davon darf den Spielleiter erreichen.
+        /// </summary>
+        public bool SetInput(InputResult result)
         {
             if (result.Player == null || Locked || !_answerLock.Allows(result.Player.Id))
-                return;
+                return false;
 
             lock (this)
             {
+                if (IsLockedFor(result.Player))
+                    return false;
+
+                result.Value = Kuerze(result.Value);
+
                 // Leere Eingaben gelten nicht als Abgabe - sonst schliesst die Runde, sobald
                 // jemand versehentlich auf Bestaetigen tippt, und niemand kann mehr nachlegen.
                 result.CommittedResult = !string.IsNullOrWhiteSpace(result.Value);
@@ -93,12 +115,25 @@ namespace LocalBuzzer.Service.Base.States
                 if (playersCount <= 0)
                 {
                     Locked = true;
-                    return;
+                    return true;
                 }
 
                 Locked = InputsForPlayer.Count == playersCount
                       && InputsForPlayer.All(v => v.Value.CommittedResult);
+
+                return true;
             }
+        }
+
+        /// <summary>Auf <see cref="MaxLength"/> Zeichen; ein Zeichen aus zwei Haelften (Emoji) wird nicht zerschnitten.</summary>
+        public static string Kuerze(string? wert)
+        {
+            if (wert == null || wert.Length <= MaxLength)
+                return wert ?? string.Empty;
+
+            var laenge = char.IsHighSurrogate(wert[MaxLength - 1]) ? MaxLength - 1 : MaxLength;
+
+            return wert[..laenge];
         }
 
         public void Reset()
@@ -111,6 +146,7 @@ namespace LocalBuzzer.Service.Base.States
         {
             InputsForPlayer.Clear();
             Infos = new BuzzerInputInfo();
+            EinmalAbgabe = false;
             Locked = true;
         }
 
