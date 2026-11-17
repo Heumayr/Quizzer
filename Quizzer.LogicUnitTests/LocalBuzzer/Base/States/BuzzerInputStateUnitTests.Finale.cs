@@ -65,8 +65,18 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base.States
 
             state.SetInput(Input(players[0], lang));
 
-            Assert.AreEqual(BuzzerInputState.MaxLength, state.InputsForPlayer[players[0].Id].Value.Length);
-            Assert.AreEqual(80, BuzzerInputState.MaxLength, "Die Grenze steht nicht mehr auf 80 - inputLayout.js nachziehen.");
+            Assert.AreEqual(80, state.InputsForPlayer[players[0].Id].Value.Length, "Der Text ist nicht auf 80 Zeichen gekürzt.");
+        }
+
+        /// <summary>Das Feld am Telefon kennt dieselbe Grenze wie der Server - sonst tippt jemand Zeichen, die verschwinden.</summary>
+        [TestMethod]
+        public void ThePhoneFieldKnowsTheSameLimit()
+        {
+            var skript = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "wwwroot", "JS", "layouts", "inputLayout.js"));
+            var treffer = System.Text.RegularExpressions.Regex.Match(skript, @"MAX_EINGABE\s*=\s*(\d+)");
+
+            Assert.IsTrue(treffer.Success, "inputLayout.js nennt keine Grenze.");
+            Assert.AreEqual(BuzzerInputState.MaxLength, int.Parse(treffer.Groups[1].Value), "Telefon und Server haben verschiedene Grenzen.");
         }
 
         [TestMethod]
