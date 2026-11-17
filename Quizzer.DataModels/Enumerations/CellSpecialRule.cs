@@ -33,5 +33,11 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Kopfgeld (M35 C3b), ohne Vorphase: wer den Fuehrenden richtig ueberholt, nimmt ihm den Anteil ab.</summary>
         Bounty = 7,
+
+        /// <summary>
+        /// Teamberatung (M37 T5), Teamregel ohne Vorphase: jedes Team beraet sich, sein Sprecher antwortet; der Wert geht
+        /// aufgeteilt an alle Mitglieder. Nur im Teamspiel.
+        /// </summary>
+        TeamCouncil = 8,
     }
 }

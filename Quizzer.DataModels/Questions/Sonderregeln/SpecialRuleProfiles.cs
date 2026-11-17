@@ -137,6 +137,14 @@ namespace Quizzer.DataModels.Questions.Sonderregeln
                 HasPrePhase = false,
                 Teamspiel = TeamspielEignung.Nie,
             },
+            new(CellSpecialRule.TeamCouncil, "Teamberatung",
+                "Jedes Team berät sich, dann gibt sein Sprecher am Telefon die Antwort für alle – die anderen sehen, mit "
+                + "wem sie beraten. Richtig bringt dem Team die Feldpunkte, falsch kostet es die Minuspunkte, beides gleich "
+                + "auf die Mitglieder verteilt. Nach der Frage spricht in jedem Team der Nächste.")
+            {
+                HasPrePhase = false,
+                Teamspiel = TeamspielEignung.Nur,
+            },
         ];
 
         private static string AuktionText(string preis)

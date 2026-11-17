@@ -83,6 +83,36 @@ namespace Quizzer.LogicUnitTests.DataModels.Sonderregeln
             Assert.AreEqual(0, unpassend.Count, "Im Teamspiel verteilt: " + string.Join(", ", unpassend));
         }
 
+        /// <summary>Die Teamberatung (M37 T5) ist eine Teamregel: nur im Teamspiel gespielt, angeboten und verteilt.</summary>
+        [TestMethod]
+        public void TheTeamCouncilIsATeamRuleAndOnlyPlayedInATeamGame()
+        {
+            var zelle = Zelle(CellSpecialRule.TeamCouncil);
+
+            Assert.IsTrue(SpecialRuleProfiles.TryFor(CellSpecialRule.TeamCouncil, out var profil) && profil.IstTeamregel);
+            Assert.IsFalse(profil.HasPrePhase, "Die Teamberatung spielt keine Vorphase - sie läuft über Sprecher und Countdown.");
+            Assert.IsTrue(SpecialRuleProfiles.Applies(zelle, zelle.QuestionBase, teamspiel: true));
+            Assert.IsFalse(SpecialRuleProfiles.Applies(zelle, zelle.QuestionBase, teamspiel: false), "Die Teamberatung spielt ohne Teams.");
+            CollectionAssert.Contains(SpecialRuleProfiles.Angeboten(teamspiel: true).Select(p => p.Rule).ToList(), CellSpecialRule.TeamCouncil);
+            CollectionAssert.DoesNotContain(SpecialRuleProfiles.Angeboten(teamspiel: false).Select(p => p.Rule).ToList(), CellSpecialRule.TeamCouncil);
+
+            var befund = Sonderregelraster.Startbefund(zelle, zelle.QuestionBase, teamspiel: false);
+            Assert.AreEqual(Sonderregelraster.TeamGameRuleCode, befund?.Code);
+            StringAssert.Contains(befund!.Message, "nur im Teamspiel");
+        }
+
+        [TestMethod]
+        public void DistributingWithoutTeamsNeverPlacesATeamRule()
+        {
+            var zellen = Enumerable.Range(0, 40).Select(_ => Zelle()).ToList();
+            var auftrag = new Verteilauftrag(40, false, [CellSpecialRule.TeamCouncil, CellSpecialRule.Stake], new Random(3).Next);
+
+            var belegt = Sonderregelraster.Verteile(zellen, auftrag);
+
+            Assert.AreEqual(40, belegt.Count);
+            Assert.IsTrue(belegt.All(z => z.SpecialRule == CellSpecialRule.Stake), "Ohne Teams wurde eine Teamregel verteilt.");
+        }
+
         [TestMethod]
         public void TheGameStartWarnsAboutARuleThatIsNotPlayedInATeamGame()
         {

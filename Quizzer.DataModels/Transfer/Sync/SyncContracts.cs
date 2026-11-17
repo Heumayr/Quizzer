@@ -62,8 +62,10 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// 25: Punkteverlauf (M37 E06) - Spalte GameGridCoordinate.PlayedAt; ein altes WPF setzte beim Push still null ein.
         /// 26: Teams (M37 T1) - neuer Zeilentyp GameTeam, Spalten PlayerXGame.GameTeamId, QuestionResult.GameTeamId und die
         ///    Teameinstellungen am Spiel; ein altes WPF nahm beim Push still jede Zuteilung heraus.
+        /// 27: Teamberatung (M37 T5) - neuer Wert CellSpecialRule.TeamCouncil; ein altes WPF spielte die Zelle ohne
+        ///    Teamregel und schrieb volle Feldpunkte statt der Anteile.
         /// </summary>
-        public const int CurrentFormatVersion = 26;
+        public const int CurrentFormatVersion = 27;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 
