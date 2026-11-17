@@ -5,6 +5,7 @@ using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.DataModels.Questions;
 using Quizzer.DataModels.Questions.Minispiele;
+using Quizzer.DataModels.Questions.Teams;
 using Quizzer.Logic.Controller.TypedControllers;
 
 namespace Quizzer.Views.GameViews
@@ -48,6 +49,9 @@ namespace Quizzer.Views.GameViews
                          + "Spielaufbau auf eine Zelle gelegt werden.");
             }
 
+            // M37 T2: im Teamspiel mindestens zwei Teams, und jeder Mitspieler ausser dem Spielleiter in einem.
+            errors.AddRange(Teamzuordnung.Startfehler(dbGame));
+
             if (errors.Any())
             {
                 UserPrompt.Inform(
@@ -63,7 +67,7 @@ namespace Quizzer.Views.GameViews
         /// <summary>
         /// Prüft die Voraussetzungen und danach die zugewiesenen Fragen.
         /// </summary>
-        private static async Task<bool> StartbarAsync(Game dbGame)
+        internal static async Task<bool> StartbarAsync(Game dbGame)
         {
             if (!Startbar(dbGame))
                 return false;
@@ -115,6 +119,9 @@ namespace Quizzer.Views.GameViews
                         angemerkt.Add(regel.Message);
                 }
             }
+
+            // M37 T2: ein leeres Team haelt den Start nicht an, faellt aber am Beamer auf.
+            angemerkt.AddRange(Teamzuordnung.Startwarnungen(dbGame));
 
             return StartFreigegeben(beanstandet, angemerkt);
         }
