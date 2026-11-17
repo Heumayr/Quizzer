@@ -74,7 +74,7 @@ namespace Quizzer.Logic.Controller.TypedControllers
         /// <summary>
         /// Löst einen Joker für eine Zelle ein (M35 C7b) - der zweite Riegel hinter der Joker-Runde am Server, er prüft
         /// selbst: eigener, offener Joker dieses Spiels, Zelle dieses Spiels, höchstens einer je Spieler und Zelle, und
-        /// bei der Sperre ein Ziel, das Mitspieler und nicht man selbst ist. Schreibt nicht selbst.
+        /// bei der Sperre ein Ziel, das Mitspieler und nicht man selbst ist, im Teamspiel ein Gegner. Schreibt nicht selbst.
         /// </summary>
         public async Task<JokerRedeemOutcome> RedeemAsync(JokerRedemption einloesung, DateTimeOffset now)
         {
@@ -109,7 +109,29 @@ namespace Quizzer.Logic.Controller.TypedControllers
             if (await EntitySet.AnyAsync(j => j.PlayerId == einloesung.PlayerId && j.GameGridCoordinateId == einloesung.CellId))
                 return JokerRedeemOutcome.SecondJokerForCell;
 
-            return await ZielPasstAsync(joker.Kind, einloesung) ? JokerRedeemOutcome.Redeemed : JokerRedeemOutcome.TargetInvalid;
+            if (!await ZielPasstAsync(joker.Kind, einloesung))
+                return JokerRedeemOutcome.TargetInvalid;
+
+            // M37 T4: im Teamspiel trifft die Sperre nur Gegner - hier, nicht am Server, denn die Zuordnung wandert.
+            return einloesung.TargetPlayerId is { } ziel && await TeamkollegenAsync(einloesung.GameId, einloesung.PlayerId, ziel)
+                ? JokerRedeemOutcome.TargetIsTeammate
+                : JokerRedeemOutcome.Redeemed;
+        }
+
+        /// <summary>Ob beide im Teamspiel in demselben Team dieses Spiels sind - ohne Team ist jeder sein eigenes, wie bei <c>Teamzuordnung.TeamVon</c>.</summary>
+        private async Task<bool> TeamkollegenAsync(Guid spielId, Guid a, Guid b)
+        {
+            if (!await CurrentContext.Games.AnyAsync(g => g.Id == spielId && g.IsTeamGame))
+                return false;
+
+            var teams = await CurrentContext.PlayerXGames
+                .Where(x => x.GameId == spielId && (x.PlayerId == a || x.PlayerId == b)
+                            && CurrentContext.GameTeams.Any(t => t.Id == x.GameTeamId && t.GameId == spielId))
+                .Select(x => new { x.PlayerId, x.GameTeamId })
+                .ToListAsync();
+
+            var teamA = teams.FirstOrDefault(t => t.PlayerId == a)?.GameTeamId;
+            return teamA != null && teams.Any(t => t.PlayerId == b && t.GameTeamId == teamA);
         }
 
         private async Task<bool> ZielPasstAsync(JokerKind art, JokerRedemption einloesung)

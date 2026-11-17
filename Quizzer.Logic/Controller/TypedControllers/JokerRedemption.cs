@@ -33,5 +33,8 @@ namespace Quizzer.Logic.Controller.TypedControllers
 
         /// <summary>Sperre ohne Ziel, gegen sich selbst oder gegen einen Nicht-Mitspieler; oder ein Ziel bei Doppelt/Schutz.</summary>
         TargetInvalid = 7,
+
+        /// <summary>Im Teamspiel eine Sperre gegen einen aus dem eigenen Team (M37 T4) - sie trifft nur Gegner.</summary>
+        TargetIsTeammate = 8,
     }
 }

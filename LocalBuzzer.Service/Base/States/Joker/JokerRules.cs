@@ -138,12 +138,14 @@ namespace LocalBuzzer.Service.Base.States.Joker
             if (joker.Kind != JokerKind.Block)
                 return abgabe.Target == null ? new JokerChoice(player.Id, id, joker.Kind, null) : null;
 
-            return abgabe.Target is { } ziel && ziel != player.Id && IstMitspieler(ziel)
+            return abgabe.Target is { } ziel && IstZiel(player.Id, ziel)
                 ? new JokerChoice(player.Id, id, joker.Kind, ziel)
                 : null;
         }
 
-        private bool IstMitspieler(Guid id) => kontext.Mitspieler().Any(p => p.Id == id);
+        /// <summary>Gesperrt wird nur ein Mitspieler, nie man selbst - und im Teamspiel nur ein Gegner (M37 T4).</summary>
+        private bool IstZiel(Guid ich, Guid ziel)
+            => ziel != ich && kontext.Mitspieler().Any(p => p.Id == ziel) && !kontext.Teamkollegen(ich, ziel);
 
         private static JokerOptionInfo Taste(JokerOffer joker) => new()
         {
@@ -155,7 +157,7 @@ namespace LocalBuzzer.Service.Base.States.Joker
 
         private List<MinigamePlayerOption> Ziele(Guid ich)
             => kontext.Mitspieler()
-                .Where(p => p.Id != ich)
+                .Where(p => p.Id != ich && !kontext.Teamkollegen(ich, p.Id))
                 .Select(p => new MinigamePlayerOption { Id = p.Id, Name = Name(p.Id) })
                 .OrderBy(o => o.Name, StringComparer.CurrentCulture)
                 .ToList();

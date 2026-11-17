@@ -37,9 +37,12 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         // Zufaelliger Anfang: ein Telefon aus einem frueheren Serverlauf darf nicht zufaellig treffen.
         private int durchgang = Random.Shared.Next(1, 1 << 20) * 1000;
 
-        public MinigameState(GameAccessor gameAccessor)
+        private readonly Func<TeamRoster> teams;
+
+        public MinigameState(GameAccessor gameAccessor, Func<TeamRoster>? teams = null)
         {
             this.gameAccessor = gameAccessor;
+            this.teams = teams ?? (() => TeamRoster.Empty);
         }
 
         /// <summary>Zufallsquelle fuer die Geheimnisse der Arten, wie <see cref="Random.Next(int, int)"/>.</summary>
@@ -77,7 +80,8 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             lock (gate)
             {
                 setup = neu with { TotalRounds = Math.Max(1, neu.TotalRounds) };
-                rules = MinigameRulesFactory.For(setup, new((a, b) => Zufall(a, b), NameVon, Mitspieler, () => Uhr.GetElapsedTime(0)));
+                rules = MinigameRulesFactory.For(setup,
+                    new((a, b) => Zufall(a, b), NameVon, Mitspieler, () => Uhr.GetElapsedTime(0), id => teams().TeamOf(id)?.TeamId));
                 ClearLocked();
             }
         }

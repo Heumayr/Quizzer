@@ -76,7 +76,7 @@ namespace LocalBuzzer.Service.Base
             BuzzerState = new(gameAccessor, AnswerLock, TeamBuzzLock, () => teams);
             BuzzerKeySelector = new(gameAccessor, AnswerLock);
             BuzzerInputState = new(gameAccessor, AnswerLock);
-            MinigameState = new(gameAccessor);
+            MinigameState = new(gameAccessor, () => teams);
 
             States.Add(BuzzerState);
             States.Add(BuzzerKeySelector);
