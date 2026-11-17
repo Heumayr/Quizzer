@@ -64,6 +64,7 @@ namespace Quizzer.LogicUnitTests.DataModels
                 QuestionBaseId = frage.Id,
 
                 IsDone = true,
+                PlayedAt = new DateTimeOffset(2026, 11, 14, 21, 5, 0, TimeSpan.FromHours(1)),
                 Phase = 3,
                 CurrentPoints = 900,
                 CurrentMinusPoints = 450,
@@ -91,7 +92,7 @@ namespace Quizzer.LogicUnitTests.DataModels
 
             foreach (var feld in new[]
                      {
-                         "IsDone", "CurrentPoints", "CurrentMinusPoints", "CurrentRound",
+                         "IsDone", "PlayedAt", "CurrentPoints", "CurrentMinusPoints", "CurrentRound",
                          "State", "Restart", "ChoosingPlayerId", "ModeratorPlayerId",
                          "OwnerPlayerId", "RowVersion",
                      })

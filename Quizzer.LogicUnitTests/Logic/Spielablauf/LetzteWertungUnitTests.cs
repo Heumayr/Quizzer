@@ -91,7 +91,7 @@ namespace Quizzer.LogicUnitTests.Logic.Spielablauf
 
             // Das Ergebnisfenster ersetzt die Liste durch frische Objekte.
             zelle.QuestionResults = zeilen.Select(z => z.CloneWithoutReferences()).ToList();
-            zelle.IsDone = true;
+            zelle.SetDone(true, DateTimeOffset.Now);
             spiel.CurrentChoosingPlayerId = anna.Id == spiel.CurrentChoosingPlayerId ? ben.Id : anna.Id;
         }
 
@@ -167,6 +167,34 @@ namespace Quizzer.LogicUnitTests.Logic.Spielablauf
             var anna_ = (await AusDerDatenbankAsync()).Single(r => r.PlayerId == anna.Id);
             Assert.AreEqual(200, anna_.FinalScore);
             Assert.IsTrue(zelle.IsDone, "Die Zelle war schon vorher erledigt.");
+        }
+
+        /// <summary>M37 E06: die zurueckgenommene erste Wertung laesst keinen Zeitpunkt stehen - sonst zaehlte der Verlauf eine offene Zelle.</summary>
+        [TestMethod]
+        public async Task UndoingTheFirstScoringTakesThePlayedTimeAway()
+        {
+            var merk = LetzteWertung.Merke(spiel, zelle);
+            await SpieleAsync(punkteAnna: 200, minusBen: 0);
+            Assert.IsNotNull(zelle.PlayedAt, "Vorbedingung: der Abschluss stempelt.");
+
+            await merk.NimmZurueckAsync(spiel);
+
+            Assert.IsNull(zelle.PlayedAt, "Die wieder offene Zelle traegt noch ihren Zeitpunkt.");
+        }
+
+        /// <summary>M37 E06, Gegenrichtung: eine nachgebesserte Zelle behaelt nach der Ruecknahme ihren Platz im Verlauf.</summary>
+        [TestMethod]
+        public async Task UndoingACorrectionKeepsThePlayedTime()
+        {
+            await SpieleAsync(punkteAnna: 200, minusBen: 0);
+            var gespielt = zelle.PlayedAt;
+
+            var merk = LetzteWertung.Merke(spiel, zelle);
+            await SpieleAsync(punkteAnna: 400, minusBen: 100);
+            await merk.NimmZurueckAsync(spiel);
+
+            Assert.IsNotNull(gespielt);
+            Assert.AreEqual(gespielt, zelle.PlayedAt, "Die Ruecknahme hat den Zeitpunkt der schon gespielten Zelle verloren.");
         }
 
         [TestMethod]

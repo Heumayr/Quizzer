@@ -76,11 +76,13 @@ namespace Quizzer.Logic.Controller.TypedControllers
                 .ExecuteDeleteAsync();
         }
 
+        /// <summary>Alle Zellen eines Spiels erledigt oder offen; offen nimmt den Zeitpunkt mit weg (M37 E06), erledigt laesst ihn.</summary>
         public async Task<int> UpdateIsDoneStateOfGame(Guid gameId, bool isDone)
         {
             return await EntitySet.Where(g => g.GameId == gameId)
-                .ExecuteUpdateAsync(setters =>
-                 setters.SetProperty(g => g.IsDone, isDone));
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(g => g.IsDone, isDone)
+                    .SetProperty(g => g.PlayedAt, g => isDone ? g.PlayedAt : null));
         }
 
         public async Task<int> UpdatePhaseOfGame(Guid gameId, int phase)

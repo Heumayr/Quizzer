@@ -46,6 +46,7 @@ namespace Quizzer.Logic.Spielablauf
         // Ergebnisfenster ersetzt die Liste an der Zelle durch frisch geladene Objekte.
         private readonly Dictionary<Guid, Stand> vorher;
         private readonly bool warErledigt;
+        private readonly DateTimeOffset? warGespieltUm;
         private readonly Guid auswahl;
         private readonly Guid regulaereAuswahl;
 
@@ -54,6 +55,7 @@ namespace Quizzer.Logic.Spielablauf
             Zelle = zelle;
             vorher = zelle.QuestionResults.GroupBy(r => r.PlayerId).ToDictionary(g => g.Key, g => Stand.Von(g.First()));
             warErledigt = zelle.IsDone;
+            warGespieltUm = zelle.PlayedAt;
             auswahl = spiel.CurrentChoosingPlayerId;
             regulaereAuswahl = spiel.RegularChoosingPlayerId;
         }
@@ -122,7 +124,9 @@ namespace Quizzer.Logic.Spielablauf
 
             await ctrl.SaveChangesAsync();
 
+            // Der Zeitpunkt mit (M37 E06): eine wieder offene Zelle hat keinen, eine nachgebesserte behaelt ihren.
             Zelle.IsDone = warErledigt;
+            Zelle.PlayedAt = warGespieltUm;
             spiel.CurrentChoosingPlayerId = auswahl;
             spiel.RegularChoosingPlayerId = regulaereAuswahl;
         }

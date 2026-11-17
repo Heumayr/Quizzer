@@ -210,7 +210,7 @@ namespace Quizzer.Views.GameViews
             }
             set
             {
-                Coordinate?.IsDone = value;
+                Coordinate?.SetDone(value, DateTimeOffset.Now);
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsDoneBrush));
                 OnPropertyChanged(nameof(DoneStateText));

@@ -333,6 +333,36 @@ namespace Quizzer.Server.Tests
                 "Rohwert, Zeitpunkt oder Klaus sind am Laptop nicht angekommen.");
         }
 
+        /// <summary>M37 E06: wann eine Zelle gespielt wurde, geht vom Laptop über den Server zum PC - der Punkteverlauf braucht es.</summary>
+        [TestMethod]
+        public async Task ThePlayedTimeOfACellTravelsToTheOtherMachine()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var (pc, laptop, me) = await SignedInPairAsync(factory);
+            await using var _ = pc;
+            await using var __ = laptop;
+
+            var set = await PrepareGameLocallyAsync(pc, me);
+            Assert.AreEqual(0, (await pc.Sync.PushAsync()).Rejected.Count);
+
+            var gespielt = new DateTimeOffset(2026, 11, 14, 21, 7, 30, TimeSpan.FromHours(1));
+            await laptop.Sync.PullAsync();
+            await using (var local = laptop.Local())
+            {
+                var zelle = await local.GameGridCoordinates.SingleAsync(c => c.Id == set.Cell.Id);
+                zelle.SetDone(true, gespielt);
+                await local.SaveChangesAsync();
+            }
+
+            var pushed = await laptop.Sync.PushAsync();
+            Assert.AreEqual(0, pushed.Rejected.Count, string.Join("; ", pushed.Rejected.Select(r => r.Message)));
+
+            await pc.Sync.PullAsync();
+            await using var pcDb = pc.Local();
+            Assert.AreEqual(gespielt, (await pcDb.GameGridCoordinates.SingleAsync(c => c.Id == set.Cell.Id)).PlayedAt,
+                "Der Zeitpunkt der gespielten Zelle ist am PC nicht angekommen.");
+        }
+
         /// <summary>M35 C7: ein Joker geht vom PC zum Laptop, das Zurücknehmen am Laptop wieder zum PC.</summary>
         [TestMethod]
         public async Task AJokerTravelsToTheOtherMachineAndSoDoesItsWithdrawal()

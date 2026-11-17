@@ -57,6 +57,7 @@ namespace Quizzer.LogicUnitTests.DataModels
                 ["QuestionBaseId"] = "der Verweis laeuft ueber FrageIndex im Dokument",
                 ["Phase"] = "Verlauf - eine importierte Zelle beginnt in Phase 1",
                 ["IsDone"] = "Verlauf",
+                ["PlayedAt"] = "Verlauf (M37 E06) - eine importierte Zelle ist ungespielt",
                 ["CurrentPoints"] = "wird beim Import neu gerechnet, sonst waeren es die Punkte des Quell-Spiels",
                 ["CurrentMinusPoints"] = "dasselbe",
             },
@@ -104,9 +105,10 @@ namespace Quizzer.LogicUnitTests.DataModels
 
             var typ = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
 
+            // DateTimeOffset seit M37 E06 (GameGridCoordinate.PlayedAt) - vorher sah die Pruefung das Feld gar nicht.
             return typ.IsPrimitive || typ.IsEnum
                 || typ == typeof(string) || typ == typeof(Guid)
-                || typ == typeof(DateTime) || typ == typeof(decimal);
+                || typ == typeof(DateTime) || typ == typeof(DateTimeOffset) || typ == typeof(decimal);
         }
 
         /// <summary>
@@ -125,6 +127,7 @@ namespace Quizzer.LogicUnitTests.DataModels
             else if (kern == typeof(double)) wert = 3.5 + streuung;
             else if (kern == typeof(decimal)) wert = 3.5m + streuung;
             else if (kern == typeof(DateTime)) wert = new DateTime(2001, 2, 3).AddDays(streuung);
+            else if (kern == typeof(DateTimeOffset)) wert = new DateTimeOffset(2001, 2, 3, 20, 0, 0, TimeSpan.FromHours(1)).AddDays(streuung);
             else if (kern == typeof(Guid)) wert = Guid.NewGuid();
             else if (kern.IsEnum)
             {

@@ -59,8 +59,9 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// 23: Joker (M35 C7) - neuer Zeilentyp PlayerJoker, den ein altes WPF nicht kennt.
         /// 24: Bestenliste (M35 C9) - Spalten QuestionResult.RecordValue, RecordedAt und Steals; ein altes WPF
         ///    setzte beim Push still null und 0 ein.
+        /// 25: Punkteverlauf (M37 E06) - Spalte GameGridCoordinate.PlayedAt; ein altes WPF setzte beim Push still null ein.
         /// </summary>
-        public const int CurrentFormatVersion = 24;
+        public const int CurrentFormatVersion = 25;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

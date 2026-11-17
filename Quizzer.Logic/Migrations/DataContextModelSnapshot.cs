@@ -288,6 +288,9 @@ namespace Quizzer.Logic.Migrations
                     b.Property<int>("Phase")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset?>("PlayedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<Guid?>("QuestionBaseId")
                         .HasColumnType("uniqueidentifier");
 

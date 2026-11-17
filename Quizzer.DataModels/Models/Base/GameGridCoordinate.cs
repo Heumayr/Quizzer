@@ -33,6 +33,23 @@ namespace Quizzer.DataModels.Models.Base
 
         public bool IsDone { get; set; }
 
+        /// <summary>Wann die Zelle gespielt wurde (M37 E06); <c>null</c>: offen oder vor E06 gespielt. Gesetzt über <see cref="SetDone"/>.</summary>
+        public DateTimeOffset? PlayedAt { get; set; }
+
+        /// <summary>
+        /// Setzt <see cref="IsDone"/> samt <see cref="PlayedAt"/>: der erste Abschluss stempelt, ein erneuter lässt den Stempel
+        /// stehen (sonst rückte eine nachgebesserte Zelle ans Ende des Verlaufs), Öffnen nimmt ihn weg.
+        /// </summary>
+        public void SetDone(bool done, DateTimeOffset now)
+        {
+            if (!done)
+                PlayedAt = null;
+            else if (!IsDone)
+                PlayedAt = now;
+
+            IsDone = done;
+        }
+
         public int CurrentPoints { get; set; }
 
         public int CurrentMinusPoints { get; set; }
@@ -165,6 +182,7 @@ namespace Quizzer.DataModels.Models.Base
                 QuestionBaseId = QuestionBaseId,
                 GameId = GameId,
                 IsDone = IsDone,
+                PlayedAt = PlayedAt,
                 CurrentPoints = CurrentPoints,
                 CurrentMinusPoints = CurrentMinusPoints,
                 SpecialRule = SpecialRule,
