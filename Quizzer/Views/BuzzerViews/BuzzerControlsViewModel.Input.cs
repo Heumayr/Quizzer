@@ -45,6 +45,13 @@ namespace Quizzer.Views.BuzzerViews
                 state.Infos = new BuzzerInputInfo { InputType = "text", Placeholder = placeholder, QuestionId = questionId };
         }
 
+        /// <summary>Finale (M37 E4): jeder gibt genau einmal ab - bis das nächste Layout kommt.</summary>
+        public void SetzeEinmalAbgabe()
+        {
+            if (BuzzerController?.StateManager.BuzzerInputState is { } state)
+                state.EinmalAbgabe = true;
+        }
+
         internal void SubscribeInputEvents(LocalBuzzer.Service.Base.BuzzerController? ctrl)
         {
             if (ctrl == null)

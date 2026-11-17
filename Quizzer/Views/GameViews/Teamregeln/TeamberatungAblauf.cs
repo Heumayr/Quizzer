@@ -24,10 +24,7 @@ namespace Quizzer.Views.GameViews.Teamregeln
 
             foreach (var team in Teams)
             {
-                IEnumerable<Guid> zuerst = sprecher.TryGetValue(team.TeamId, out var id) ? [id] : [];
-
-                if (zuerst.Concat(team.Folge).Select(eingaenge.GetValueOrDefault).FirstOrDefault(e => e is { Bewertung: not RatingKind.None })
-                    is not { } wertung)
+                if (WertungDes(team, sprecher, eingaenge) is not { } wertung)
                     continue;
 
                 var grund = $"Teamberatung {team.Name}: Anteil an {Punktewechsel.Text(wertung.Grundwert)}";

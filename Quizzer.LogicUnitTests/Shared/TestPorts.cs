@@ -42,6 +42,8 @@ namespace Quizzer.TestShared
         public const int JokerRunde = 5445;
         public const int TeamBuzzer = 5453;
         public const int Teamberatung = 5455;
+        public const int Finale = 5473;
+        public const int FinaleTeam = 5475;
 
         // Quizzer.Server.Tests: keine festen Ports (In-Memory-Server, sonst Port 0).
     }

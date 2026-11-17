@@ -35,15 +35,18 @@ namespace Quizzer.Views.GameViews
 
         private IEnumerable<PlayerResultContext> Karten => (PlayersResultViewModel?.PlayerResultContextList ?? []).Where(k => k.Player != null);
 
-        /// <summary>Was die Frage auf die Telefone bringt: an einer Teamregel antwortet der Sprecher per Tastenwahl oder Text.</summary>
+        /// <summary>
+        /// Was die Frage auf die Telefone bringt: an einer Teamregel antwortet der Sprecher per Tastenwahl oder Text; im Finale
+        /// (M37 E4) antworten alle - bzw. die Sprecher - immer per Eingabe.
+        /// </summary>
         private BuzzerControlsLayout AntwortLayout
         {
             get
             {
                 var layout = Question?.BuzzerControlsLayout ?? BuzzerControlsLayout.None;
 
-                return Teamregel == null || layout is BuzzerControlsLayout.KeySelect or BuzzerControlsLayout.Input
-                    ? layout
+                return Finale != null ? BuzzerControlsLayout.Input
+                    : Teamregel == null || layout is BuzzerControlsLayout.KeySelect or BuzzerControlsLayout.Input ? layout
                     : BuzzerControlsLayout.Input;
             }
         }
@@ -69,8 +72,9 @@ namespace Quizzer.Views.GameViews
             var team = spiel.GameTeams.FirstOrDefault(t => t.Id == schluessel);
             var farbe = team != null && TeamFarben.IsValid(team.ColorIndex) ? TeamFarben.Alle[team.ColorIndex] : null;
             var mitglieder = karten.Select(k => new Teammitglied(k.Player.Id, k.Player.CalculatedDisplayName));
+            var stand = team != null ? spiel.Teamstand(team.Id) : karten.Sum(k => k.Kontostand);
 
-            return new(schluessel, team?.Name ?? "ohne Team", farbe?.Symbol ?? "–", Sprecherfolge.Folge(mitglieder, team?.SpeakerTurn ?? 0));
+            return new(schluessel, team?.Name ?? "ohne Team", farbe?.Symbol ?? "–", Sprecherfolge.Folge(mitglieder, team?.SpeakerTurn ?? 0), stand);
         }
 
         /// <summary>

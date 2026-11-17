@@ -8,7 +8,8 @@ namespace Quizzer.Views.GameViews.Teamregeln
 {
     /// <summary>Ein Team an einer Teamregel-Zelle: Kennung, Name, Symbol der Farbe und die Mitglieder in Sprecherfolge.</summary>
     /// <param name="TeamId">Das Team; wer ohne Team ist, ist mit seiner eigenen Kennung sein eigenes Team (fail-closed).</param>
-    internal sealed record Teamaufstellung(Guid TeamId, string Name, string Symbol, IReadOnlyList<Guid> Folge);
+    /// <param name="Stand">Die Teamsumme beim Öffnen (<c>Game.Teamstand</c>) - das Finale löst danach auf (M37 E4).</param>
+    internal sealed record Teamaufstellung(Guid TeamId, string Name, string Symbol, IReadOnlyList<Guid> Folge, int Stand = 0);
 
     /// <summary>Was ein Mitglied vom Teamwert bekommt, noch ungekappt - mit der Bewertung des Teams und dem Grund für die Karte.</summary>
     internal sealed record Teamanteil(RatingKind Bewertung, int Punkte, string Grund);
@@ -114,13 +115,25 @@ namespace Quizzer.Views.GameViews.Teamregeln
                 : "Kein Sprecher – das Team antwortet nicht";
         }
 
-        /// <summary>Teamregeln spielen keine Vorphase - es gibt nichts zu übernehmen.</summary>
+        /// <summary>Teamregeln spielen keine Vorphase - es gibt nichts zu übernehmen. Das Finale (M37 E4) übernimmt die Einsätze.</summary>
         protected override void Uebernimm(IReadOnlyDictionary<Guid, object> abgaben)
         {
         }
 
         /// <summary>Je Mitglied sein Anteil am Teamwert, noch ungekappt; ein Team ohne Wertung bewegt nichts.</summary>
         protected abstract IReadOnlyDictionary<Guid, Teamanteil> Anteile(IReadOnlyDictionary<Guid, SonderregelEingang> eingaenge);
+
+        /// <summary>
+        /// Die Antwort des Sprechers gilt fürs Team: die Bewertung seiner Karte, sonst die erste bewertete in Sprecherfolge (E1);
+        /// <c>null</c>, solange keine Karte des Teams bewertet ist. Teamberatung und Finale (M37 E4) breiten sie auf alle aus.
+        /// </summary>
+        protected static SonderregelEingang? WertungDes(
+            Teamaufstellung team, IReadOnlyDictionary<Guid, Guid> sprecher, IReadOnlyDictionary<Guid, SonderregelEingang> eingaenge)
+        {
+            IEnumerable<Guid> zuerst = sprecher.TryGetValue(team.TeamId, out var id) ? [id] : [];
+
+            return zuerst.Concat(team.Folge).Select(eingaenge.GetValueOrDefault).FirstOrDefault(e => e is { Bewertung: not RatingKind.None });
+        }
 
         protected sealed override IReadOnlyDictionary<Guid, Punktevorschlag> WerteZelle(IReadOnlyDictionary<Guid, SonderregelEingang> eingaenge)
             => WerteMitJoker(eingaenge, null);

@@ -37,7 +37,8 @@ namespace Quizzer.Views.GameViews
         private async Task<bool> StarteJokerRundeAsync()
         {
             if (jokerRundeGespielt || Coordinate is not { IsDone: false } zelle || Question is not { } frage
-                || frage.Typ == DataModels.Enumerations.QuestionType.Minigame || (zelle.SpecialRule != CellSpecialRule.None && Teamregel == null)
+                || frage.Typ == DataModels.Enumerations.QuestionType.Minigame
+                || (zelle.SpecialRule != CellSpecialRule.None && Teamregel?.Profil.IstTeamregel != true) // M37 E4: das Finale im Teamspiel nicht
                 || BuzzerControlsViewModel is not { MinigameState: not null } steuerung)
                 return false;
 

@@ -148,6 +148,21 @@
                     <TextBlock Text="{Binding QuestionStepViewContext.Sonderregel.Hinweis}" Foreground="WhiteSmoke"
                                FontSize="36" FontWeight="Bold" TextWrapping="Wrap" TextAlignment="Center" />
                 </Border>
+
+                <!-- M37 E4: die Aufloesung des Finales - unten, je aufgedeckter Platz eine Zeile mit Stand, Einsatz und Antwort. -->
+                <Border Visibility="{Binding QuestionStepViewContext.Sonderregel.AufloesungVisibility, FallbackValue=Collapsed}"
+                        VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,24" Padding="28,12"
+                        Background="#EE000000" CornerRadius="8"
+                        base:Bewegung.Einblenden="True" base:Bewegung.Stil="Gleiten">
+                    <ItemsControl ItemsSource="{Binding QuestionStepViewContext.Sonderregel.Aufloesung}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" Foreground="WhiteSmoke" FontSize="34" FontWeight="Bold"
+                                           TextWrapping="Wrap" TextAlignment="Center" Margin="0,4" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
             </Grid>
         </Grid>
 </UserControl>

@@ -310,6 +310,10 @@
                         <Button Content="Vorphase schließen" Command="{Binding CloseVorphaseCommand}" FontWeight="Bold"
                                 Visibility="{Binding Sonderregel.SchliessenVisibility}"
                                 ToolTip="Schließt die Vorphase, auch wenn noch nicht alle abgegeben haben. Für wen nichts kam, gilt die Regel nicht – danach geht die Frage auf die Telefone." />
+                        <!-- M37 E4: das Finale deckt der Spielleiter am Beamer einzeln auf, vom Letzten zum Ersten. -->
+                        <Button Content="Nächsten auflösen" Command="{Binding FinaleAufloesenCommand}" FontWeight="Bold"
+                                Visibility="{Binding FinaleAufloesenVisibility}"
+                                ToolTip="Zeigt am Beamer Einsatz und Antwort des Nächsten – vom niedrigsten Stand zum höchsten, im Teamspiel Team für Team. Bewerte danach seine Karte." />
                         <!-- M35 C7b: eine Joker-Sperre hebt der Spielleiter auf (E1). -->
                         <Button Content="Joker-Sperre aufheben" Command="{Binding JokerSperreAufhebenCommand}" Margin="0,6,0,0"
                                 Visibility="{Binding JokerSperreVisibility}"

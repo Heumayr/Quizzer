@@ -103,8 +103,14 @@ namespace Quizzer.Views.GameViews
             return true;
         }
 
-        /// <summary>Woher die Regel zur Zelle kommt - ein Test setzt eine eigene ein.</summary>
-        internal Func<CellSpecialRule, SonderregelAblauf?> SonderregelFabrik { get; set; } = SonderregelAblauf.Fuer;
+        private Func<CellSpecialRule, SonderregelAblauf?>? sonderregelFabrik;
+
+        /// <summary>Woher die Regel zur Zelle kommt - nach dem Spiel mit oder ohne Teams (M37 E4); ein Test setzt eine eigene ein.</summary>
+        internal Func<CellSpecialRule, SonderregelAblauf?> SonderregelFabrik
+        {
+            get => sonderregelFabrik ?? (regel => SonderregelAblauf.Fuer(regel, Teamspiel));
+            set => sonderregelFabrik = value;
+        }
 
         private VorphaseGrundlage Grundlage()
         {
@@ -275,6 +281,7 @@ namespace Quizzer.Views.GameViews
 
             VorphaseLaeuft = false;
             Sonderregel.Leere();
+            LeereFinale();
             KandidatenGeaendert();
         }
     }

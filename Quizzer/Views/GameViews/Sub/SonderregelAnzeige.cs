@@ -57,7 +57,21 @@ namespace Quizzer.Views.GameViews.Sub
         {
             Titel = Regeltext = Stand = Hinweis = string.Empty;
             Aktiv = VorphaseLaeuft = false;
+            Aufloesung = [];
             Melde();
+        }
+
+        /// <summary>Die Auflösung des Finales (M37 E4): was schon aufgedeckt ist, je Zeile Stand, Einsatz und Antwort.</summary>
+        public IReadOnlyList<string> Aufloesung { get; private set; } = [];
+
+        /// <summary>Am Beamer erst, wenn der Spielleiter aufdeckt - vorher steht dort nichts von Einsätzen und Antworten.</summary>
+        public Visibility AufloesungVisibility => Aktiv && Aufloesung.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        internal void ZeigeAufloesung(IReadOnlyList<string> zeilen)
+        {
+            Aufloesung = zeilen;
+            OnPropertyChanged(nameof(Aufloesung));
+            OnPropertyChanged(nameof(AufloesungVisibility));
         }
 
         private void Melde()
@@ -73,6 +87,8 @@ namespace Quizzer.Views.GameViews.Sub
             OnPropertyChanged(nameof(SchliessenVisibility));
             OnPropertyChanged(nameof(Hinweis));
             OnPropertyChanged(nameof(HinweisVisibility));
+            OnPropertyChanged(nameof(Aufloesung));
+            OnPropertyChanged(nameof(AufloesungVisibility));
         }
     }
 }

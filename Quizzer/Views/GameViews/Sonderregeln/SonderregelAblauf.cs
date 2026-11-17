@@ -95,8 +95,13 @@ namespace Quizzer.Views.GameViews.Sonderregeln
             CellSpecialRule.Alliance => new AllianzAblauf(),
             CellSpecialRule.Bounty => new KopfgeldAblauf(),
             CellSpecialRule.TeamCouncil => new TeamberatungAblauf(),
+            CellSpecialRule.Final => new FinalAblauf(),
             _ => null,
         };
+
+        /// <summary>Die Regel zur Zelle im Spiel mit oder ohne Teams - das Finale spielt im Teamspiel über die Sprecher (M37 E4).</summary>
+        public static SonderregelAblauf? Fuer(CellSpecialRule regel, bool teamspiel)
+            => teamspiel && regel == CellSpecialRule.Final ? new FinalTeamAblauf() : Fuer(regel);
 
         /// <summary>Wie der Server die Vorphase einstellt - eine Runde, ohne Countdown.</summary>
         public virtual MinigameSetup Setup(VorphaseGrundlage grundlage)

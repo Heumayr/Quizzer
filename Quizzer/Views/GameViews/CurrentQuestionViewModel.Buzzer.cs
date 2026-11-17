@@ -128,8 +128,11 @@ namespace Quizzer.Views.GameViews
                         await BuzzerControlsViewModel.SetInputInfo(
                             appreciate.ValueKind, appreciate.Unit, appreciate.Id);
                     }
-                    else if (Teamregel != null)
-                        BuzzerControlsViewModel.SetTextInputInfo(TeamregelEingabe, Question?.Id);
+                    else if (Teamregel != null || Finale != null)
+                        BuzzerControlsViewModel.SetTextInputInfo(Teamregel != null ? TeamregelEingabe : FinaleEingabe, Question?.Id);
+
+                    // M37 E4: im Finale gibt jeder genau einmal ab.
+                    BereiteFinaleAntwortenVor();
 
                     BuzzerControlsViewModel.PlayerSubmittedInput = OnPlayerSubmittedInput;
                     BuzzerControlsViewModel.AllPlayersSubmittedInput = OnAllPlayersSubmittedInput;
