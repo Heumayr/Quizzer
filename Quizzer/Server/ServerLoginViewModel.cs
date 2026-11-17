@@ -248,7 +248,10 @@ namespace Quizzer.Server
         private async Task CompleteAsync(QuizzerApiClient api)
         {
             var progress = new Progress<string>(text => Busy = text);
-            var result = await MassDeletionPrompt.RunAskingAsync(gesperrt => ServerSession.ActivateAsync(api, progress, gesperrt), "Anmeldung");
+            var result = await MassDeletionPrompt.RunAskingAsync(gesperrt => ServerSession.ActivateAsync(api, progress, gesperrt), "Anmeldung",
+                gesperrt => MassDeletionPrompt.OfferDiscardAsync(
+                    () => (ServerSession.Sync ?? throw new InvalidOperationException("Nicht angemeldet.")).PrepareDiscardAsync(gesperrt),
+                    verwerfen => ServerSession.ActivateAsync(api, progress, discard: verwerfen), "Anmeldung"));
 
             SignedIn = true;
 

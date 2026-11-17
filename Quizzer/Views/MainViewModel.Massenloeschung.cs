@@ -10,7 +10,8 @@ namespace Quizzer.Views
 
         /// <summary>
         /// Hat der Hintergrund-Abgleich an der Massenlösch-Sperre angehalten, fragt der ausdrückliche Abgleich nach; bei Ja
-        /// geht genau die genannte Löschung hinaus. Der Hintergrund selbst gibt nie frei.
+        /// geht genau die genannte Löschung hinaus, bei Nein lässt sie sich verwerfen (V17). Der Hintergrund selbst gibt nie
+        /// frei und verwirft nie.
         /// </summary>
         private static async Task GesperrteLoeschungErfragenAsync(BackgroundSync background)
         {
@@ -20,7 +21,8 @@ namespace Quizzer.Views
             try
             {
                 if (await Server.MassDeletionPrompt.ApprovePendingAsync(background.Status.PendingMassDeletion,
-                        gesperrt => Task.Run(() => sync.PushApprovedAsync(gesperrt)), JetztAbgleichen))
+                        gesperrt => Task.Run(() => sync.PushApprovedAsync(gesperrt)), JetztAbgleichen,
+                        async gesperrt => await Server.MassDeletionPrompt.OfferDiscardAsync(sync, gesperrt, JetztAbgleichen) != null))
                     background.Refresh();
             }
             catch (Exception ex) when (ex is ServerUnreachableException or ApiException or SyncSafetyException)

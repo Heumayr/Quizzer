@@ -56,7 +56,8 @@ namespace Quizzer.Client
             throw new SyncSafetyException(
                 $"Der Abgleich würde {gesperrt.Description} am Server löschen - mehr als die Hälfte der {known} Fragen und Spiele, die dieses Konto kennt. "
                 + "Es wurde nichts übertragen. War das Absicht, bestätige es bei „Jetzt abgleichen\" oder bei der nächsten Anmeldung; "
-                + "sonst sieht es nach einer falschen lokalen Datenbank aus - dann bitte das Programm neu starten.",
+                + "war es keine, lässt sich die Löschung dort verwerfen, und die Einträge kommen vom Server zurück. "
+                + "Sieht es nach einer falschen lokalen Datenbank aus, bitte zuerst das Programm neu starten.",
                 gesperrt);
         }
     }

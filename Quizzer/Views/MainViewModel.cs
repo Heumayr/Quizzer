@@ -201,7 +201,8 @@ namespace Quizzer.Views
             try
             {
                 var result = await Server.MassDeletionPrompt.RunAskingAsync(
-                    gesperrt => gesperrt is null ? sync.PullAsync() : sync.PullApprovedAsync(gesperrt), "Vom Server laden");
+                    gesperrt => gesperrt is null ? sync.PullAsync() : sync.PullApprovedAsync(gesperrt), "Vom Server laden",
+                    gesperrt => Server.MassDeletionPrompt.OfferDiscardAsync(sync, gesperrt, "Vom Server laden"));
                 Server.ServerSession.Background?.Refresh();
                 UserPrompt.Inform($"Geladen: {result.Changed} geänderte, {result.Deleted} entfernte Einträge, {result.MediaDownloaded} neue Medien.", "Vom Server laden");
             }

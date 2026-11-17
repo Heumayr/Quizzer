@@ -59,9 +59,7 @@ namespace Quizzer.Client
                 if (state.Manifest.Count > 0)
                     await PushCoreAsync(state, approved, ct);
 
-                var snapshot = await api.GetSnapshotAsync(ct);
-                if (snapshot.FormatVersion != SyncSnapshot.CurrentFormatVersion)
-                    throw new InvalidOperationException($"Der Server liefert Abgleichsformat {snapshot.FormatVersion}, dieses Programm kennt {SyncSnapshot.CurrentFormatVersion}. Bitte aktualisieren.");
+                var snapshot = await GetSnapshotAsync(ct);
 
                 int changed, deleted;
                 await using (var store = openStore())

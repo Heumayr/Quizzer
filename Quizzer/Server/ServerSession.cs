@@ -83,7 +83,10 @@ namespace Quizzer.Server
         /// Stand bringen und alles abholen.
         /// </summary>
         /// <param name="approved">Eine Massenlöschung, die der Nutzer bei der Anmeldung freigegeben hat (V06).</param>
-        public static async Task<PullResult> ActivateAsync(QuizzerApiClient api, IProgress<string>? progress, MassDeletion? approved = null)
+        /// <param name="discard">Eine Massenlöschung, die der Nutzer bei der Anmeldung verworfen hat (V17): dann wird
+        /// nichts hinausgeschickt.</param>
+        public static async Task<PullResult> ActivateAsync(QuizzerApiClient api, IProgress<string>? progress, MassDeletion? approved = null,
+            MassDeletionDiscard? discard = null)
         {
             var account = api.Account ?? throw new InvalidOperationException("Nicht angemeldet.");
 
@@ -96,7 +99,8 @@ namespace Quizzer.Server
             Sync = new ClientSyncService(api, () => new SyncStore(cache), new FileSyncStateStore(StatePath(api.BaseAddress, account.AccountId)), Settings.FilePathQuizzer);
 
             progress?.Report("Daten werden vom Server geladen …");
-            var result = approved is null ? await Sync.PullAsync() : await Sync.PullApprovedAsync(approved);
+            var result = discard is not null ? await Sync.DiscardAsync(discard)
+                : approved is null ? await Sync.PullAsync() : await Sync.PullApprovedAsync(approved);
 
             await SignInLocallyAsync(account);
             RememberAccount(api.BaseAddress, account);
