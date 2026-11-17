@@ -79,7 +79,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
         public void StartRound(int round)
         {
-            reihenfolge = Mische(aussagen.Count, kontext.Zufall);
+            reihenfolge = Shuffle.Order(aussagen.Count, kontext.Zufall);
             start = kontext.Jetzt() + vorlauf;
             laufend = new();
             gezaehlt = new();
@@ -164,20 +164,6 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             }
 
             return info;
-        }
-
-        /// <summary>Fisher-Yates ueber die Quelle des Rahmens - fuer alle dieselbe Reihenfolge.</summary>
-        private static int[] Mische(int anzahl, Func<int, int, int> zufall)
-        {
-            var folge = Enumerable.Range(0, anzahl).ToArray();
-
-            for (var i = anzahl - 1; i > 0; i--)
-            {
-                var j = Math.Clamp(zufall(0, i + 1), 0, i);
-                (folge[i], folge[j]) = (folge[j], folge[i]);
-            }
-
-            return folge;
         }
 
         /// <summary>Der Stand eines Telefons in der laufenden Runde.</summary>

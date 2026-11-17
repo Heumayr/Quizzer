@@ -134,7 +134,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             var spanne = (int)(laengste - kuerzeste).TotalMilliseconds;
             zuender = kuerzeste + TimeSpan.FromMilliseconds(Math.Clamp(kontext.Zufall(0, spanne + 1), 0, spanne));
 
-            reihenfolge = Mische(aussagen.Count, kontext.Zufall);
+            reihenfolge = Shuffle.Order(aussagen.Count, kontext.Zufall);
             zeiger = 0;
             nummer = 1;
             start = kontext.Jetzt() + vorlauf;
@@ -332,7 +332,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
             if (++zeiger >= reihenfolge.Length)
             {
-                reihenfolge = Mische(aussagen.Count, kontext.Zufall);
+                reihenfolge = Shuffle.Order(aussagen.Count, kontext.Zufall);
                 zeiger = 0;
             }
 
@@ -347,20 +347,6 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         }
 
         private static int Sekunden(TimeSpan zeit) => (int)Math.Round(zeit.TotalSeconds, MidpointRounding.AwayFromZero);
-
-        /// <summary>Fisher-Yates ueber die Quelle des Rahmens - wie bei der Blitzrunde.</summary>
-        private static int[] Mische(int anzahl, Func<int, int, int> zufall)
-        {
-            var folge = Enumerable.Range(0, anzahl).ToArray();
-
-            for (var i = anzahl - 1; i > 0; i--)
-            {
-                var j = Math.Clamp(zufall(0, i + 1), 0, i);
-                (folge[i], folge[j]) = (folge[j], folge[i]);
-            }
-
-            return folge;
-        }
 
         private bool IstMitspieler(Guid? id) => id is { } gesucht && kontext.Mitspieler().Any(p => p.Id == gesucht);
 

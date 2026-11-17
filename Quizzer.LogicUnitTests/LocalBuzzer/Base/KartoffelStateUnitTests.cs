@@ -56,6 +56,15 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             }
         }
 
+        /// <summary>Gemischt wird an der gemeinsamen Stelle (V13): mit lauter Nullwuerfen beginnt die Folge bei der zweiten Aussage.</summary>
+        [TestMethod]
+        public void TheStatementsComeShuffled()
+        {
+            Starte();
+
+            Assert.AreEqual(KartoffelPruefstand.Aussagen[1].Text, p.Art(Anna).StatementText, "Die Aussagen kommen ungemischt.");
+        }
+
         [TestMethod]
         public void AWrongAnswerBringsTheNextStatementAndNoPass()
         {
