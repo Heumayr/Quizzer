@@ -112,15 +112,16 @@ namespace Quizzer.LogicUnitTests.DataModels.Teams
             Assert.IsFalse(fehler.Contains("Anna"), fehler);
         }
 
-        /// <summary>Ein leeres Team ist eine Warnung, kein Fehler.</summary>
+        /// <summary>Ein einzelnes leeres Team neben zwei besetzten ist eine Warnung, kein Fehler.</summary>
         [TestMethod]
         public void AnEmptyTeamIsAWarning()
         {
+            spiel.GameTeams.Add(new GameTeam { Id = Guid.NewGuid(), GameId = spiel.Id, Name = "Gelb", ColorIndex = 3, SortOrder = 2 });
             Setze("Anna", rot);
-            Setze("Bert", rot);
+            Setze("Bert", blau);
 
             Assert.AreEqual(0, Teamzuordnung.Startfehler(spiel).Count);
-            StringAssert.Contains(Teamzuordnung.Startwarnungen(spiel).Single(), "„Blau“");
+            StringAssert.Contains(Teamzuordnung.Startwarnungen(spiel).Single(), "„Gelb“");
         }
 
         /// <summary>Ohne Teamspiel gibt es keinen Befund - auch ohne ein einziges Team.</summary>
