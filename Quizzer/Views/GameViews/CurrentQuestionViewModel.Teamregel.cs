@@ -13,7 +13,8 @@ namespace Quizzer.Views.GameViews
     /// Teamregeln im Fragefenster (M37 T5, Entwurf Abschnitte 1, 4 und 7): eine Teamregel ist ein Wert von
     /// <c>CellSpecialRule</c> und läuft über denselben Ablauf wie eine Sonderregel - nur im Teamspiel, ohne Vorphase. Die
     /// Joker-Runde darf davor laufen; danach stehen die Sprecher fest (Gesperrte und Getrennte übersprungen), gehen an Hub und
-    /// Telefone, und die Beratungszeit läuft. Der Sprecher antwortet per Tastenwahl, wo die Frage Tasten hat, sonst per Text.
+    /// Telefone, und die Beratungszeit läuft, sobald die Frage lesbar ist (<c>.Beratungszeit.cs</c>). Der Sprecher antwortet per
+    /// Tastenwahl, wo die Frage Tasten hat, sonst per Text.
     /// </summary>
     public partial class CurrentQuestionViewModel
     {
@@ -98,7 +99,7 @@ namespace Quizzer.Views.GameViews
             }
 
             await TeamregelAnwendenAsync(regel);
-            StarteBeratungszeit();
+            BeratungszeitVormerken();
         }
 
         /// <summary>Beamer, Karten und Telefone folgen den Sprechern dieser Frage.</summary>
@@ -123,16 +124,6 @@ namespace Quizzer.Views.GameViews
             var hinweis = joker is { Zu: true, Hinweis.Length: > 0 } ablauf ? $"{regel.Hinweis} · {ablauf.Hinweis}" : regel.Hinweis;
 
             Sonderregel.Zeige(regel.Titel, regel.Regeltext, stand, false, hinweis, TeamregelBereich);
-        }
-
-        /// <summary>Die Beratungszeit des Spiels (0: ohne). Läuft sie ab, nehmen die Telefone nichts mehr an - wie beim Countdown von Hand.</summary>
-        private void StarteBeratungszeit()
-        {
-            if (Teamregel is not TeamberatungAblauf || Coordinate?.Game is not { TeamCouncilSeconds: > 0 } spiel)
-                return;
-
-            var buzzer = BuzzerControlsViewModel;
-            Countdown?.Starte(Math.Min(spiel.TeamCouncilSeconds, TeamGrenzen.MaxCouncilSeconds), () => _ = buzzer?.SperreWegenZeitAsync());
         }
 
         /// <summary>„Joker-Sperre aufheben" an einer Teamregel-Zelle (E1): wer gesperrt war, spricht wieder, wenn er dran ist.</summary>

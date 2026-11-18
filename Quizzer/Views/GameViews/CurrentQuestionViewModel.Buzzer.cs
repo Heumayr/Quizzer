@@ -169,6 +169,7 @@ namespace Quizzer.Views.GameViews
 
         private async Task OnAllPlayersSelectedKeys(ConcurrentDictionary<Guid, BuzzerKeySelector.SelectionResult> dictionary)
         {
+            BeratungszeitAbgegeben(); // R5-5
             PlayersResultViewModel?.SelectionResultsDic = dictionary;
             await TeamAbstimmungZuAsync(dictionary);
             await OpenResultsAsync();

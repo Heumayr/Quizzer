@@ -37,6 +37,7 @@ namespace Quizzer.Views.GameViews
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CurrentStepContext));
                 RaisePointsNow();
+                BeratungszeitWennLesbar(); // R5-5
             }
         }
 

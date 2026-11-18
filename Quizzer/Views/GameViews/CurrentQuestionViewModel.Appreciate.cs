@@ -33,6 +33,7 @@ namespace Quizzer.Views.GameViews
         /// </summary>
         private async Task OnAllPlayersSubmittedInput(ConcurrentDictionary<Guid, InputResult> inputs)
         {
+            BeratungszeitAbgegeben(); // R5-5
             AppreciateOutcome = EvaluateGuesses(inputs);
 
             PlayersResultViewModel?.ApplyAppreciateOutcome(AppreciateOutcome, inputs);
