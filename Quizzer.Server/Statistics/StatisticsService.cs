@@ -10,9 +10,10 @@ namespace Quizzer.Server.Statistics
     /// <summary>
     /// Die Statistik eines Kontos (M9: „seine spiele und statistiken sehen"): jedes Spiel, in dem
     /// es mitgespielt oder das es als Gamemaster angelegt hat, mit Platz und Punkten. Die Bestenliste (M35 C9) rechnet
-    /// ueber genau diese Spiele - eine Liste, die zeigt, was der Einzelabruf verweigert, waere der Rechtefehler A01.
+    /// ueber genau diese Spiele - eine Liste, die zeigt, was der Einzelabruf verweigert, waere der Rechtefehler A01. Teams und
+    /// Teamsiege (M37 T12) ebenso: <c>StatisticsService.Teams.cs</c>.
     /// </summary>
-    public sealed class StatisticsService
+    public sealed partial class StatisticsService
     {
         public async Task<StatisticsResponse> ForAsync(CurrentAccount account, CancellationToken ct)
         {
@@ -28,6 +29,7 @@ namespace Quizzer.Server.Statistics
                     g.Id,
                     g.Designation,
                     g.State,
+                    g.IsTeamGame,
                     g.ModeratorPlayerId,
                     MasterName = g.Moderator == null ? "" : (g.Moderator.DisplayName != "" ? g.Moderator.DisplayName : g.Moderator.Designation),
                     Players = context.PlayerXGames.Where(x => x.GameId == g.Id).Select(x => x.PlayerId).ToList(),
@@ -51,6 +53,7 @@ namespace Quizzer.Server.Statistics
                 })
                 .ToListAsync(ct);
 
+            var teamStaende = await TeamStaendeAsync(context, games.Where(g => g.IsTeamGame).Select(g => g.Id).ToList(), me, ct);
             var list = new List<GameStatistic>();
 
             foreach (var game in games)
@@ -63,6 +66,7 @@ namespace Quizzer.Server.Statistics
                 var mine = totals.FirstOrDefault(t => t.GameId == game.Id && t.PlayerId == me);
                 var playsAlong = game.Players.Contains(me);
                 var myScore = mine?.Score ?? 0;
+                var team = teamStaende.GetValueOrDefault(game.Id);
 
                 list.Add(new GameStatistic(
                     game.Id,
@@ -76,20 +80,26 @@ namespace Quizzer.Server.Statistics
                     mine?.Wrong ?? 0,
                     game.Played,
                     game.Cells,
-                    game.ModeratorPlayerId == me));
+                    game.ModeratorPlayerId == me,
+                    team?.Name,
+                    team?.Rank ?? 0,
+                    team?.Count ?? 0));
             }
 
             var played = list.Where(g => g.Rank > 0).ToList();
+            var teamspiele = games.Where(g => g.IsTeamGame).Select(g => g.Id).ToHashSet();
 
             return new StatisticsResponse(
                 me,
                 player.CalculatedDisplayName,
                 played.Count,
-                played.Count(g => g.Rank == 1 && g.PlayedCells > 0),
+                // F-M37-14: Einzelsiege nur in Spielen ohne Teams, Teamsiege eigens.
+                played.Count(g => g.Rank == 1 && g.PlayedCells > 0 && !teamspiele.Contains(g.GameId)),
                 played.Sum(g => g.FinalScore),
                 list.Count(g => g.IsGameMaster),
                 list.OrderBy(g => g.GameName).ToList(),
-                await LeaderboardRows.CalculateAsync(context, gameIds, ct));
+                await LeaderboardRows.CalculateAsync(context, gameIds, ct),
+                list.Count(g => g.TeamRank == 1 && g.PlayedCells > 0));
         }
     }
 }

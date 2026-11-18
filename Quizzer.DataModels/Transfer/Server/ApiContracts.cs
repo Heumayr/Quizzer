@@ -94,6 +94,12 @@ namespace Quizzer.DataModels.Transfer.Server
 
     public sealed record TotpDisableRequest(string Password, string Code);
 
+    /// <summary>Ein Spiel der Statistik aus Sicht des Kontos.</summary>
+    /// <param name="Rank">Der Einzelplatz unter den Mitspielern, 0 ohne Platz im Spiel; Gleichstand teilt ihn.</param>
+    /// <param name="TeamName">Das Team des Kontos im Teamspiel (M37 T12), sonst <c>null</c>. Aeltere WPF kennen die drei
+    /// Teamfelder nicht und lassen sie weg; aeltere Server senden sie nicht - dann gilt die Vorgabe.</param>
+    /// <param name="TeamRank">Der Platz dieses Teams, gerechnet wie am Beamer (<c>Teamwertung.Rangfolge</c>); 0 ohne Team.</param>
+    /// <param name="TeamCount">Wie viele Teams das Spiel hat; 0 ohne Team.</param>
     public sealed record GameStatistic(
         Guid GameId,
         string GameName,
@@ -106,8 +112,13 @@ namespace Quizzer.DataModels.Transfer.Server
         int WrongCount,
         int PlayedCells,
         int TotalCells,
-        bool IsGameMaster);
+        bool IsGameMaster,
+        string? TeamName = null,
+        int TeamRank = 0,
+        int TeamCount = 0);
 
+    /// <param name="GamesWon">Einzelsiege - nur in Spielen ohne Teams (F-M37-14).</param>
+    /// <param name="TeamWins">Teamsiege (M37 T12): das Team des Kontos ist Erster eines Teamspiels mit gespielter Zelle.</param>
     public sealed record StatisticsResponse(
         Guid PlayerId,
         string PlayerName,
@@ -116,7 +127,8 @@ namespace Quizzer.DataModels.Transfer.Server
         int TotalScore,
         int GamesAsGameMaster,
         IReadOnlyList<GameStatistic> Games,
-        Leaderboard Leaderboard);
+        Leaderboard Leaderboard,
+        int TeamWins = 0);
 
     /// <summary>
     /// Die Bestenliste ueber Abende (M35 C9) - nur aus den Spielen, die <see cref="StatisticsResponse.Games"/> zeigt.
