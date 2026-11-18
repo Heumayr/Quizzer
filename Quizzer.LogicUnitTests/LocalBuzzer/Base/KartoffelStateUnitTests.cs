@@ -270,6 +270,39 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             Assert.IsNull(p.Art(null).FuseSeconds, "Ohne Knall steht der Zuender da.");
         }
 
+        /// <summary>V25: ein Abbruch nach dem Knall nimmt den Telefonen die Aufloesung nicht - wie bei der Staffel (T11).</summary>
+        [TestMethod]
+        public void AnAbortAfterTheBangKeepsTheResolution()
+        {
+            Starte();
+            p.Urteile(p.Spiel, Anna, richtig: true);
+            p.Bis(Vorlauf + Zuender);
+            Assert.IsNotNull(p.Spiel.CloseIfDue(), "Es knallt nicht.");
+
+            Assert.IsNotNull(p.Spiel.Abort(), "Nach dem Knall laesst sich nicht abbrechen.");
+
+            foreach (var spieler in new[] { Anna, Bert, null })
+            {
+                var info = p.Art(spieler);
+                Assert.IsTrue(info.Exploded, $"Nach dem Abbruch weiss {spieler?.Designation ?? "aussen"} nicht mehr, dass es geknallt hat.");
+                Assert.AreEqual(41, info.FuseSeconds);
+                Assert.IsTrue(info.Resolution.Count > 0, $"Der Abbruch nimmt {spieler?.Designation ?? "aussen"} die Aufloesung.");
+            }
+        }
+
+        /// <summary>V25, Gegenrichtung: ein Abbruch mitten in der Runde verwirft sie - keine Aufloesung, kein Knall.</summary>
+        [TestMethod]
+        public void AnAbortMidRoundShowsNoResolution()
+        {
+            Starte();
+            p.Urteile(p.Spiel, Anna, richtig: true);
+
+            Assert.IsNotNull(p.Spiel.Abort());
+
+            Assert.IsFalse(p.Art(null).Exploded);
+            Assert.AreEqual(0, p.Art(Bert).Resolution.Count, "Nach dem Abbruch mitten in der Runde stehen die Loesungen am Telefon.");
+        }
+
         /// <summary>Der Zuender liegt zwischen einem Drittel und der ganzen eingestellten Zeit - an beiden Enden gemessen.</summary>
         [TestMethod]
         [DataRow(false, 20_000)]

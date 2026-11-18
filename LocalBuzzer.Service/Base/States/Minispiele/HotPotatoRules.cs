@@ -181,8 +181,12 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             aufgeloest = true;
         }
 
+        /// <summary>Ein Abbruch verwirft nur eine laufende Runde - eine schon geschlossene behält Knall und Auflösung (V25, wie die Staffel).</summary>
         public void DiscardRunning()
         {
+            if (!laeuft)
+                return;
+
             laeuft = false;
             aufgeloest = false;
             geknallt = false;
