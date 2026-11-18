@@ -4,6 +4,7 @@ using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.QuestionTypes;
 using Quizzer.DataModels.Questions;
+using Quizzer.Logic.Context;
 
 namespace Quizzer.Logic.Controller.TypedControllers
 {
@@ -39,30 +40,55 @@ namespace Quizzer.Logic.Controller.TypedControllers
             if (current.Typ == targetType)
                 return current;
 
-            var sourceProfile = QuestionTypeProfiles.For(current.Typ);
+            var context = CurrentContext;
+
+            await using var transaction = await context.Database
+                .BeginTransactionAsync().ConfigureAwait(false);
+
+            await ConvertRowsAsync(context, questionId, current.Typ, targetType, expectedRowVersion: null).ConfigureAwait(false);
+
+            await transaction.CommitAsync().ConfigureAwait(false);
+
+            // Der Kontext haelt die Frage noch als alten Typ - erst nach dem Vergessen liest
+            // ein Get sie als den neuen.
+            context.ChangeTracker.Clear();
+
+            return await GetAsync(questionId).ConfigureAwait(false)
+                ?? throw new InvalidOperationException("Die umgewandelte Frage wurde nicht gefunden.");
+        }
+
+        /// <summary>
+        /// Die Anweisungen der Umwandlung in der Transaktion des Aufrufers - der Abgleich ruft sie in seiner (M37 P9, P7-2).
+        /// Mit <paramref name="expectedRowVersion"/> zuerst die Basiszeile, nur auf diesem Stand: sonst wirft es wie EF, und
+        /// eine Änderung zwischen Prüfung und Einspielen geht nicht still verloren.
+        /// </summary>
+        internal static async Task ConvertRowsAsync(DataContext context, Guid questionId, QuestionType sourceType, QuestionType targetType,
+            byte[]? expectedRowVersion, CancellationToken cancellationToken = default)
+        {
             var targetProfile = QuestionTypeProfiles.For(targetType);
 
             // Ein Tabellenname kann in SQL nicht als Parameter uebergeben werden, er muss in den
             // Text. Deshalb geht er durch eine Weissliste: erlaubt ist nur, was in den Profilen
             // als TableName steht. Bisher stand dieser Beweis nur im Kommentar - jetzt scheitert
             // ein unbekannter Name, statt in die Anweisung zu wandern.
-            var oldTable = EnsureKnownTable(sourceProfile.TableName);
+            var oldTable = EnsureKnownTable(QuestionTypeProfiles.For(sourceType).TableName);
             var newTable = EnsureKnownTable(targetProfile.TableName);
 
-            var context = CurrentContext;
+            var parameters = new List<SqlParameter>
+            {
+                new("@typ", (int)targetType),
+                new("@buzzerLayout", (int)targetProfile.BuzzerControlsLayout),
+                new("@stepLayout", (int)targetProfile.StepDisplayLayoutMode),
+                new("@keyType", (int)targetProfile.QuestionViewKeyType),
+                new("@random", targetProfile.UseRandomSequenceOnNoneFinishSteps),
+                new("@proportional", targetProfile.UseProportionalScoreReductionOnStep),
+                new("@id", questionId),
+            };
 
-            await using var transaction = await context.Database
-                .BeginTransactionAsync().ConfigureAwait(false);
+            if (expectedRowVersion != null)
+                parameters.Add(new SqlParameter("@rowVersion", System.Data.SqlDbType.Timestamp) { Value = expectedRowVersion });
 
-            await context.Database.ExecuteSqlRawAsync(
-                DeleteStatementFor(oldTable),
-                new SqlParameter("@id", questionId)).ConfigureAwait(false);
-
-            await context.Database.ExecuteSqlRawAsync(
-                InsertStatementFor(newTable),
-                new SqlParameter("@id", questionId)).ConfigureAwait(false);
-
-            await context.Database.ExecuteSqlRawAsync(
+            var updated = await context.Database.ExecuteSqlRawAsync(
                 """
                 UPDATE [question].[QuestionBase]
                    SET [Typ] = @typ,
@@ -72,14 +98,17 @@ namespace Quizzer.Logic.Controller.TypedControllers
                        [UseRandomSequenceOnNoneFinishSteps] = @random,
                        [UseProportionalScoreReductionOnStep] = @proportional
                  WHERE [Id] = @id
-                """,
-                new SqlParameter("@typ", (int)targetType),
-                new SqlParameter("@buzzerLayout", (int)targetProfile.BuzzerControlsLayout),
-                new SqlParameter("@stepLayout", (int)targetProfile.StepDisplayLayoutMode),
-                new SqlParameter("@keyType", (int)targetProfile.QuestionViewKeyType),
-                new SqlParameter("@random", targetProfile.UseRandomSequenceOnNoneFinishSteps),
-                new SqlParameter("@proportional", targetProfile.UseProportionalScoreReductionOnStep),
-                new SqlParameter("@id", questionId)).ConfigureAwait(false);
+                """ + (expectedRowVersion != null ? " AND [RowVersion] = @rowVersion" : ""),
+                parameters, cancellationToken).ConfigureAwait(false);
+
+            if (expectedRowVersion != null && updated != 1)
+                throw new DbUpdateConcurrencyException($"Die Frage {questionId} wurde seit der Prüfung geändert - sie wird nicht umgewandelt.");
+
+            await context.Database.ExecuteSqlRawAsync(
+                DeleteStatementFor(oldTable), [new SqlParameter("@id", questionId)], cancellationToken).ConfigureAwait(false);
+
+            await context.Database.ExecuteSqlRawAsync(
+                InsertStatementFor(newTable), [new SqlParameter("@id", questionId)], cancellationToken).ConfigureAwait(false);
 
             // Ein Zieltyp, der nur EINE Loesung vertraegt, bekommt auch nur eine. Ohne diesen
             // Schritt war eine Multiple-Choice-Frage mit zwei richtigen Antworten nach dem
@@ -100,17 +129,8 @@ namespace Quizzer.Logic.Controller.TypedControllers
                                      WHERE [QuestionBaseId] = @id AND [IsResult] = 1
                                      ORDER BY [SequenceNumber], [Id])
                     """,
-                    new SqlParameter("@id", questionId)).ConfigureAwait(false);
+                    [new SqlParameter("@id", questionId)], cancellationToken).ConfigureAwait(false);
             }
-
-            await transaction.CommitAsync().ConfigureAwait(false);
-
-            // Der Kontext haelt die Frage noch als alten Typ - erst nach dem Vergessen liest
-            // ein Get sie als den neuen.
-            context.ChangeTracker.Clear();
-
-            return await GetAsync(questionId).ConfigureAwait(false)
-                ?? throw new InvalidOperationException("Die umgewandelte Frage wurde nicht gefunden.");
         }
 
         /// <summary>

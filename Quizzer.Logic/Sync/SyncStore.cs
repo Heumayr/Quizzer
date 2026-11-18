@@ -16,7 +16,6 @@ namespace Quizzer.Logic.Sync
     public sealed partial class SyncStore : IDisposable, IAsyncDisposable
     {
         private readonly DataContext context;
-        private readonly string? connectionString;
 
         /// <summary>Gegen <c>Settings.ConnectionString</c> - am Server und im WPF.</summary>
         public SyncStore()
@@ -27,7 +26,6 @@ namespace Quizzer.Logic.Sync
         /// <summary>Gegen eine bestimmte Datenbank (Tests, in denen Server und Client im selben Prozess laufen).</summary>
         public SyncStore(string connectionString)
         {
-            this.connectionString = connectionString;
             context = new DataContext(connectionString);
         }
 
@@ -127,9 +125,9 @@ namespace Quizzer.Logic.Sync
         /// <summary>
         /// Spielt Loeschungen und Zeilen ein, in einer Transaktion.
         /// <list type="number">
-        /// <item>Fragen, deren Typ sich geaendert hat, werden zuerst umgewandelt - ueber
-        /// <see cref="QuestionBasesController.ConvertTypeAsync"/>, weil Loeschen und Neuanlegen die
-        /// Spielhistorie mitnaehme.</item>
+        /// <item>Fragen, deren Typ sich geaendert hat, werden zuerst umgewandelt - wie
+        /// <see cref="QuestionBasesController.ConvertTypeAsync"/>, in derselben Transaktion, weil Loeschen und
+        /// Neuanlegen die Spielhistorie mitnaehme.</item>
         /// <item>Loeschungen laufen <b>vor</b> den Zeilen und in umgekehrter Rangfolge, damit ein
         /// geloeschter und neu angelegter Eintrag mit gleichem eindeutigen Index nicht kollidiert.</item>
         /// <item>Zeilen laufen in Rangfolge; EF ordnet die Einfuegungen nach den Fremdschluesseln.</item>
@@ -144,10 +142,9 @@ namespace Quizzer.Logic.Sync
             Action<object, SyncRow, bool>? afterApply = null,
             CancellationToken cancellationToken = default)
         {
-            await ConvertChangedQuestionTypesAsync(upserts, cancellationToken);
-
             await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
+            await ConvertChangedQuestionTypesAsync(upserts, cancellationToken);
             await ReleaseTeamReferencesAsync(deletes, strict ? upserts : null, cancellationToken);
 
             if (strict)
@@ -234,6 +231,12 @@ namespace Quizzer.Logic.Sync
             await context.SaveChangesAsync(cancellationToken);
         }
 
+        /// <summary>
+        /// Wandelt in der Transaktion des Einspielens um (M37 P9, P7-2). Bis dahin lief es mit eigenem Kontext davor, und der
+        /// Tracker wurde für jeden Push mit einer Frage geleert - die RowVersion der Prüfung hielt dann nichts mehr, und eine
+        /// Umwandlung blieb auch bei gescheitertem Push stehen. Jetzt prüft die Umwandlung die RowVersion selbst und vergisst
+        /// nur die Frage mit neuem Typ.
+        /// </summary>
         private async Task ConvertChangedQuestionTypesAsync(IReadOnlyList<SyncRow> upserts, CancellationToken cancellationToken)
         {
             var questionRows = upserts
@@ -256,21 +259,14 @@ namespace Quizzer.Logic.Sync
                     continue;
 
                 var target = (QuestionBase)Activator.CreateInstance(SyncModel.Get(row.Type).ClrType, nonPublic: true)!;
+                var verfolgt = context.ChangeTracker.Entries<QuestionBase>().FirstOrDefault(e => e.Entity.Id == question.Id);
+                var geprueft = verfolgt?.OriginalValues.GetValue<byte[]?>(nameof(ModelBase.RowVersion));
 
-                using var controller = new QuestionBasesController();
+                await QuestionBasesController.ConvertRowsAsync(context, question.Id, question.Typ, target.Typ, geprueft, cancellationToken);
 
-                if (connectionString != null)
-                {
-                    // Der Controller oeffnet sonst einen Kontext auf Settings.ConnectionString -
-                    // also womoeglich auf eine andere Datenbank als dieser Abgleich.
-                    controller.Context.Dispose();
-                    controller.Context = new DataContext(connectionString);
-                }
-
-                await controller.ConvertTypeAsync(question.Id, target.Typ);
+                // Nimmt ihre verfolgten Schritte mit (gemessen) - die liest das Einspielen frisch.
+                verfolgt?.State = EntityState.Detached;
             }
-
-            context.ChangeTracker.Clear();
         }
 
         public void Dispose() => context.Dispose();
