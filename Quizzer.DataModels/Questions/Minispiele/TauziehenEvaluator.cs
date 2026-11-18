@@ -105,14 +105,19 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// <summary>Je Team Mitglieder, Tipps und Zug; vorn liegt, wer am stärksten zieht. Ein Zug von 0 gewinnt nie.</summary>
         /// <param name="zuege">Je Spieler sein Stand - jeder, der beim Start mitzog, auch ohne einen Tipp.</param>
         /// <param name="wertung">Summe oder Durchschnitt (F-M37-11).</param>
-        public static TauziehenErgebnis Werte(IReadOnlyDictionary<Guid, TauziehenZug> zuege, TeamMinigameScoring wertung)
+        /// <param name="rang">
+        /// Der Platz eines Teams, <c>GameTeam.SortOrder</c> (V27): danach stehen die Teams, das erste links am Seil - Hub und Beamer
+        /// geben denselben, sonst zöge Rot am Telefon links und am Beamer rechts. Ohne: nach Kennung.
+        /// </param>
+        public static TauziehenErgebnis Werte(IReadOnlyDictionary<Guid, TauziehenZug> zuege, TeamMinigameScoring wertung, Func<Guid, int>? rang = null)
         {
             ArgumentNullException.ThrowIfNull(zuege);
 
             var teams = zuege.Values
                 .GroupBy(z => z.TeamId)
                 .Select(g => new TauziehenTeam(g.Key, g.Count(), g.Sum(z => z.Tipps), wertung))
-                .OrderBy(t => t.TeamId)
+                .OrderBy(t => rang?.Invoke(t.TeamId) ?? 0)
+                .ThenBy(t => t.TeamId)
                 .ToList();
 
             // Ein Gleichstand im Durchschnitt (10 auf drei, 20 auf sechs) bleibt einer: die Division rundet beide gleich.

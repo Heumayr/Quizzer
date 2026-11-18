@@ -30,8 +30,10 @@ namespace Quizzer.UnitTests.Views.GameViews
 
         private async Task TeamsAnlegenAsync(TestGameBuilder welt)
         {
-            rot = new GameTeam { Id = Guid.NewGuid(), GameId = welt.Game.Id, Name = "Rot", ColorIndex = 5, SortOrder = 0 };
-            blau = new GameTeam { Id = Guid.NewGuid(), GameId = welt.Game.Id, Name = "Blau", ColorIndex = 4, SortOrder = 1 };
+            // Nach Kennung liegt Blau vorn, nach SortOrder Rot - eine Reihenfolge nach Kennung fällt so auf (V27).
+            var (a, b) = (Guid.NewGuid(), Guid.NewGuid());
+            rot = new GameTeam { Id = a.CompareTo(b) > 0 ? a : b, GameId = welt.Game.Id, Name = "Rot", ColorIndex = 5, SortOrder = 0 };
+            blau = new GameTeam { Id = a.CompareTo(b) > 0 ? b : a, GameId = welt.Game.Id, Name = "Blau", ColorIndex = 4, SortOrder = 1 };
 
             using (var ctrl = new GameTeamsController())
             {

@@ -55,14 +55,14 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             game.PlayerXGames.Single(x => x.PlayerId == dora.Id).GameTeamId = fremd.Id;
             var aufstellung = TeamRoster.From(game);
 
-            Assert.AreEqual(new TeamRosterEntry(rot.Id, "Rot", 5, "✚") { Speaker = "Anna" }, aufstellung.TeamOf(anna.Id));
-            Assert.AreEqual(new TeamRosterEntry(blau.Id, "Blau", 4, "★") { Speaker = "Carl" }, aufstellung.TeamOf(carl.Id));
+            Assert.AreEqual(new TeamRosterEntry(rot.Id, "Rot", 5, "✚") { Speaker = "Anna", SpeakerId = anna.Id, SortOrder = rot.SortOrder }, aufstellung.TeamOf(anna.Id));
+            Assert.AreEqual(new TeamRosterEntry(blau.Id, "Blau", 4, "★") { Speaker = "Carl", SpeakerId = carl.Id, SortOrder = blau.SortOrder }, aufstellung.TeamOf(carl.Id));
             Assert.IsNull(aufstellung.TeamOf(dora.Id), "Ein Team aus einem anderen Spiel gilt.");
             Assert.AreEqual(dora.Id, aufstellung.KeyFor(dora.Id), "Ohne Team ist Dora nicht ihr eigenes Team.");
             Assert.AreEqual(rot.Id, aufstellung.KeyFor(bert.Id));
 
             rot.ColorIndex = 8;
-            Assert.AreEqual(new TeamRosterEntry(rot.Id, "Rot", -1, string.Empty) { Speaker = "Anna" }, TeamRoster.From(game).TeamOf(anna.Id),
+            Assert.AreEqual(new TeamRosterEntry(rot.Id, "Rot", -1, string.Empty) { Speaker = "Anna", SpeakerId = anna.Id, SortOrder = rot.SortOrder }, TeamRoster.From(game).TeamOf(anna.Id),
                 "Eine Farbe außerhalb der Palette geht als Farbe ans Telefon.");
         }
 

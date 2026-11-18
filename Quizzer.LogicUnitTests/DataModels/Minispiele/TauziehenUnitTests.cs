@@ -151,9 +151,15 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
             Assert.IsTrue(laufend.All(z => !z.Sieger), "Während der Runde ist schon ein Sieger markiert.");
             Assert.IsTrue(TauziehenTafel.Zeilen(ergebnis, Name, ende: true)[0].Sieger, "Am Ende ist der Sieger nicht markiert.");
 
-            var seil = TauziehenTafel.Seil(ergebnis, Name)!;
+            // Die Seite kommt aus dem Rang (SortOrder, V27), nicht aus der Kennung: Blau liegt nach Kennung hinter Rot.
+            Func<Guid, int> Rang(params Guid[] reihe) => id => Array.IndexOf(reihe, id);
+            var seil = TauziehenTafel.Seil(TauziehenEvaluator.Werte(zuege, TeamMinigameScoring.Sum, Rang(Rot, Blau)), Name)!;
             Assert.AreEqual(("✚ Rot", "★ Blau", "★ Blau zieht stärker"), (seil.Links, seil.Rechts, seil.Lage));
             Assert.AreEqual(0.5 * TauziehenSeil.HalbeLaenge, seil.Versatz, 1e-9);
+
+            var umgekehrt = TauziehenTafel.Seil(TauziehenEvaluator.Werte(zuege, TeamMinigameScoring.Sum, Rang(Blau, Rot)), Name)!;
+            Assert.AreEqual(("★ Blau", "✚ Rot", "★ Blau zieht stärker"), (umgekehrt.Links, umgekehrt.Rechts, umgekehrt.Lage), "Blau zuerst im Rang steht nicht links.");
+            Assert.AreEqual(-0.5 * TauziehenSeil.HalbeLaenge, umgekehrt.Versatz, 1e-9);
         }
 
         // --- Das Profil ---

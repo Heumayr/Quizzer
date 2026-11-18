@@ -161,7 +161,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             }
 
             var reihe = teams.Values
-                .OrderBy(t => t.Name, StringComparer.CurrentCultureIgnoreCase)
+                .OrderBy(t => t.SortOrder)
                 .ThenBy(t => t.TeamId)
                 .Select(t => new StaffelTeam(t.TeamId, Laeuferfolge(t)))
                 .ToList();
@@ -294,7 +294,8 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         private IReadOnlyList<Guid> Laeuferfolge(TeamRosterEntry team)
         {
             var mitglieder = teilnehmer.Where(t => t.Value == team.TeamId).Select(t => new Teammitglied(t.Key, Name(t.Key))).ToList();
-            var sprecher = Sprecherfolge.Folge(mitglieder, 0).ToList().FindIndex(id => Name(id) == team.Speaker);
+            // Über die Kennung: zwei Mitglieder können denselben Namen tragen (V27).
+            var sprecher = Sprecherfolge.Folge(mitglieder, 0).ToList().FindIndex(id => id == team.SpeakerId);
 
             return Sprecherfolge.Folge(mitglieder, Math.Max(0, sprecher));
         }

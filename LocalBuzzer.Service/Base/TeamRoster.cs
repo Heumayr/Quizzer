@@ -7,8 +7,14 @@ namespace LocalBuzzer.Service.Base
     /// <summary>Das Team eines Spielers, wie der Hub es kennt: Kennung, Name, Platz in der Palette und Symbol.</summary>
     public sealed record TeamRosterEntry(Guid TeamId, string Name, int ColorIndex, string Symbol)
     {
-        /// <summary>Der Name des Sprechers (M37 T5); leer, wenn das Team keinen hat.</summary>
+        /// <summary>Der Name des Sprechers (M37 T5); leer, wenn das Team keinen hat. Nur zum Anzeigen - zwei Mitglieder können so heißen.</summary>
         public string Speaker { get; init; } = string.Empty;
+
+        /// <summary>Der Sprecher als Kennung (V27) - gesucht wird danach, nie nach dem Namen; <c>null</c> ohne Sprecher.</summary>
+        public Guid? SpeakerId { get; init; }
+
+        /// <summary>Der Platz des Teams aus <see cref="GameTeam.SortOrder"/> (V27) - in dieser Reihenfolge stehen die Teams überall.</summary>
+        public int SortOrder { get; init; }
 
         /// <summary>Was das Telefon davon zeigt - die Kennung bleibt am Server.</summary>
         public TeamClientInfo ToClientInfo() => new() { Name = Name, Symbol = Symbol, ColorIndex = ColorIndex, Speaker = Speaker };
@@ -72,6 +78,8 @@ namespace LocalBuzzer.Service.Base
                 eintraege[platz.PlayerId] = new TeamRosterEntry(team.Id, team.Name, farbe?.Index ?? -1, farbe?.Symbol ?? string.Empty)
                 {
                     Speaker = wer is { } id ? namen.GetValueOrDefault(id) ?? string.Empty : string.Empty,
+                    SpeakerId = wer,
+                    SortOrder = team.SortOrder,
                 };
             }
 

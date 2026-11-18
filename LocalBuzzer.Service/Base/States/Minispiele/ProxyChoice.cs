@@ -49,11 +49,11 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
         public bool Fertig => Festgelegt && gewaehlt.Count == teams.Count;
 
-        /// <summary>Die Teams, die mitspielen, nach Kennung - die Reihenfolge hängt an keiner Nachricht.</summary>
-        public IReadOnlyList<Guid> TeamIds => teams.Keys.Order().ToList();
+        /// <summary>Die Teams, die mitspielen, nach <c>SortOrder</c> wie überall (V27) - die Reihenfolge hängt an keiner Nachricht.</summary>
+        public IReadOnlyList<Guid> TeamIds => [.. teams.Values.OrderBy(t => t.SortOrder).ThenBy(t => t.TeamId).Select(t => t.TeamId)];
 
-        /// <summary>Je Team sein Stellvertreter, nach Kennung des Teams.</summary>
-        public IReadOnlyList<Stellvertreter> Vertreter => gewaehlt.Values.OrderBy(v => v.TeamId).ToList();
+        /// <summary>Je Team sein Stellvertreter, in der Reihenfolge von <see cref="TeamIds"/>.</summary>
+        public IReadOnlyList<Stellvertreter> Vertreter => [.. TeamIds.Where(gewaehlt.ContainsKey).Select(t => gewaehlt[t])];
 
         public TeamRosterEntry? Team(Guid teamId) => teams.GetValueOrDefault(teamId);
 

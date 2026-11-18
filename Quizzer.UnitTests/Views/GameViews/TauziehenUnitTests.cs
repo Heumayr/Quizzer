@@ -81,9 +81,10 @@ namespace Quizzer.UnitTests.Views.GameViews
             await ZieheAsync(2, 10);
             Assert.IsTrue(await WarteAsync(() => vm.Reaktion.Seil?.Lage == "✚ Rot zieht stärker"),
                 "Das Seil wandert nicht zu Rot: " + vm.Reaktion.Seil?.Lage);
-            // Welche Seite Rot hat, legt die Reihenfolge der Kennungen fest - der Knoten steht auf seiner, halb zum Ende.
+            // Rot steht links, weil es nach SortOrder vorn ist - nach Kennung liegt Blau vorn (V27). Der Knoten halb zu Rot.
             var seil = vm.Reaktion.Seil!;
-            Assert.AreEqual((seil.Links == "✚ Rot" ? -0.5 : 0.5) * TauziehenSeil.HalbeLaenge, seil.Versatz, 1e-9,
+            Assert.AreEqual(("✚ Rot", "★ Blau"), (seil.Links, seil.Rechts), "Am Beamer steht Rot nicht links.");
+            Assert.AreEqual(-0.5 * TauziehenSeil.HalbeLaenge, seil.Versatz, 1e-9,
                 $"Der Knoten steht nicht auf halbem Weg zu Rot ({seil.Links} | {seil.Rechts}).");
             Assert.AreEqual(("✚ Rot", "Ø 10,0 Tipps (2 ziehen)"), (vm.Reaktion.Zeilen[0].Name, vm.Reaktion.Zeilen[0].Zeit));
             Assert.IsTrue(vm.Reaktion.Zeilen.All(z => !z.Sieger), "Während der Runde ist ein Sieger markiert.");
@@ -105,6 +106,7 @@ namespace Quizzer.UnitTests.Views.GameViews
                 "Die Serveruhr schliesst das Tauziehen nicht: " + vm.Reaktion.Kopfzeile);
 
             Assert.AreEqual("Ergebnis – ✚ Rot gewinnt das Tauziehen", vm.Reaktion.Kopfzeile);
+            Assert.AreEqual("✚ Rot", vm.Reaktion.Seil?.Links, "Mit dem Ergebnis wechselt Rot die Seite (V27).");
             Assert.AreEqual("★ Sieger", vm.Reaktion.Zeilen[0].SiegerText, "Das Siegerteam ist nicht mit Symbol und Text markiert.");
             Assert.AreEqual(feld, Karte(vm, 0).CurrentScoreManipulation + Karte(vm, 1).CurrentScoreManipulation,
                 "Rot bekommt nicht genau den Feldwert.");

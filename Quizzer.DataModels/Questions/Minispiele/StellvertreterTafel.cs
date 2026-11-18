@@ -6,7 +6,10 @@ namespace Quizzer.DataModels.Questions.Minispiele
     /// </summary>
     public static class StellvertreterTafel
     {
-        /// <summary>Während der Wahl: je Team sein Stellvertreter oder „wählt …“; gelost steht dabei.</summary>
+        /// <summary>
+        /// Während der Wahl: je Team sein Stellvertreter oder „wählt …“; gelost steht dabei. Die Teams in der Reihenfolge des Hubs,
+        /// nach <c>SortOrder</c> (V27) - wie am Telefon.
+        /// </summary>
         public static IReadOnlyList<ReaktionTafelZeile> Wahl(
             IEnumerable<Guid> teams, IReadOnlyList<Stellvertreter> vertreter, Func<Guid, string> teamName, Func<Guid, string> name)
         {
@@ -17,7 +20,6 @@ namespace Quizzer.DataModels.Questions.Minispiele
 
             return teams
                 .Select(t => (Team: teamName(t), Vertreter: vertreter.FirstOrDefault(v => v.TeamId == t)))
-                .OrderBy(z => z.Team, StringComparer.CurrentCulture)
                 .Select(z => new ReaktionTafelZeile(z.Team, z.Vertreter is { } v ? Gewaehlt(v, name) : "wählt …", false))
                 .ToList();
         }

@@ -93,7 +93,8 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         public IReadOnlyDictionary<Guid, Guid> Teilnehmer => teilnehmer;
 
         /// <summary>Der Stand am Seil: während der Runde der laufende, danach der gezählte. Gelesen unter der Sperre des Rahmens.</summary>
-        public TauziehenErgebnis Stand => TauziehenEvaluator.Werte(laeuft ? Staende() : gezaehlt, wertung);
+        public TauziehenErgebnis Stand => TauziehenEvaluator.Werte(laeuft ? Staende() : gezaehlt, wertung,
+            team => teams.TryGetValue(team, out var eintrag) ? eintrag.SortOrder : int.MaxValue);
 
         /// <summary>Jeder Teilnehmer mit seinem Stand, auch ohne Tipp - er zählt im Durchschnitt seines Teams mit.</summary>
         public IReadOnlyDictionary<Guid, object> CurrentSubmissions => Staende().ToDictionary(e => e.Key, e => (object)e.Value);

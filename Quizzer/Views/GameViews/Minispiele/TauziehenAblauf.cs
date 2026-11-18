@@ -90,7 +90,9 @@ namespace Quizzer.Views.GameViews.Minispiele
 
         private TauziehenErgebnis Werte(IReadOnlyDictionary<Guid, TauziehenZug> zuege)
         {
-            var werte = TauziehenEvaluator.Werte(zuege, Wertung);
+            // Dieselbe Reihenfolge wie am Hub (V27): Rot bleibt links, wenn die Runde schließt.
+            var werte = TauziehenEvaluator.Werte(zuege, Wertung,
+                team => Fenster.Coordinate?.Game?.GameTeams.FirstOrDefault(t => t.Id == team)?.SortOrder ?? int.MaxValue);
             Karten?.WerteTauziehen(werte, zuege);
             return werte;
         }
