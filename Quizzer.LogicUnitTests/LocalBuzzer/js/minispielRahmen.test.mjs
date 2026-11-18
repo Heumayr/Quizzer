@@ -191,6 +191,26 @@ pruefe(stub.aktualisiert.length === 1 && stub.aktualisiert[0].taskNumber === 2,
     "Der neue Stand erreicht das Modul nicht: " + JSON.stringify(stub.aktualisiert));
 eigen.dispose();
 
+// --- R2-1: was waehrend des Countdowns kommt, geht mit an den Start - Bert wird im Countdown Laeufer der Staffel ---
+const staffelWirt = document.createElement("div");
+const staffel = new MinigameLayout({ submitAction: async () => {} }, { timer: uhr.timer, now: uhr.now });
+const staffelStand = (artInfo) => ({
+    resetCount: 1, currentLayoutLocked: false, allLocked: false,
+    layoutInfo: { kind: 19, title: "Staffel", phase: 1, currentRound: 1, totalRounds: 1, durchgang: 50,
+        countdownSeconds: 3, ownSubmitted: false, kindInfo: artInfo }
+});
+
+staffel.render(staffelWirt, staffelStand({ isRunner: false, turn: 0, part: 2, totalParts: 5, runnerName: "Anna", teams: [] }));
+staffel.setLocked(false);
+uhr.vor(1000);
+staffel.update(staffelStand({ isRunner: true, turn: 4, part: 3, totalParts: 5, runnerName: "Bert", teams: [] }));
+uhr.vor(2000);
+pruefe(staffelWirt.querySelector(".staffel-zeile")?.hidden === false,
+    "Wer im Countdown Laeufer wird, bekommt nach dem Countdown kein Eingabefeld.");
+pruefe(staffelWirt.querySelector(".staffel-stand")?.textContent === "Du bist dran: Teil 3 von 5",
+    "Nach dem Countdown steht der alte Laeufer da: " + staffelWirt.querySelector(".staffel-stand")?.textContent);
+staffel.dispose();
+
 if (fehler > 0) {
     console.error(`${fehler} Zusicherung(en) rot.`);
     process.exit(1);

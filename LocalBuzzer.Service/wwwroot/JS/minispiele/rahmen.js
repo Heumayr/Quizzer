@@ -91,6 +91,7 @@ export class MinigameLayout {
         this.modulArt = null;
         this.signatur = "";
         this.countdownUhr = null;
+        this.artInfo = null;
         this.locked = true;
     }
 
@@ -122,6 +123,9 @@ export class MinigameLayout {
     update(context) {
         const serverInfo = context?.layoutInfo ?? {};
         const artInfo = serverInfo.kindInfo ?? {};
+
+        // R2-1: der Countdown uebergibt den neuesten Stand der Art, nicht den von seinem Beginn - fuer alle Module.
+        this.artInfo = artInfo;
 
         this.titel.textContent = serverInfo.title || "Minispiel";
         this.runde.textContent = vorDerFrage(serverInfo) ? "Vor der Frage" : rundenText(serverInfo);
@@ -191,7 +195,7 @@ export class MinigameLayout {
             if (rest <= 0) {
                 this.countdownUhr = null;
                 this.status.textContent = specialRule || prePhase ? (serverInfo.rulesText || "Los!") : "Los!";
-                modul?.starte(artInfo, senden);
+                modul?.starte(this.artInfo ?? artInfo, senden);
                 return;
             }
 
