@@ -140,6 +140,36 @@ namespace Quizzer.LogicUnitTests.DataModels.Teams
             CollectionAssert.AreEqual(new[] { 300, 300, 100, 0 }, rangfolge.Select(p => p.Summe).ToArray());
         }
 
+        /// <summary>R3-1: Rot −200, Blau −100, Gelb leer - Gelb stand mit 0 auf Platz 1 und wurde Siegerteam.</summary>
+        [TestMethod]
+        public void AnEmptyTeamIsNotRankedAndCannotWin()
+        {
+            var gelb = new GameTeam { Id = Guid.NewGuid(), GameId = spiel.Id, Name = "Gelb", ColorIndex = 3, SortOrder = 2 };
+            spiel.GameTeams.Add(gelb);
+            Buche(Setze("Anna", rot), 0, rot.Id, minus: 200);
+            Buche(Setze("Bert", blau), 0, blau.Id, minus: 100);
+
+            var rangfolge = Teamwertung.Rangfolge(spiel);
+
+            CollectionAssert.AreEqual(new[] { "Blau", "Rot" }, rangfolge.Select(p => p.Team.Name).ToArray(), "Das leere Team steht in der Rangfolge.");
+            CollectionAssert.AreEqual(new[] { 1, 2 }, rangfolge.Select(p => p.Platz).ToArray());
+        }
+
+        /// <summary>R3-1: ein Team ohne Mitglieder, aber mit Ergebnissen unter seinem Stempel, spielt mit - die Punkte bleiben (F-M37-07).</summary>
+        [TestMethod]
+        public void ATeamWithStampedResultsStaysRankedAfterItsMembersMoved()
+        {
+            var anna = Setze("Anna", rot);
+            Buche(anna, 300, rot.Id);
+            Buche(Setze("Bert", blau), 100, blau.Id);
+            anna.GameTeamId = blau.Id;
+
+            var rangfolge = Teamwertung.Rangfolge(spiel);
+
+            CollectionAssert.AreEqual(new[] { ("Rot", 1, 300), ("Blau", 2, 100) }, rangfolge.Select(p => (p.Team.Name, p.Platz, p.Summe)).ToArray(),
+                "Rot verliert mit dem letzten Mitglied seinen Platz, obwohl es Punkte hat.");
+        }
+
         /// <summary>Ohne Teamspiel gibt es keine Rangfolge - auch wenn Teams und Stempel noch dastehen.</summary>
         [TestMethod]
         public void WithoutTeamGameThereIsNoRanking()

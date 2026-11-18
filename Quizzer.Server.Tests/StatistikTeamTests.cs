@@ -162,6 +162,31 @@ namespace Quizzer.Server.Tests
             }
         }
 
+        /// <summary>R3-1: Rot −200, Blau −100, Gelb leer - wie am Beamer zählt das leere Team nicht, Blau ist Sieger von zwei Teams.</summary>
+        [TestMethod]
+        public async Task AnEmptyTeamIsNotRankedLikeOnTheBeamer()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var (gina, _) = await ServerTestHost.NewMemberAsync(factory, "GinaLeeresTeam");
+            var (bob, bobTokens) = await ServerTestHost.NewMemberAsync(factory, "BobLeeresTeam");
+            var bobId = bobTokens.Account.PlayerId;
+
+            var spiel = Gespielt("Leeres Team", teamspiel: true);
+            var rot = Team(spiel, "Rot", 5, 0);
+            var blau = Team(spiel, "Blau", 4, 1);
+            var gelb = Team(spiel, "Gelb", 3, 2);
+            var anna = Gast("Anna");
+            var annasMinus = Ergebnis(spiel, anna.Id, 0, rot);
+            var bobsMinus = Ergebnis(spiel, bobId, 0, blau);
+            (annasMinus.MinusScore, bobsMinus.MinusScore) = (200, 100);
+            await AnlegenAsync(gina, spiel, anna, rot, blau, gelb, Platz(spiel, anna.Id, rot), Platz(spiel, bobId, blau), annasMinus, bobsMinus);
+
+            var statistik = await StatistikAsync(bob);
+            var zeile = statistik.Games.Single(g => g.GameId == spiel.Game.Id);
+            Assert.AreEqual(("Blau", 1, 2, 1), (zeile.TeamName, zeile.TeamRank, zeile.TeamCount, statistik.TeamWins),
+                "Das leere Team Gelb steht in der Statistik vor Blau oder zählt mit.");
+        }
+
         /// <summary>Ohne gespielte Zelle ist ein Teamspiel kein Sieg, auch wenn alle Teams mit 0 gleichauf vorn liegen.</summary>
         [TestMethod]
         public async Task AnUnplayedTeamGameIsNoTeamWin()

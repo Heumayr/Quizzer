@@ -28,21 +28,27 @@ namespace Quizzer.UnitTests.Views.GameViews
         [TestCleanup]
         public void TearDown() => UserPrompt.Reset();
 
-        /// <summary>Ein Teamspiel, dessen einzige Zelle gespielt ist: Rot 300, Blau 300, Gelb 100.</summary>
-        private static (Game Spiel, GameMasterViewModel Leiter) Abend()
+        /// <summary>Ein Teamspiel, dessen einzige Zelle gespielt ist: Rot 300, Blau 300, Gelb 100; auf Wunsch dazu Grün ohne Mitglieder.</summary>
+        private static (Game Spiel, GameMasterViewModel Leiter) Abend(int rot = 300, int blau = 300, int gelb = 100, bool gruenLeer = false)
         {
             var spiel = new Game { Id = Guid.NewGuid(), Designation = "Teamabend", IsTeamGame = true, Phase = 1, SuggestedPhases = 1 };
             var zelle = new GameGridCoordinate { Id = Guid.NewGuid(), GameId = spiel.Id, QuestionBaseId = Guid.NewGuid(), IsDone = true };
             spiel.GameGridCoordinates.Add(zelle);
 
-            foreach (var (name, farbe, punkte) in new[] { ("Rot", 5, 300), ("Blau", 4, 300), ("Gelb", 3, 100) })
+            foreach (var (name, farbe, punkte) in new[] { ("Rot", 5, rot), ("Blau", 4, blau), ("Gelb", 3, gelb) })
             {
                 var team = new GameTeam { Id = Guid.NewGuid(), GameId = spiel.Id, Name = name, ColorIndex = farbe, SortOrder = spiel.GameTeams.Count };
                 var spieler = new Player { Id = Guid.NewGuid(), Designation = $"Spieler {name}", DisplayName = $"Spieler {name}" };
                 spiel.GameTeams.Add(team);
                 spiel.PlayerXGames.Add(new PlayerXGame { Id = Guid.NewGuid(), GameId = spiel.Id, PlayerId = spieler.Id, Player = spieler, GameTeamId = team.Id });
-                zelle.QuestionResults.Add(new QuestionResult { Id = Guid.NewGuid(), GameId = spiel.Id, PlayerId = spieler.Id, Score = punkte, GameTeamId = team.Id });
+                zelle.QuestionResults.Add(new QuestionResult
+                {
+                    Id = Guid.NewGuid(), GameId = spiel.Id, PlayerId = spieler.Id, Score = Math.Max(punkte, 0), MinusScore = Math.Max(-punkte, 0), GameTeamId = team.Id,
+                });
             }
+
+            if (gruenLeer)
+                spiel.GameTeams.Add(new GameTeam { Id = Guid.NewGuid(), GameId = spiel.Id, Name = "Grün", ColorIndex = 2, SortOrder = spiel.GameTeams.Count });
 
             var leiter = new GameMasterViewModel { Game = spiel };
             var stats = leiter.StatsContext;
@@ -86,6 +92,23 @@ namespace Quizzer.UnitTests.Views.GameViews
                 Assert.AreEqual(3, teamkarten.Count, "Nicht alle Teams stehen in der Siegerehrung.");
                 Assert.IsFalse(Spielerkarten(ansicht), "Siegerteam und Spielerkarten stehen übereinander.");
                 Assert.AreEqual(0, wache.Errors.Count, string.Join(" || ", wache.Errors));
+            });
+        }
+
+        /// <summary>R3-1: alle Teams im Minus, Grün ohne Mitglieder - Grün stand mit 0 als Siegerteam da.</summary>
+        [TestMethod]
+        public void AnEmptyTeamIsNoWinnerTeam()
+        {
+            UiTestHost.Run(() =>
+            {
+                var (_, leiter) = Abend(rot: -200, blau: -100, gelb: -300, gruenLeer: true);
+                var stats = leiter.StatsContext;
+                var ansicht = Beamer(stats);
+
+                CollectionAssert.AreEqual(new[] { "Blau" }, stats.SiegerTeams.Select(k => k.Name).ToArray(), "Das leere Team Grün ist Siegerteam.");
+                CollectionAssert.AreEqual(new[] { ("Rot", 2), ("Gelb", 3) }, stats.UebrigeTeams.Select(k => (k.Name, k.Platz)).ToArray());
+                Assert.AreEqual(3, TeamBeamerUnitTests.Descendants<UcTeamScoreTile>(ansicht).Count(TeamBeamerUnitTests.Sichtbar),
+                    "Das leere Team steht in der Siegerehrung.");
             });
         }
 

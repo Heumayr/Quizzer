@@ -27,7 +27,7 @@ namespace Quizzer.DataModels.Questions.Teams
 
         /// <summary>
         /// Die Teams nach Summe, Gleichstand teilt den Platz (1, 1, 3 - wie die Einzelwertung der Siegerehrung); bei
-        /// gleicher Summe in der Reihenfolge des Spielaufbaus. Leer ohne Teamspiel.
+        /// gleicher Summe in der Reihenfolge des Spielaufbaus. Leer ohne Teamspiel. Nur Teams, die <see cref="SpieltMit"/>.
         /// </summary>
         public static IReadOnlyList<TeamPlatz> Rangfolge(Game spiel)
         {
@@ -35,6 +35,7 @@ namespace Quizzer.DataModels.Questions.Teams
                 return [];
 
             var staende = spiel.GameTeams
+                .Where(t => SpieltMit(spiel, t))
                 .Select(t => (Team: t, Summe: spiel.Teamstand(t.Id)))
                 .OrderByDescending(x => x.Summe)
                 .ThenBy(x => x.Team.SortOrder)
@@ -50,5 +51,12 @@ namespace Quizzer.DataModels.Questions.Teams
 
             return plaetze;
         }
+
+        /// <summary>
+        /// Ob ein Team in der Rangfolge steht (R3-1): mit Mitgliedern oder mit Ergebnissen unter seinem Stempel. Ein leeres
+        /// Team ohne Ergebnis stünde mit 0 vor jedem Team im Minus und würde Siegerteam.
+        /// </summary>
+        public static bool SpieltMit(Game spiel, GameTeam team) =>
+            Teamzuordnung.Teilnehmer(spiel).Any(x => x.GameTeamId == team.Id) || spiel.QuestionResults.Any(r => r.GameTeamId == team.Id);
     }
 }
