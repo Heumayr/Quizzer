@@ -113,8 +113,9 @@ namespace Quizzer.UnitTests.Views.GameViews
         }
 
         /// <summary>
-        /// F-M37-07 im Bewertungsfenster: wer nach dem Öffnen umgesetzt wurde, steht beim Team seines Stempels - dort zählt,
-        /// was jetzt gebucht wird. Der Verlauf: öffnen (Stempel Rot), umsetzen, erneut öffnen.
+        /// F-M37-07 im Bewertungsfenster: wer nach einer Buchung umgesetzt wurde, steht beim Team seines Stempels - dort zählt,
+        /// was jetzt gebucht wird. Der Verlauf: öffnen (Stempel Rot), buchen, umsetzen, erneut öffnen. Ohne Buchung bekommt die
+        /// Zeile seit R4-3 beim Öffnen das heutige Team (<c>TeamStempelUnitTests</c>).
         /// </summary>
         [TestMethod]
         public async Task AMovedPlayerIsRatedForTheTeamOfHisStamp()
@@ -122,7 +123,10 @@ namespace Quizzer.UnitTests.Views.GameViews
             await SetzeAsync(world.Players[0], rot);
             await SetzeAsync(world.Players[1], blau);
             await SetzeAsync(world.Players[2], blau);
-            await OeffneZelleAsync();
+            var erstes = await OeffneZelleAsync();
+            erstes.PlayerResultContextList.Single(k => k.Player.Id == world.Players[0].Id).Suggestion =
+                Quizzer.Views.GameViews.Sub.PlayerResultContext.ScoreSuggestion.Right;
+            Assert.IsTrue(await erstes.TrySaveAsync(), "Das Buchen scheiterte.");
 
             await SetzeAsync(world.Players[0], blau);
             var vm = await OeffneZelleAsync();
