@@ -36,7 +36,8 @@ namespace Quizzer.UnitTests.PlayThrough
             var merk = LetzteWertung.Merke(world.Game, world.Coordinate, ergebnisse.Results.Select(r => r.CloneWithoutReferences()).ToList());
 
             karte.CorrectAnswered = true; // das Häkchen auf der Karte, ohne Bewertung
-            Assert.IsFalse(ergebnisse.HatOffeneBewertungen, "Das Häkchen gilt als Bewertung - dann ist es nicht der gemessene Weg.");
+            Assert.IsTrue(ergebnisse.PlayerResultContextList.All(k => k.Suggestion == Quizzer.Views.GameViews.Sub.PlayerResultContext.ScoreSuggestion.None),
+                "Auf einer Karte steht eine Bewertung - dann ist es nicht der gemessene Weg.");
             Assert.IsTrue(await ergebnisse.TrySaveAsync(), "Speichern scheiterte.");
             TestEnvironment.ThrowIfAnythingWasSwallowed();
 
