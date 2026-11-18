@@ -1,5 +1,10 @@
 /* Minispiele (M35): Rahmen, alle Arten und Sonderregeln am Telefon - eigene Datei, damit mainstyles.css nicht weiter waechst. */
 
+/* hidden gilt fuer jedes Element - jede Klasse mit display: schluege sonst die Browserregel (M37 P6, R2-2). */
+[hidden] {
+    display: none !important;
+}
+
 /* ===== Minispiele (M35 B3): Rahmen und Reaktion ===== */
 .layout-minispiel {
     display: flex;

@@ -13,7 +13,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
     /// </para>
     /// </summary>
     [TestClass]
-    public class PhonePageContractUnitTests
+    public partial class PhonePageContractUnitTests
     {
         private static string WwwRoot => Path.Combine(AppContext.BaseDirectory, "wwwroot");
 
