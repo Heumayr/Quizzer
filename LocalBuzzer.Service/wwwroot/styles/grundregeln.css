@@ -1,0 +1,6 @@
+/* Grundregeln der Telefonseite, die fuer jedes Element gelten - eigene Datei, damit minispiele.css nicht waechst (M37 P8, P6-6). */
+
+/* hidden gilt fuer jedes Element - jede Klasse mit display: schluege sonst die Browserregel (M37 P6, R2-2). */
+[hidden] {
+    display: none !important;
+}

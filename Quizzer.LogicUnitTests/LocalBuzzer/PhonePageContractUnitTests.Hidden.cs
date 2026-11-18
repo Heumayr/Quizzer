@@ -27,12 +27,18 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// Jede Klasse, deren Element das JavaScript über <c>.hidden</c> umschaltet und die in <c>styles/</c> ein
         /// <c>display:</c> trägt, ist abgedeckt - durch die Regel <c>[hidden]{display:none!important}</c> oder eine
         /// eigene <c>.klasse[hidden]</c>-Regel. Ohne das sieht jeder Nicht-Läufer Eingabe und „✓ Abgeben".
+        /// Die allgemeine Regel steht in <c>styles/grundregeln.css</c> (P8, P6-6) und zählt nur, wenn
+        /// <c>index.html</c> ihre Datei lädt.
         /// </summary>
         [TestMethod]
         public void EveryClassTheScriptHidesIsReallyHidden()
         {
             var regeln = CssRegeln(ReadStyles());
-            var allgemein = regeln.Any(r => r.Selektoren.Contains("[hidden]")
+            var geladen = string.Join(Environment.NewLine, LinkedStylesheets()
+                .Select(p => Path.Combine(WwwRoot, p.Replace('/', Path.DirectorySeparatorChar)))
+                .Where(File.Exists)
+                .Select(File.ReadAllText));
+            var allgemein = CssRegeln(geladen).Any(r => r.Selektoren.Contains("[hidden]")
                 && Regex.IsMatch(r.Inhalt, @"display\s*:\s*none\s*!important"));
 
             var mitDisplay = HiddenUmgeschalteteKlassen()

@@ -27,6 +27,13 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         private static string ReadStyles() =>
             string.Join(Environment.NewLine, StyleFiles().Select(File.ReadAllText));
 
+        /// <summary>Die Stilvorlagen, die <c>index.html</c> lädt, relativ zu <c>wwwroot</c> - nur sie wirken am Telefon.</summary>
+        private static List<string> LinkedStylesheets() =>
+            Regex.Matches(File.ReadAllText(Path.Combine(WwwRoot, "index.html")),
+                    @"<link[^>]*rel=""stylesheet""[^>]*href=""/?([^""]+)""")
+                .Select(m => m.Groups[1].Value)
+                .ToList();
+
         /// <summary>
         /// Jede Stilvorlage unter <c>styles/</c> ist in <c>index.html</c> verlinkt (M35 C5b) - eine vergessene
         /// Datei liesse die Klassenpruefung gruen, und am Telefon stuende alles unformatiert.
@@ -34,10 +41,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         public void EveryStylesheetIsLinkedFromTheIndexPage()
         {
-            var seite = File.ReadAllText(Path.Combine(WwwRoot, "index.html"));
-            var verlinkt = Regex.Matches(seite, @"<link[^>]*rel=""stylesheet""[^>]*href=""/?([^""]+)""")
-                .Select(m => m.Groups[1].Value)
-                .ToList();
+            var verlinkt = LinkedStylesheets();
 
             var dateien = StyleFiles()
                 .Select(d => Path.GetRelativePath(WwwRoot, d).Replace(Path.DirectorySeparatorChar, '/'))
