@@ -53,6 +53,10 @@ namespace Quizzer.Views.BuzzerViews
         /// <summary>Hebt die Sperre auf, ohne zu senden - das tut das Zuruecksetzen danach.</summary>
         public void ClearAnswerers() => BuzzerController?.StateManager.AnswerLock.Clear();
 
+        /// <summary>Der Spielleiter lost für jedes Team ohne Stellvertreter (M37 T10, E1).</summary>
+        public Task<bool> DrawOpenProxiesAsync()
+            => BuzzerController?.DrawOpenProxiesAsync() ?? Task.FromResult(false);
+
         /// <summary>Der Spielleiter legt fest, wer spielt (M35 C2, E1).</summary>
         public Task<bool> SetMinigamePairAsync(Guid chooserId, Guid? partnerId)
             => BuzzerController?.SetMinigamePairAsync(chooserId, partnerId) ?? Task.FromResult(false);
@@ -97,7 +101,8 @@ namespace Quizzer.Views.BuzzerViews
                     MemoryZug zug => $"{zug.Stand.Paare} {(zug.Stand.Paare == 1 ? "Paar" : "Paare")}" + (zug.Stand.Fertig != null ? " – fertig" : string.Empty),
 
                     // M35 C2: geheime Wahlen bleiben auch hier „abgegeben" - der Beamer loest sie auf.
-                    PlayerChosen or WheelTargetChosen => "hat gewählt",
+                    ProxyChosen { Vertreter.Gelost: true } or ProxiesComplete { Zuletzt.Gelost: true } => "hat gelost",
+                    PlayerChosen or WheelTargetChosen or ProxyChosen or ProxiesComplete => "hat gewählt",
                     _ => "abgegeben",
                 });
 

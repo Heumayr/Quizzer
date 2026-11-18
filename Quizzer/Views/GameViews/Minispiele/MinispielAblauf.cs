@@ -74,6 +74,7 @@ namespace Quizzer.Views.GameViews.Minispiele
             MinigameKind.WordScramble => new BuchstabensalatAblauf(fenster),
             MinigameKind.ExplainIt => new ErklaerbaerAblauf(fenster),
             MinigameKind.TugOfWar => new TauziehenAblauf(fenster),
+            MinigameKind.ProxyDuel => new StellvertreterAblauf(fenster),
             MinigameKind.Bluff => new BluffAblauf(fenster),
             MinigameKind.HotPotato => new KartoffelAblauf(fenster),
             _ => new ReaktionAblauf(fenster, art),

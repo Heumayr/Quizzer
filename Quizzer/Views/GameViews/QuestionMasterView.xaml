@@ -279,6 +279,10 @@
                             <Button Content="Verraten" Command="{Binding VerratenCommand}" Margin="0,6,0,0"
                                     ToolTip="Der Erklärer hat das Wort gesagt: diese Runde bringt niemandem Punkte. Läuft sie noch, endet sie; ist sie vorbei, zählt die letzte nachträglich nicht." />
                         </StackPanel>
+                        <!-- M37 T10: Stellvertreter-Duell - waehlt ein Team nicht, lost der Spielleiter (E1). -->
+                        <Button Content="Offene Teams auslosen" Command="{Binding DrawProxiesCommand}" Margin="4,10,4,0"
+                                Visibility="{Binding StellvertreterLosenVisibility}"
+                                ToolTip="Lost für jedes Team, das noch keinen Stellvertreter gewählt hat, einen aus seinen beim Start verbundenen Mitgliedern. Was schon gewählt ist, bleibt; danach beginnt das Duell." />
                         <!-- M35 C6: Bluff - zwischen den Phasen streicht der Spielleiter, was der echten Antwort zu nah ist. -->
                         <StackPanel Visibility="{Binding BluffStreichenVisibility}" Margin="4,10,4,0">
                             <TextBlock Text="Bluffs prüfen" FontWeight="Bold" />
