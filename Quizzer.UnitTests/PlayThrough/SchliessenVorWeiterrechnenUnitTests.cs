@@ -74,8 +74,9 @@ namespace Quizzer.UnitTests.PlayThrough
         /// <summary>
         /// P3-2: „Speichern und Zelle abschließen“ schließt das Bewertungsfenster, und dessen <c>Closed</c>-Haken speichert die Zelle
         /// als erledigt - als <c>async void</c>. Schließt das Fragefenster gleich danach, darf das Spielfenster erst weiterrechnen,
-        /// wenn die Zelle gespeichert ist. Eine Zeilensperre hält das Speichern 1,5 s auf - ohne sie gewinnt es das Rennen fast
-        /// immer, und die Zusicherung wäre auch ohne das Warten grün.
+        /// wenn die Zelle gespeichert ist. Eine Zeilensperre hält das Speichern auf, bis es nachweislich an ihr wartet, und eine
+        /// Sekunde darüber; gemessen wird, ob das Spielfenster <b>unter der Sperre</b> fertig wurde (P9-1: vorher feste 1,5 s,
+        /// verglichen mit dem Ende der Freigabe - unter Last griff die Sperre nie, oder die Freigabe kam nach dem Spielfenster).
         /// </summary>
         [TestMethod]
         public async Task TheGameWindowWaitsForTheCellSavedAsDoneOnFinish()
@@ -90,31 +91,58 @@ namespace Quizzer.UnitTests.PlayThrough
                 await ((AsyncRelayCommand)frage.PlayersResultViewModel!.SaveIsDoneFinishStateCommand).ExecuteAsync(null);
             }, ex => fehler = ex);
 
-            bool speichernWarteteNoch;
+            bool speichernWartete, fertigUnterSperre;
 
             await using (var sperre = new Quizzer.Logic.Context.DataContext())
             {
-                var tx = await sperre.Database.BeginTransactionAsync();
+                await using var tx = await sperre.Database.BeginTransactionAsync();
                 await sperre.Database.ExecuteSqlRawAsync(
                     "SELECT Id FROM [base].[GameGridCoordinate] WITH (UPDLOCK, ROWLOCK, HOLDLOCK) WHERE Id = {0}", world.Coordinate.Id);
-                var frei = Task.Run(async () => { await Task.Delay(1500); await tx.RollbackAsync(); });
+                var sitzung = await sperre.Database.SqlQueryRaw<int>("SELECT CAST(@@SPID AS int) AS Value").SingleAsync();
 
-                await UiTestHost.Dispatcher.InvokeAsync(() => ((AsyncRelayCommand)leiter.CellClickCommand).ExecuteAsync(zelle)).Task.Unwrap();
-                speichernWarteteNoch = !frei.IsCompleted;
-                await frei;
+                var klick = UiTestHost.Dispatcher.InvokeAsync(() => ((AsyncRelayCommand)leiter.CellClickCommand).ExecuteAsync(zelle)).Task.Unwrap();
+                speichernWartete = await WarteBisGesperrtAsync(sitzung, klick);
+
+                if (speichernWartete)
+                    await Task.WhenAny(klick, Task.Delay(1000)); // ein Spielfenster, das nicht wartet, ist spätestens jetzt fertig
+
+                fertigUnterSperre = klick.IsCompleted;
+                await tx.RollbackAsync();
+                await klick;
             }
 
             Assert.IsNull(fehler, "Das Fragefenster lief nicht durch: " + fehler);
-            var spaeterErledigt = await WarteAsync(ZelleErledigtAsync);
             TestEnvironment.ThrowIfAnythingWasSwallowed();
-            Assert.IsTrue(spaeterErledigt, "Die Zelle wird gar nicht als erledigt gespeichert - dann misst der Test nichts.");
-            Assert.IsFalse(speichernWarteteNoch, "Das Spielfenster war fertig, während das Speichern der erledigten Zelle noch wartete.");
+            Assert.IsTrue(speichernWartete, "Die Sperre hielt das Speichern der erledigten Zelle nie auf - dann misst der Test nichts.");
+            Assert.IsFalse(fertigUnterSperre, "Das Spielfenster war fertig, während das Speichern der erledigten Zelle noch wartete.");
         }
 
-        private async Task<bool> ZelleErledigtAsync()
+        /// <summary>
+        /// Wartet, bis eine Anfrage an der Sperre der <paramref name="sitzung"/> hängt - einzig das Speichern der erledigten Zelle
+        /// schreibt diese Zeile. Ist das Spielfenster vorher fertig, wird noch eine Sekunde nachgesehen: die Sperre hält ja weiter.
+        /// </summary>
+        private static async Task<bool> WarteBisGesperrtAsync(int sitzung, Task klick)
         {
-            using var ctrl = new GameGridCoordinatesController();
-            return (await ctrl.GetAsync(world.Coordinate.Id))?.IsDone == true;
+            var uhr = System.Diagnostics.Stopwatch.StartNew();
+            TimeSpan? fertigUm = null;
+
+            while (uhr.Elapsed < TimeSpan.FromSeconds(30) && (fertigUm == null || uhr.Elapsed - fertigUm < TimeSpan.FromSeconds(1)))
+            {
+                if (klick.IsCompleted)
+                    fertigUm ??= uhr.Elapsed;
+
+                await using var blick = new Quizzer.Logic.Context.DataContext();
+                var wartende = await blick.Database
+                    .SqlQuery<int>($"SELECT COUNT(*) AS Value FROM sys.dm_exec_requests WHERE blocking_session_id = {sitzung}")
+                    .SingleAsync();
+
+                if (wartende > 0)
+                    return true;
+
+                await Task.Delay(20);
+            }
+
+            return false;
         }
 
         private async Task<bool> BertGebuchtAsync()
