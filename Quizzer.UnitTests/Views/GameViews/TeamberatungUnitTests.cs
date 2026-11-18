@@ -209,18 +209,12 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.IsTrue(await WarteAsync(() => Stand(1)?.Team?.Speaker == Name(0)), "Nach der Frage bleibt der Sprecher dieser Frage stehen.");
         }
 
-        /// <summary>Die Beratungszeit des Spiels läuft von selbst; ist sie um, nehmen die Telefone nichts mehr an.</summary>
+        /// <summary>Die Beratungszeit des Spiels läuft von selbst, sobald die Frage lesbar ist (R5-5); ist sie um, nehmen die Telefone nichts mehr an.</summary>
         [TestMethod]
         public async Task TheCouncilTimeRunsByItselfAndLocksThePhones()
         {
-            beratungszeit = 1;
-            FensterEinrichten = vm =>
-            {
-                vm.GameMasterViewModel = new GameMasterViewModel { Game = world!.Game };
-                return Task.CompletedTask;
-            };
-
-            var vm = await OeffneTeamberatungAsync();
+            var vm = await OeffneMitBeratungszeitAsync(1);
+            await ZurFrageAsync(vm);
 
             Assert.IsTrue(vm.Countdown!.Laeuft, "Die Beratungszeit läuft nicht.");
             StringAssert.Contains(vm.Sonderregel.Stand, "1 s");
