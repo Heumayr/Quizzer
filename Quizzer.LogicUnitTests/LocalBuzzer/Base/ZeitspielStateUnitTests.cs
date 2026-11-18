@@ -147,6 +147,26 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             CollectionAssert.AreEqual(new[] { "Anna" }, Info<TapSprintClientInfo>(bert).WinnerNames, "Der Abbruch aendert die Sieger.");
         }
 
+        /// <summary>
+        /// P8-4 (P10): Bert schickte nur Zwischenstaende - nach dem Schluss sah er „Du: 20 Tipps“, gezaehlt wurde er nicht. Sein
+        /// Telefon erfaehrt jetzt, dass der Endstand fehlt; waehrend der Runde (Wiederverbinden) noch nicht.
+        /// </summary>
+        [TestMethod]
+        public void APhoneWithoutAFinalLearnsItWasNotCounted()
+        {
+            Starte(MinigameKind.TapSprint);
+            Stand(anna, 30, 2000, ende: true);
+            Stand(bert, 20, 1500);
+            Assert.IsFalse(Info<TapSprintClientInfo>(bert).OwnFinalMissing, "Mitten in der Runde heisst es schon, der Endstand fehle.");
+
+            Assert.IsNotNull(spiel.CloseRound(), "Die Runde schliesst nicht.");
+
+            Assert.IsTrue(Info<TapSprintClientInfo>(bert).OwnFinalMissing, "Bert erfaehrt nicht, dass sein Stand nicht gezaehlt wurde.");
+            Assert.IsFalse(Info<TapSprintClientInfo>(anna).OwnFinalMissing, "Anna mit Endstand heisst es, ihr Endstand fehle.");
+            Assert.IsFalse(Info<TapSprintClientInfo>(null).OwnFinalMissing, "Ohne Spieler (Beamer) fehlt kein Endstand.");
+            CollectionAssert.AreEqual(new[] { "Anna" }, Info<TapSprintClientInfo>(bert).WinnerNames, "Gewertet wurde nicht nur Gezaehltes.");
+        }
+
         /// <summary>P6-7, Gegenrichtung: ein Abbruch mitten in der Runde verwirft sie - kein Stand bleibt stehen.</summary>
         [TestMethod]
         public void AnAbortMidRoundDropsTheStands()

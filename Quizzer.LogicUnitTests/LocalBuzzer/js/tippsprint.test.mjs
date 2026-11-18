@@ -102,6 +102,17 @@ modul.zeigeEnde({ isWinner: false, winnerNames: ["Bert"], winnerTaps: 55, ownTap
 pruefe(text().includes("Bert") && text().includes("55 Tipps") && text().includes("42 Tipps"),
     "Am Ende fehlt, wer gewonnen hat: " + text());
 
+// --- P8-4: der Endstand kam nie an - das Telefon sagt ehrlich, dass nichts zaehlte, statt „Du: 20 Tipps" ---
+modul.zeigeEnde({ isWinner: false, winnerNames: ["Anna"], winnerTaps: 30, ownTaps: 20, ownFinalMissing: true });
+pruefe(text().includes("Dein Endstand kam nicht an") && text().includes("nicht gewertet"),
+    "Ohne Endstand sagt das Telefon nicht, dass nichts zaehlte: " + text());
+pruefe(!text().includes("20 Tipps") && zahl() === "", "Ohne Endstand steht der Zwischenstand wie ein Ergebnis da: " + text());
+pruefe(text().includes("Anna") && text().includes("30 Tipps"), "Ohne Endstand fehlt, wer gewonnen hat: " + text());
+
+modul.zeigeErgebnis({ ownTaps: 20, ownFinalMissing: true });
+pruefe(text().includes("nicht gewertet") && !text().includes("20 Tipps") && zahl() === "–",
+    "Das Rundenergebnis ohne Endstand nennt den Zwischenstand: " + zahl() + " | " + text());
+
 modul.zeigeEnde({ isWinner: true, winnerNames: ["Anna"], winnerTaps: 55, ownTaps: 55 });
 pruefe(text().includes("Gewonnen!"), "Der Sieger erfaehrt es nicht: " + text());
 pruefe(tippText(1) === "1 Tipp", "Ein einzelner Tipp heisst nicht '1 Tipp'.");

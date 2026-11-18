@@ -32,6 +32,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
         public int? OwnElapsedMs { get; set; }
 
+        /// <summary>Die Runde ist zu, und der eigene Endstand kam nie an - der Stand zaehlt nicht (M37 P10, P8-4).</summary>
+        public bool OwnFinalMissing { get; set; }
+
         /// <summary>Erst am Ende: ob dieser Spieler gewonnen hat.</summary>
         public bool IsWinner { get; set; }
 
@@ -153,6 +156,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             {
                 info.OwnTaps = stand.Tipps;
                 info.OwnElapsedMs = stand.Millisekunden;
+                info.OwnFinalMissing = !laeuft && !stand.Ende;
             }
             else if (gezaehlt.TryGetValue(player.Id, out var tipps))
             {

@@ -7,6 +7,9 @@ export function tippText(n) {
     return n === 1 ? "1 Tipp" : `${n} Tipps`;
 }
 
+// P8-4: nur Zwischenstaende kamen an - gezaehlt wird erst der Endstand.
+const NICHT_GEWERTET = "Dein Endstand kam nicht an – nicht gewertet.";
+
 export class TippsprintModul {
     constructor({ timer, now } = {}) {
         this.timer = timer ?? { setTimeout: (f, ms) => setTimeout(f, ms), clearTimeout: (h) => clearTimeout(h) };
@@ -131,6 +134,11 @@ export class TippsprintModul {
         this.stoppeUhren();
         this.zustand = "abgegeben";
 
+        if (artInfo?.ownFinalMissing) {
+            this.zeige("tippsprint-ergebnis", "■", "–", NICHT_GEWERTET);
+            return;
+        }
+
         const eigene = artInfo?.ownTaps;
         this.zeige("tippsprint-ergebnis", "✔", eigene != null ? String(eigene) : "–",
             eigene != null ? `Deine Tipps: ${tippText(eigene)}` : "Keine Abgabe");
@@ -140,7 +148,8 @@ export class TippsprintModul {
         this.stoppeUhren();
         this.zustand = "aus";
 
-        const eigene = artInfo?.ownTaps != null ? `Du: ${tippText(artInfo.ownTaps)}. ` : "";
+        const eigene = artInfo?.ownFinalMissing ? `${NICHT_GEWERTET} `
+            : artInfo?.ownTaps != null ? `Du: ${tippText(artInfo.ownTaps)}. ` : "";
         const namen = artInfo?.winnerNames ?? [];
         const bester = artInfo?.winnerTaps != null ? ` (${tippText(artInfo.winnerTaps)})` : "";
 
