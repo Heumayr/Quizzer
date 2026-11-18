@@ -259,5 +259,9 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// <summary>M37 P6, R2-3: das Tasten-Layout zeigt in der laufenden Team-Abstimmung die Stimme, die zählt - eine verworfene nie als „Abgegeben ✓".</summary>
         [TestMethod]
         public void TheKeySelectLayoutShowsTheVoteThatCounts() => LaufeMit("keySelectAbstimmung.test.mjs");
+
+        /// <summary>M37 P8, P6-8: index.js reicht die Team-Abstimmung aus dem Stand des Servers als Kontext an das Layout weiter.</summary>
+        [TestMethod]
+        public void TheIndexPagePassesTheTeamVoteToTheLayout() => LaufeMit("indexVerdrahtung.test.mjs");
     }
 }
