@@ -74,7 +74,8 @@ namespace Quizzer.Logic.Spielablauf
 
         /// <summary>
         /// Ob seit dem Merken an einer dieser Zeilen gebucht wurde (R5-1, R4-1). „Richtig“ setzt <c>CorrectAnswered</c> schon als
-        /// Vorschlag - gebucht ist erst, was Zähler, Punkte, Klaus oder Bestwert ändert.
+        /// Vorschlag - gebucht ist erst, was Zähler, Punkte, Klaus oder Bestwert ändert. Dieselben Felder wie
+        /// <c>Teamwertung.OhneBuchung</c>, das „richtig beantwortet“ an der gespeicherten Zeile mitzählt (P8-5, <c>BuchungsmassUnitTests</c>).
         /// </summary>
         public bool HatGebucht(IEnumerable<QuestionResult> zeilen)
             => zeilen.Any(r => Stand.Von(r) with { CorrectAnswered = false } != VorherVon(r.PlayerId) with { CorrectAnswered = false });

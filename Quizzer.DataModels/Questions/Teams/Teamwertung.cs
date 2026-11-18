@@ -54,7 +54,8 @@ namespace Quizzer.DataModels.Questions.Teams
 
         /// <summary>
         /// Eine Ergebniszeile ohne jede Buchung (R4-3): alle Zähler 0, keine Punkte, kein Bestwert, kein Klau. Nur sie bekommt
-        /// beim Öffnen der Zelle den Stempel des heutigen Teams; eine gebuchte behält ihren (F-M37-07).
+        /// beim Öffnen der Zelle den Stempel des heutigen Teams; eine gebuchte behält ihren (F-M37-07). Dieselben Felder wie
+        /// <c>LetzteWertung.HatGebucht</c>, nur „richtig beantwortet“ zählt hier mit (P8-5, <c>BuchungsmassUnitTests</c>).
         /// </summary>
         public static bool OhneBuchung(QuestionResult r) =>
             !r.CorrectAnswered && r.RightCount == 0 && r.WrongCount == 0 && r.CorrectionsCount == 0
