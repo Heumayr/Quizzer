@@ -67,18 +67,41 @@ namespace Quizzer.UnitTests.PlayThrough
             Assert.AreEqual(world.Question.Id, gespeichert.Single(c => c.X == 0 && c.Y == 0).QuestionBaseId, "Die alte Zelle verlor ihre Frage.");
             CollectionAssert.AreEquivalent(gespeichert.Select(c => c.Id).ToList(), raster.CellVMs.Select(c => c.Coordinate.Id).ToList(),
                 "Die Zellen im Raster sind nicht die gespeicherten.");
+            await PruefeKoepfeAsync(spiel, raster, breite, hoehe);
 
             await GridBuilder.RebuildCells(spiel, CellView.Build);
             Assert.AreEqual(breite * hoehe, (await ZellenAsync(spiel.Id)).Count, "Der zweite Aufbau legte Zellen nach.");
-            // Nur die Zellen: die nachgelegten Köpfe hinterlassen im HeadersController schon vorher offene Änderungen (Bestand, P10 gemeldet).
-            var offen = TestEnvironment.DiscardedChanges.Where(d => d.StartsWith(nameof(GameGridCoordinatesController))).ToList();
+            Assert.AreEqual(breite + hoehe, (await KoepfeAsync(spiel.Id)).Count, "Der zweite Aufbau legte Köpfe nach.");
+
+            // P10-5 (P11): auch die nachgelegten Köpfe lassen nichts Ungespeichertes zurück - vorher 447 (20×20) bzw. 1687 (40×40).
+            var offen = TestEnvironment.DiscardedChanges.ToList();
             Assert.AreEqual(0, offen.Count, "Ungespeichert: " + string.Join(" | ", offen));
+        }
+
+        /// <summary>P10-5: jeder Kopf einmal, mit seiner Nummer als Bezeichnung, und im Spiel stehen die gespeicherten.</summary>
+        private static async Task PruefeKoepfeAsync(Game spiel, GridBuilder.GameGridVMs raster, int breite, int hoehe)
+        {
+            var koepfe = await KoepfeAsync(spiel.Id);
+
+            Assert.AreEqual(breite + hoehe, koepfe.Count, "In der Datenbank fehlen Köpfe oder stehen doppelt.");
+            Assert.AreEqual(breite + hoehe, koepfe.Select(k => (k.HeaderType, k.Index)).Distinct().Count(), "Ein Kopf steht doppelt.");
+            Assert.IsTrue(koepfe.All(k => k.Designation == k.Index.ToString()), "Ein Kopf trägt nicht seine Nummer.");
+            CollectionAssert.AreEquivalent(koepfe.Select(k => k.Id).ToList(), spiel.Headers.Select(k => k.Id).ToList(),
+                "Die Köpfe im Spiel sind nicht die gespeicherten.");
+            CollectionAssert.AreEqual(Enumerable.Range(1, breite).ToList(), raster.ColumnHeaderVMs.Select(k => k.Index).ToList(), "Die Spaltenköpfe stehen nicht in Folge.");
+            CollectionAssert.AreEqual(Enumerable.Range(1, hoehe).ToList(), raster.RowHeaderVMs.Select(k => k.Index).ToList(), "Die Zeilenköpfe stehen nicht in Folge.");
         }
 
         private static async Task<List<GameGridCoordinate>> ZellenAsync(Guid spiel)
         {
             await using var db = new Quizzer.Logic.Context.DataContext();
             return await db.Set<GameGridCoordinate>().AsNoTracking().Where(c => c.GameId == spiel).ToListAsync();
+        }
+
+        private static async Task<List<Header>> KoepfeAsync(Guid spiel)
+        {
+            await using var db = new Quizzer.Logic.Context.DataContext();
+            return await db.Set<Header>().AsNoTracking().Where(k => k.GameId == spiel).ToListAsync();
         }
     }
 }
