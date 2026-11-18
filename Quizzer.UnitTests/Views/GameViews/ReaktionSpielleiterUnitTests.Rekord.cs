@@ -134,20 +134,27 @@ namespace Quizzer.UnitTests.Views.GameViews
             }
         }
 
-        /// <summary>Die Zelle ist gespeichert (Bert 250 ms) und wird wiederholt: 260 ms schlagen Carls 270 ms, nicht sich selbst.</summary>
+        /// <summary>
+        /// Die Zelle ist gespeichert (Bert 250 ms) und wird noch einmal gespielt: 260 ms schlagen Carls 270 ms, nicht sich selbst.
+        /// Seit R4-1 (Durchsicht M37) wiederholt das Fenster eine gebuchte Runde nicht mehr - gespielt wird nach dem Neuöffnen der Zelle.
+        /// </summary>
         [TestMethod]
         public async Task TheCellsOwnSavedTimesDoNotCountWhenItIsPlayedAgain()
         {
             var aufraeumen = await FremderRekordAsync("Carl", 270);
             try
             {
-                var vm = await ReaktionsrundeAsync();
-                Assert.IsTrue(await WarteAsync(() => vm.Reaktion.Rekord != null), "Die erste Runde bringt schon keine Ansage.");
-                Assert.IsTrue(await vm.PlayersResultViewModel!.TrySaveAsync(), "Das Speichern scheiterte.");
+                var erste = await ReaktionsrundeAsync();
+                Assert.IsTrue(await WarteAsync(() => erste.Reaktion.Rekord != null), "Die erste Runde bringt schon keine Ansage.");
+                Assert.IsTrue(await erste.PlayersResultViewModel!.TrySaveAsync(), "Das Speichern scheiterte.");
+                await erste.ClosedForTestAsync();
 
-                await vm.WiederholeMinispielRundeAsync();
-                Assert.IsNull(vm.Reaktion.Rekord, "Die Ansage bleibt ueber der neuen Runde stehen.");
+                var vm = new TestableCurrentQuestionViewModel { Coordinate = world!.Coordinate };
+                await vm.LoadForTestAsync();
+                Assert.IsNull(vm.Reaktion.Rekord, "Die Ansage steht über der neuen Runde.");
                 Assert.AreEqual(Visibility.Collapsed, vm.Reaktion.RekordVisibility);
+
+                await vm.StartMinispielRundeAsync();
 
                 await AbgebenAsync(0, new { falseStart = false, milliseconds = 300 });
                 await AbgebenAsync(1, new { falseStart = false, milliseconds = 260 });
