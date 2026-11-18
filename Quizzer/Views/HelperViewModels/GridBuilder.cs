@@ -201,29 +201,15 @@ namespace Quizzer.Views.HelperViewModels
                 .ToDictionary(g => g.Key, g => g.First());
 
             // -------------------------------------------------
-            // 6) Ensure full matrix exists
+            // 6) Ensure full matrix exists - fehlende Zellen in einem Rutsch (P9-2: je Zelle ein SaveChanges, 60x60 dauerte 57 s)
             // -------------------------------------------------
+            await InsertMissingCellsAsync(ctrlCoords, game, map, w, h);
+
             for (int y = 0; y < h; y++)
             {
                 for (int x = 0; x < w; x++)
                 {
-                    if (!map.TryGetValue((y, x), out var cell))
-                    {
-                        var inserted = await ctrlCoords.InsertAsync(new GameGridCoordinate()
-                        {
-                            Y = y,
-                            X = x,
-                            QuestionBaseId = null,
-                            GameId = game.Id,
-                        });
-
-                        await ctrlCoords.SaveChangesAsync();
-
-                        cell = inserted?.Entity ?? throw new Exception("Cell could not be inserted");
-
-                        game.GameGridCoordinates.Add(cell);
-                        map[(y, x)] = cell;
-                    }
+                    var cell = map[(y, x)];
 
                     cell.Game = game;
                     cell.CalculateAndSetCurrentPoints();
@@ -240,6 +226,40 @@ namespace Quizzer.Views.HelperViewModels
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Legt jede fehlende Position an und schreibt alle mit einem <c>SaveChangesAsync</c>. Ins Raster kommt die eigene Zelle,
+        /// nicht der verfolgte EF-Klon (Id und RowVersion trägt das Speichern zurück): ein Klon mit <c>Game</c> zog den ganzen
+        /// Graphen in die Nachverfolgung (gemessen P10: 48 offene Einträge bei 20×20).
+        /// </summary>
+        private static async Task InsertMissingCellsAsync(GameGridCoordinatesController ctrlCoords, Game game,
+            Dictionary<(int Y, int X), GameGridCoordinate> map, int w, int h)
+        {
+            var neu = new List<GameGridCoordinate>();
+
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    if (map.ContainsKey((y, x)))
+                        continue;
+
+                    var cell = new GameGridCoordinate { Y = y, X = x, QuestionBaseId = null, GameId = game.Id };
+                    await ctrlCoords.InsertAsync(cell);
+
+                    neu.Add(cell);
+                    map[(y, x)] = cell;
+                }
+            }
+
+            if (neu.Count == 0)
+                return;
+
+            await ctrlCoords.SaveChangesAsync();
+
+            foreach (var cell in neu)
+                game.GameGridCoordinates.Add(cell);
         }
     }
 }
