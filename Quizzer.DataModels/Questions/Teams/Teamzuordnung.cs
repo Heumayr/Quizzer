@@ -59,6 +59,10 @@ namespace Quizzer.DataModels.Questions.Teams
             if (spiel.GameTeams.Count < TeamGrenzen.MinTeams)
                 fehler.Add($"Ein Teamspiel braucht mindestens {TeamGrenzen.MinTeams} Teams, angelegt {(spiel.GameTeams.Count == 0 ? "ist keins" : "ist eins")}. "
                          + "Im Spielaufbau unter „Teams bearbeiten …“ anlegen oder auslosen.");
+            else if (BesetzteTeams(spiel) < TeamGrenzen.MinTeams)
+                // R3-H1: sonst laufen Teamregeln und zusammengefasste Minispiele ohne Gegner.
+                fehler.Add($"Ein Teamspiel braucht mindestens {TeamGrenzen.MinTeams} Teams mit Mitgliedern, besetzt {(BesetzteTeams(spiel) == 0 ? "ist keins" : "ist eins")}. "
+                         + "Im Spielaufbau unter „Teams bearbeiten …“ zuteilen oder auslosen.");
 
             if (OhneTeam(spiel) is { Count: > 0 } ohne)
                 fehler.Add($"Ohne Team: {Namen(ohne)}. Im Spielaufbau unter „Teams bearbeiten …“ zuteilen oder auslosen.");

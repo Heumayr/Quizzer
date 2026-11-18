@@ -87,6 +87,16 @@ namespace Quizzer.LogicUnitTests.DataModels.Teams
             StringAssert.Contains(Teamzuordnung.Startfehler(spiel).Single(), "mindestens 2 Teams");
         }
 
+        /// <summary>R3-H1: zwei Teams angelegt, aber alle im selben - Teamregeln und Minispiele liefen ohne Gegner.</summary>
+        [TestMethod]
+        public void OneOccupiedTeamIsNotEnough()
+        {
+            Setze("Anna", rot);
+            Setze("Bert", rot);
+
+            StringAssert.Contains(Teamzuordnung.Startfehler(spiel).Single(), "mindestens 2 Teams mit Mitgliedern, besetzt ist eins");
+        }
+
         /// <summary>Ein Mitspieler ohne Team ist ein Fehler - beim Namen genannt. Ein Team aus einem anderen Spiel zählt nicht.</summary>
         [TestMethod]
         public void APlayerWithoutTeamIsNamed()
