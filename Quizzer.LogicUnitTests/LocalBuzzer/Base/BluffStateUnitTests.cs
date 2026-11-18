@@ -269,6 +269,42 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             }
         }
 
+        /// <summary>M37 P6, P2-1: ein Abbruch nach der Wahl nimmt den Telefonen die Auflösung nicht - wie bei Kartoffel (V25) und Staffel.</summary>
+        [TestMethod]
+        public void AnAbortAfterTheChoiceKeepsTheResolution()
+        {
+            Starte(spiel);
+            Bluffe(spiel, anna, "Paris");
+            ZurWahl(spiel);
+            Waehle(spiel, bert, Nummer(spiel, "Paris"));
+            Waehle(spiel, carl, Nummer(spiel, "Rom"));
+            uhr.Vor(Dauer);
+            Assert.IsNotNull(spiel.CloseIfDue(), "Die Wahl schliesst an der Frist nicht.");
+
+            Assert.IsNotNull(spiel.Abort(), "Nach der Wahl laesst sich nicht abbrechen.");
+
+            foreach (var p in new[] { anna, bert, carl, null })
+                Assert.AreEqual("Rom", Art(spiel, p).RealAnswer, $"Der Abbruch nimmt {p?.Designation ?? "aussen"} die echte Antwort.");
+            Assert.AreEqual(1, Art(spiel, anna).FooledCount, "Nach dem Abbruch weiss Anna nicht mehr, wer hereinfiel.");
+            Assert.IsTrue(Art(spiel, carl).FoundReal, "Nach dem Abbruch weiss Carl nicht mehr, dass er die echte fand.");
+        }
+
+        /// <summary>P2-1, Gegenrichtung: ein Abbruch mitten in der Wahl verwirft sie - keine Auflösung.</summary>
+        [TestMethod]
+        public void AnAbortDuringTheChoiceShowsNoResolution()
+        {
+            Starte(spiel);
+            Bluffe(spiel, anna, "Paris");
+            ZurWahl(spiel);
+            Waehle(spiel, carl, Nummer(spiel, "Rom"));
+
+            Assert.IsNotNull(spiel.Abort());
+
+            Assert.IsNull(Art(spiel, null).RealAnswer, "Nach dem Abbruch mitten in der Wahl steht die echte Antwort da.");
+            Assert.IsFalse(Art(spiel, carl).FoundReal);
+            Assert.IsNull(((BluffRules)spiel.Rules!).Auswertung, "Eine verworfene Wahl liefert eine Auswertung.");
+        }
+
         /// <summary>Der ganze Zustand ohne den Durchgang (je Instanz zufaellig).</summary>
         private static string Json(MinigameState zustand, Player? p)
         {

@@ -178,8 +178,12 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             aufgeloest = phase == 2;
         }
 
+        /// <summary>Ein Abbruch verwirft nur eine laufende Phase - nach der Wahl bleibt die Aufloesung stehen (M37 P6, P2-1, wie V25).</summary>
         public void DiscardRunning()
         {
+            if (!laeuft)
+                return;
+
             laeuft = false;
             aufgeloest = false;
         }
