@@ -221,10 +221,7 @@ namespace Quizzer.Views.GameViews.Sub
                 };
                 WendeSonderregelAufBewertungAn(suggestion);
 
-                if (value == ScoreSuggestion.Right)
-                    CorrectAnswered = true;
-                else if (value == ScoreSuggestion.Wrong)
-                    CorrectAnswered = false;
+                CorrectAnswered = KorrektNach(value);
 
                 OnPropertyChanged(nameof(CanNotEditManipulation));
                 OnPropertyChanged(nameof(SuggestionText));

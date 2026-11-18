@@ -9,7 +9,7 @@ namespace Quizzer.UnitTests.Views.GameViews
 {
     /// <summary>
     /// R4-1 (Durchsicht M37), Weg Einzelvorschlag: nach einer gebuchten Runde ist „Runde wiederholen“ gesperrt - sonst bucht die
-    /// Wiederholung ein zweites Mal aus derselben Zelle.
+    /// Wiederholung ein zweites Mal aus derselben Zelle. Dazu, was ein Wiederholen vor der Buchung an der Karte lässt.
     /// </summary>
     public partial class ReaktionSpielleiterUnitTests
     {
@@ -70,6 +70,31 @@ namespace Quizzer.UnitTests.Views.GameViews
             await neu.LoadForTestAsync();
             Assert.AreEqual((0, 0), await GebuchtAsync(), "Die Rücknahme hat nicht gegriffen.");
             Assert.IsTrue(neu.RepeatMinigameRoundCommand.CanExecute(null), "Nach der Rücknahme bleibt „Runde wiederholen“ gesperrt.");
+        }
+
+        /// <summary>
+        /// Nebenbei zu R4-1: „richtig“ setzt <c>CorrectAnswered</c> sofort, das Wiederholen nimmt nur den Vorschlag. Gewinnt in der
+        /// Wiederholung ein anderer, darf der Sieger der verworfenen Runde nicht als „richtig beantwortet“ gebucht werden.
+        /// </summary>
+        [TestMethod]
+        public async Task ARepeatBeforeBookingLeavesNoOldRightAnswer()
+        {
+            var vm = await OeffneReaktionAsync(runden: 1);
+
+            await SpieleReaktionAsync(vm, schneller: 1);
+            await vm.WiederholeMinispielRundeAsync();
+            Assert.AreEqual(ScoreSuggestion.None, KarteVon(vm, 1).Suggestion, "Nach dem Wiederholen bleibt Berts Vorschlag stehen.");
+
+            await SpieleReaktionAsync(vm, schneller: 0, wiederholt: true);
+            vm.SchliessenBucht = true;
+            await vm.ClosedForTestAsync();
+
+            using var ctrl = new QuestionResultsController();
+            var zeilen = (await ctrl.GetAllResultsForCoordinate(world!.Coordinate.Id))!;
+            var bert = zeilen.Single(r => r.PlayerId == world.Players[1].Id);
+            Assert.IsFalse(bert.CorrectAnswered, "Bert gilt als richtig beantwortet - aus der verworfenen Runde.");
+            Assert.IsTrue(zeilen.Single(r => r.PlayerId == world.Players[0].Id).CorrectAnswered, "Annas gebuchtes „richtig“ ging beim Buchen verloren.");
+            Assert.IsFalse(vm.CoordinateCorrectedAnsweredPlayers.Any(p => p.Id == world.Players[1].Id), "„Nächster wählt aus“ zählt Bert mit.");
         }
     }
 }
