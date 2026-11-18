@@ -110,28 +110,31 @@ namespace Quizzer.Logic.Controller.TypedControllers
             await context.Database.ExecuteSqlRawAsync(
                 InsertStatementFor(newTable), [new SqlParameter("@id", questionId)], cancellationToken).ConfigureAwait(false);
 
-            // Ein Zieltyp, der nur EINE Loesung vertraegt, bekommt auch nur eine. Ohne diesen
-            // Schritt war eine Multiple-Choice-Frage mit zwei richtigen Antworten nach dem
-            // Umwandeln in eine Schaetzfrage UNSPEICHERBAR: der Pruefer beanstandet die zweite
-            // Markierung, und die Schaetzfragen-Maske zeigt weder Zeilenliste noch Haekchen -
-            // es gab keinen Weg heran ausser zurueckzuwandeln, und darauf wies nichts hin.
-            // Gemessen 2026-09-07.
             if (!targetProfile.AllowsMultipleResultSteps)
-            {
-                await context.Database.ExecuteSqlRawAsync(
-                    """
-                    UPDATE [question].[QuestionStepResource]
-                       SET [IsResult] = 0
-                     WHERE [QuestionBaseId] = @id
-                       AND [IsResult] = 1
-                       AND [Id] <> (SELECT TOP 1 [Id]
-                                      FROM [question].[QuestionStepResource]
-                                     WHERE [QuestionBaseId] = @id AND [IsResult] = 1
-                                     ORDER BY [SequenceNumber], [Id])
-                    """,
-                    [new SqlParameter("@id", questionId)], cancellationToken).ConfigureAwait(false);
-            }
+                await KeepOneSolutionAsync(context, questionId, cancellationToken).ConfigureAwait(false);
         }
+
+        /// <summary>
+        /// Ein Zieltyp, der nur EINE Loesung vertraegt, bekommt auch nur eine. Ohne diesen
+        /// Schritt war eine Multiple-Choice-Frage mit zwei richtigen Antworten nach dem
+        /// Umwandeln in eine Schaetzfrage UNSPEICHERBAR: der Pruefer beanstandet die zweite
+        /// Markierung, und die Schaetzfragen-Maske zeigt weder Zeilenliste noch Haekchen -
+        /// es gab keinen Weg heran ausser zurueckzuwandeln, und darauf wies nichts hin.
+        /// Gemessen 2026-09-07.
+        /// </summary>
+        private static async Task KeepOneSolutionAsync(DataContext context, Guid questionId, CancellationToken cancellationToken)
+            => await context.Database.ExecuteSqlRawAsync(
+                """
+                UPDATE [question].[QuestionStepResource]
+                   SET [IsResult] = 0
+                 WHERE [QuestionBaseId] = @id
+                   AND [IsResult] = 1
+                   AND [Id] <> (SELECT TOP 1 [Id]
+                                  FROM [question].[QuestionStepResource]
+                                 WHERE [QuestionBaseId] = @id AND [IsResult] = 1
+                                 ORDER BY [SequenceNumber], [Id])
+                """,
+                [new SqlParameter("@id", questionId)], cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// Die einzigen Tabellennamen, die in eine SQL-Anweisung dieser Klasse gelangen duerfen:
