@@ -123,9 +123,13 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual(CurrentQuestionViewModel.TeamregelEingabe, Hub.BuzzerInputState.Infos.Placeholder);
             CollectionAssert.AreEquivalent(new[] { Id(0), Id(2) }, Hub.AnswerLock.Answerers!.ToArray(), "Nicht genau die Sprecher dürfen antworten.");
 
-            Assert.IsTrue(await WarteAsync(() => Stand(1)?.ExcludedReason == BeratSatz(0)), "Bert liest nicht, mit wem er berät: " + Stand(1)?.ExcludedReason);
+            // V28: je Telefon auf die Frage warten - Berts Satz steht schon im Stand davor, in dem der Sprecher noch gesperrt ist.
+            Assert.IsTrue(await WarteAsync(() => Stand(1) is { Layout: BuzzerControlsLayout.Input } s && s.ExcludedReason == BeratSatz(0)),
+                "Bert liest nicht, mit wem er berät: " + Stand(1)?.ExcludedReason);
             Assert.IsTrue(Stand(1)!.CurrentLayoutLocked, "Das Telefon des Nicht-Sprechers ist offen.");
-            Assert.IsTrue(Stand(0) is { ExcludedFromQuestion: false, CurrentLayoutLocked: false }, "Der Sprecher kann nicht eingeben.");
+            Assert.IsTrue(await WarteAsync(() => Stand(0) is { Layout: BuzzerControlsLayout.Input, ExcludedFromQuestion: false, CurrentLayoutLocked: false }),
+                "Der Sprecher kann nicht eingeben.");
+            Assert.IsTrue(await WarteAsync(() => Enumerable.Range(0, 4).All(i => Stand(i)?.Layout == BuzzerControlsLayout.Input)), "Nicht jedes Telefon zeigt die Frage.");
             CollectionAssert.AreEqual(new[] { Name(0), Name(0), Name(2), Name(2) }, staende.Select((_, i) => Stand(i)?.Team?.Speaker).ToArray(),
                 "Nicht jedes Telefon nennt den Sprecher seines Teams.");
 
