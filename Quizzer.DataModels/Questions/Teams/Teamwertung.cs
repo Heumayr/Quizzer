@@ -53,6 +53,14 @@ namespace Quizzer.DataModels.Questions.Teams
         }
 
         /// <summary>
+        /// Eine Ergebniszeile ohne jede Buchung (R4-3): alle Zähler 0, keine Punkte, kein Bestwert, kein Klau. Nur sie bekommt
+        /// beim Öffnen der Zelle den Stempel des heutigen Teams; eine gebuchte behält ihren (F-M37-07).
+        /// </summary>
+        public static bool OhneBuchung(QuestionResult r) =>
+            !r.CorrectAnswered && r.RightCount == 0 && r.WrongCount == 0 && r.CorrectionsCount == 0
+            && r.Score == 0 && r.MinusScore == 0 && r.Correction == 0 && r.RecordValue == null && r.Steals == 0;
+
+        /// <summary>
         /// Ob ein Team in der Rangfolge steht (R3-1): mit Mitgliedern oder mit Ergebnissen unter seinem Stempel. Ein leeres
         /// Team ohne Ergebnis stünde mit 0 vor jedem Team im Minus und würde Siegerteam.
         /// </summary>

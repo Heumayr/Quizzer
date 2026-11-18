@@ -136,6 +136,7 @@ namespace Quizzer.Views.GameViews
             // war dauerhaft nicht mehr spielbar - es genuegte, waehrend eines Spiels einen Spieler
             // aus der Mannschaft zu nehmen, nachdem schon eine Zelle gespielt war.
             results = await RemoveResultsOfFormerPlayersAsync(ctrlResults, results);
+            await StempleUngebuchteNeuAsync(ctrlResults, Coordinate.Game, results);
 
             var contextList = new List<PlayerResultContext>();
             foreach (var player in Coordinate.Game.Players)
