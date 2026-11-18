@@ -35,20 +35,53 @@ namespace Quizzer.Server.Sync
                 : TeamNotInGame;
         }
 
+        internal const string TeamHasResults = "Ein Team mit Ergebnissen lässt sich nicht löschen, nur umbenennen.";
+
         /// <summary>
-        /// Ein Team mit Ergebnissen lässt sich nur umbenennen - auch beim Admin, sonst scheiterte der ganze Push am NO
-        /// ACTION. Ergebnisse, die derselbe Push löscht, zählen nicht (ein Spiel samt Teams und Ergebnissen löschen).
+        /// Schließt die Löschungen ab, auch beim Admin (V09): nimmt mit, was an gelöschten Spielen hängt, und weist danach
+        /// Teams ab, an denen noch ein Ergebnis hinge (R1-1).
         /// </summary>
-        private async Task<string?> CheckTeamDeleteAsync(object serverEntity, CancellationToken ct)
+        public async Task<List<SyncKey>> SettleDeletesAsync(
+            IReadOnlyCollection<SyncRow> acceptedUpserts, IReadOnlyCollection<SyncKey> acceptedDeletes, SyncPushResponse response, CancellationToken ct)
         {
-            if (serverEntity is not GameTeam team)
-                return null;
+            var alle = acceptedDeletes.Concat(await DependentsOfDeletedGamesAsync(acceptedDeletes, ct)).Distinct().ToList();
 
-            var mitGeloescht = request.Deletes.Where(d => d.Type == nameof(QuestionResult)).Select(d => d.Id).ToList();
+            foreach (var team in await TeamsKeepingResultsAsync(acceptedUpserts, alle, ct))
+            {
+                alle.Remove(team);
+                response.Rejected.Add(new SyncRejected { Type = team.Type, Id = team.Id, Reason = SyncRejectReason.Forbidden, Message = TeamHasResults });
+            }
 
-            return await context.QuestionResults.AsNoTracking().AnyAsync(r => r.GameTeamId == team.Id && !mitGeloescht.Contains(r.Id), ct)
-                ? "Ein Team mit Ergebnissen lässt sich nicht löschen, nur umbenennen."
-                : null;
+            return alle;
+        }
+
+        /// <summary>
+        /// Die gelöschten Teams, an denen nach dem Push noch ein Ergebnis hinge: am Server, nicht angenommen gelöscht und
+        /// nicht umgestempelt, oder angenommen mit diesem Stempel. Eine Zeile ohne das Feld behält den Stempel des Servers.
+        /// </summary>
+        private async Task<List<SyncKey>> TeamsKeepingResultsAsync(
+            IReadOnlyCollection<SyncRow> acceptedUpserts, IReadOnlyCollection<SyncKey> deletes, CancellationToken ct)
+        {
+            var teams = deletes.Where(d => d.Type == nameof(GameTeam)).ToList();
+
+            if (teams.Count == 0)
+                return [];
+
+            var ids = teams.Select(t => t.Id).ToList();
+            var geloescht = deletes.Where(d => d.Type == nameof(QuestionResult)).Select(d => d.Id).ToHashSet();
+            var umgestempelt = acceptedUpserts
+                .Where(r => r.Type == nameof(QuestionResult) && r.Values.ContainsKey(nameof(QuestionResult.GameTeamId)) && !geloescht.Contains(r.Id))
+                .ToDictionary(r => r.Id, r => GetNullableGuid(r, nameof(QuestionResult.GameTeamId)));
+
+            var amServer = await context.QuestionResults.AsNoTracking()
+                .Where(r => r.GameTeamId != null && ids.Contains(r.GameTeamId.Value))
+                .Select(r => new { r.Id, r.GameTeamId }).ToListAsync(ct);
+
+            var gehalten = amServer.Where(r => !geloescht.Contains(r.Id) && !umgestempelt.ContainsKey(r.Id)).Select(r => r.GameTeamId)
+                .Concat(umgestempelt.Values)
+                .OfType<Guid>().ToHashSet();
+
+            return teams.Where(t => gehalten.Contains(t.Id)).ToList();
         }
     }
 }

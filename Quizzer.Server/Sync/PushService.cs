@@ -106,8 +106,8 @@ namespace Quizzer.Server.Sync
                     acceptedDeletes.Add(delete.Key);
                 }
 
-                acceptedDeletes.AddRange(await rules.DependentsOfDeletedGamesAsync(acceptedDeletes, ct));
-                acceptedDeletes = acceptedDeletes.Distinct().ToList();
+                // Was an gelöschten Spielen hängt, und Teams erst danach - gezählt wird, was wirklich geht (R1-1, R1-4).
+                acceptedDeletes = await rules.SettleDeletesAsync(acceptedUpserts, acceptedDeletes, response, ct);
 
                 try
                 {
@@ -269,10 +269,7 @@ namespace Quizzer.Server.Sync
 
         public async Task<string?> CheckDeleteAsync(SyncDelete delete, object serverEntity, CancellationToken ct)
         {
-            // Zusammenhang vor den Rechten, auch beim Admin (V09): ein Team mit Ergebnissen bleibt stehen (M37 T1).
-            if (await CheckTeamDeleteAsync(serverEntity, ct) is { } zusammenhang)
-                return zusammenhang;
-
+            // Ein Team mit Ergebnissen prüft SettleDeletesAsync nach allen Löschungen, auch beim Admin (R1-1).
             if (account.IsAdmin)
                 return null;
 
