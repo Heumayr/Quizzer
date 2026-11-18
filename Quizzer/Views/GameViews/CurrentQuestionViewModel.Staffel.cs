@@ -44,6 +44,10 @@ namespace Quizzer.Views.GameViews
 
             Klang.Tick();
             staffel.NachEingriff();
+
+            // V26: nach der Buchung steht der Unterschied als Vorschlag auf den Karten - das Bewertungsfenster zeigt ihn.
+            if (PlayersResultViewModel?.HatGebucht == true)
+                await OpenResultsAsync();
         }
 
         internal async Task GibStaffelWeiterAsync()

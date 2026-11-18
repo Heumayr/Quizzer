@@ -17,7 +17,7 @@ namespace Quizzer.UnitTests.Views.GameViews
     /// bekommt die Feldpunkte aufgeteilt als Vorschlag (E1, F-M37-06). Die Spielleitung lässt gelten und gibt weiter.
     /// </summary>
     [TestClass]
-    public class StaffelUnitTests : TeamregelServerTestBasis
+    public partial class StaffelUnitTests : TeamregelServerTestBasis
     {
         protected override int Port => TestPorts.Staffel;
 

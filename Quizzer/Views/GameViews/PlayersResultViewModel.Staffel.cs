@@ -31,7 +31,7 @@ namespace Quizzer.Views.GameViews
             var vorschlaege = Teamwertung.StaffelVorschlaege(spiel, karten.Select(k => (k.Result, k.Player.CalculatedDisplayName)), ergebnis, feldwert);
 
             foreach (var karte in karten)
-                karte.UebernimmStaffel(Satz(spiel, karte, stand, ergebnis, teamname), vorschlaege.GetValueOrDefault(karte.Player.Id));
+                karte.UebernimmStaffel(Satz(spiel, karte, stand, ergebnis, teamname), AbzueglichGebucht(karte, vorschlaege.GetValueOrDefault(karte.Player.Id)));
         }
 
         /// <summary>„✚ Rot: 3 Teile von 8 – gewonnen, selbst 2 gelöst“; nie allein über Farbe.</summary>

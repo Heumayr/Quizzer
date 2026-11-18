@@ -79,6 +79,9 @@ namespace Quizzer.Logic.Spielablauf
         public bool HatGebucht(IEnumerable<QuestionResult> zeilen)
             => zeilen.Any(r => Stand.Von(r) with { CorrectAnswered = false } != VorherVon(r.PlayerId) with { CorrectAnswered = false });
 
+        /// <summary>Wie viele Punkte an dieser Zeile seit dem Merken gebucht sind (V26).</summary>
+        public int GebuchtSeitDemMerken(QuestionResult zeile) => zeile.FinalScore - VorherVon(zeile.PlayerId).Punkte;
+
         private Stand VorherVon(Guid spielerId) => vorher.GetValueOrDefault(spielerId, Stand.Leer);
 
         /// <summary>
