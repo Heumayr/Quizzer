@@ -64,12 +64,15 @@ namespace Quizzer.UnitTests.Views.GameViews
             await vm.ClosedForTestAsync();
             Assert.AreEqual((0, feld), await GebuchtAsync(), "Aus einer Zelle ist zweimal gebucht.");
 
-            // Der Weg aus dem Tooltip: zurücknehmen, Zelle neu öffnen - dort ist nichts gebucht, und Wiederholen geht wieder.
+            // Der Weg aus dem Tooltip: zurücknehmen, Zelle neu öffnen - dort ist nichts gebucht, und das Minispiel geht wieder.
+            // P8-2: die neu geöffnete Zelle steht am Server auf Anfang - dort gibt es nichts zu wiederholen, nur zu starten.
             await merk.NimmZurueckAsync(world.Game);
             var neu = new TestableCurrentQuestionViewModel { Coordinate = world.Coordinate };
             await neu.LoadForTestAsync();
             Assert.AreEqual((0, 0), await GebuchtAsync(), "Die Rücknahme hat nicht gegriffen.");
-            Assert.IsTrue(neu.RepeatMinigameRoundCommand.CanExecute(null), "Nach der Rücknahme bleibt „Runde wiederholen“ gesperrt.");
+            Assert.IsTrue(neu.StartMinigameRoundCommand.CanExecute(null), "Nach der Rücknahme bleibt das Minispiel gesperrt.");
+            StringAssert.DoesNotMatch(neu.RepeatMinigameRoundToolTip, new System.Text.RegularExpressions.Regex("Erst die Wertung zurücknehmen"),
+                "Nach der Rücknahme verlangt „Runde wiederholen“ noch immer die Rücknahme.");
         }
 
         /// <summary>
