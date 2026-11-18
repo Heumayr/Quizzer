@@ -233,6 +233,20 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             Assert.IsNull(Art(null).SolverName);
         }
 
+        /// <summary>M37 P6, P2-1 (dieselbe Form wie V25): ein Abbruch nach dem Treffer lässt stehen, wer erraten hat.</summary>
+        [TestMethod]
+        public void AnAbortAfterTheHitKeepsWhoSolvedIt()
+        {
+            Starte(spiel);
+            uhr.Vor(Vorlauf);
+            Assert.IsNotNull(Rate(bert, "Käse").Closed, "Der Treffer schliesst die Runde nicht.");
+
+            Assert.IsNotNull(spiel.Abort(), "Nach dem Treffer laesst sich nicht abbrechen.");
+
+            Assert.AreEqual("Bert", Art(null).SolverName, "Nach dem Abbruch steht da, niemand habe es erraten.");
+            Assert.IsTrue(Art(bert).IsSolver, "Nach dem Abbruch weiss Bert nicht mehr, dass er es erraten hat.");
+        }
+
         /// <summary>
         /// Kein Begriff in irgendeinem Zustand ausser dem des Erklaerers - in keiner Schreibweise, fuer kein Telefon und
         /// nicht von aussen. Nach der Runde steht er bei allen, sonst misst die Probe nichts.

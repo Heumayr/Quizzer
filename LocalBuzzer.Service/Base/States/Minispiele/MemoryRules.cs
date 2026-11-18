@@ -137,8 +137,12 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             laeuft = false;
         }
 
+        /// <summary>Verwirft nur eine laufende Runde - danach bleiben die gefundenen Karten liegen (M37 P6, P2-1, wie V25).</summary>
         public void DiscardRunning()
         {
+            if (!laeuft)
+                return;
+
             laufend = new();
             laeuft = false;
         }

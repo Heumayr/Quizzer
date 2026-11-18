@@ -229,6 +229,40 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             Assert.AreEqual(0, Art(anna).OpenCards.Count, "Nach der Runde liegen Karten offen.");
         }
 
+        /// <summary>M37 P6, P2-1 (dieselbe Form wie V25): ein Abbruch nach der Runde nimmt dem Telefon die gefundenen Paare nicht.</summary>
+        [TestMethod]
+        public void AnAbortAfterTheRoundKeepsTheFoundCards()
+        {
+            Starte();
+            uhr.Vor(Vorlauf);
+            Drehe(anna, 0);
+            Drehe(anna, 1);
+            uhr.Vor(Dauer);
+            Assert.IsNotNull(spiel.CloseIfDue(), "Nach der Frist schliesst die Runde nicht.");
+            var vorher = Indizes(Art(anna).FoundCards);
+
+            Assert.IsNotNull(spiel.Abort(), "Nach der Runde laesst sich nicht abbrechen.");
+
+            Assert.AreEqual(2, vorher.Count, "Vor dem Abbruch liegt kein Paar - die Probe misst nichts.");
+            CollectionAssert.AreEqual(vorher, Indizes(Art(anna).FoundCards), "Der Abbruch nimmt Anna die gefundenen Karten.");
+            Assert.AreEqual(1, Art(anna).OwnPairs);
+        }
+
+        /// <summary>P2-1, Gegenrichtung: ein Abbruch mitten in der Runde verwirft sie - keine gefundenen Karten, keine Paare.</summary>
+        [TestMethod]
+        public void AnAbortMidRoundDropsTheFoundCards()
+        {
+            Starte();
+            uhr.Vor(Vorlauf);
+            Drehe(anna, 0);
+            Drehe(anna, 1);
+
+            Assert.IsNotNull(spiel.Abort());
+
+            Assert.AreEqual(0, Art(anna).FoundCards.Count, "Nach dem Abbruch mitten in der Runde liegen gefundene Karten.");
+            Assert.AreEqual(0, Art(anna).OwnPairs);
+        }
+
         /// <summary>Ein Telefon, das wiederkommt, bekommt sein Feld zurueck - offene Karten und Paare.</summary>
         [TestMethod]
         public void AReconnectingPhoneGetsItsBoardBack()

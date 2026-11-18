@@ -134,8 +134,12 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
         public void CloseRound() => laeuft = false;
 
+        /// <summary>Verwirft nur eine laufende Runde - nach dem Treffer bleibt stehen, wer erraten hat (M37 P6, P2-1, wie V25).</summary>
         public void DiscardRunning()
         {
+            if (!laeuft)
+                return;
+
             rater = null;
             laeuft = false;
         }
