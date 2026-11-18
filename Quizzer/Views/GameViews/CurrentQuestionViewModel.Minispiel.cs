@@ -72,7 +72,25 @@ namespace Quizzer.Views.GameViews
         }
 
         public ICommand AbortMinigameCommand
-            => abortMinigameCommand ??= new AsyncRelayCommand(_ => BrecheMinispielAbAsync());
+            => abortMinigameCommand ??= new AsyncRelayCommand(_ => BrecheMinispielAbAsync(), _ => !MinispielVorbei);
+
+        /// <summary>
+        /// P6-3: nach dem Ende änderte ein Abbruch nur die Anzeige (Beamer, Telefon, zweites Bewertungsfenster) und nahm am Server
+        /// „Runde wiederholen“ weg - Buchung und Vorschläge blieben. Deshalb gesperrt; eine Wiederholung öffnet ihn wieder.
+        /// </summary>
+        private bool MinispielVorbei => BuzzerControlsViewModel?.MinigameState?.Phase == MinigamePhase.Finished;
+
+        public string AbortMinigameToolTip => MinispielVorbei
+            ? "Das Minispiel ist schon zu Ende – ein Abbruch änderte an der Wertung nichts mehr, nur die Anzeige. "
+              + "Was gilt, steht auf den Spielerkarten; „Runde wiederholen“ spielt die letzte Runde neu."
+            : "Beendet das Minispiel sofort. Die laufende Runde zählt nicht, gespielte Runden bleiben als Vorschlag.";
+
+        /// <summary>Nach jedem Wechsel der Phase: der Abbruch folgt ihr.</summary>
+        private void NachMinispielPhase()
+        {
+            OnPropertyChanged(nameof(AbortMinigameToolTip));
+            CommandManager.InvalidateRequerySuggested();
+        }
 
         /// <summary>Stellt den Rahmen am Server auf diese Frage ein - vor dem Ausspielen.</summary>
         private void PrepareMinigame()
@@ -108,6 +126,7 @@ namespace Quizzer.Views.GameViews
         {
             Ablauf.SetzeZurueck();
             Reaktion.Zeige(minispielBereit);
+            NachMinispielPhase();
         }
 
         internal async Task StartMinispielRundeAsync()
@@ -131,6 +150,7 @@ namespace Quizzer.Views.GameViews
                 return;
 
             Ablauf.Wiederhole(runde);
+            NachMinispielPhase();
 
             Klang.Buzzer();
             ZeigeLaeuft();
@@ -139,7 +159,7 @@ namespace Quizzer.Views.GameViews
         /// <summary>Bricht ab (E1): die laufende Runde zaehlt nicht, gespielte bleiben als Vorschlag.</summary>
         internal async Task BrecheMinispielAbAsync()
         {
-            if (BuzzerControlsViewModel == null)
+            if (BuzzerControlsViewModel == null || MinispielVorbei)
                 return;
 
             if (!UserPrompt.Confirm(
@@ -154,6 +174,7 @@ namespace Quizzer.Views.GameViews
         internal async Task OnMinigameRoundClosedAsync(MinigameRoundClosed runde)
         {
             Ablauf.RundeZu(runde);
+            NachMinispielPhase();
 
             Ablauf.TonZu(runde); // V5: Ergebnis, je Art
 

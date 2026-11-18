@@ -256,7 +256,7 @@
                         <Button Content="Runde wiederholen" Command="{Binding RepeatMinigameRoundCommand}" Margin="4,6,4,0"
                                 ToolTip="{Binding RepeatMinigameRoundToolTip}" ToolTipService.ShowOnDisabled="True" />
                         <Button Content="Minispiel abbrechen" Command="{Binding AbortMinigameCommand}" Margin="4,6,4,0"
-                                ToolTip="Beendet das Minispiel sofort. Die laufende Runde zählt nicht, gespielte Runden bleiben als Vorschlag." />
+                                ToolTip="{Binding AbortMinigameToolTip}" ToolTipService.ShowOnDisabled="True" />
 
                         <!-- M35 C2: wer spielt - der Ausloeser waehlt am Telefon; fehlt er, waehlt hier der Spielleiter (E1). -->
                         <StackPanel Visibility="{Binding MinispielPaarVisibility}" Margin="4,10,4,0">
