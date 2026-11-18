@@ -102,14 +102,23 @@ if [ "$teste_kopf" -eq 1 ]; then
   pruefe "Arbeitsbaum"
 fi
 
+# Je Stand ein mktemp-Ordner mit dem Wegwerf-Arbeitsbaum darin; ein trap fuer alle Laeufe raeumt beides weg, auch bei
+# Fehlschlag (P5-3: der leere Ordner blieb liegen). Scheitert das Aufraeumen an einer gesperrten Datei, haelt das keinen
+# gruenen Push auf - vorher beendete set -e den Hook nach gruenen Tests mit Fehler.
+ordner=''
+aufraeumen() {
+  [ -n "$ordner" ] || return 0
+  git worktree remove --force "$ordner/pruefbaum" > /dev/null 2>&1 || true
+  rm -rf "$ordner" 2> /dev/null || echo "pre-push: Wegwerf-Ordner nicht ganz geloescht (gesperrte Datei?): $ordner"
+  ordner=''
+}
+trap aufraeumen EXIT
+
 for sha in $fremde; do
-  baum=$(mktemp -d)/pruefbaum
-  git worktree add --detach "$baum" "$sha" > /dev/null
-  # Aufraeumen auch bei Fehlschlag; set -e beendet sonst vor dem remove.
-  trap 'git worktree remove --force "$baum" > /dev/null 2>&1' EXIT
-  ( cd "$baum" && pruefe "Stand ${sha%"${sha#???????}"}" )
-  git worktree remove --force "$baum" > /dev/null 2>&1
-  trap - EXIT
+  ordner=$(mktemp -d)
+  git worktree add --detach "$ordner/pruefbaum" "$sha" > /dev/null
+  ( cd "$ordner/pruefbaum" && pruefe "Stand ${sha%"${sha#???????}"}" )
+  aufraeumen
 done
 
 echo "pre-push: alles gruen"
