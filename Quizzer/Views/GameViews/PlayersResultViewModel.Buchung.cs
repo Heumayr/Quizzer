@@ -20,6 +20,20 @@ namespace Quizzer.Views.GameViews
             MerkeGespeicherteHaekchen();
         }
 
+        /// <summary>
+        /// Was gerade speichert (P10-6): das Schließen wartet darauf. Sonst schrieb es dieselben Zeilen ein zweites Mal - das
+        /// Häkchen gilt bis zum Ende des ersten als offen - und scheiterte an deren RowVersion.
+        /// </summary>
+        private Task laufendesSpeichern = Task.CompletedTask;
+
+        /// <inheritdoc cref="SpeichereAsync"/>
+        public Task<bool> TrySaveAsync()
+        {
+            var speichern = SpeichereAsync();
+            laufendesSpeichern = speichern;
+            return speichern;
+        }
+
         /// <summary>Beim Öffnen und nach jedem gelungenen Speichern: das Häkchen ist ab hier nicht mehr offen (P10-1).</summary>
         private void MerkeGespeicherteHaekchen()
         {

@@ -223,7 +223,7 @@ namespace Quizzer.Views.GameViews
         /// Punkte fehlten, die Zelle war dunkel, und aus der Oberflaeche gab es keinen Weg zurueck.
         /// </para>
         /// </summary>
-        public async Task<bool> TrySaveAsync()
+        private async Task<bool> SpeichereAsync()
         {
             try
             {
@@ -301,6 +301,8 @@ namespace Quizzer.Views.GameViews
         /// </summary>
         protected override async Task OnClosed()
         {
+            await laufendesSpeichern; // P10-6: ein laufendes Speichern zu Ende, statt ein zweites daneben
+
             if (HatOffeneBewertungen)
                 await TrySaveAsync();
 
