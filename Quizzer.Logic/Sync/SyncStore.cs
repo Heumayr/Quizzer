@@ -13,7 +13,7 @@ namespace Quizzer.Logic.Sync
     /// arbeitet am Server (Push einspielen) und im WPF (Snapshot einspielen) - es gibt nur
     /// <b>eine</b> Stelle, die weiss, wie aus einer Zeile wieder eine Entitaet wird.
     /// </summary>
-    public sealed class SyncStore : IDisposable, IAsyncDisposable
+    public sealed partial class SyncStore : IDisposable, IAsyncDisposable
     {
         private readonly DataContext context;
         private readonly string? connectionString;
@@ -149,6 +149,9 @@ namespace Quizzer.Logic.Sync
             await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
             await ReleaseTeamReferencesAsync(deletes, strict ? upserts : null, cancellationToken);
+
+            if (strict)
+                await ReleaseRepointedReferencesAsync(upserts, deletes, cancellationToken);
 
             var orderedDeletes = deletes
                 .Select(d => (Key: d, Entry: SyncModel.Get(d.Type)))
