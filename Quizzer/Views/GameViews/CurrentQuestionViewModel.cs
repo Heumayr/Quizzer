@@ -161,7 +161,7 @@ namespace Quizzer.Views.GameViews
             // Ein Countdown überlebt die Frage nicht - sonst liefe er über dem Raster weiter.
             Countdown?.Stoppe();
 
-            GamePlayerViewModel?.SetView(null);
+            await RaeumeBeamerAsync(); // P3-2: wartet auf die Speicherung des Abschlusses
 
             // Das Ergebnisfenster geht mit (sonst landeten spätere Bewertungen auf der vorigen Zelle) und bucht dabei.
             await SchliesseErgebnisfensterAsync();

@@ -13,6 +13,12 @@ namespace Quizzer.Views.GameViews
         private PlayersResultView? _resultWindow;
 
         /// <summary>
+        /// P3-2: „Speichern und Zelle abschließen“ schließt das Bewertungsfenster, dessen <c>Closed</c> speichert die Zelle als
+        /// erledigt - ein <c>async void</c>. Das Schließen der Frage wartet darauf, sonst rechnete das Spielfenster davor weiter.
+        /// </summary>
+        private Task abschlussGespeichert = Task.CompletedTask;
+
+        /// <summary>
         /// Oeffnet das Ergebnisfenster oder holt es nach vorn. Ueberschreibbar, damit ein Test den
         /// Spielablauf durchlaufen kann, ohne dass ein Fenster aufgeht.
         /// </summary>
@@ -29,7 +35,8 @@ namespace Quizzer.Views.GameViews
                 {
                     if (PlayersResultViewModel?.IsDoneAndShowFinishState ?? false)
                     {
-                        await SaveIsDoneFinishStateAsync(null);
+                        abschlussGespeichert = SaveIsDoneFinishStateAsync(null);
+                        await abschlussGespeichert;
                     }
 
                     _resultWindow = null;
@@ -67,6 +74,13 @@ namespace Quizzer.Views.GameViews
             _resultWindow = null;
 
             fenster?.Close();
+        }
+
+        /// <summary>Erst nach der Speicherung des Abschlusses - sie stellt den Abschlussschritt auf den Beamer (P3-2).</summary>
+        private async Task RaeumeBeamerAsync()
+        {
+            await abschlussGespeichert;
+            GamePlayerViewModel?.SetView(null);
         }
 
         /// <summary>
