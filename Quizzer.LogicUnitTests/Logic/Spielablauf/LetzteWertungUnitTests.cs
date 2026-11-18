@@ -207,5 +207,27 @@ namespace Quizzer.LogicUnitTests.Logic.Spielablauf
             Assert.IsFalse(merk.HatSichGeaendert(spiel));
             Assert.AreEqual(0, merk.Aenderungen().Count);
         }
+
+        /// <summary>
+        /// R5-1: gebucht ist, was Zähler oder Punkte ändert - nicht schon „richtig" als Vorschlag, das <c>CorrectAnswered</c> sofort
+        /// setzt. Gemerkt an den Zeilen, die das Ergebnisfenster beim Öffnen liest, nicht an denen der Zelle.
+        /// </summary>
+        [TestMethod]
+        public void OnlyABookingCountsNotTheRightSuggestion()
+        {
+            var zeile = new QuestionResult { Id = Guid.NewGuid(), PlayerId = anna.Id, Score = 100, RightCount = 1 };
+            var merk = LetzteWertung.Merke(spiel, zelle, [zeile]);
+
+            Assert.IsFalse(merk.HatGebucht([zeile]), "Unverändert gilt als gebucht.");
+
+            zeile.CorrectAnswered = true;
+            Assert.IsFalse(merk.HatGebucht([zeile]), "Der Vorschlag „richtig\" gilt schon als Buchung.");
+
+            zeile.WrongCount++;
+            Assert.IsTrue(merk.HatGebucht([zeile]), "Ein gebuchtes „falsch\" ohne Punkte zählt nicht.");
+
+            var neu = new QuestionResult { Id = Guid.NewGuid(), PlayerId = ben.Id, Correction = 5, CorrectionsCount = 1 };
+            Assert.IsTrue(LetzteWertung.Merke(spiel, zelle, [zeile]).HatGebucht([zeile, neu]), "Eine Zeile, die beim Öffnen fehlte, zählt nicht.");
+        }
     }
 }

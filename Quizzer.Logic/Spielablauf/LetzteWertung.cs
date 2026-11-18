@@ -50,10 +50,10 @@ namespace Quizzer.Logic.Spielablauf
         private readonly Guid auswahl;
         private readonly Guid regulaereAuswahl;
 
-        private LetzteWertung(Game spiel, GameGridCoordinate zelle)
+        private LetzteWertung(Game spiel, GameGridCoordinate zelle, IEnumerable<QuestionResult>? zeilen = null)
         {
             Zelle = zelle;
-            vorher = zelle.QuestionResults.GroupBy(r => r.PlayerId).ToDictionary(g => g.Key, g => Stand.Von(g.First()));
+            vorher = (zeilen ?? zelle.QuestionResults).GroupBy(r => r.PlayerId).ToDictionary(g => g.Key, g => Stand.Von(g.First()));
             warErledigt = zelle.IsDone;
             warGespieltUm = zelle.PlayedAt;
             auswahl = spiel.CurrentChoosingPlayerId;
@@ -64,6 +64,16 @@ namespace Quizzer.Logic.Spielablauf
 
         /// <summary>Merkt sich den Stand einer Zelle, bevor sie geöffnet wird.</summary>
         public static LetzteWertung Merke(Game spiel, GameGridCoordinate zelle) => new(spiel, zelle);
+
+        /// <summary>Merkt sich den Stand der Zeilen, die das Ergebnisfenster beim Öffnen frisch gelesen hat (R5-1).</summary>
+        public static LetzteWertung Merke(Game spiel, GameGridCoordinate zelle, IEnumerable<QuestionResult> zeilen) => new(spiel, zelle, zeilen);
+
+        /// <summary>
+        /// Ob seit dem Merken an einer dieser Zeilen gebucht wurde (R5-1, R4-1). „Richtig“ setzt <c>CorrectAnswered</c> schon als
+        /// Vorschlag - gebucht ist erst, was Zähler, Punkte, Klaus oder Bestwert ändert.
+        /// </summary>
+        public bool HatGebucht(IEnumerable<QuestionResult> zeilen)
+            => zeilen.Any(r => Stand.Von(r) with { CorrectAnswered = false } != VorherVon(r.PlayerId) with { CorrectAnswered = false });
 
         private Stand VorherVon(Guid spielerId) => vorher.GetValueOrDefault(spielerId, Stand.Leer);
 

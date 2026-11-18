@@ -239,8 +239,8 @@ namespace Quizzer.Views.GameViews
         // --- Die Frage wird verlassen ---
 
         /// <summary>
-        /// Verlaesst der Spielleiter die Frage ohne Wertung (Fenster zu, ohne Bewertung auf einer Karte und ohne
-        /// abgeschlossene Zelle), gehen die hier eingeloesten Joker wieder auf. Die Sperre gilt nur dieser Frage.
+        /// Verlaesst der Spielleiter die Frage ohne Wertung (Fenster zu, ohne Bewertung auf einer Karte, ohne Buchung seit dem
+        /// Oeffnen - R5-1 - und ohne abgeschlossene Zelle), gehen die hier eingeloesten Joker wieder auf. Die Sperre gilt nur dieser Frage.
         /// </summary>
         private async Task RaeumeJokerAufAsync()
         {
@@ -252,7 +252,7 @@ namespace Quizzer.Views.GameViews
             if (ablauf.Gesperrte.Count > 0)
                 BuzzerControlsViewModel?.ClearAnswerers();
 
-            if (ablauf.NeuEingeloest.Count == 0 || IsDone || PlayersResultViewModel?.HatOffeneBewertungen == true)
+            if (ablauf.NeuEingeloest.Count == 0 || IsDone || PlayersResultViewModel is { HatOffeneBewertungen: true } or { HatGebucht: true })
                 return;
 
             try

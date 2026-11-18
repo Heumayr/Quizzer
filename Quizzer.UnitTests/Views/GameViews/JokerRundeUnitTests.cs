@@ -228,25 +228,36 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual(string.Empty, Karte(vm, 1).SonderregelText);
         }
 
+        /// <summary>
+        /// R5-1: über den echten Weg - das Schließen des Ergebnisfensters bucht (<see cref="TestableCurrentQuestionViewModel.SchliessenBucht"/>),
+        /// „gespeichert" ist „Speichern und schließen" vor „Nächster wählt aus". Gebucht heißt: der Joker hat gewirkt und bleibt eingelöst.
+        /// </summary>
         [TestMethod]
         [DataRow("ohne Wertung", false)]
         [DataRow("bewertet", true)]
+        [DataRow("gespeichert", true)]
         [DataRow("abgeschlossen", true)]
         public async Task LeavingWithoutRatingReopensTheJoker(string wie, bool bleibtEingeloest)
         {
             Vergib((0, JokerKind.Double));
             var vm = await OeffneAsync(CellSpecialRule.None);
+            vm.SchliessenBucht = true;
             await JokerAsync(0, joker[0].Id);
             Assert.IsTrue(await WarteAsync(() => !vm.VorphaseLaeuft));
             Assert.IsTrue((await AusDerDatenbankAsync(joker[0])).IsRedeemed);
 
-            if (wie == "bewertet")
+            if (wie is "bewertet" or "gespeichert")
                 Karte(vm, 0).Suggestion = ScoreSuggestion.Right;
+
+            if (wie == "gespeichert")
+                Assert.IsTrue(await vm.PlayersResultViewModel!.TrySaveAsync());
 
             if (wie == "abgeschlossen")
                 vm.IsDone = true;
 
             await vm.ClosedForTestAsync();
+            TestEnvironment.ThrowIfAnythingWasSwallowed();
+            Assert.AreEqual(wie is "bewertet" or "gespeichert", vm.PlayersResultViewModel!.HatGebucht, "Gebucht ist nicht, was der Fall verlangt.");
 
             Assert.AreEqual(bleibtEingeloest, (await AusDerDatenbankAsync(joker[0])).IsRedeemed, $"Frage {wie} verlassen.");
         }

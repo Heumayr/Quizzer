@@ -176,6 +176,7 @@ namespace Quizzer.Views.GameViews
             }
 
             PlayerResultContextList = NachTeams(contextList);
+            MerkeStandBeimOeffnen();
             OnPropertyChanged(nameof(Columns));
             OnPropertyChanged(nameof(WindowTitle));
         }
