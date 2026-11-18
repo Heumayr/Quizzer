@@ -142,6 +142,39 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual($"{sieger} zieht stärker", vm.Reaktion.Seil?.Lage, "Das Seil steht nicht beim Siegerteam.");
         }
 
+        /// <summary>
+        /// R4-1, Wege Siegerteam (Tauziehen) und Teamanteil (Reaktion, zusammengefasst): nach der Buchung ist „Runde wiederholen“
+        /// gesperrt - sonst bekäme ein Team den Feldwert zweimal, oder beide Teams je einmal.
+        /// </summary>
+        [TestMethod]
+        [DataRow(MinigameKind.TugOfWar)]
+        [DataRow(MinigameKind.Reaction)]
+        public async Task ARepeatAfterABookedTeamRoundIsRefused(MinigameKind art)
+        {
+            var vm = art == MinigameKind.TugOfWar ? await OeffneAsync() : await OeffneTeamMinispielAsync(art, f => f.Rounds = 1);
+
+            if (art == MinigameKind.TugOfWar)
+                await StarteAsync(vm);
+            else
+                await vm.StartMinispielRundeAsync();
+
+            for (var telefon = 0; telefon < 4; telefon++)
+            {
+                if (art == MinigameKind.TugOfWar)
+                    await ZieheAsync(telefon, telefon < 2 ? 20 : 10, ende: true);
+                else
+                    await phones[telefon].InvokeAsync("SpielAktion", new { kind = (int)art, durchgang = Zustand.Durchgang, payload = new { falseStart = false, milliseconds = 200 + 50 * telefon } });
+            }
+
+            Assert.IsTrue(await WarteAsync(() => vm.Reaktion.Kopfzeile.StartsWith("Ergebnis")), "Die Runde schliesst nicht: " + vm.Reaktion.Kopfzeile);
+            Assert.IsTrue(Karte(vm, 0).CurrentScoreManipulation > 0, "Rot bekommt keinen Vorschlag - der Test misst nichts.");
+            Assert.IsTrue(await vm.PlayersResultViewModel!.TrySaveAsync(), "Speichern scheiterte.");
+
+            Assert.IsFalse(vm.RepeatMinigameRoundCommand.CanExecute(null), "Nach der Buchung ist „Runde wiederholen“ nicht gesperrt.");
+            await vm.WiederholeMinispielRundeAsync();
+            StringAssert.StartsWith(vm.Reaktion.Kopfzeile, "Ergebnis", "Die gebuchte Runde wurde wiederholt.");
+        }
+
         /// <summary>Ohne Teamspiel fragt der Spielstart - über den Weg, den der Start wirklich nimmt (E1: fragen, nicht abweisen).</summary>
         [TestMethod]
         public async Task WithoutATeamGameTheStartAsks()

@@ -254,7 +254,7 @@
                         <Button Content="Runde starten" Command="{Binding StartMinigameRoundCommand}" FontWeight="Bold"
                                 ToolTip="Startet die nächste Runde auf allen Telefonen. Nach der letzten Runde geht nichts mehr – dann wiederholen oder abschließen." />
                         <Button Content="Runde wiederholen" Command="{Binding RepeatMinigameRoundCommand}" Margin="4,6,4,0"
-                                ToolTip="Spielt die laufende oder zuletzt gespielte Runde neu. Ihre bisherigen Zeiten zählen nicht mehr." />
+                                ToolTip="{Binding RepeatMinigameRoundToolTip}" ToolTipService.ShowOnDisabled="True" />
                         <Button Content="Minispiel abbrechen" Command="{Binding AbortMinigameCommand}" Margin="4,6,4,0"
                                 ToolTip="Beendet das Minispiel sofort. Die laufende Runde zählt nicht, gespielte Runden bleiben als Vorschlag." />
 

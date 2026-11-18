@@ -44,7 +44,25 @@ namespace Quizzer.Views.GameViews
             => startMinigameRoundCommand ??= new AsyncRelayCommand(_ => StartMinispielRundeAsync());
 
         public ICommand RepeatMinigameRoundCommand
-            => repeatMinigameRoundCommand ??= new AsyncRelayCommand(_ => WiederholeMinispielRundeAsync());
+            => repeatMinigameRoundCommand ??= new AsyncRelayCommand(_ => WiederholeMinispielRundeAsync(), _ => !RundeGebucht);
+
+        /// <summary>
+        /// R4-1: nach einer gebuchten Runde bucht ein Wiederholen ein zweites Mal aus derselben Zelle - gesperrt, bis die Wertung
+        /// zurückgenommen ist. Die Rücknahme geht über das Spielfenster; die neu geöffnete Zelle hat dann nichts gebucht.
+        /// </summary>
+        private bool RundeGebucht => PlayersResultViewModel?.HatGebucht == true;
+
+        public string RepeatMinigameRoundToolTip => RundeGebucht
+            ? "Diese Runde ist schon gebucht – ein Wiederholen buchte sie ein zweites Mal. Erst die Wertung zurücknehmen: "
+              + "Frage schließen, „Letzte Wertung zurücknehmen“, Zelle neu öffnen."
+            : "Spielt die laufende oder zuletzt gespielte Runde neu. Ihre bisherigen Zeiten zählen nicht mehr.";
+
+        /// <summary>Aus dem Ergebnisfenster nach jeder Buchung: Knopf und Erklärung folgen dem gebuchten Stand.</summary>
+        internal void NachBuchung()
+        {
+            OnPropertyChanged(nameof(RepeatMinigameRoundToolTip));
+            CommandManager.InvalidateRequerySuggested();
+        }
 
         public ICommand AbortMinigameCommand
             => abortMinigameCommand ??= new AsyncRelayCommand(_ => BrecheMinispielAbAsync());
@@ -102,7 +120,7 @@ namespace Quizzer.Views.GameViews
         {
             var runde = BuzzerControlsViewModel?.MinigameState?.Round ?? 0;
 
-            if (BuzzerControlsViewModel == null || !await BuzzerControlsViewModel.RepeatMinigameRoundAsync())
+            if (RundeGebucht || BuzzerControlsViewModel == null || !await BuzzerControlsViewModel.RepeatMinigameRoundAsync())
                 return;
 
             Ablauf.Wiederhole(runde);
