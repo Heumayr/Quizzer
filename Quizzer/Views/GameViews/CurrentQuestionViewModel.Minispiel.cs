@@ -41,10 +41,10 @@ namespace Quizzer.Views.GameViews
         private AsyncRelayCommand? abortMinigameCommand;
 
         public ICommand StartMinigameRoundCommand
-            => startMinigameRoundCommand ??= new AsyncRelayCommand(_ => StartMinispielRundeAsync(), _ => !RundeGebucht);
+            => startMinigameRoundCommand ??= new AsyncRelayCommand(_ => StartMinispielRundeAsync(), _ => !RundeGebucht && StartGesperrtWeil == null);
 
         public ICommand RepeatMinigameRoundCommand
-            => repeatMinigameRoundCommand ??= new AsyncRelayCommand(_ => WiederholeMinispielRundeAsync(), _ => !RundeGebucht);
+            => repeatMinigameRoundCommand ??= new AsyncRelayCommand(_ => WiederholeMinispielRundeAsync(), _ => !RundeGebucht && WiederholenGesperrtWeil == null);
 
         /// <summary>
         /// R4-1: nach einer gebuchten Runde bucht ein Wiederholen ein zweites Mal aus derselben Zelle - gesperrt, bis die Wertung
@@ -55,13 +55,33 @@ namespace Quizzer.Views.GameViews
         public string RepeatMinigameRoundToolTip => RundeGebucht
             ? "Diese Runde ist schon gebucht – ein Wiederholen buchte sie ein zweites Mal. Erst die Wertung zurücknehmen: "
               + "Frage schließen, „Letzte Wertung zurücknehmen“, Zelle neu öffnen."
-            : "Spielt die laufende oder zuletzt gespielte Runde neu. Ihre bisherigen Zeiten zählen nicht mehr.";
+            : WiederholenGesperrtWeil ?? "Spielt die laufende oder zuletzt gespielte Runde neu. Ihre bisherigen Zeiten zählen nicht mehr.";
 
         /// <summary>P3-1: „Runde zurücksetzen“ stellt das Minispiel auf Anfang - ein neuer Start buchte dann wie R4-1 ein zweites Mal.</summary>
         public string StartMinigameRoundToolTip => RundeGebucht
             ? "Diese Runde ist schon gebucht – ein neuer Start buchte sie ein zweites Mal. Erst die Wertung zurücknehmen: "
               + "Frage schließen, „Letzte Wertung zurücknehmen“, Zelle neu öffnen."
-            : "Startet die nächste Runde auf allen Telefonen. Nach der letzten Runde geht nichts mehr – dann wiederholen oder abschließen.";
+            : StartGesperrtWeil ?? "Startet die nächste Runde auf allen Telefonen. Nach der letzten Runde geht nichts mehr – dann wiederholen oder abschließen.";
+
+        private const string MinispielAbgebrochen = "Das Minispiel ist abgebrochen – es nimmt keine Runde mehr an. "
+            + "„Runde zurücksetzen“ stellt es auf Anfang, danach geht es mit „Runde starten“ neu los.";
+
+        /// <summary>P8-2: warum der Server einen Start jetzt ablehnte - <c>null</c>, wenn er ihn annähme (oder kein Minispiel läuft).</summary>
+        private string? StartGesperrtWeil => BuzzerControlsViewModel?.MinigameState switch
+        {
+            null or { CanStartNextRound: true } => null,
+            { Aborted: true } => MinispielAbgebrochen,
+            { Phase: MinigamePhase.Running } => "Die Runde läuft noch – die nächste startet, wenn diese zu ist.",
+            _ => "Alle Runden sind gespielt – „Runde wiederholen“ spielt die letzte neu, sonst die Zelle abschließen.",
+        };
+
+        /// <summary>P8-2: warum der Server ein Wiederholen jetzt ablehnte - <c>null</c>, wenn er es annähme.</summary>
+        private string? WiederholenGesperrtWeil => BuzzerControlsViewModel?.MinigameState switch
+        {
+            null or { CanRepeatRound: true } => null,
+            { Aborted: true } => MinispielAbgebrochen,
+            _ => "Noch ist keine Runde gespielt – erst „Runde starten“.",
+        };
 
         /// <summary>Aus dem Ergebnisfenster nach jeder Buchung: Knopf und Erklärung folgen dem gebuchten Stand.</summary>
         internal void NachBuchung()
@@ -89,6 +109,8 @@ namespace Quizzer.Views.GameViews
         private void NachMinispielPhase()
         {
             OnPropertyChanged(nameof(AbortMinigameToolTip));
+            OnPropertyChanged(nameof(StartMinigameRoundToolTip));
+            OnPropertyChanged(nameof(RepeatMinigameRoundToolTip));
             CommandManager.InvalidateRequerySuggested();
         }
 
@@ -137,6 +159,7 @@ namespace Quizzer.Views.GameViews
             if (BuzzerControlsViewModel == null || !await BuzzerControlsViewModel.StartMinigameRoundAsync())
                 return;
 
+            NachMinispielPhase();
             Klang.Buzzer(); // V5: Start einer Runde
             ZeigeLaeuft();
         }

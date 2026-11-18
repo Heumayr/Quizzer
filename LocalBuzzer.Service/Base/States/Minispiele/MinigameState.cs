@@ -193,12 +193,22 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             }
         }
 
+        /// <summary>Ob <see cref="StartNextRound"/> jetzt eine Runde annaehme - die Spielleitung folgt dem (P8-2).</summary>
+        public bool CanStartNextRound { get { lock (gate) return KannStarten; } }
+
+        /// <summary>Ob <see cref="RepeatRound"/> jetzt eine Runde annaehme - die Spielleitung folgt dem (P8-2).</summary>
+        public bool CanRepeatRound { get { lock (gate) return KannWiederholen; } }
+
+        private bool KannStarten => rules != null && Phase is not (MinigamePhase.Running or MinigamePhase.Finished);
+
+        private bool KannWiederholen => rules != null && Round >= 1 && !Aborted;
+
         /// <summary>Startet die naechste Runde; <c>false</c>, wenn keine mehr aussteht oder eine laeuft.</summary>
         public bool StartNextRound()
         {
             lock (gate)
             {
-                if (rules == null || Phase is MinigamePhase.Running or MinigamePhase.Finished)
+                if (!KannStarten)
                     return false;
 
                 Round++;
@@ -212,7 +222,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         {
             lock (gate)
             {
-                if (rules == null || Round < 1 || Aborted)
+                if (!KannWiederholen)
                     return false;
 
                 StartRun();
