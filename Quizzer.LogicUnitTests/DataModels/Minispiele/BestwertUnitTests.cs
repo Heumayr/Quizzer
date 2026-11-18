@@ -34,6 +34,9 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
 
             // M37 T10: gewonnen wird als Team; Reaktion oder Schere-Stein-Papier nur der Stellvertreter - kein Wert je Person.
             MinigameKind.ProxyDuel,
+
+            // M37 T11: gewonnen wird als Team; gezählt werden gelöste Teile je Team, keine Leistung je Person.
+            MinigameKind.Relay,
         ];
 
         [TestMethod]

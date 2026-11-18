@@ -29,7 +29,7 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
         ];
 
         /// <summary>Die Teamarten (Entwurf Abschnitt 6, T9 ff.) - Team gegen Team, ohne Teamspiel nicht.</summary>
-        private static readonly MinigameKind[] NurImTeamspiel = [MinigameKind.TugOfWar, MinigameKind.ProxyDuel];
+        private static readonly MinigameKind[] NurImTeamspiel = [MinigameKind.TugOfWar, MinigameKind.ProxyDuel, MinigameKind.Relay];
 
         [TestMethod]
         public void EveryKindDecidesItsTeamScoring()

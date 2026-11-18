@@ -235,3 +235,78 @@
     outline: 4px solid var(--text);
     outline-offset: 2px;
 }
+
+/* ===== Staffel (M37 T11) - wer laeuft, das Eingabefeld nur fuer den Laeufer, die Teams mit ihren Teilen =====
+   Die Farbe einer Zeile kommt nur ueber team-farbe-N (oben); Symbol, Name und Teile stehen immer als Text daneben.
+   Die Aufloesung steht erst nach der Runde da; ein verfehlter Teil sagt es in Worten, nicht nur durch die Flaeche. */
+.staffel-stand {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    overflow-wrap: break-word;
+}
+
+.staffel-zeile {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-xs);
+}
+
+.staffel-eingabe {
+    min-height: var(--input-height);
+    padding: 0 var(--space-sm);
+    font-size: 22px;
+    color: var(--text);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-md);
+    background: var(--input-bg);
+}
+
+.staffel-senden {
+    min-height: var(--input-height);
+    padding: 0 var(--space-sm);
+    border-radius: var(--radius-md);
+    font-size: 20px;
+    font-weight: 700;
+    background: var(--primary);
+    touch-action: manipulation;
+}
+
+.staffel-hinweis {
+    margin: 0;
+    font-size: 18px;
+    overflow-wrap: break-word;
+}
+
+.staffel-teams,
+.staffel-teile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.staffel-team {
+    padding: var(--space-xs) var(--space-sm);
+    border: 2px solid var(--text-soft);
+    border-radius: var(--radius-md);
+    background: var(--team-farbe, var(--panel));
+    color: var(--team-schrift, var(--text));
+    font-size: 18px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.staffel-teil {
+    padding: var(--space-xs) var(--space-sm);
+    border-left: 4px solid var(--text-soft);
+    font-size: 16px;
+    overflow-wrap: anywhere;
+}
+
+.staffel-verfehlt {
+    border-left-style: dashed;
+    color: var(--text-soft);
+}

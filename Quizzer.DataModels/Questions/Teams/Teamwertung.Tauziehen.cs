@@ -20,8 +20,8 @@ namespace Quizzer.DataModels.Questions.Teams
         }
 
         /// <summary>
-        /// Der Feldwert einmal je Siegerteam, aufgeteilt in dessen Sprecherfolge (F-M37-06), nie Minus (E1) - Tauziehen (T9) und
-        /// Stellvertreter-Duell (T10). Nicht über den Teamanteil der zusammengefassten Minispiele: bei Summe vervielfachte der den Feldwert.
+        /// Der Feldwert einmal je Siegerteam, aufgeteilt in dessen Sprecherfolge (F-M37-06), nie Minus (E1) - Tauziehen (T9),
+        /// Stellvertreter-Duell (T10) und Staffel (T11). Nicht über den Teamanteil der zusammengefassten Minispiele: bei Summe vervielfachte der den Feldwert.
         /// </summary>
         private static IReadOnlyDictionary<Guid, Punktevorschlag> SiegerteamVorschlaege(
             Game spiel, IEnumerable<(QuestionResult Ergebnis, string Name)> karten, Func<MinispielTeam, bool> gewinnt, int feldwert, string spielname)

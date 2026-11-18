@@ -80,6 +80,29 @@ namespace LocalBuzzer.Service.Base
         }
 
         /// <summary>
+        /// Der Spielleiter lässt in der Staffel die zuletzt abgelehnte Antwort gelten (M37 T11, E1): der Teil zählt für ihr Team, das
+        /// weiterläuft - auch nach dem Schluss der Runde, nie nach dem Abbruch. Ist damit alles gelöst, schließt die Runde.
+        /// </summary>
+        public Task<bool> AcceptLastRelayAnswerAsync(CancellationToken ct = default)
+            => LenkeStaffelAsync(r => r.LasseGelten(), ct);
+
+        /// <summary>Der Spielleiter gibt in der Staffel für das Team am Zug weiter (M37 T11, E1) - etwa, wenn das Telefon des Läufers fehlt.</summary>
+        public Task<bool> PassRelayAsync(CancellationToken ct = default)
+            => LenkeStaffelAsync(r => r.GibWeiter(), ct);
+
+        private async Task<bool> LenkeStaffelAsync(Func<RelayRules, bool> eingriff, CancellationToken ct)
+        {
+            CheckServerRunning();
+
+            if (!StateManager.MinigameState.Lenke(r => r is RelayRules staffel && eingriff(staffel)))
+                return false;
+
+            // Wer läuft, sehen alle; war es der letzte Teil, ist die Runde zu.
+            await MeldeUndSendeAsync(StateManager.MinigameState.CloseIfComplete(), ct);
+            return true;
+        }
+
+        /// <summary>
         /// Die Joker-Runde ist eingeloest (V12): was der zweite Riegel abgelehnt hat, nimmt das Telefon zurueck, und erst
         /// jetzt sehen alle, wer welchen Joker setzt. <c>false</c> ohne Joker-Runde oder solange sie laeuft.
         /// </summary>

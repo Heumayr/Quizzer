@@ -72,8 +72,9 @@ namespace Quizzer.DataModels.Transfer.Sync
         ///    und schrieb je Mitglied seine eigene Wertung statt der Anteile an der Mehrheit.
         /// 31: Minispiel-Art Tauziehen (M37 T9) - derselbe Grund wie bei 4.
         /// 32: Minispiel-Art Stellvertreter-Duell (M37 T10) - derselbe Grund wie bei 4.
+        /// 33: Minispiel-Art Staffel (M37 T11) - derselbe Grund wie bei 4.
         /// </summary>
-        public const int CurrentFormatVersion = 32;
+        public const int CurrentFormatVersion = 33;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

@@ -16,6 +16,7 @@ import { BluffModul } from "./bluff.js";
 import { KartoffelModul } from "./kartoffel.js";
 import { TauziehenModul } from "./tauziehen.js";
 import { StellvertreterModul } from "./stellvertreter.js";
+import { StaffelModul } from "./staffel.js";
 import { EinsatzModul } from "../sonderregeln/einsatz.js";
 import { RisikoModul } from "../sonderregeln/risiko.js";
 import { AuktionModul } from "../sonderregeln/auktion.js";
@@ -46,7 +47,8 @@ const MODULE = new Map([
     [MinigameKinds.Bluff, (optionen) => new BluffModul(optionen)],
     [MinigameKinds.HotPotato, (optionen) => new KartoffelModul(optionen)],
     [MinigameKinds.TugOfWar, (optionen) => new TauziehenModul(optionen)],
-    [MinigameKinds.ProxyDuel, (optionen) => new StellvertreterModul(optionen)]
+    [MinigameKinds.ProxyDuel, (optionen) => new StellvertreterModul(optionen)],
+    [MinigameKinds.Relay, (optionen) => new StaffelModul(optionen)]
 ]);
 
 const SONDERREGELN = new Map([

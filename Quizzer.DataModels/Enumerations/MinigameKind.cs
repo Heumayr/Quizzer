@@ -62,5 +62,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Stellvertreter-Duell: nur im Teamspiel - jedes Team schickt einen, nur die Gewaehlten spielen (M37 T10).</summary>
         ProxyDuel = 18,
+
+        /// <summary>Staffel: nur im Teamspiel - die Mitglieder eines Teams tippen reihum je einen Teil aus den Zeilen, ein Fehler gibt ans naechste Team weiter (M37 T11).</summary>
+        Relay = 19,
     }
 }

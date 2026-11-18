@@ -8,7 +8,7 @@ namespace Quizzer.Logic.Demo
     /// <summary>
     /// Die Minispiele der Typenschau (M35 B2) - eigene Teildatei, weil die Typenschau sonst ueber die
     /// Groessen-Obergrenze wuechse. Mehrheit und Reaktion im Raster; Minderheit (B3), Tippsprint und
-    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen, Memory, Blitzrunde und Buchstabensalat (C5), Erklärbär, Bluff und Heiße Kartoffel (C6), Tauziehen (M37 T9), Stellvertreter-Duell (T10) im Vorrat - das Raster hat zwei Zeilen.
+    /// Stoppuhr (C1), Duell, Raeuber und Teilen (C2), Zocker und Gluecksrad (C4), Kopfrechnen, Memory, Blitzrunde und Buchstabensalat (C5), Erklärbär, Bluff und Heiße Kartoffel (C6), Tauziehen (M37 T9), Stellvertreter-Duell (T10), Staffel (T11) im Vorrat - das Raster hat zwei Zeilen.
     /// </summary>
     public static partial class DemoDataSeeder
     {
@@ -122,6 +122,21 @@ namespace Quizzer.Logic.Demo
             // M37 T10: ebenso nur im Teamspiel.
             yield return OhneZeilen(kat, "Typenschau: Stellvertreter-Duell", "MIN-19", 300, Difficulty.Level2,
                 "Jedes Team schickt einen Stellvertreter – wer reagiert am schnellsten für sein Team?", MinigameKind.ProxyDuel);
+
+            // M37 T11: ebenso nur im Teamspiel; die Zeilen sind die Teile in ihrer Reihenfolge.
+            yield return MitZeilen(kat, "Typenschau: Staffel", "MIN-20", 300, Difficulty.Level2,
+                "Die Planeten unseres Sonnensystems von innen nach außen – reihum je einer, ein Fehler gibt ans nächste Team weiter!",
+                MinigameKind.Relay,
+                [
+                    ("Merkur", false),
+                    ("Venus", false),
+                    ("Erde", false),
+                    ("Mars", false),
+                    ("Jupiter", false),
+                    ("Saturn", false),
+                    ("Uranus", false),
+                    ("Neptun", false),
+                ]);
         }
 
         /// <summary>Arten mit Inhalt (Blitzrunde, Buchstabensalat, M35 C5; Erklärbär, C6): je Zeile ein Schritt, bei der Blitzrunde heisst der Haken „wahr".</summary>

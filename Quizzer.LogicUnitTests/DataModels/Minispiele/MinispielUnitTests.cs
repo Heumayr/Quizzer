@@ -213,6 +213,7 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
                 [MinigameKind.HotPotato] = 22,
                 [MinigameKind.TugOfWar] = 31,
                 [MinigameKind.ProxyDuel] = 32,
+                [MinigameKind.Relay] = 33,
             };
 
             var ohne = Enum.GetValues<MinigameKind>().Where(k => !seitFormat.ContainsKey(k)).ToList();

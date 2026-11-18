@@ -52,6 +52,9 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [DataRow(typeof(ProxyDuelClientInfo), "stellvertreter.js", "artInfo")]
         [DataRow(typeof(ProxyDuelTeamInfo), "stellvertreter.js", "eintrag")]
         [DataRow(typeof(MinigamePlayerOption), "stellvertreter.js", "spieler")]
+        [DataRow(typeof(RelayClientInfo), "staffel.js", "artInfo")]
+        [DataRow(typeof(RelayTeamInfo), "staffel.js", "eintrag")]
+        [DataRow(typeof(RelayPartInfo), "staffel.js", "stueck")]
         [DataRow(typeof(MinigamePlayerOption), "kartoffel.js", "spieler")]
         [DataRow(typeof(MinigamePlayerOption), "spielerwahl.js", "spieler")]
         [DataRow(typeof(MinigamePlayerOption), "raeuber.js", "spieler")]
@@ -93,6 +96,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [DataRow(typeof(TugOfWarPayload), "tauziehen.js")]
         [DataRow(typeof(ProxyChoicePayload), "stellvertreter.js")]
         [DataRow(typeof(DuelPayload), "stellvertreter.js")]
+        [DataRow(typeof(RelayPayload), "staffel.js")]
         public void ThePhoneSendsTheFieldsTheServerReads(Type typ, string datei)
         {
             var skript = ReadScript("minispiele", datei);

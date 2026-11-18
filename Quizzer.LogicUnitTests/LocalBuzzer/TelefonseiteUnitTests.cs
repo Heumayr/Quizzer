@@ -212,6 +212,10 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         public void TheProxyDuelChoosesOnceAndOnlyTheProxyPlays() => LaufeMit("stellvertreter.test.mjs");
 
+        /// <summary>M37 T11: Staffel - nur der Läufer tippt, je Zug genau einmal; die Lösungen erst vom Server nach der Runde, Namen nur als Text.</summary>
+        [TestMethod]
+        public void TheRelayLetsOnlyTheRunnerAnswerOncePerTurn() => LaufeMit("staffel.test.mjs");
+
         /// <summary>M35 C4: Gluecksrad - nur der Dreher waehlt ein Ziel, genau einmal; die Aufloesung vom Server.</summary>
         [TestMethod]
         public void TheWheelLetsOnlyTheSpinnerChooseOnce() => LaufeMit("gluecksrad.test.mjs");
