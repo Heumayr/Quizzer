@@ -149,7 +149,10 @@ namespace Quizzer.Views.GameViews
             if (leavingWithPoints.Count > 0
                 && !UserPrompt.Confirm(
                     $"{string.Join(", ", leavingWithPoints)} hat in diesem Spiel schon Punkte. "
-                    + "Ohne Haken fällt das aus der Wertung heraus."
+                    // Im Teamspiel bleiben gebuchte Zeilen beim Team ihres Stempels (M37 P4, R4-4; P6, P4-1).
+                    + (game.IsTeamGame
+                        ? "Ohne Haken bleiben die schon gebuchten Punkte beim Team – es kommen nur keine neuen dazu."
+                        : "Ohne Haken fällt das aus der Wertung heraus.")
                     + Environment.NewLine + Environment.NewLine + "Trotzdem ohne sie spielen?",
                     "Mitspieler"))
                 return;

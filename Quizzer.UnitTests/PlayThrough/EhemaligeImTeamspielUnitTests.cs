@@ -114,5 +114,39 @@ namespace Quizzer.UnitTests.PlayThrough
             var zeilen = await ctrl.GetAllResultsForCoordinate(world.Coordinate.Id) ?? [];
             CollectionAssert.AreEqual(new[] { world.Players[1].Id }, zeilen.Select(z => z.PlayerId).ToArray(), "Die leere Zeile der Abgewählten steht noch da.");
         }
+
+        /// <summary>M37 P6, P4-1: „Wer spielt mit?“ sagt im Teamspiel, dass die gebuchten Punkte beim Team bleiben - ohne Teamspiel wie bisher.</summary>
+        [TestMethod]
+        public async Task TheQuestionWhoPlaysSaysWhereThePointsGo()
+        {
+            await OeffneAsync(anna: ScoreSuggestion.Right);
+
+            var team = await RueckfrageBeimAbwaehlenAsync(teamspiel: true);
+            StringAssert.Contains(team, "bleiben die schon gebuchten Punkte beim Team", "Im Teamspiel sagt die Rückfrage nicht, wohin die Punkte gehen.");
+            Assert.IsFalse(team.Contains("aus der Wertung"), "Im Teamspiel droht die Rückfrage mit einem Verlust, den es seit R4-4 nicht gibt: " + team);
+
+            StringAssert.Contains(await RueckfrageBeimAbwaehlenAsync(teamspiel: false), "Ohne Haken fällt das aus der Wertung heraus.");
+        }
+
+        /// <summary>„Wer spielt mit?“ ohne Anna; die Rückfrage wird verneint, es bleibt alles, wie es ist.</summary>
+        private async Task<string> RueckfrageBeimAbwaehlenAsync(bool teamspiel)
+        {
+            await using (var context = new Quizzer.Logic.Context.DataContext())
+            {
+                context.Games.Single(g => g.Id == world.Game.Id).IsTeamGame = teamspiel;
+                await context.SaveChangesAsync();
+            }
+
+            var prompt = new RecordingUserPrompt(answer: false);
+            UserPrompt.Current = prompt;
+
+            var vm = new Quizzer.Views.GameViews.GamePlayersViewModel { GameId = world.Game.Id };
+            await vm.LoadForTestAsync();
+            vm.Choices.Single(c => c.Player.Id == world.Players[0].Id).IsChecked = false;
+            await ((AsyncRelayCommand)vm.ConfirmCommand).ExecuteAsync(null);
+
+            Assert.IsFalse(vm.Confirmed, "Trotz verneinter Rückfrage ging es weiter.");
+            return prompt.Confirms.Single().Message;
+        }
     }
 }
