@@ -28,13 +28,15 @@ namespace Quizzer.DataModels.Questions.Minispiele
             ArgumentNullException.ThrowIfNull(ergebnis);
             ArgumentNullException.ThrowIfNull(teamName);
 
-            var staerkster = Math.Max(1, ergebnis.Teams.Select(t => t.Zug).DefaultIfEmpty(0).Max());
+            // Am Stärksten gemessen, nicht an mindestens 1 - der Durchschnitt liegt oft darunter (M37 P6, R3-5).
+            var staerkster = ergebnis.Teams.Select(t => t.Zug).DefaultIfEmpty(0).Max();
 
             return ergebnis.Teams
                 .OrderByDescending(t => t.Zug)
                 .ThenBy(t => teamName(t.TeamId), StringComparer.CurrentCulture)
                 .Select(t => new ReaktionTafelZeile(
-                    teamName(t.TeamId), $"{t.ZugText} ({Mitzieher(t.Mitglieder)})", ende && ergebnis.IstGewinner(t.TeamId), t.Zug / staerkster))
+                    teamName(t.TeamId), $"{t.ZugText} ({Mitzieher(t.Mitglieder)})", ende && ergebnis.IstGewinner(t.TeamId),
+                    staerkster > 0 ? t.Zug / staerkster : 0))
                 .ToList();
         }
 

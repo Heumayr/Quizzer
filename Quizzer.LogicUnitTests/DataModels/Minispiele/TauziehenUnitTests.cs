@@ -174,6 +174,25 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
             Assert.AreEqual(-0.5 * TauziehenSeil.HalbeLaenge, umgekehrt.Versatz, 1e-9);
         }
 
+        /// <summary>M37 P6, R3-5: beim Durchschnitt unter einem Tipp je Mitglied ist der Balken des Stärksten trotzdem voll.</summary>
+        [TestMethod]
+        public void TheStrongestBarIsFullEvenBelowOneTapOnAverage()
+        {
+            var zuege = new Dictionary<Guid, TauziehenZug>
+            {
+                [Guid.NewGuid()] = Zug(Rot, 1),
+                [Guid.NewGuid()] = Zug(Rot, 0),
+                [Guid.NewGuid()] = Zug(Blau, 0),
+            };
+            var zeilen = TauziehenTafel.Zeilen(TauziehenEvaluator.Werte(zuege, TeamMinigameScoring.Average), id => id == Rot ? "Rot" : "Blau", ende: false);
+
+            Assert.AreEqual(("Rot", 1.0), (zeilen[0].Name, zeilen[0].BalkenAnteil), "Der Balken des Stärksten (Ø 0,5) ist nicht voll.");
+            Assert.AreEqual(0.0, zeilen[1].BalkenAnteil, 1e-9, "Wer nicht zieht, hat einen Balken.");
+
+            var keiner = TauziehenTafel.Zeilen(TauziehenEvaluator.Werte(new Dictionary<Guid, TauziehenZug> { [Guid.NewGuid()] = Zug(Rot, 0) }, TeamMinigameScoring.Average), _ => "Rot", ende: false);
+            Assert.AreEqual(0.0, keiner[0].BalkenAnteil, 1e-9, "Ohne einen Tipp ist ein Balken gefüllt.");
+        }
+
         // --- Das Profil ---
 
         // --- Die Karten ---
