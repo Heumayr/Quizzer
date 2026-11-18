@@ -283,6 +283,13 @@
                         <Button Content="Offene Teams auslosen" Command="{Binding DrawProxiesCommand}" Margin="4,10,4,0"
                                 Visibility="{Binding StellvertreterLosenVisibility}"
                                 ToolTip="Lost für jedes Team, das noch keinen Stellvertreter gewählt hat, einen aus seinen beim Start verbundenen Mitgliedern. Was schon gewählt ist, bleibt; danach beginnt das Duell." />
+                        <!-- M37 T11: Staffel - die Spielleitung hat das letzte Wort (E1): Tippfehler gelten lassen, fuer ein fehlendes Telefon weitergeben. -->
+                        <Button Content="Antwort gelten lassen" Command="{Binding RelayAcceptCommand}" Margin="4,10,4,0"
+                                Visibility="{Binding StaffelGeltenVisibility}"
+                                ToolTip="Die zuletzt abgelehnte Antwort zählt doch: Ihr Team bekommt den Teil und läuft weiter. Geht, solange danach niemand geantwortet hat – auch nach dem Ende der Staffel." />
+                        <Button Content="Für das Team weitergeben" Command="{Binding RelayPassCommand}" Margin="4,6,4,0"
+                                Visibility="{Binding StaffelWeitergebenVisibility}"
+                                ToolTip="Das Team am Zug gibt den Teil ab wie nach einem Fehler – etwa wenn das Telefon des Läufers fehlt. Danach ist das nächste Team dran." />
                         <!-- M35 C6: Bluff - zwischen den Phasen streicht der Spielleiter, was der echten Antwort zu nah ist. -->
                         <StackPanel Visibility="{Binding BluffStreichenVisibility}" Margin="4,10,4,0">
                             <TextBlock Text="Bluffs prüfen" FontWeight="Bold" />

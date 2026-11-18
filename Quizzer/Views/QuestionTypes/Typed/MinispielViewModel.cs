@@ -150,6 +150,10 @@ namespace Quizzer.Views.QuestionTypes.Typed
                            + $"{Math.Max(mindestens, minispiel?.Rounds ?? 0)} – je Runde einer). Nur das Telefon des Erklärers "
                            + "zeigt ihn; wer ihn zuerst richtig eintippt, gewinnt die Runde.";
 
+                if (Art?.Kind == MinigameKind.Relay)
+                    return $"{Zeilen.Count(z => !z.IstLeer && Art.CountsAsOption(z.Text))} Teile (mindestens {mindestens}). Gelaufen wird in "
+                           + "dieser Reihenfolge, je Teil ein Mitglied; der Server prüft die Antwort, groß und klein zählt nicht.";
+
                 if (Art?.Kind == MinigameKind.Bluff)
                     return $"{Zeilen.Count(z => !z.IstLeer && Art.CountsAsOption(z.Text))} Antworten (mindestens {mindestens}). Die "
                            + "erste ist die echte, weitere gelten als gleichwertige Schreibweisen – ein Bluff, der einer davon gleicht, "

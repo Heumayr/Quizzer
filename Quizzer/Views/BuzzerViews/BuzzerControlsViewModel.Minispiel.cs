@@ -57,6 +57,14 @@ namespace Quizzer.Views.BuzzerViews
         public Task<bool> DrawOpenProxiesAsync()
             => BuzzerController?.DrawOpenProxiesAsync() ?? Task.FromResult(false);
 
+        /// <summary>Die Spielleitung lässt in der Staffel die zuletzt abgelehnte Antwort gelten (M37 T11, E1).</summary>
+        public Task<bool> AcceptLastRelayAnswerAsync()
+            => BuzzerController?.AcceptLastRelayAnswerAsync() ?? Task.FromResult(false);
+
+        /// <summary>Die Spielleitung gibt in der Staffel für das Team am Zug weiter (M37 T11, E1).</summary>
+        public Task<bool> PassRelayAsync()
+            => BuzzerController?.PassRelayAsync() ?? Task.FromResult(false);
+
         /// <summary>Der Spielleiter legt fest, wer spielt (M35 C2, E1).</summary>
         public Task<bool> SetMinigamePairAsync(Guid chooserId, Guid? partnerId)
             => BuzzerController?.SetMinigamePairAsync(chooserId, partnerId) ?? Task.FromResult(false);
@@ -98,6 +106,7 @@ namespace Quizzer.Views.BuzzerViews
                     BluffAbgabe bluff => bluff.Phase == 1 ? "Bluff abgegeben" : "gewählt",
                     KartoffelAntwort antwort => antwort.Richtig ? "richtig – gibt gleich weiter" : "daneben",
                     KartoffelWeitergabe => "hat weitergegeben",
+                    StaffelAntwort staffel => staffel.Richtig ? $"Teil {staffel.Teil} gelöst" : $"Teil {staffel.Teil} daneben: {staffel.Text}",
                     MemoryZug zug => $"{zug.Stand.Paare} {(zug.Stand.Paare == 1 ? "Paar" : "Paare")}" + (zug.Stand.Fertig != null ? " – fertig" : string.Empty),
 
                     // M35 C2: geheime Wahlen bleiben auch hier „abgegeben" - der Beamer loest sie auf.
