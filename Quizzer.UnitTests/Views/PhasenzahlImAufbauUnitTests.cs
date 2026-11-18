@@ -152,5 +152,30 @@ namespace Quizzer.UnitTests.Views
 
             Assert.AreEqual(1, vm.SuggestedPhases, "Ein negativer Wert kommt durch.");
         }
+
+        /// <summary>
+        /// M37 P9, P7-4 (widerlegt): Spiele von vor der Phasenzahl tragen 0 (Migration <c>raisePHase</c>). Die Kopfzeile des
+        /// Spielleiters - die einzige Stelle mit „von“ - zeigt dann „Phase 1“, nicht „Phase 1 von 0“; die gespeicherte 0
+        /// bleibt. Die Schwellen bei 0 hält <c>GameUnitTests.CalculatetThreshold_WithoutSuggestedPhases_YieldsNoThresholds</c>.
+        /// </summary>
+        [TestMethod]
+        public async Task AnOldGameWithZeroPhasesShowsNoTotalInTheHeadline()
+        {
+            world.Game.SuggestedPhases = 0;
+            world.Game.ModeratorPlayerId = world.Players[0].Id;
+
+            using (var ctrl = new GamesController())
+            {
+                await ctrl.UpdateAsync(world.Game);
+                await ctrl.SaveChangesAsync();
+            }
+
+            var vm = new Quizzer.Views.GameViews.GameMasterViewModel();
+            var geladen = await vm.LoadModel(world.Game.Id);
+
+            Assert.IsNotNull(geladen, "Das Altspiel lädt nicht.");
+            Assert.AreEqual(0, geladen.SuggestedPhases, "Die gespeicherte 0 ist beim Laden verändert.");
+            Assert.AreEqual($"Phase {geladen.Phase}", vm.PhaseHeadline, "Die Kopfzeile nennt eine Gesamtzahl.");
+        }
     }
 }
