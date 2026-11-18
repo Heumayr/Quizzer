@@ -2,7 +2,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Models;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.DataModels.Models.QuestionTypes;
-using Quizzer.DataModels.Transfer.Sync;
 using Quizzer.Logic.Controller.TypedControllers;
 
 namespace Quizzer.LogicUnitTests.DataModels.Models.Base
@@ -64,14 +63,6 @@ namespace Quizzer.LogicUnitTests.DataModels.Models.Base
 
             zelle.SetDone(true, Spaeter);
             Assert.AreEqual(Spaeter, zelle.PlayedAt, "Wieder abgeschlossen, zaehlt der neue Zeitpunkt.");
-        }
-
-        [TestMethod]
-        public void ThePlayedAtColumnCameWithFormat25()
-        {
-            // Ueber eine Variable wie bei den Jokern - die Konstante direkt meldet MSTEST0032 („immer wahr").
-            var format = SyncSnapshot.CurrentFormatVersion;
-            Assert.IsTrue(format >= 25, "PlayedAt an der Zelle ohne neues Abgleichformat - ein altes WPF setzte beim Push null ein.");
         }
 
         /// <summary>„Alle Ergebnisse loeschen" setzt die Zellen zurueck - und ihren Zeitpunkt mit, sonst begaenne der neue Abend mit Stempeln.</summary>

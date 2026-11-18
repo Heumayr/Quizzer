@@ -34,6 +34,7 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// <summary>
         /// Hochzaehlen, sobald eine Spalte oder ein Typ in den Abgleich kommt, den ein aelteres WPF nicht kennt -
         /// sonst setzt dessen Push still den Standardwert ein. Der Versionsriegel (M36 A4) haelt es dann an.
+        /// Ein vergessener Sprung faellt in AbgleichformatUnitTests auf (Fingerabdruck je Format, M37 P6).
         /// 2: Game.AllowNegativeScore (M35 B1).
         /// 3: Fragetyp Minispiel - Zeilentyp MinigameQuestion (M35 B2); ein altes WPF kennt ihn nicht.
         /// 4: Minispiel-Art Reaktion (M35 B3) - neue Werte in Kind und BuzzerControlsLayout. Keine Spalte,

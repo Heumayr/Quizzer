@@ -1,7 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Models.Auth;
 using Quizzer.DataModels.Models.Base;
-using Quizzer.DataModels.Transfer.Sync;
 using Quizzer.Logic.Context;
 using Quizzer.Logic.Sync;
 
@@ -77,14 +76,6 @@ namespace Quizzer.LogicUnitTests.Logic.Sync
                 .Count(k => k.PrincipalEntityType.ClrType == typeof(GameTeam));
 
             Assert.AreEqual(2, aufTeams, "Platz und Ergebnis zeigen auf das Team.");
-        }
-
-        [TestMethod]
-        public void TheTeamsCameWithFormat26()
-        {
-            // Ueber eine Variable wie bei den Jokern - die Konstante direkt meldet MSTEST0032 („immer wahr").
-            var format = SyncSnapshot.CurrentFormatVersion;
-            Assert.IsTrue(format >= 26, "Teams ohne neues Abgleichformat - ein altes WPF nahm beim Push still jede Zuteilung heraus.");
         }
     }
 }

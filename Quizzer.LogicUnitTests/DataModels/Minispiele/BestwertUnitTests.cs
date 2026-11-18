@@ -1,7 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Questions.Minispiele;
-using Quizzer.DataModels.Transfer.Sync;
 
 namespace Quizzer.LogicUnitTests.DataModels.Minispiele
 {
@@ -114,15 +113,6 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
             Assert.AreEqual(ZockerEvaluator.Startwert, zocker.Min);
             Assert.AreEqual(ZockerEvaluator.Obergrenze, zocker.Max);
             Assert.AreEqual("×2,15", zocker.Format(215));
-        }
-
-        [TestMethod]
-        public void TheRecordColumnsCameWithFormat24()
-        {
-            // Ueber eine Variable wie bei den Jokern - die Konstante direkt meldet MSTEST0032 („immer wahr").
-            var format = SyncSnapshot.CurrentFormatVersion;
-            Assert.IsTrue(format >= 24,
-                "Rohwert und Klaus am Ergebnis ohne neues Abgleichformat - ein altes WPF setzte beim Push null und 0 ein.");
         }
     }
 }

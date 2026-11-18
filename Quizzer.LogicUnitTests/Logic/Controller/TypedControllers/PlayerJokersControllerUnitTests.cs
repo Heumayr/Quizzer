@@ -229,14 +229,6 @@ namespace Quizzer.LogicUnitTests.Logic.Controller.TypedControllers
                 "Die Sperre gegen Ben ist weg, Ben steht noch.");
         }
 
-        [TestMethod]
-        public void JokersCameWithFormat23()
-        {
-            var format = SyncSnapshot.CurrentFormatVersion;
-            Assert.IsTrue(format >= 23,
-                "Neuer Zeilentyp PlayerJoker ohne neues Abgleichformat - ein altes WPF kennt ihn nicht.");
-        }
-
         /// <summary>Je Joker-Art das Format, mit dem sie kam - eine neue Art ohne Eintrag wird hier rot.</summary>
         [TestMethod]
         public void EveryJokerKindHasAFormatThatIsNotAhead()

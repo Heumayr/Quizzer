@@ -113,14 +113,6 @@ namespace Quizzer.LogicUnitTests.DataModels.Sonderregeln
             GameExportSerializer.Pruefe(GameExportMapper.ToDocument(spiel, [], [], null, _ => null));
         }
 
-        /// <summary>Anteil und Spielweise wandern im Abgleich (Spalten) - ein altes WPF setzte sie still auf 0.</summary>
-        [TestMethod]
-        public void ShareAndVariantCameWithFormat8()
-        {
-            var format = SyncSnapshot.CurrentFormatVersion;
-            Assert.IsTrue(format >= 8, "Neue Spalten ohne neues Abgleichformat.");
-        }
-
         [TestMethod]
         public void ABundleWithAnUnknownRuleIsRejected()
         {
