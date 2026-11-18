@@ -38,8 +38,9 @@ namespace Quizzer.Server.Sync
         internal const string TeamHasResults = "Ein Team mit Ergebnissen lässt sich nicht löschen, nur umbenennen.";
 
         /// <summary>
-        /// Schließt die Löschungen ab, auch beim Admin (V09): nimmt mit, was an gelöschten Spielen hängt, und weist danach
-        /// Teams ab, an denen noch ein Ergebnis hinge (R1-1).
+        /// Schließt die Löschungen ab, auch beim Admin (V09): nimmt mit, was an gelöschten Spielen hängt, weist Teams ab, an
+        /// denen danach noch ein Ergebnis hinge (R1-1), und streicht die Abweisung jeder Zeile, die trotzdem gelöscht wird -
+        /// keine Zeile steht zugleich in <c>Rejected</c> und <c>Deleted</c> (R1-4).
         /// </summary>
         public async Task<List<SyncKey>> SettleDeletesAsync(
             IReadOnlyCollection<SyncRow> acceptedUpserts, IReadOnlyCollection<SyncKey> acceptedDeletes, SyncPushResponse response, CancellationToken ct)
@@ -52,6 +53,7 @@ namespace Quizzer.Server.Sync
                 response.Rejected.Add(new SyncRejected { Type = team.Type, Id = team.Id, Reason = SyncRejectReason.Forbidden, Message = TeamHasResults });
             }
 
+            response.Rejected.RemoveAll(r => alle.Contains(new SyncKey(r.Type, r.Id)));
             return alle;
         }
 

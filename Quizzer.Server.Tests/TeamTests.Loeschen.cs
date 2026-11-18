@@ -5,7 +5,7 @@ using Quizzer.Logic.Sync;
 
 namespace Quizzer.Server.Tests
 {
-    /// <summary>Ein Team mit Ergebnissen löschen (M37 P5): gezählt wird, was nach dem Push am Team hängt (R1-1).</summary>
+    /// <summary>Ein Team mit Ergebnissen löschen (M37 P5): gezählt wird, was nach dem Push am Team hängt (R1-1, R1-4).</summary>
     public sealed partial class TeamTests
     {
         private static QuestionResult ErgebnisVonMia(Abend abend) => new()
@@ -131,6 +131,37 @@ namespace Quizzer.Server.Tests
 
             AssertRejected(result, abend.Rot.Id, SyncRejectReason.Forbidden, "Rot ging, obwohl das Ergebnis seinen Stempel behält.");
             Assert.AreEqual(abend.Rot.Id, StempelAmServer(await SnapshotAsync(abend.Gina), ergebnis.Id), "Das Ergebnis hat seinen Stempel verloren.");
+        }
+
+        /// <summary>
+        /// R1-4: ein Teamspiel gelöscht, am Server hängt ein Ergebnis eines anderen Geräts an Rot. Das Spiel nimmt Rot samt
+        /// Ergebnis mit - Rot steht nur in <c>Deleted</c>, nie zugleich in <c>Rejected</c>; auch nicht, wenn Rot inzwischen
+        /// anderswo umbenannt wurde (veralteter Hash).
+        /// </summary>
+        [TestMethod]
+        [DataRow(false, DisplayName = "Hash aktuell")]
+        [DataRow(true, DisplayName = "Team inzwischen umbenannt")]
+        public async Task ADeletedTeamGameTakesItsTeamWithoutAPhantomRejection(bool umbenannt)
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var abend = await AbendAsync(factory);
+            var fremd = ErgebnisVonMia(abend);
+            Assert.AreEqual(0, (await PushAsync(abend.Gina, new SyncPushRequest { Upserts = [SyncTestData.New(fremd)] })).Rejected.Count);
+            var teamHash = await HashAsync(abend.Gina, abend.Rot.Id);
+
+            if (umbenannt)
+            {
+                abend.Rot.Name = "Feuer";
+                Assert.AreEqual(0, (await PushAsync(abend.Gina, new SyncPushRequest { Upserts = [SyncTestData.Changed(abend.Rot, teamHash)] })).Rejected.Count);
+            }
+
+            var result = await PushAsync(abend.Gina, new SyncPushRequest
+            {
+                Deletes = [Loeschen(nameof(Game), abend.A.Game.Id, await HashAsync(abend.Gina, abend.A.Game.Id)), Loeschen(nameof(GameTeam), abend.Rot.Id, teamHash)],
+            });
+
+            Assert.IsTrue(result.Deleted.Any(d => d.Id == abend.Rot.Id), "Rot ging nicht mit dem Spiel.");
+            Assert.AreEqual(0, result.Rejected.Count, "Phantom-Abweisung: " + string.Join("; ", result.Rejected.Select(r => $"{r.Id} {r.Reason} {r.Message}")));
         }
     }
 }
