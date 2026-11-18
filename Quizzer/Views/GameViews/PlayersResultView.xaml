@@ -7,10 +7,9 @@
         xmlns:sub="clr-namespace:Quizzer.Views.GameViews.Sub"
         xmlns:base="clr-namespace:Quizzer.Base"
         mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=local:PlayersResultViewModel}"
         Title="{Binding WindowTitle}" Height="700" Width="1100">
-    <base:WindowBase.DataContext>
-        <local:PlayersResultViewModel></local:PlayersResultViewModel>
-    </base:WindowBase.DataContext>
+    <!-- P10-2: kein eigenes ViewModel als DataContext - das Fragefenster reicht seines herein; ein zweites hing an Loaded und Closed mit. -->
     <!-- M11: alle Kuerzel mit Strg - die Karten haben ein Zahlenfeld, in das sonst getippt wuerde. -->
     <base:WindowBase.InputBindings>
         <KeyBinding Modifiers="Control" Key="R" Command="{Binding QuickRightCommand}" />
