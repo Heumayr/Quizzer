@@ -15,7 +15,17 @@ namespace Quizzer.Views.GameViews
 
         /// <summary>Aus <see cref="SetCoordinateAsync"/>: die frisch gelesenen Zeilen sind der Stand vom Öffnen.</summary>
         private void MerkeStandBeimOeffnen()
-            => beimOeffnen = Coordinate is { } zelle ? LetzteWertung.Merke(zelle.Game, zelle, Results) : null;
+        {
+            beimOeffnen = Coordinate is { } zelle ? LetzteWertung.Merke(zelle.Game, zelle, Results) : null;
+            MerkeGespeicherteHaekchen();
+        }
+
+        /// <summary>Beim Öffnen und nach jedem gelungenen Speichern: das Häkchen ist ab hier nicht mehr offen (P10-1).</summary>
+        private void MerkeGespeicherteHaekchen()
+        {
+            foreach (var karte in PlayerResultContextList)
+                karte.MerkeGespeichertesHaekchen();
+        }
 
         /// <summary>Ob seit dem Öffnen an einer Zeile dieser Zelle gebucht wurde.</summary>
         public bool HatGebucht => beimOeffnen?.HatGebucht(Results) == true;

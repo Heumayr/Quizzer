@@ -237,6 +237,7 @@ namespace Quizzer.Views.GameViews
                 }
 
                 await ctrl.SaveChangesAsync();
+                MerkeGespeicherteHaekchen(); // P10-1
 
                 foreach (var ctx in PlayerResultContextList)
                 {
@@ -279,12 +280,13 @@ namespace Quizzer.Views.GameViews
         }
 
         /// <summary>
-        /// Ob eine Bewertung gesetzt, aber noch nicht geschrieben ist. Ein „eigener Wert" von 0
-        /// zählt nicht - er änderte nichts außer dem Korrekturzähler.
+        /// Ob eine Bewertung gesetzt, aber noch nicht geschrieben ist - auch das Häkchen „Richtig beantwortet“ allein (P10-1).
+        /// Ein „eigener Wert" von 0 zählt nicht - er änderte nichts außer dem Korrekturzähler.
         /// </summary>
         public bool HatOffeneBewertungen => PlayerResultContextList.Any(c =>
             c.Suggestion is PlayerResultContext.ScoreSuggestion.Right or PlayerResultContext.ScoreSuggestion.Wrong
-            || (c.Suggestion == PlayerResultContext.ScoreSuggestion.Correction && c.CurrentScoreManipulation != 0));
+            || (c.Suggestion == PlayerResultContext.ScoreSuggestion.Correction && c.CurrentScoreManipulation != 0)
+            || c.HaekchenOffen);
 
         /// <summary>
         /// Schreibt beim Schließen, was gesetzt, aber nicht gespeichert ist (2026-10-22, Nutzerwunsch
