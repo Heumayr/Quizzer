@@ -121,7 +121,7 @@ namespace Quizzer.LogicUnitTests.DataModels.Teams
             Assert.AreEqual(500, spiel.Kontostand(anna.PlayerId), "Am Spieler bleiben die Punkte trotzdem.");
         }
 
-        /// <summary>Gleichstand teilt den Platz (1, 1, 3); ein leeres Team steht mit 0 in der Rangfolge.</summary>
+        /// <summary>Gleichstand teilt den Platz (1, 1, 3, 4); ein besetztes Team ohne Punkte steht mit 0 in der Rangfolge.</summary>
         [TestMethod]
         public void ATieSharesThePlace()
         {
@@ -131,6 +131,7 @@ namespace Quizzer.LogicUnitTests.DataModels.Teams
             Buche(Setze("Anna", blau), 300, blau.Id);
             Buche(Setze("Bert", rot), 300, rot.Id);
             Buche(Setze("Carl", gelb), 100, gelb.Id);
+            Setze("Dora", gruen);
 
             var rangfolge = Teamwertung.Rangfolge(spiel);
 
