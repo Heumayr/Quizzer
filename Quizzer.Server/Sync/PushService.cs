@@ -40,7 +40,7 @@ namespace Quizzer.Server.Sync
                 foreach (var upsert in request.Upserts)
                 {
                     var row = upsert.Row;
-                    var problem = store.Validate(row) ?? SyncDateifelder.Pruefe(row) ?? TeamRowCheck.Pruefe(row)
+                    var problem = store.Validate(row) ?? SyncDateifelder.Pruefe(row) ?? TeamRowCheck.Pruefe(row) ?? PunkteRowCheck.Pruefe(row)
                         ?? await ResultRecordCheck.CheckAsync(row, store.Context, acceptedUpserts, ct);
 
                     if (problem != null)

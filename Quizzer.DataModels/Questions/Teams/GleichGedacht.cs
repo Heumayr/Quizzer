@@ -56,7 +56,8 @@ namespace Quizzer.DataModels.Questions.Teams
                 .ThenBy(g => mitglieder.IndexOf(g.Mitglieder[0]))
                 .ToList();
 
-            var aufgeteilt = Aufteilung.Verteile(feldwert, mitglieder);
+            // R3-3: ein negativer Feldwert bringt nichts - wie die Siegerteam-Arten; ein Minus gibt es hier nicht.
+            var aufgeteilt = Aufteilung.Verteile(Math.Max(0, feldwert), mitglieder);
             var anteile = ergebnis.Where(g => g.Zaehlt).SelectMany(g => g.Mitglieder).ToDictionary(m => m, m => aufgeteilt[m]);
 
             return new(ergebnis, anteile);

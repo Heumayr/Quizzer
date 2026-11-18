@@ -1,3 +1,4 @@
+using Quizzer.DataModels.Questions;
 using Quizzer.DataModels.Questions.Sonderregeln;
 using Quizzer.DataModels.Questions.Teams;
 using System.Text.Json;
@@ -158,6 +159,38 @@ namespace Quizzer.DataModels.Transfer
             }
 
             PruefeTeams(dokument);
+            PruefePunkte(dokument);
+        }
+
+        /// <summary>R3-3: Punkte-Parameter nie negativ - nach <see cref="Punktegrenzen"/>, wie am Server und in der Maske.</summary>
+        private static void PruefePunkte(GameExportDocument dokument)
+        {
+            var spiel = dokument.Spiel;
+            var werte = new Dictionary<string, double>
+            {
+                [nameof(spiel.DifficultyMultiplier)] = spiel.DifficultyMultiplier,
+                [nameof(spiel.DifficultyAddition)] = spiel.DifficultyAddition,
+                [nameof(spiel.DifficultyMinusMultiplier)] = spiel.DifficultyMinusMultiplier,
+                [nameof(spiel.DifficultyMinusAddition)] = spiel.DifficultyMinusAddition,
+                [nameof(spiel.PhaseMultiplier)] = spiel.PhaseMultiplier,
+                [nameof(spiel.PhaseAddition)] = spiel.PhaseAddition,
+            };
+
+            // Ein Feld, das hier fehlt, wirft (KeyNotFoundException) - nie still ungeprüft.
+            foreach (var (feld, beschriftung) in Punktegrenzen.SpielFelder)
+            {
+                if (Punktegrenzen.Problem(beschriftung, werte[feld]) is { } problem)
+                    throw new InvalidDataException($"Spiel: {problem}");
+            }
+
+            for (var i = 0; i < dokument.Fragen.Count; i++)
+            {
+                var frage = dokument.Fragen[i];
+
+                if ((Punktegrenzen.Problem(Punktegrenzen.FrageFelder[nameof(frage.Points)], frage.Points)
+                    ?? Punktegrenzen.Problem(Punktegrenzen.FrageFelder[nameof(frage.MinusPoints)], frage.MinusPoints)) is { } problem)
+                    throw new InvalidDataException($"Frage {i + 1}: {problem}");
+            }
         }
 
         /// <summary>Teameinstellungen und Teams (M37 T1) nach denselben Grenzen wie am Server (<see cref="TeamGrenzen"/>).</summary>

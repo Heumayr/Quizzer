@@ -173,5 +173,17 @@ namespace Quizzer.LogicUnitTests.DataModels.Teams
             Assert.AreEqual(0, GleichGedacht.Werte(300, [], new Dictionary<Guid, string?>()).Gruppen.Count);
             Assert.IsTrue(geprueft > 300);
         }
+
+        /// <summary>R3-3: ein negativer Feldwert (Altbestand, fremdes Bündel) bringt nichts - „Gleich gedacht" kennt kein Minus.</summary>
+        [TestMethod]
+        public void ANegativeFieldValueBringsNothingNotAMinus()
+        {
+            var team = Ids(3);
+
+            var ergebnis = GleichGedacht.Werte(-300, team, Antworten(team, "Paris", "Paris", "Rom"));
+
+            CollectionAssert.AreEquivalent(new[] { team[0], team[1] }, ergebnis.Anteile.Keys.ToArray(), "Das Paar zählt nicht mehr.");
+            Assert.IsTrue(ergebnis.Anteile.Values.All(a => a == 0), "Gleich gedacht teilt Minus aus: " + string.Join(", ", ergebnis.Anteile.Values));
+        }
     }
 }

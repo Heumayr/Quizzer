@@ -43,9 +43,10 @@ namespace Quizzer.DataModels.Questions.Teams
 
             var offen = pflichtig.Count(b => b != RatingKind.Right);
 
+            // R3-3: „richtig" bringt nie ein Minus, auch bei negativem Feldwert - wie die Siegerteam-Arten.
             return offen > 0
                 ? new(RatingKind.None, new Dictionary<Guid, int>(), offen)
-                : new(RatingKind.Right, Aufteilung.Verteile(feldwert, mitglieder), 0);
+                : new(RatingKind.Right, Aufteilung.Verteile(Math.Max(0, feldwert), mitglieder), 0);
         }
     }
 }

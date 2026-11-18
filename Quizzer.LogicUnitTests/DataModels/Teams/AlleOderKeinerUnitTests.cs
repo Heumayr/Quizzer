@@ -127,5 +127,18 @@ namespace Quizzer.LogicUnitTests.DataModels.Teams
                 Assert.AreEqual(summe == 0 ? 0 : groesse, ergebnis?.Anteile.Count ?? 0, "Nicht jedes Mitglied hat seinen Anteil. " + fall);
             }
         }
+
+        /// <summary>R3-3: ein negativer Feldwert (Altbestand, fremdes Bündel) macht aus „alle richtig" kein Minus - wie die Siegerteam-Arten.</summary>
+        [TestMethod]
+        public void ANegativeFieldValueMakesAllRightNoMinus()
+        {
+            var team = Ids(3);
+
+            var ergebnis = AlleOderKeiner.Werte(-300, 60, team, Niemand, Bewertet(team, RatingKind.Right, RatingKind.Right, RatingKind.Right));
+
+            Assert.IsNotNull(ergebnis);
+            Assert.AreEqual(RatingKind.Right, ergebnis.Bewertung);
+            Assert.IsTrue(ergebnis.Anteile.Values.All(a => a == 0), "Alle richtig kostet Punkte: " + string.Join(", ", ergebnis.Anteile.Values));
+        }
     }
 }
