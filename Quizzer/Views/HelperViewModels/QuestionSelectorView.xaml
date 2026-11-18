@@ -32,6 +32,9 @@
                 <Button Content="Auswahl entfernen"
                         ToolTip="Nimmt die Frage von dieser Zelle. Die Zelle bleibt leer, die Frage bleibt bestehen." Command="{Binding DeselectCommand}" Style="{StaticResource DangerButton}" />
             </StackPanel>
+            <!-- M37 P1, V23: eine Teamart auf der Zelle eines Spiels ohne Teams bleibt liegen und wird benannt. -->
+            <TextBlock Text="{Binding TeamartHinweis}" Visibility="{Binding TeamartHinweisVisibility}" Margin="10,0,5,5"
+                       Opacity="0.8" TextWrapping="Wrap" />
             <!-- M35 C3: Sonderregel dieser Zelle - nur fuer gewoehnliche Fragen. -->
             <StackPanel Orientation="Horizontal" Margin="5">
                 <Label MinWidth="120" Content="Sonderregel:" VerticalAlignment="Center" />

@@ -114,6 +114,19 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
                 Assert.AreEqual(0, MinigameChecks.OhneTeamspiel(Profil(wertung)).Count(), $"Wertung {(int)wertung} ohne Teamspiel abgewiesen.");
         }
 
+        /// <summary>M37 P1, V23: die Frageauswahl bietet genau an, was der Spielstart nicht meldet - mit und ohne Teams (zwei besetzt).</summary>
+        [TestMethod]
+        public void TheSelectionOffersExactlyWhatTheStartAccepts()
+        {
+            foreach (var wertung in Enum.GetValues<MinispielTeamwertung>().Append((MinispielTeamwertung)42))
+            {
+                var profil = Profil(wertung);
+
+                Assert.AreEqual(!MinigameChecks.OhneTeamspiel(profil).Any(), profil.PasstZu(teamspiel: false), $"Wertung {(int)wertung} ohne Teamspiel.");
+                Assert.AreEqual(!MinigameChecks.ForTeams(profil, 2).Any(), profil.PasstZu(teamspiel: true), $"Wertung {(int)wertung} im Teamspiel.");
+            }
+        }
+
         /// <summary>M37 T9: für eine Teamart zählen nur besetzte Teams - wer ohne Team ist, ist dort kein Gegner, sondern spielt nicht mit.</summary>
         [TestMethod]
         public void OnlyOccupiedTeamsCountForATeamKind()

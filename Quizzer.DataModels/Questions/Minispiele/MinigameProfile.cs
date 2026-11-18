@@ -148,6 +148,17 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// </summary>
         public int? TwoTeamsOnlyVariant { get; init; }
 
+        /// <summary>
+        /// Ob die Art im Spiel mit oder ohne Teams gespielt wird - wie <c>SpecialRuleProfile.PasstZu</c>, für die Frageauswahl
+        /// im Spielaufbau (M37 P1, V23). Unbekanntes wie <see cref="MinispielTeamwertung.NichtImTeamspiel"/> (fail-closed).
+        /// </summary>
+        public bool PasstZu(bool teamspiel) => TeamScoring switch
+        {
+            MinispielTeamwertung.Zusammengefasst or MinispielTeamwertung.JePerson => true,
+            MinispielTeamwertung.NurImTeamspiel => teamspiel,
+            _ => !teamspiel,
+        };
+
         /// <summary>Die Spielweise zum gespeicherten Index; ein unbekannter faellt auf die Vorgabe.</summary>
         public MinigameVariant VariantFor(int variant)
             => variant >= 0 && variant < Variants.Count ? Variants[variant] : Variants[0];

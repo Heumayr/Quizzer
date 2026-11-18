@@ -40,6 +40,7 @@ namespace Quizzer.Views.HelperViewModels
                 OnPropertyChanged(nameof(SelectedQuestion));
                 OnPropertyChanged(nameof(CurrentSelectedQuestionDisplay));
                 SonderregelGeaendert();
+                TeamartGeaendert();
             }
         }
 
@@ -81,6 +82,7 @@ namespace Quizzer.Views.HelperViewModels
             OnPropertyChanged(nameof(SelectedQuestion));
             OnPropertyChanged(nameof(CurrentSelectedQuestionDisplay));
             SonderregelGeaendert();
+            TeamartGeaendert();
         }
 
         public override async Task VMSaveAsync()
@@ -120,7 +122,7 @@ namespace Quizzer.Views.HelperViewModels
                 .ToHashSet() ?? new HashSet<Guid>();
 
             var choices = AllQuestion
-                .Where(q => q.Id != Guid.Empty && !used.Contains(q.Id))
+                .Where(q => q.Id != Guid.Empty && !used.Contains(q.Id) && PasstZumSpiel(q))
                 .ToList();
 
             //if (SelectedQuestion != null && !choices.Contains(SelectedQuestion))
