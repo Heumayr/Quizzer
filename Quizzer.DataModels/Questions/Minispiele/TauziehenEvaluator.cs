@@ -121,8 +121,9 @@ namespace Quizzer.DataModels.Questions.Minispiele
                 .ToList();
 
             // Ein Gleichstand im Durchschnitt (10 auf drei, 20 auf sechs) bleibt einer: die Division rundet beide gleich.
+            // R3-2: ohne Gegner gewinnt niemand - wie bei Staffel und Stellvertreter-Duell, sonst wären die Punkte geschenkt.
             var vorn = teams
-                .Where(t => t.Zug > 0 && teams.All(anderes => t.Zug >= anderes.Zug))
+                .Where(t => teams.Count > 1 && t.Zug > 0 && teams.All(anderes => t.Zug >= anderes.Zug))
                 .Select(t => t.TeamId)
                 .ToHashSet();
 

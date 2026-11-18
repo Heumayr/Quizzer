@@ -116,6 +116,18 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
             Assert.AreEqual(0, TauziehenEvaluator.Werte(zuege, (TeamMinigameScoring)42).Gewinner.Count, "Eine unbekannte Wertung hat einen Sieger.");
         }
 
+        /// <summary>R3-2: zieht nur ein Team (alle Gegner beim Start getrennt), gewinnt niemand - wie bei Staffel und Stellvertreter-Duell.</summary>
+        [TestMethod]
+        public void ATeamAloneWinsNothing()
+        {
+            var allein = new Dictionary<Guid, TauziehenZug> { [Guid.NewGuid()] = Zug(Rot, 30), [Guid.NewGuid()] = Zug(Rot, 12) };
+
+            var ergebnis = TauziehenEvaluator.Werte(allein, TeamMinigameScoring.Sum);
+
+            Assert.AreEqual(0, ergebnis.Gewinner.Count, "Ein Team allein hat das Tauziehen gewonnen.");
+            Assert.AreEqual(42, ergebnis.Teams.Single().Tipps, "Das eine Team fehlt auf der Tafel.");
+        }
+
         // --- Das Seil ---
 
         [TestMethod]
