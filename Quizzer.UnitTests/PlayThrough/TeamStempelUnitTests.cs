@@ -86,9 +86,27 @@ namespace Quizzer.UnitTests.PlayThrough
             Assert.AreEqual(blau.Id, stempel[world.Players[1].Id], "Spieler 2 trägt nicht den Stempel seines Teams.");
         }
 
-        /// <summary>F-M37-07: umsetzen und die Zelle erneut öffnen - der alte Stempel bleibt.</summary>
+        /// <summary>F-M37-07: gebucht, umgesetzt, die Zelle erneut geöffnet - der alte Stempel bleibt, die Punkte bleiben bei Rot.</summary>
         [TestMethod]
-        public async Task MovingAPlayerLaterLeavesTheOldStamp()
+        public async Task MovingAPlayerAfterABookingLeavesTheOldStamp()
+        {
+            var vm = new TestableCurrentQuestionViewModel { Coordinate = world.Coordinate };
+            await vm.LoadForTestAsync();
+            vm.PlayersResultViewModel!.PlayerResultContextList.Single(k => k.Player.Id == world.Players[0].Id).Suggestion =
+                Quizzer.Views.GameViews.Sub.PlayerResultContext.ScoreSuggestion.Right;
+            Assert.IsTrue(await vm.PlayersResultViewModel.TrySaveAsync(), "Das Buchen scheiterte.");
+            Assert.AreEqual(rot.Id, (await StempelAsync())[world.Players[0].Id], "Vor dem Umsetzen fehlt der Stempel - dann misst der Test nichts.");
+
+            await SetzeAsync(world.Players[0], blau);
+            var aufDerKarte = await OeffneZelleAsync(world.Players[0]);
+
+            Assert.AreEqual(rot.Id, (await StempelAsync())[world.Players[0].Id], "Das Umsetzen hat den Stempel einer gebuchten Zeile in der Datenbank überschrieben.");
+            Assert.AreEqual(rot.Id, aufDerKarte, "Die Karte trägt nach dem Umsetzen das neue Team - die Wertung schriebe es fest, die Punkte wanderten mit.");
+        }
+
+        /// <summary>R4-3: nur angesehen (keine Buchung), umgesetzt, erneut geöffnet - die Zeile bekommt den Stempel des neuen Teams.</summary>
+        [TestMethod]
+        public async Task MovingAPlayerAfterOnlyViewingGivesTheNewStamp()
         {
             await OeffneZelleAsync(world.Players[0]);
             Assert.AreEqual(rot.Id, (await StempelAsync())[world.Players[0].Id], "Vor dem Umsetzen fehlt der Stempel - dann misst der Test nichts.");
@@ -96,8 +114,9 @@ namespace Quizzer.UnitTests.PlayThrough
             await SetzeAsync(world.Players[0], blau);
             var aufDerKarte = await OeffneZelleAsync(world.Players[0]);
 
-            Assert.AreEqual(rot.Id, (await StempelAsync())[world.Players[0].Id], "Das Umsetzen hat den alten Stempel in der Datenbank überschrieben.");
-            Assert.AreEqual(rot.Id, aufDerKarte, "Die Karte trägt nach dem Umsetzen das neue Team - die Wertung schriebe es fest, die Punkte wanderten mit.");
+            Assert.AreEqual(blau.Id, (await StempelAsync())[world.Players[0].Id], "Die leere Zeile behält in der Datenbank den alten Stempel.");
+            Assert.AreEqual(blau.Id, aufDerKarte, "Die Karte trägt ohne Buchung das alte Team.");
+            Assert.AreEqual(blau.Id, (await StempelAsync())[world.Players[1].Id], "Der nicht umgesetzte Spieler hat seinen Stempel verloren.");
         }
 
         /// <summary>Ohne Teamspiel bleibt der Stempel leer, auch wenn Teams und Zuteilung noch dastehen.</summary>
