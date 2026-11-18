@@ -258,6 +258,36 @@ for (const trueFalse of [false, true]) {
     pruefe(t()[0].classList.contains("selected"), `${art}: nach der Abgabe aendert ein Klick die sichtbare Auswahl.`);
 }
 
+// --- P10-4 (M37 P11): die Stimme nennt die Runde, die das Telefon gerade sieht - eine alte verwirft der Server ---
+{
+    const wurzel5 = baueDom().wurzel;
+    const gesendet = [];
+    const runde = new KeySelectLayout({ submitSelection: async p => { gesendet.push(p); } });
+    const taste = () => wurzel5.querySelectorAll(".key-btn")[0];
+
+    runde.render(wurzel5, zustand(7));
+    taste().click();
+    await runde.handleCommitClick();
+
+    runde.update(zustand(8)); // dieselbe Frage: die Wahl bleibt vorgewählt
+    if (!taste().classList.contains("selected")) taste().click();
+    await runde.handleCommitClick();
+
+    pruefe(gesendet.map(p => p.resetCount).join(",") === "7,8",
+        "Die Stimme nennt nicht die Runde, die das Telefon sah (resetCount): " + JSON.stringify(gesendet));
+
+    // Kommt die neue Runde, bevor der Aufruf zurück ist, zählt die Wahl dort nicht - die Tasten bleiben frei.
+    const wurzel6 = baueDom().wurzel;
+    const spaet = new KeySelectLayout({ submitSelection: async () => spaet.update(zustand(9)) });
+    spaet.render(wurzel6, zustand(8));
+    wurzel6.querySelectorAll(".key-btn")[0].click();
+    await spaet.handleCommitClick();
+
+    pruefe(spaet.submitted === false, "Nach einer neuen Runde während des Sendens gilt die Wahl als abgegeben - der Server hat nichts.");
+    pruefe([...wurzel6.querySelectorAll(".key-btn")].every(x => x.disabled === false),
+        "Nach einer neuen Runde während des Sendens sind die Tasten gesperrt.");
+}
+
 if (fehler > 0) {
     console.error(`${fehler} Zusicherung(en) rot.`);
     process.exit(1);

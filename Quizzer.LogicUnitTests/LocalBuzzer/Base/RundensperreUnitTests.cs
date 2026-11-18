@@ -33,7 +33,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             var geschlossen = false;
 
             // Angehalten nach dem Lesen der Marke, vor dem Eintragen - dort greift die Spielleitung ein.
-            var abgabe = Task.Run(() => zustand.TrySubmit(() =>
+            var abgabe = Task.Run(() => zustand.TrySubmit(null, () =>
             {
                 drinnen.Set();
                 weiter.Wait(frist);

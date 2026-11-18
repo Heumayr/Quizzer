@@ -354,9 +354,11 @@
             ? [...this.urteile.entries()].filter(([, wahr]) => wahr).map(([key]) => key).sort()
             : [...this.selectedKeys];
 
+        // P10-4: die Runde, für die abgegeben wird - eine schon zurückgesetzte verwirft der Server.
         const payload = {
             selectedKeys: keys,
-            committedResult: true
+            committedResult: true,
+            resetCount: this.lastContext.resetCount
         };
 
         this.setLocked(true);
@@ -368,6 +370,16 @@
 
             if (typeof window.show_toast === "function") {
                 window.show_toast("error", e?.message ?? "Speichern fehlgeschlagen");
+            }
+
+            return;
+        }
+
+        // Kam beim Senden eine neue Runde, zählt die Wahl dort nicht - verworfen oder mit der alten geräumt (P10-4).
+        // Die neue Runde hat das Layout schon neu gebaut; gesperrt bleibt nichts.
+        if (this.lastContext.resetCount !== payload.resetCount) {
+            if (typeof window.show_toast === "function") {
+                window.show_toast("warning", "Neue Runde – bitte noch einmal wählen");
             }
 
             return;

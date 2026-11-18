@@ -145,14 +145,24 @@ export class InputLayout {
         }
 
         this.commitBtn.disabled = true;
+        const runde = this.lastContext.resetCount;
 
         try {
+            // P10-4: die Runde, für die abgegeben wird - eine schon zurückgesetzte verwirft der Server.
             await this.actions.submitInput({
-                value
+                value,
+                resetCount: runde
             });
         } catch {
             // Fehler hat index.js schon gemeldet; hier nur den Knopf wieder freigeben.
             this.commitBtn.disabled = this.locked;
+            return;
+        }
+
+        // Kam beim Senden eine neue Runde, zählt die Abgabe dort nicht - verworfen oder mit der alten geräumt (P10-4).
+        if (this.lastContext.resetCount !== runde) {
+            this.commitBtn.disabled = this.locked;
+            toast("warning", "Neue Runde – bitte noch einmal abgeben");
             return;
         }
 

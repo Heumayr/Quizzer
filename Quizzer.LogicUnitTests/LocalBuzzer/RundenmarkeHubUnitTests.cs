@@ -14,6 +14,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
     /// <summary>
     /// Die Runde, für die eine Abgabe gilt (Durchsicht M37, P11). P10-3: kommt „Runde zurücksetzen“, nachdem die letzte Abgabe
     /// die Runde geschlossen hat, aber bevor der Hub sie auflöst, bleibt die neue Runde offen und wird nicht leer aufgelöst.
+    /// P10-4: eine Abgabe, die das Telefon für eine schon zurückgesetzte Runde schickt, zählt nicht in der neuen.
     /// Deterministisch: das Zurücksetzen läuft im Abnehmer der Einzelabgabe am Ereignisbus, also mitten im Fenster.
     /// </summary>
     [TestClass]
@@ -132,6 +133,46 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             Assert.IsFalse(zustand.BuzzerKeySelector.Locked || zustand.AllLocked, "Die neue Runde ist nach dem Zurücksetzen geschlossen.");
             lock (aufgeloest)
                 Assert.AreEqual(0, aufgeloest.Count, $"Nach dem Zurücksetzen wurde aufgelöst ({string.Join(", ", aufgeloest)} Stimmen).");
+        }
+
+        [TestMethod]
+        public async Task AnInputForAResetRoundDoesNotCountInTheNewOne()
+        {
+            var a = await VerbindeAsync(anna);
+            var angekommen = new List<string>();
+            Steuerung.EventBus.PlayerSubmittedInput += tipp => { lock (angekommen) angekommen.Add(tipp.Value); };
+
+            await Steuerung.ResetRoundAsync(1, BuzzerControlsLayout.Input);
+            var gesehen = Steuerung.StateManager.ResetCount;
+            await Steuerung.ResetRoundAsync(1, BuzzerControlsLayout.Input);
+
+            await a.InvokeAsync("SubmitInput", new { value = "41", resetCount = gesehen });
+            Assert.IsFalse(Steuerung.StateManager.BuzzerInputState.InputsForPlayer.ContainsKey(anna.Id), "Der Tipp für die alte Runde zählt in der neuen.");
+
+            await a.InvokeAsync("SubmitInput", new { value = "42", resetCount = Steuerung.StateManager.ResetCount });
+            Assert.AreEqual("42", Steuerung.StateManager.BuzzerInputState.InputsForPlayer[anna.Id].Value, "Der Tipp für die laufende Runde kam nicht an.");
+            lock (angekommen)
+                CollectionAssert.AreEqual(new[] { "42" }, angekommen, "Die Spielleitung hörte vom Tipp der alten Runde.");
+        }
+
+        [TestMethod]
+        public async Task AVoteForAResetRoundDoesNotCountInTheNewOne()
+        {
+            var a = await VerbindeAsync(anna);
+            var angekommen = new List<string>();
+            Steuerung.EventBus.PlayerSelectedKeys += stimme => { lock (angekommen) angekommen.Add(string.Join("", stimme.SelectedKeys)); };
+
+            await Steuerung.ResetRoundAsync(1, BuzzerControlsLayout.KeySelect);
+            var gesehen = Steuerung.StateManager.ResetCount;
+            await Steuerung.ResetRoundAsync(1, BuzzerControlsLayout.KeySelect);
+
+            await a.InvokeAsync("SelectionResults", new { selectedKeys = new[] { "A" }, resetCount = gesehen });
+            Assert.IsFalse(Steuerung.StateManager.BuzzerKeySelector.KeyResultsForPlayer.ContainsKey(anna.Id), "Die Stimme für die alte Runde zählt in der neuen.");
+
+            await a.InvokeAsync("SelectionResults", new { selectedKeys = new[] { "B" }, resetCount = Steuerung.StateManager.ResetCount });
+            CollectionAssert.AreEqual(new[] { "B" }, Steuerung.StateManager.BuzzerKeySelector.KeyResultsForPlayer[anna.Id].SelectedKeys, "Die Stimme für die laufende Runde kam nicht an.");
+            lock (angekommen)
+                CollectionAssert.AreEqual(new[] { "B" }, angekommen, "Die Spielleitung hörte von der Stimme der alten Runde.");
         }
     }
 }

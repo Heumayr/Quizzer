@@ -57,6 +57,9 @@ namespace LocalBuzzer.Service.Base.States
             public string Value { get; set; } = string.Empty;
 
             public bool CommittedResult { get; set; }
+
+            /// <summary>Der Rücksetzstand, den das Telefon beim Abgeben sah (P10-4) - <c>resetCount</c> in <c>inputLayout.js</c>.</summary>
+            public int? ResetCount { get; set; }
         }
 
         public BuzzerInputInfo Infos { get; set; } = new();

@@ -54,6 +54,9 @@ namespace LocalBuzzer.Service.Base.States
             public Player? Player { get; set; }
             public List<string> SelectedKeys { get; set; } = new();
             public bool CommittedResult { get; set; }
+
+            /// <summary>Der Rücksetzstand, den das Telefon beim Abgeben sah (P10-4) - <c>resetCount</c> in <c>keySelectLayout.js</c>.</summary>
+            public int? ResetCount { get; set; }
         }
 
         public BuzzerKeySelectorInfo Infos { get; set; } = new();

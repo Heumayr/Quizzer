@@ -147,13 +147,15 @@ namespace LocalBuzzer.Service.Base
         /// <summary>
         /// Gibt eine Abgabe in die laufende Runde. <paramref name="resetCount"/> ist die Runde, in der <paramref name="submit"/>
         /// lief - für <see cref="LockRound"/>; ein Zurücksetzen wartet, bis sie durch ist (P10-3).
+        /// <paramref name="seenResetCount"/> ist die Runde, die das Telefon gesehen hat (P10-4): eine schon zurückgesetzte wird
+        /// verworfen. Ohne Marke (eine ältere Seite) gilt die laufende.
         /// </summary>
-        public bool TrySubmit(Func<bool> submit, out int resetCount)
+        public bool TrySubmit(int? seenResetCount, Func<bool> submit, out int resetCount)
         {
             lock (rundenSperre)
             {
                 resetCount = ResetCount;
-                return submit();
+                return (seenResetCount is not { } gesehen || gesehen == resetCount) && submit();
             }
         }
 

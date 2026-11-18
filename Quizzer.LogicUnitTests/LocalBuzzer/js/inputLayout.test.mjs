@@ -77,6 +77,34 @@ pruefe(feld().value === "",
 pruefe(knopf().textContent === "Eingabe bestätigen",
     "Der Knopf traegt weiter die alte Beschriftung: " + knopf().textContent);
 
+// --- P10-4 (M37 P11): die Abgabe nennt die Runde, die das Telefon gerade sieht - eine alte verwirft der Server ---
+{
+    const wurzel2 = baueDom().wurzel;
+    const gesendet = [];
+    const runde = new InputLayout({ submitInput: async p => { gesendet.push(p); } });
+
+    runde.render(wurzel2, zustand(7));
+    wurzel2.querySelector(".input-field").value = "12";
+    await runde.handleCommitClick();
+
+    runde.update(zustand(8));
+    wurzel2.querySelector(".input-field").value = "13";
+    await runde.handleCommitClick();
+
+    pruefe(gesendet.map(p => p.resetCount).join(",") === "7,8",
+        "Die Abgabe nennt nicht die Runde, die das Telefon sah (resetCount): " + JSON.stringify(gesendet));
+
+    // Kommt die neue Runde, bevor der Aufruf zurück ist, zählt die Abgabe dort nicht - das Telefon sagt nicht „Abgegeben“.
+    const spaet = new InputLayout({ submitInput: async () => spaet.update(zustand(9)) });
+    const wurzel3 = baueDom().wurzel;
+    spaet.render(wurzel3, zustand(8));
+    wurzel3.querySelector(".input-field").value = "14";
+    await spaet.handleCommitClick();
+
+    pruefe(spaet.submittedValue === null, "Nach einer neuen Runde während des Sendens steht 'Abgegeben: 14' - der Server hat nichts.");
+    pruefe(wurzel3.querySelector(".commit-btn").disabled === false, "Nach einer neuen Runde während des Sendens lässt sich nicht abgeben.");
+}
+
 if (fehler > 0) {
     console.error(`${fehler} Zusicherung(en) rot.`);
     process.exit(1);

@@ -170,9 +170,10 @@ namespace LocalBuzzer.Service.Hubs
             result.PlayerId = player.Id;
             result.Player = player;
 
-            // Verworfen (Finale: zweite Abgabe, M37 E4) erreicht nichts den Spielleiter - gekuerzt ist der Wert hier schon.
+            // Verworfen (Finale: zweite Abgabe, M37 E4; für eine schon zurückgesetzte Runde, P10-4) erreicht nichts den
+            // Spielleiter - gekuerzt ist der Wert hier schon.
             var geschlossen = false;
-            if (!_stateManager.TrySubmit(() => inputState.SetInput(result, out geschlossen), out var runde))
+            if (!_stateManager.TrySubmit(result.ResetCount, () => inputState.SetInput(result, out geschlossen), out var runde))
                 return;
 
             _bus.OnPlayerSubmittedInput(result);
@@ -215,14 +216,14 @@ namespace LocalBuzzer.Service.Hubs
             results.PlayerId = player.Id;
             results.Player = player;
             var geschlossen = false;
-            var angenommen = _stateManager.TrySubmit(() =>
+            var angenommen = _stateManager.TrySubmit(results.ResetCount, () =>
             {
                 geschlossen = keySelector.SetSelectedKeys(results);
                 return results.CommittedResult;
             }, out var runde);
 
             // Nur Gepruefte weitermelden - eine verworfene Abgabe (doppelte oder unbekannte
-            // Tasten, geschlossene Runde) erreicht den Spielleiter nicht.
+            // Tasten, geschlossene oder schon zurückgesetzte Runde - P10-4) erreicht den Spielleiter nicht.
             if (!angenommen)
                 return;
 
