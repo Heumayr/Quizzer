@@ -177,6 +177,30 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             Assert.AreEqual(bertVorher, Zahl(b), "Die verworfene Stimme ging an das ganze Team.");
         }
 
+        /// <summary>
+        /// M37 P8, P6-2: „Runde zurücksetzen" leert die Stimmgrenze - die Stimmen der alten Runde zählen im Zehn-Sekunden-Fenster
+        /// nicht weiter, und die erste Stimme der neuen Runde kommt an.
+        /// </summary>
+        [TestMethod]
+        public async Task AResetEmptiesTheVoteLimit()
+        {
+            var a = await VerbindeAsync(anna);
+            await VerbindeAsync(bert);
+            await AbstimmungAsync();
+
+            foreach (var taste in new[] { "A", "B", "A", "B", "A" })
+                await StimmeAsync(a, taste);
+
+            await Steuerung.ResetRoundAsync(1, BuzzerControlsLayout.KeySelect);
+            var gemeldet = 0;
+            Steuerung.EventBus.PlayerSelectedKeys += _ => Interlocked.Increment(ref gemeldet);
+
+            await StimmeAsync(a, "C");
+
+            Assert.IsTrue(await WarteAsync(() => Volatile.Read(ref gemeldet) == 1), "Nach dem Zurücksetzen zählt die Stimmgrenze der alten Runde weiter.");
+            CollectionAssert.AreEqual(new[] { "C" }, Steuerung.StateManager.BuzzerKeySelector.KeyResultsForPlayer[anna.Id].SelectedKeys);
+        }
+
         /// <summary>„Runde zurücksetzen" stimmt neu ab: die alte Antwort steht nicht mehr da; ohne Abstimmung zeigt das Telefon keine.</summary>
         [TestMethod]
         public async Task AResetDropsTheOldAnswerAndWithoutAVoteThereIsNone()

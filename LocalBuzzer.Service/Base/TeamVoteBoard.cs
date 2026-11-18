@@ -44,8 +44,13 @@ namespace LocalBuzzer.Service.Base
             lock (gate) takt.Clear();
         }
 
-        /// <summary>„Runde zurücksetzen": es wird neu abgestimmt, eine alte Antwort gilt nicht mehr.</summary>
-        public void Reopen() => ergebnisse = null;
+        /// <summary>„Runde zurücksetzen": es wird neu abgestimmt - eine alte Antwort gilt nicht mehr, und die Stimmen der alten Runde
+        /// zählen nicht in die Grenze (M37 P8, P6-2).</summary>
+        public void Reopen()
+        {
+            ergebnisse = null;
+            lock (gate) takt.Clear();
+        }
 
         /// <summary>Je Team (Schlüssel wie <see cref="TeamRoster.KeyFor"/>) seine Antwort, wie das Telefon sie nach dem Schluss zeigt.</summary>
         public void SetResults(IReadOnlyDictionary<Guid, string> neu)
