@@ -33,11 +33,8 @@ namespace Quizzer.Views.GameViews
 
                 _resultWindow.Closed += async (_, _) =>
                 {
-                    if (PlayersResultViewModel?.IsDoneAndShowFinishState ?? false)
-                    {
-                        abschlussGespeichert = SaveIsDoneFinishStateAsync(null);
-                        await abschlussGespeichert;
-                    }
+                    abschlussGespeichert = SchliesseZelleNachBewertungAsync(PlayersResultViewModel);
+                    await abschlussGespeichert;
 
                     _resultWindow = null;
                 };
@@ -76,9 +73,28 @@ namespace Quizzer.Views.GameViews
             fenster?.Close();
         }
 
-        /// <summary>Erst nach der Speicherung des Abschlusses - sie stellt den Abschlussschritt auf den Beamer (P3-2).</summary>
+        /// <summary>
+        /// Schließt die Zelle ab, wenn das Bewertungsfenster abgeschlossen hat. Erst nach seinem laufenden Abschließen gefragt
+        /// (P11-1): schloss das Fenster, während es speicherte, war die Antwort noch „nein“, und die Zelle blieb unerledigt.
+        /// </summary>
+        private async Task SchliesseZelleNachBewertungAsync(PlayersResultViewModel? ergebnis)
+        {
+            if (ergebnis == null)
+                return;
+
+            await ergebnis.LaufendesAbschliessen;
+
+            if (ergebnis.IsDoneAndShowFinishState)
+                await SaveIsDoneFinishStateAsync(null);
+        }
+
+        /// <summary>
+        /// Erst nach der Speicherung des Abschlusses - sie stellt den Abschlussschritt auf den Beamer (P3-2). Speichert das
+        /// Bewertungsfenster noch, schließt es danach erst sich und damit die Zelle (P11-1).
+        /// </summary>
         private async Task RaeumeBeamerAsync()
         {
+            await (PlayersResultViewModel?.LaufendesAbschliessen ?? Task.CompletedTask);
             await abschlussGespeichert;
             GamePlayerViewModel?.SetView(null);
         }

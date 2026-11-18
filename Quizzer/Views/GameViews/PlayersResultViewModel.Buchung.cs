@@ -34,6 +34,12 @@ namespace Quizzer.Views.GameViews
             return speichern;
         }
 
+        /// <summary>
+        /// „Speichern und Zelle abschließen“, solange es läuft (P11-1): ob abgeschlossen wurde, steht erst danach fest. Das
+        /// Fragefenster wartet darauf, bevor es die Zelle als erledigt speichert oder den Beamer räumt.
+        /// </summary>
+        internal Task LaufendesAbschliessen { get; private set; } = Task.CompletedTask;
+
         /// <summary>Beim Öffnen und nach jedem gelungenen Speichern: das Häkchen ist ab hier nicht mehr offen (P10-1).</summary>
         private void MerkeGespeicherteHaekchen()
         {

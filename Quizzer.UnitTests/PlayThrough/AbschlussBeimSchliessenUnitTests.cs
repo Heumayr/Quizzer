@@ -5,15 +5,17 @@ using Quizzer.DataModels.Enumerations;
 using Quizzer.DataModels.Models.Base;
 using Quizzer.Logic.Controller.TypedControllers;
 using Quizzer.Views.GameViews;
+using Quizzer.Views.GameViews.Sub;
+using System.Windows;
 
 namespace Quizzer.UnitTests.PlayThrough
 {
     /// <summary>
-    /// P10-6 (Durchsicht M37, P11): die Spielleitung schließt das Fragefenster, während „Speichern und Zelle abschließen“ im
-    /// Bewertungsfenster noch speichert. Eine Zeilensperre auf Berts Ergebniszeile hält das erste Speichern auf, bis es
-    /// nachweislich an ihr wartet; dann schließt das Fragefenster - über den echten Weg wie in
-    /// <see cref="SchliessenVorWeiterrechnenUnitTests"/>. Das Schließen wartet auf das laufende Speichern, statt ein zweites zu
-    /// starten (das scheiterte an der RowVersion), und das Spielfenster mit ihm.
+    /// P10-6/P11-1 (Durchsicht M37): die Spielleitung schließt ein Fenster, während „Speichern und Zelle abschließen“ im
+    /// Bewertungsfenster noch speichert. Eine Zeilensperre auf Berts Ergebniszeile hält das Speichern auf, bis es nachweislich
+    /// an ihr wartet; geschlossen wird über den echten Weg wie in <see cref="SchliessenVorWeiterrechnenUnitTests"/>. Danach ist
+    /// Bert genau einmal gebucht, die Zelle erledigt, bevor das Spielfenster weiterrechnet, und der Abschlussschritt kam vor dem
+    /// Räumen des Beamers.
     /// </summary>
     [TestClass]
     public class AbschlussBeimSchliessenUnitTests
@@ -38,37 +40,97 @@ namespace Quizzer.UnitTests.PlayThrough
             UserPrompt.Reset();
         }
 
+        /// <summary>P11-1: das Fragefenster schließt, während das Abschließen speichert - die Zelle blieb unerledigt.</summary>
         [TestMethod]
         public async Task ClosingTheQuestionWhileTheFinishIsSavedWaitsAndBooksOnce()
         {
+            var lauf = await SpieleMitSperreAsync(ergebnisfensterZuerst: false);
+
+            Assert.IsFalse(lauf.FertigUnterSperre, "Das Spielfenster war fertig, während das Speichern noch wartete.");
+            PruefeAbschluss(lauf);
+        }
+
+        /// <summary>
+        /// P11-1, zweiter Weg derselben Ursache: die Spielleitung schließt das Bewertungsfenster selbst, während es speichert. Sein
+        /// <c>Closed</c>-Haken las „abgeschlossen“, bevor es feststand; das Fragefenster bleibt hier offen, bis gespeichert ist.
+        /// </summary>
+        [TestMethod]
+        public async Task ClosingTheResultWindowWhileTheFinishIsSavedStillFinishesTheCell()
+        {
+            var lauf = await SpieleMitSperreAsync(ergebnisfensterZuerst: true);
+
+            PruefeAbschluss(lauf);
+        }
+
+        private void PruefeAbschluss(Lauf lauf)
+        {
+            Console.WriteLine($"P11-1 Bert: RightCount {lauf.Bert.RightCount}, Punkte {lauf.Bert.FinalScore}, Zelle erledigt {lauf.ErledigtAlsSpielfensterFertig}, "
+                + $"Verlauf {string.Join(" > ", lauf.Verlauf)}");
+
+            var verschluckt = TestEnvironment.SwallowedExceptions.ToList();
+            Assert.AreEqual(0, verschluckt.Count, "Beim Schließen scheiterte ein zweites Speichern: " + string.Join(" | ", verschluckt.Select(e => e.Message)));
+            Assert.AreEqual(1, lauf.Bert.RightCount, "Berts Bewertung wurde nicht genau einmal gebucht.");
+            Assert.AreEqual(lauf.Zellpunkte, lauf.Bert.FinalScore, "Berts Punkte stehen nicht genau einmal da.");
+            Assert.IsTrue(lauf.ErledigtAlsSpielfensterFertig, "Als das Spielfenster weiterrechnete, war die Zelle nicht erledigt.");
+
+            var abschluss = lauf.Verlauf.LastIndexOf(Abschluss);
+            Assert.IsTrue(abschluss >= 0, "Der Abschlussschritt kam nie auf den Beamer.");
+            Assert.IsTrue(lauf.Verlauf.LastIndexOf(Raster) > abschluss, "Der Beamer wurde vor dem Abschlussschritt geräumt - danach stand die Auflösung über dem Raster.");
+        }
+
+        private const string Abschluss = "Abschluss";
+        private const string Raster = "Raster";
+
+        private sealed record Lauf(QuestionResult Bert, int Zellpunkte, bool FertigUnterSperre, bool ErledigtAlsSpielfensterFertig, List<string> Verlauf);
+
+        /// <summary>
+        /// Bewertet Bert „richtig“ und startet „Speichern und Zelle abschließen“ gegen eine Sperre auf seiner Zeile. Dann schließt
+        /// das Fragefenster - oder mit <paramref name="ergebnisfensterZuerst"/> zuerst das Bewertungsfenster und das Fragefenster
+        /// erst, wenn die Sperre weg ist. Der Verlauf schreibt mit, wann der Abschlussschritt kam und wann das Raster.
+        /// </summary>
+        private async Task<Lauf> SpieleMitSperreAsync(bool ergebnisfensterZuerst)
+        {
             var leiter = await OeffneSpielAsync();
             var zelle = leiter.GameGridVMs.CellVMs.Single(c => c.Coordinate.Id == world.Coordinate.Id);
+            var verlauf = new List<string>();
             Exception? fehler = null;
             Task speichern = Task.CompletedTask;
             bool speichernWartete = false;
             bool fertigUnterSperre;
+            var freigegeben = new TaskCompletionSource();
+
+            leiter.GamePlayerViewModel.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(GamePlayerViewModel.ShowGameGridView) && leiter.GamePlayerViewModel.ShowGameGridView == Visibility.Visible)
+                    verlauf.Add(Raster);
+            };
 
             await using (var sperre = new Quizzer.Logic.Context.DataContext())
             {
                 Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction? tx = null;
-                var sitzung = 0;
                 var gesperrt = new TaskCompletionSource();
 
                 // Gesperrt wird erst im Fenster: die Ergebniszeilen legt das Laden der Frage an. Und über den Schlüssel - eine
                 // Sperre über die Zellen-Spalte liegt nur im Nebenindex, und das Speichern ginge an ihr vorbei.
                 leiter.FragefensterBauen = frage => SchliessenVorWeiterrechnenUnitTests.Fragefenster(frage, async karten =>
                 {
-                    var bert = karten.Single(k => k.Player.Id == world.Players[1].Id);
+                    frage.PropertyChanged += (_, e) =>
+                    {
+                        if (e.PropertyName == nameof(CurrentQuestionViewModel.CurrentStepContext) && frage.IsDone)
+                            verlauf.Add(Abschluss);
+                    };
 
-                    tx = await sperre.Database.BeginTransactionAsync();
-                    await sperre.Database.ExecuteSqlRawAsync(
-                        "SELECT Id FROM [question].[QuestionResult] WITH (UPDLOCK, ROWLOCK, HOLDLOCK) WHERE Id = {0}", bert.Result.Id);
-                    sitzung = await sperre.Database.SqlQueryRaw<int>("SELECT CAST(@@SPID AS int) AS Value").SingleAsync();
-
-                    bert.RightSuggestionCommand.Execute(null);
+                    (tx, var sitzung) = await SperreBertAsync(sperre, karten);
                     speichern = ((AsyncRelayCommand)frage.PlayersResultViewModel!.SaveIsDoneFinishStateCommand).ExecuteAsync(null);
-                    speichernWartete = await WartendeAsync(sitzung, mindestens: 1) >= 1; // dann schließt das Fragefenster
+                    speichernWartete = await WartendeAsync(sitzung, mindestens: 1) >= 1;
+
+                    if (ergebnisfensterZuerst)
+                        frage.PlayersResultViewModel.Window!.Close();
+
                     gesperrt.TrySetResult();
+
+                    if (ergebnisfensterZuerst)
+                        await freigegeben.Task; // das Fragefenster schließt erst nach dem Speichern
                 }, ex => { fehler = ex; gesperrt.TrySetResult(); });
 
                 var klick = UiTestHost.Dispatcher.InvokeAsync(() => ((AsyncRelayCommand)leiter.CellClickCommand).ExecuteAsync(zelle)).Task.Unwrap();
@@ -80,24 +142,32 @@ namespace Quizzer.UnitTests.PlayThrough
                 if (tx != null)
                     await tx.RollbackAsync();
 
-                await klick;
                 await speichern;
+                freigegeben.TrySetResult();
+                await klick;
             }
+
+            var erledigt = await ZelleErledigtAsync();
 
             Assert.IsNull(fehler, "Das Fragefenster lief nicht durch: " + fehler);
             Assert.IsTrue(speichernWartete, "Die Sperre hielt das Speichern nie auf - dann misst der Test nichts.");
 
-            var bert = await BertAsync();
-            var verschluckt = TestEnvironment.SwallowedExceptions.ToList();
+            return new Lauf(await BertAsync(), zelle.Coordinate.CurrentPoints, fertigUnterSperre, erledigt, verlauf);
+        }
 
-            // Ob die Zelle danach erledigt ist, steht nur in der Ausgabe: das ist ein eigener Befund (P11-1), hier nicht behoben.
-            Console.WriteLine($"P10-6 Bert: RightCount {bert.RightCount}, Punkte {bert.FinalScore}, Spielfenster fertig unter Sperre {fertigUnterSperre}, "
-                + $"Zelle erledigt {await ZelleErledigtAsync()}, verschluckt {verschluckt.Count}");
+        /// <summary>Bewertet Bert „richtig“ und sperrt seine Ergebniszeile über den Schlüssel; gibt die Sitzung der Sperre zurück.</summary>
+        private async Task<(Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction, int)> SperreBertAsync(
+            Quizzer.Logic.Context.DataContext sperre, List<PlayerResultContext> karten)
+        {
+            var bert = karten.Single(k => k.Player.Id == world.Players[1].Id);
 
-            Assert.AreEqual(0, verschluckt.Count, "Beim Schließen scheiterte ein zweites Speichern: " + string.Join(" | ", verschluckt.Select(e => e.Message)));
-            Assert.AreEqual(1, bert.RightCount, "Berts Bewertung wurde nicht genau einmal gebucht.");
-            Assert.AreEqual(zelle.Coordinate.CurrentPoints, bert.FinalScore, "Berts Punkte stehen nicht genau einmal da.");
-            Assert.IsFalse(fertigUnterSperre, "Das Spielfenster war fertig, während das Speichern noch wartete.");
+            var tx = await sperre.Database.BeginTransactionAsync();
+            await sperre.Database.ExecuteSqlRawAsync(
+                "SELECT Id FROM [question].[QuestionResult] WITH (UPDLOCK, ROWLOCK, HOLDLOCK) WHERE Id = {0}", bert.Result.Id);
+            var sitzung = await sperre.Database.SqlQueryRaw<int>("SELECT CAST(@@SPID AS int) AS Value").SingleAsync();
+
+            bert.RightSuggestionCommand.Execute(null);
+            return (tx, sitzung);
         }
 
         /// <summary>Wie viele Anfragen an der Sperre der <paramref name="sitzung"/> hängen - wartet bis zu 5 s auf <paramref name="mindestens"/>.</summary>

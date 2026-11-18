@@ -312,7 +312,7 @@ namespace Quizzer.Views.GameViews
         public bool IsDoneAndShowFinishState { get; private set; }
 
         private AsyncRelayCommand? saveIsDoneFinishStateCommand;
-        public ICommand SaveIsDoneFinishStateCommand => saveIsDoneFinishStateCommand ??= new AsyncRelayCommand(SaveIsDoneFinishStateAsync);
+        public ICommand SaveIsDoneFinishStateCommand => saveIsDoneFinishStateCommand ??= new AsyncRelayCommand(p => LaufendesAbschliessen = SaveIsDoneFinishStateAsync(p));
 
         private async Task SaveIsDoneFinishStateAsync(object? commandParameter)
         {
