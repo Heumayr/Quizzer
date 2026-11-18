@@ -368,7 +368,7 @@ namespace Quizzer.Views.GameViews
                 return;
             }
 
-            Coordinate.QuestionResults = newResults;
+            Coordinate.QuestionResults = PlayersResultViewModel?.ZeilenDerZelle ?? newResults; // R4-4: samt behaltener Zeilen Abgewählter
         }
 
         /// <summary>

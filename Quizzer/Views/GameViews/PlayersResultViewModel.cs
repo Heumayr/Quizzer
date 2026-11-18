@@ -198,6 +198,8 @@ namespace Quizzer.Views.GameViews
 
             var mannschaft = Coordinate.Game.Players.Select(p => p.Id).ToHashSet();
             var verwaist = results.Where(r => !mannschaft.Contains(r.PlayerId)).ToList();
+            ehemalige = GebuchteImTeamspiel(verwaist); // R4-4
+            verwaist = verwaist.Except(ehemalige).ToList();
 
             if (verwaist.Count == 0)
                 return results;
