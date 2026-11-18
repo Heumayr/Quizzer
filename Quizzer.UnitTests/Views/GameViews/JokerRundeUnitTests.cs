@@ -21,7 +21,7 @@ namespace Quizzer.UnitTests.Views.GameViews
     /// wirkt als Vorschlag auf der Karte (E1, E2) und ueber die Antwortsperre, und ohne Wertung gehen die Joker wieder auf.
     /// </summary>
     [TestClass]
-    public class JokerRundeUnitTests : SonderregelServerTestBasis
+    public partial class JokerRundeUnitTests : SonderregelServerTestBasis
     {
         protected override int Port => TestPorts.JokerRunde;
 
