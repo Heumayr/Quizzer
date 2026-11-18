@@ -302,6 +302,8 @@ namespace Quizzer.LogicUnitTests.Logic
         /// <summary>
         /// M37 T1: ein Teamspiel kommt mit Einstellungen und Teams zurück - Name, Farbe, Reihenfolge, neue Ids, ohne
         /// Mitglieder und mit dem Sprecher am Anfang. Gegen die Datenbank, weil der Importeur die Teams selbst anlegt.
+        /// R1-5: im Quellspiel sitzt ein Mitspieler bei Rot und wird mit importiert - nur so fiele eine mitgereiste
+        /// Zuteilung auf.
         /// </summary>
         [TestMethod]
         public async Task ATeamGameComesBackWithItsTeamsButWithoutMembers()
@@ -309,9 +311,11 @@ namespace Quizzer.LogicUnitTests.Logic
             var demo = await DemoDataSeeder.CreateAsync();
             var rot = new GameTeam { Id = Guid.NewGuid(), GameId = demo.Spiel.Id, Name = "Rot", ColorIndex = 5, SortOrder = 1, SpeakerTurn = 4 };
             var blau = new GameTeam { Id = Guid.NewGuid(), GameId = demo.Spiel.Id, Name = "Blau", ColorIndex = 4, SortOrder = 0 };
+            var mitglied = await LegeModeratorAnAsync();
 
             using (var ctrl = new GamesController())
             using (var ctrlTeams = new GameTeamsController(ctrl))
+            using (var ctrlPlaetze = new PlayerXGamesController(ctrl))
             {
                 var spiel = await ctrl.GetAsync(demo.Spiel.Id);
                 spiel!.IsTeamGame = true;
@@ -320,6 +324,7 @@ namespace Quizzer.LogicUnitTests.Logic
                 await ctrl.UpdateAsync(spiel);
                 await ctrlTeams.InsertAsync(rot);
                 await ctrlTeams.InsertAsync(blau);
+                await ctrlPlaetze.InsertAsync(new PlayerXGame { Id = Guid.NewGuid(), GameId = demo.Spiel.Id, PlayerId = mitglied, GameTeamId = rot.Id });
                 await ctrl.SaveChangesAsync();
             }
 
@@ -327,7 +332,7 @@ namespace Quizzer.LogicUnitTests.Logic
             await GameExporter.ExportAsync(demo.Spiel.Id, datei, tresor);
             var moderator = await LegeModeratorAnAsync();
 
-            var ergebnis = await GameImporter.ImportAsync(datei, tresor, moderator, [moderator]);
+            var ergebnis = await GameImporter.ImportAsync(datei, tresor, moderator, [moderator, mitglied]);
 
             using var ctrlSpiele = new GamesController();
             var importiert = (await ctrlSpiele.GetAsync(ergebnis.Spiel.Id))!;
@@ -337,6 +342,7 @@ namespace Quizzer.LogicUnitTests.Logic
             CollectionAssert.AreEqual(new[] { ("Blau", 4, 0, 0), ("Rot", 5, 1, 0) },
                 importiert.GameTeams.OrderBy(t => t.SortOrder).Select(t => (t.Name, t.ColorIndex, t.SortOrder, t.SpeakerTurn)).ToList());
             Assert.IsFalse(importiert.GameTeams.Any(t => t.Id == rot.Id || t.Id == blau.Id), "Ein Team kam mit seiner alten Id an.");
+            Assert.IsTrue(importiert.PlayerXGames.Any(x => x.PlayerId == mitglied), "Der im Quellspiel zugeteilte Mitspieler kam nicht mit - dann misst die Zeile darunter nichts.");
             Assert.IsTrue(importiert.PlayerXGames.All(x => x.GameTeamId == null), "Ein Mitspieler kam schon zugeteilt an.");
         }
 
