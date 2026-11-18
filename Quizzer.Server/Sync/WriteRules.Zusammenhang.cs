@@ -29,7 +29,7 @@ namespace Quizzer.Server.Sync
                     ? "Der Joker verweist auf eine Zelle eines anderen Spiels."
                     : "Das Ergebnis verweist auf eine Zelle eines anderen Spiels.";
 
-            return row.Type switch
+            var art = row.Type switch
             {
                 nameof(PlayerJoker) => await CheckJokerAsync(row, gameId, ct),
 
@@ -37,6 +37,9 @@ namespace Quizzer.Server.Sync
                 nameof(PlayerXGame) or nameof(QuestionResult) => await CheckTeamRefAsync(row, gameId, ct),
                 _ => null,
             };
+
+            // Nach der Joker-Regel, damit deren eigene Meldung bleibt (V21).
+            return art ?? CheckEnumRange(row);
         }
     }
 }
