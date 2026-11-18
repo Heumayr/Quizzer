@@ -27,6 +27,7 @@
                 <DataGridTextColumn Header="Gamemaster" Binding="{Binding Gamemaster}" Width="*" />
                 <DataGridTextColumn Header="Stand" Binding="{Binding Stand}" Width="*" />
                 <DataGridTextColumn Header="Platz" Binding="{Binding Platz}" Width="*" />
+                <DataGridTextColumn Header="Team" Binding="{Binding Team}" Width="*" />
                 <DataGridTextColumn Header="Punkte" Binding="{Binding Punkte}" Width="Auto" />
                 <DataGridTextColumn Header="Richtig" Binding="{Binding Richtig}" Width="Auto" />
                 <DataGridTextColumn Header="Falsch" Binding="{Binding Falsch}" Width="Auto" />
