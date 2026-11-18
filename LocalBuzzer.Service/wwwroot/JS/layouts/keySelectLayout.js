@@ -20,6 +20,7 @@
         this.lastSignature = "";
         this.lastContext = null;
         this.lastQuestionId = "";
+        this.lastResetCount = null;
 
         this.handleCommitClick = this.handleCommitClick.bind(this);
     }
@@ -122,10 +123,14 @@
         this.trueFalse = info.trueFalse === true;
         this.urteile = new Map();
 
+        // Dieselbe Frage in derselben Runde neu gebaut (etwa andere Beschriftung): die angefangene Wahl bleibt. Nach "Runde
+        // zurücksetzen" gehört sie zur alten Runde und ist nicht abgegeben - vorgewählt sähe sie danach aus (M37 P12, P11-5).
+        const resetCount = context?.resetCount ?? 0;
         const canReselect =
             !!questionId &&
             !!this.lastQuestionId &&
-            questionId === this.lastQuestionId;
+            questionId === this.lastQuestionId &&
+            resetCount === this.lastResetCount;
 
         const previouslySelected = canReselect
             ? new Set(this.selectedKeys)
@@ -138,6 +143,7 @@
 
         this.lastSignature = this.createSignature(context);
         this.lastQuestionId = questionId;
+        this.lastResetCount = resetCount;
 
         this.keysWrap.style.setProperty("--grid-size", gridSize);
         this.keysWrap.innerHTML = "";

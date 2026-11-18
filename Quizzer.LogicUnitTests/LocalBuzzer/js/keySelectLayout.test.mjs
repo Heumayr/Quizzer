@@ -80,11 +80,25 @@ pruefe(layout.submitted === false,
 pruefe(tasten().every(t => t.disabled === false),
     "Nach dem Zuruecksetzen sind die Antworttasten gesperrt.");
 
+// --- M37 P12, P11-5: die Wahl der alten Runde ist nicht abgegeben - vorgewaehlt saehe sie so aus, ein Tipp gaebe sie ab ---
+pruefe(tasten().every(t => !t.classList.contains("selected") && t.getAttribute("aria-pressed") === "false"),
+    "Nach dem Zuruecksetzen steht die Wahl der alten Runde vorgewaehlt da: "
+    + tasten().filter(t => t.classList.contains("selected")).map(t => t.dataset.key).join(","));
+
+pruefe(knopf().disabled === true,
+    "Nach dem Zuruecksetzen ist 'Auswahl bestätigen' frei, ohne dass in der neuen Runde etwas gewaehlt ist.");
+
 tasten()[1].click();
 
 pruefe(knopf().disabled === false,
     "Nach dem Zuruecksetzen laesst sich nicht erneut abgeben - der Spieler ist fuer diese "
     + "Frage aus dem Spiel, und die Runde kann nie mehr schliessen.");
+
+// --- Die Gegenrichtung (0194566): dieselbe Frage, dieselbe Runde, neu gebaut - die angefangene Wahl bleibt ---
+layout.update({ ...zustand(2), layoutInfo: { ...zustand(2).layoutInfo, showDesignations: false } });
+
+pruefe(tasten()[1].classList.contains("selected") && knopf().disabled === false,
+    "Neu gebaut ohne Zuruecksetzen (andere Beschriftung) - die angefangene Wahl ist weg.");
 
 // --- Reihenfolgefrage (M12): die Klickfolge ist die Antwort, abgegeben wird erst komplett ---
 {
@@ -269,7 +283,7 @@ for (const trueFalse of [false, true]) {
     taste().click();
     await runde.handleCommitClick();
 
-    runde.update(zustand(8)); // dieselbe Frage: die Wahl bleibt vorgewählt
+    runde.update(zustand(8)); // dieselbe Frage, neue Runde: nichts mehr vorgewählt (P11-5)
     if (!taste().classList.contains("selected")) taste().click();
     await runde.handleCommitClick();
 
