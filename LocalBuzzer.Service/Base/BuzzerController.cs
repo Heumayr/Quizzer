@@ -66,16 +66,16 @@ namespace LocalBuzzer.Service.Base
                 return;
             }
 
-            StateManager.LockAll();
+            var runde = StateManager.LockAll();
 
             switch (zustand)
             {
                 case BuzzerInputState eingabe:
-                    EventBus.OnAllPlayersSubmittedInput(eingabe.InputsForPlayer);
+                    EventBus.OnAllPlayersSubmittedInput(eingabe.InputsForPlayer, runde);
                     break;
 
                 case BuzzerKeySelector tasten:
-                    EventBus.OnAllPlayersSelectedKeys(tasten.KeyResultsForPlayer);
+                    EventBus.OnAllPlayersSelectedKeys(tasten.KeyResultsForPlayer, runde);
                     break;
             }
 

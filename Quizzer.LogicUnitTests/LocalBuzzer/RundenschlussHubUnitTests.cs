@@ -75,7 +75,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         {
             var (a, b, c) = (await VerbindeAsync(anna), await VerbindeAsync(bert), await VerbindeAsync(carl));
             var aufgeloest = 0;
-            Steuerung.EventBus.AllPlayersSubmittedInput += _ => Interlocked.Increment(ref aufgeloest);
+            Steuerung.EventBus.AllPlayersSubmittedInput += (_, _) => Interlocked.Increment(ref aufgeloest);
             Steuerung.StateManager.BuzzerInputState.Infos = new BuzzerInputState.BuzzerInputInfo { InputType = "number" };
 
             for (var runde = 1; runde <= Runden; runde++)
@@ -97,7 +97,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         {
             var (a, b, c) = (await VerbindeAsync(anna), await VerbindeAsync(bert), await VerbindeAsync(carl));
             var aufgeloest = 0;
-            Steuerung.EventBus.AllPlayersSelectedKeys += _ => Interlocked.Increment(ref aufgeloest);
+            Steuerung.EventBus.AllPlayersSelectedKeys += (_, _) => Interlocked.Increment(ref aufgeloest);
 
             // Aufdecker: ein langsamer Abnehmer weitet das Fenster zwischen Abgabe und Auflösen, wie beim Tipp das Senden.
             Steuerung.EventBus.PlayerSelectedKeys += _ => Thread.Sleep(5);

@@ -97,13 +97,13 @@ namespace Quizzer.Views.BuzzerViews
             }
         }
 
-        public async void OnAllPlayersSubmittedInput(ConcurrentDictionary<Guid, InputResult> inputs)
+        public async void OnAllPlayersSubmittedInput(ConcurrentDictionary<Guid, InputResult> inputs, int runde)
         {
             try
             {
                 await RunOnUiAsync(async () =>
                 {
-                    if (AllPlayersSubmittedInput != null)
+                    if (AllPlayersSubmittedInput != null && !SeitherZurueckgesetzt(runde))
                         await AllPlayersSubmittedInput.Invoke(inputs);
                 });
             }
@@ -112,5 +112,12 @@ namespace Quizzer.Views.BuzzerViews
                 ExceptionManager.HandleException(ex);
             }
         }
+
+        /// <summary>
+        /// P11-3: ob die Runde mit der Marke <paramref name="runde"/> zurückgesetzt wurde, seit der Hub sie aufgelöst hat. Die Auflösung
+        /// wartet auf den Oberflächen-Thread; kam „Runde zurücksetzen“ davor, ist ihr Wörterbuch geleert - und die neue Runde nicht
+        /// ihre. Dann gilt sie nicht, weder leer noch alt.
+        /// </summary>
+        private bool SeitherZurueckgesetzt(int runde) => BuzzerController is { } steuerung && steuerung.StateManager.ResetCount != runde;
     }
 }

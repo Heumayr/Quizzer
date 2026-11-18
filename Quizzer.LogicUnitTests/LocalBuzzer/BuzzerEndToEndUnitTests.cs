@@ -193,7 +193,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             try
             {
                 ConcurrentDictionary<Guid, BuzzerInputState.InputResult>? received = null;
-                server.BuzzerController!.EventBus.AllPlayersSubmittedInput += dic => received = dic;
+                server.BuzzerController!.EventBus.AllPlayersSubmittedInput += (dic, _) => received = dic;
 
                 await server.BuzzerController.ResetRoundAsync(1, BuzzerControlsLayout.Input);
 
@@ -231,7 +231,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             try
             {
                 ConcurrentDictionary<Guid, BuzzerInputState.InputResult>? received = null;
-                server.BuzzerController!.EventBus.AllPlayersSubmittedInput += dic => received = dic;
+                server.BuzzerController!.EventBus.AllPlayersSubmittedInput += (dic, _) => received = dic;
 
                 await server.BuzzerController.ResetRoundAsync(1, BuzzerControlsLayout.Input);
 
@@ -273,7 +273,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             try
             {
                 ConcurrentDictionary<Guid, BuzzerInputState.InputResult>? received = null;
-                server.BuzzerController!.EventBus.AllPlayersSubmittedInput += dic => received = dic;
+                server.BuzzerController!.EventBus.AllPlayersSubmittedInput += (dic, _) => received = dic;
 
                 await server.BuzzerController.ResetRoundAsync(1, BuzzerControlsLayout.Input);
 

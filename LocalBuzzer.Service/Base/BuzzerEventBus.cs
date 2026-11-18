@@ -21,13 +21,17 @@ namespace LocalBuzzer.Service.Base
 
         public event Action<SelectionResult>? PlayerSelectedKeys;
 
-        public event Action<ConcurrentDictionary<Guid, SelectionResult>>? AllPlayersSelectedKeys;
+        /// <summary>Die Tastenrunde ist zu - mit der Marke der Runde (<c>ResetCount</c>), die sie geschlossen hat (P11-3).</summary>
+        public event Action<ConcurrentDictionary<Guid, SelectionResult>, int>? AllPlayersSelectedKeys;
 
         /// <summary>Ein Spieler hat seinen Schaetzwert abgegeben.</summary>
         public event Action<InputResult>? PlayerSubmittedInput;
 
-        /// <summary>Alle Mitspieler haben abgegeben - die Schaetzrunde ist zu.</summary>
-        public event Action<ConcurrentDictionary<Guid, InputResult>>? AllPlayersSubmittedInput;
+        /// <summary>
+        /// Alle Mitspieler haben abgegeben - die Schaetzrunde ist zu. Die Marke nennt die Runde: das Woerterbuch lebt weiter, und
+        /// ein Zuruecksetzen leert es, bevor ein anderer Faden es liest (P11-3).
+        /// </summary>
+        public event Action<ConcurrentDictionary<Guid, InputResult>, int>? AllPlayersSubmittedInput;
 
         public void OnAssigned(string name, Guid playerId) => ClientAssigned?.Invoke(name, playerId);
 
@@ -37,11 +41,11 @@ namespace LocalBuzzer.Service.Base
 
         public void OnPlayerSelectedKeys(SelectionResult results) => PlayerSelectedKeys?.Invoke(results);
 
-        public void OnAllPlayersSelectedKeys(ConcurrentDictionary<Guid, SelectionResult> dic) => AllPlayersSelectedKeys?.Invoke(dic);
+        public void OnAllPlayersSelectedKeys(ConcurrentDictionary<Guid, SelectionResult> dic, int resetCount) => AllPlayersSelectedKeys?.Invoke(dic, resetCount);
 
         public void OnPlayerSubmittedInput(InputResult result) => PlayerSubmittedInput?.Invoke(result);
 
-        public void OnAllPlayersSubmittedInput(ConcurrentDictionary<Guid, InputResult> dic) => AllPlayersSubmittedInput?.Invoke(dic);
+        public void OnAllPlayersSubmittedInput(ConcurrentDictionary<Guid, InputResult> dic, int resetCount) => AllPlayersSubmittedInput?.Invoke(dic, resetCount);
 
         /// <summary>Ein Spieler hat im Minispiel abgegeben, und der Rahmen hat es angenommen (M35 B3).</summary>
         public event Action<MinigameSubmission>? MinigameSubmitted;

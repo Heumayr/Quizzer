@@ -222,13 +222,13 @@ namespace Quizzer.Views.BuzzerViews
             }
         }
 
-        public async void OnAllPlayerSelectedKeys(ConcurrentDictionary<Guid, SelectionResult> selectionResultsDic)
+        public async void OnAllPlayerSelectedKeys(ConcurrentDictionary<Guid, SelectionResult> selectionResultsDic, int runde)
         {
             try
             {
                 await RunOnUiAsync(async () =>
                 {
-                    if (AllPlayersSelectedKeys != null)
+                    if (AllPlayersSelectedKeys != null && !SeitherZurueckgesetzt(runde))
                         await AllPlayersSelectedKeys.Invoke(selectionResultsDic);
                 });
             }

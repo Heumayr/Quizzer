@@ -122,10 +122,14 @@ namespace LocalBuzzer.Service.Base
             }
         }
 
-        public void LockAll()
+        /// <summary>Schließt die laufende Runde und nennt ihre Marke - wie <see cref="LockRound"/> für die Auflösung (P11-3).</summary>
+        public int LockAll()
         {
             lock (rundenSperre)
+            {
                 LockAllStates();
+                return ResetCount;
+            }
         }
 
         /// <summary>

@@ -184,7 +184,7 @@ namespace LocalBuzzer.Service.Hubs
             // Und nur dieselbe Runde: kam beim Senden „Runde zurücksetzen“, bleibt die neue offen (P10-3).
             if (geschlossen && _stateManager.LockRound(runde))
             {
-                _bus.OnAllPlayersSubmittedInput(inputState.InputsForPlayer);
+                _bus.OnAllPlayersSubmittedInput(inputState.InputsForPlayer, runde); // P11-3: die Marke, gegen ein Zurücksetzen vor dem Lesen
                 await SendStateToEachAsync();
             }
         }
@@ -232,7 +232,7 @@ namespace LocalBuzzer.Service.Hubs
             // Wie beim Tipp: nur dieselbe Runde schließen (P10-3).
             if (geschlossen && _stateManager.LockRound(runde))
             {
-                _bus.OnAllPlayersSelectedKeys(keySelector.KeyResultsForPlayer);
+                _bus.OnAllPlayersSelectedKeys(keySelector.KeyResultsForPlayer, runde); // P11-3
                 await SendStateToEachAsync();
             }
             else if (_stateManager.TeamVote.Active)

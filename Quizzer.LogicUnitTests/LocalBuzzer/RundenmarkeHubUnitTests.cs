@@ -86,7 +86,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             var aufgeloest = new List<int>();
             var zurueckgesetzt = 0;
 
-            Steuerung.EventBus.AllPlayersSubmittedInput += alle => { lock (aufgeloest) aufgeloest.Add(alle.Count); };
+            Steuerung.EventBus.AllPlayersSubmittedInput += (alle, _) => { lock (aufgeloest) aufgeloest.Add(alle.Count); };
             Steuerung.EventBus.PlayerSubmittedInput += tipp =>
             {
                 if (tipp.PlayerId == carl.Id && Interlocked.Exchange(ref zurueckgesetzt, 1) == 0)
@@ -114,7 +114,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             var aufgeloest = new List<int>();
             var zurueckgesetzt = 0;
 
-            Steuerung.EventBus.AllPlayersSelectedKeys += alle => { lock (aufgeloest) aufgeloest.Add(alle.Count); };
+            Steuerung.EventBus.AllPlayersSelectedKeys += (alle, _) => { lock (aufgeloest) aufgeloest.Add(alle.Count); };
             Steuerung.EventBus.PlayerSelectedKeys += stimme =>
             {
                 if (stimme.PlayerId == carl.Id && Interlocked.Exchange(ref zurueckgesetzt, 1) == 0)
