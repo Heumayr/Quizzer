@@ -37,6 +37,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         // Zufaelliger Anfang: ein Telefon aus einem frueheren Serverlauf darf nicht zufaellig treffen.
         private int durchgang = Random.Shared.Next(1, 1 << 20) * 1000;
 
+        /// <summary>Seit wann der laufende Durchgang gilt, an der Serveruhr - daraus der Rest des Countdowns (V24).</summary>
+        private TimeSpan durchgangSeit;
+
         private readonly Func<TeamRoster> teams;
 
         public MinigameState(GameAccessor gameAccessor, Func<TeamRoster>? teams = null)
@@ -105,6 +108,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
                     TotalRounds = setup.TotalRounds,
                     Durchgang = durchgang,
                     CountdownSeconds = setup.CountdownSeconds,
+                    CountdownRemainingMs = RestDesCountdowns(),
                     Aborted = Aborted,
                     OwnSubmitted = player != null && rules?.HasSubmitted(player.Id) == true,
                     KindInfo = rules?.InfoFor(player, Phase),
@@ -155,7 +159,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
                     return false;
 
                 if (Phase == MinigamePhase.Running)
-                    durchgang++;
+                    NeuerDurchgang();
 
                 return true;
             }
@@ -184,7 +188,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
                 if (Phase != MinigamePhase.Running || !eingriff(rules))
                     return false;
 
-                durchgang++;
+                NeuerDurchgang();
                 return true;
             }
         }
@@ -280,7 +284,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
                 // Eine Spielerwahl oeffnet die naechste Stufe: neuer Durchgang, eine Abgabe davor zaehlt nicht mehr.
                 if (wert is IMinigameStageChange)
                 {
-                    durchgang++;
+                    NeuerDurchgang();
                     return new(true, wert, Restarted: true);
                 }
 
@@ -347,9 +351,26 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             }
         }
 
-        private void StartRun()
+        /// <summary>Ein neuer Durchgang: eine Abgabe davor zaehlt nicht mehr, und die Telefone zaehlen den Countdown von vorn.</summary>
+        private void NeuerDurchgang()
         {
             durchgang++;
+            durchgangSeit = Uhr.GetElapsedTime(0);
+        }
+
+        /// <summary>Was vom Countdown des laufenden Durchgangs bleibt; ausserhalb einer Runde der ganze (V24).</summary>
+        private int RestDesCountdowns()
+        {
+            var ganz = Math.Max(0, setup.CountdownSeconds) * 1000;
+
+            return Phase == MinigamePhase.Running
+                ? (int)Math.Clamp(ganz - (Uhr.GetElapsedTime(0) - durchgangSeit).TotalMilliseconds, 0, ganz)
+                : ganz;
+        }
+
+        private void StartRun()
+        {
+            NeuerDurchgang();
             rules!.StartRound(Round);
             Phase = MinigamePhase.Running;
             Locked = false;

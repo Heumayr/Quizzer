@@ -189,9 +189,11 @@ export class MinigameLayout {
         const prePhase = serverInfo.prePhase ?? PrePhases.None;
         const durchgang = serverInfo.durchgang;
         const senden = (payload) => this.actions.submitAction({ kind, specialRule, prePhase, durchgang, payload });
-        let rest = Math.max(0, serverInfo.countdownSeconds ?? 0);
+        // V24: nur, was vom Countdown an der Serveruhr noch bleibt - wer mitten im Durchgang neu verbindet, zaehlt nicht von vorn.
+        const ms = Math.max(0, serverInfo.countdownRemainingMs ?? (serverInfo.countdownSeconds ?? 0) * 1000);
+        let rest = Math.ceil(ms / 1000);
 
-        const tick = () => {
+        const tick = (warte) => {
             if (rest <= 0) {
                 this.countdownUhr = null;
                 this.status.textContent = specialRule || prePhase ? (serverInfo.rulesText || "Los!") : "Los!";
@@ -201,11 +203,11 @@ export class MinigameLayout {
 
             this.status.textContent = `Gleich geht es los: ${rest}`;
             rest--;
-            this.countdownUhr = this.timer.setTimeout(tick, 1000);
+            this.countdownUhr = this.timer.setTimeout(() => tick(1000), warte);
         };
 
         modul?.leeren();
-        tick();
+        tick(ms - (rest - 1) * 1000);
     }
 
     // Joker-Runde (M35 C7b) und Sonderregel (M35 C3) haben Vorrang vor der Art - ihre Vorphase traegt keine.

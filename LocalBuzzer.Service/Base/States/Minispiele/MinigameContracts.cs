@@ -74,6 +74,12 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         /// <summary>So lange zaehlt das Telefon vor dem Start herunter.</summary>
         public int CountdownSeconds { get; set; }
 
+        /// <summary>
+        /// Was vom Countdown des laufenden Durchgangs an der Serveruhr noch bleibt (V24) - ein Telefon, das mitten im Durchgang neu
+        /// verbindet, zaehlt nur den Rest, nach dem Countdown gar nicht mehr. Ausserhalb einer Runde der ganze Countdown.
+        /// </summary>
+        public int CountdownRemainingMs { get; set; }
+
         /// <summary>Der Spielleiter hat abgebrochen.</summary>
         public bool Aborted { get; set; }
 

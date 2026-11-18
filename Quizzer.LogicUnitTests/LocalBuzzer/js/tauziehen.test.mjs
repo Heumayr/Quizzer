@@ -132,6 +132,52 @@ pruefe(teamText({ symbol: "●", name: "Orange" }) === "● Orange", "Ohne Zug s
 modul.dispose();
 pruefe(uhr.offen() === 0, "Nach dem Aufraeumen laufen noch Uhren.");
 
+// --- V24: im Rahmen neu verbunden - gezaehlt wird nur der Rest des Countdowns, der Endstand kommt zur Serverzeit ---
+if (!globalThis.navigator.vibrate) {
+    Object.defineProperty(globalThis.navigator, "vibrate", { value: () => {} });
+}
+
+const { MinigameLayout } = await import("../../../LocalBuzzer.Service/wwwroot/JS/minispiele/rahmen.js");
+
+// Wiederverbunden "rest" ms vor Ende des Countdowns bzw. "gezogen" ms nach seinem Ende; Dauer 10 s.
+function neuVerbunden(rest, gezogen) {
+    const wirt = document.createElement("div");
+    const senden = [];
+    const start = uhr.now();
+    const rahmen = new MinigameLayout(
+        { submitAction: async (aktion) => { senden.push({ t: uhr.now() - start, ...aktion.payload }); } },
+        { timer: uhr.timer, now: uhr.now });
+
+    rahmen.render(wirt, {
+        resetCount: 1, currentLayoutLocked: false, allLocked: false,
+        layoutInfo: {
+            kind: 17, title: "Tauziehen", phase: 1, currentRound: 1, totalRounds: 1, durchgang: 9,
+            countdownSeconds: 3, countdownRemainingMs: rest, ownSubmitted: false,
+            kindInfo: { ...info, durationSeconds: 10, elapsedMs: gezogen, ownTaps: 4 }
+        }
+    });
+    rahmen.setLocked(false);
+    const status = wirt.querySelector(".minispiel-status").textContent;
+
+    uhr.vor(20000);
+    rahmen.dispose();
+    return { status, ende: senden.find(s => s.isFinal)?.t, erste: senden[0]?.t };
+}
+
+const mitten = neuVerbunden(0, 4000);
+pruefe(!mitten.status.startsWith("Gleich geht es los"), "Mitten im Ziehen zaehlt das Telefon den Countdown neu: " + mitten.status);
+pruefe(mitten.ende === 6000, `Der Endstand kommt nicht mit dem Server nach 6 s, sondern nach ${mitten.ende} ms (Frist 7,5 s).`);
+pruefe(mitten.erste === 500, "Nach dem Wiederverbinden meldet das Telefon nicht im Takt: " + mitten.erste);
+
+const imCountdown = neuVerbunden(1400, 0);
+pruefe(imCountdown.status === "Gleich geht es los: 2", "Im Countdown zaehlt das Telefon nicht den Rest: " + imCountdown.status);
+pruefe(imCountdown.ende === 11400, `Im Countdown verbunden endet das Ziehen nicht mit dem Server nach 11,4 s: ${imCountdown.ende}`);
+
+const frisch = neuVerbunden(3000, 0);
+pruefe(frisch.status === "Gleich geht es los: 3" && frisch.ende === 13000,
+    `Zu Beginn des Durchgangs zaehlt das Telefon nicht die vollen 3 s: ${frisch.status}, Ende ${frisch.ende}`);
+pruefe(uhr.offen() === 0, "Nach dem Wiederverbinden laufen noch Uhren.");
+
 if (fehler > 0) {
     console.error(`${fehler} Zusicherung(en) rot.`);
     process.exit(1);

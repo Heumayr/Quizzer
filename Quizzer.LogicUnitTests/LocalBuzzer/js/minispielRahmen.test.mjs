@@ -211,6 +211,22 @@ pruefe(staffelWirt.querySelector(".staffel-stand")?.textContent === "Du bist dra
     "Nach dem Countdown steht der alte Laeufer da: " + staffelWirt.querySelector(".staffel-stand")?.textContent);
 staffel.dispose();
 
+// --- V24 bei T10: der Stellvertreter verbindet mitten in der Reaktion neu - kein zweiter Countdown, Gruen nach der Wartezeit ---
+const vertreterWirt = document.createElement("div");
+const vertreter = new MinigameLayout({ submitAction: async () => {} }, { timer: uhr.timer, now: uhr.now });
+vertreter.render(vertreterWirt, {
+    resetCount: 1, currentLayoutLocked: false, allLocked: false,
+    layoutInfo: { kind: 18, title: "Stellvertreter-Duell", phase: 1, currentRound: 1, totalRounds: 3, durchgang: 60,
+        countdownSeconds: 3, countdownRemainingMs: 0, ownSubmitted: false,
+        kindInfo: { isProxy: true, discipline: 1, reaction: { waitMs: 2000 }, teams: [] } }
+});
+vertreter.setLocked(false);
+uhr.vor(1999);
+pruefe(!vertreterWirt.querySelector(".reaktion-jetzt"), "Der Stellvertreter sieht Gruen vor der Wartezeit.");
+uhr.vor(1);
+pruefe(vertreterWirt.querySelector(".reaktion-jetzt") != null, "Nach dem Neuverbinden zaehlt der Stellvertreter den Countdown neu.");
+vertreter.dispose();
+
 if (fehler > 0) {
     console.error(`${fehler} Zusicherung(en) rot.`);
     process.exit(1);

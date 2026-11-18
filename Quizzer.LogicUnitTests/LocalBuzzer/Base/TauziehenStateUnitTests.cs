@@ -60,12 +60,14 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
         private static Player Spieler(string name)
             => new() { Id = Guid.NewGuid(), Designation = name, DisplayName = name, ConnectionState = PlayerConnection.Connected };
 
-        private void Starte(TeamMinigameScoring wertung = TeamMinigameScoring.Average)
+        private void Starte(TeamMinigameScoring wertung = TeamMinigameScoring.Average, bool nachDemCountdown = true)
         {
             spiel.Configure(new MinigameSetup(MinigameKind.TugOfWar, "Tauziehen", "Regel", 1, DurationSeconds: Dauer, TeamScoring: wertung));
             spiel.Reset();
             Assert.IsTrue(spiel.StartNextRound(), "Das Tauziehen liess sich nicht starten.");
-            uhr.Vor(Vorlauf);
+
+            if (nachDemCountdown)
+                uhr.Vor(Vorlauf);
         }
 
         private MinigameSubmitResult Gib(Player p, object nutzlast)
@@ -243,6 +245,31 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             uhr.Vor(Vorlauf + TimeSpan.FromSeconds(1));
             Assert.IsTrue(Stand(anna, 20).Accepted, "Nach dem Wiederholen blieb der alte Stand stehen.");
             Assert.AreEqual(20, Info(anna).OwnTaps);
+        }
+
+        /// <summary>
+        /// V24: wer neu verbindet, liest an der Serveruhr, was vom Countdown bleibt und wie lange schon gezogen wird - mitten im
+        /// Ziehen nichts mehr, im Countdown der Rest. Vorher stand dort immer der ganze Countdown, und das Telefon zählte neu.
+        /// </summary>
+        [TestMethod]
+        public void APhoneReconnectingReadsOnlyWhatIsLeftOfTheCountdown()
+        {
+            Starte(nachDemCountdown: false);
+            var rahmen = (MinigameClientInfo)spiel.InfoFor(anna);
+            Assert.AreEqual(3000, rahmen.CountdownRemainingMs, "Zu Beginn des Durchgangs bleibt nicht der ganze Countdown.");
+
+            uhr.Vor(TimeSpan.FromMilliseconds(1600));
+            Assert.AreEqual(1400, ((MinigameClientInfo)spiel.InfoFor(anna)).CountdownRemainingMs, "Im Countdown zählt das Telefon nicht den Rest.");
+            Assert.AreEqual(0, Info(anna).ElapsedMs);
+
+            uhr.Vor(TimeSpan.FromMilliseconds(1400 + 4000));
+            Assert.AreEqual(0, ((MinigameClientInfo)spiel.InfoFor(anna)).CountdownRemainingMs, "Mitten im Ziehen zählt das Telefon den Countdown neu.");
+            Assert.AreEqual(4000, Info(anna).ElapsedMs);
+            Assert.AreEqual(3, ((MinigameClientInfo)spiel.InfoFor(anna)).CountdownSeconds, "Der eingestellte Countdown ging verloren.");
+
+            // Ein neuer Durchgang (Wiederholen) zählt wieder von vorn.
+            Assert.IsTrue(spiel.RepeatRound());
+            Assert.AreEqual(3000, ((MinigameClientInfo)spiel.InfoFor(anna)).CountdownRemainingMs, "Nach dem Wiederholen bleibt der alte Rest.");
         }
     }
 }
