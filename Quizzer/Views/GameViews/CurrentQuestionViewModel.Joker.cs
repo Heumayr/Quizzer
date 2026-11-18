@@ -94,16 +94,23 @@ namespace Quizzer.Views.GameViews
         /// <summary>Die Runde ist zu: sofort einloesen und schreiben, dann wirken lassen, dann die Frage.</summary>
         internal async Task OnJokerRundeZuAsync(MinigameRoundClosed runde)
         {
-            if (joker == null || !VorphaseLaeuft || Coordinate is not { } zelle)
+            if (joker is not { } ablauf || !VorphaseLaeuft || Coordinate is not { } zelle)
                 return;
 
-            var neu = await EinloesenOderMeldenAsync(joker.Einloesungen(runde.Submissions, zelle.GameId, zelle.Id));
+            var neu = await EinloesenOderMeldenAsync(ablauf.Einloesungen(runde.Submissions, zelle.GameId, zelle.Id));
 
             // V12: erst jetzt erfahren die Telefone, was gilt - eine hier abgelehnte Wahl stand sonst kurz als eingesetzt da.
-            if (BuzzerControlsViewModel != null)
+            if (joker == ablauf && BuzzerControlsViewModel != null)
                 await BuzzerControlsViewModel.ConfirmJokersAsync(neu.Select(j => j.Id).ToList());
 
-            joker.Schliesse(neu);
+            // R5-6: das Fenster schloss während des Einlösens - die Frage ist ohne Wertung verlassen, die Joker gehen wieder auf.
+            if (joker != ablauf)
+            {
+                await GibJokerFreiAsync(zelle, neu.Select(j => j.Id).ToList());
+                return;
+            }
+
+            ablauf.Schliesse(neu);
             VorphaseLaeuft = false;
             LoeseVorphase();
             await WendeJokerAnAsync();
@@ -255,10 +262,18 @@ namespace Quizzer.Views.GameViews
             if (ablauf.NeuEingeloest.Count == 0 || IsDone || PlayersResultViewModel is { HatOffeneBewertungen: true } or { HatGebucht: true })
                 return;
 
+            await GibJokerFreiAsync(zelle, ablauf.NeuEingeloest);
+        }
+
+        private static async Task GibJokerFreiAsync(GameGridCoordinate zelle, IReadOnlyList<Guid> jokerIds)
+        {
+            if (jokerIds.Count == 0)
+                return;
+
             try
             {
                 using var ctrl = new PlayerJokersController();
-                await ctrl.ReleaseAsync(zelle.Id, ablauf.NeuEingeloest);
+                await ctrl.ReleaseAsync(zelle.Id, jokerIds);
                 await ctrl.SaveChangesAsync();
             }
             catch (Exception ex)

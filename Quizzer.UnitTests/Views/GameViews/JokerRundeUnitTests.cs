@@ -300,6 +300,35 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.IsFalse((await AusDerDatenbankAsync(joker[0])).IsRedeemed);
         }
 
+        /// <summary>
+        /// R5-6: das Fenster schließt, während die Joker eingelöst werden. Die Frage ist ohne Wertung verlassen - der Joker geht
+        /// wieder auf, und das Ende der Runde läuft danach ohne Fehler ins Leere.
+        /// </summary>
+        [TestMethod]
+        public async Task ClosingWhileRedeemingReopensTheJokerWithoutAnError()
+        {
+            Vergib((0, JokerKind.Double));
+            var vm = await OeffneAsync(CellSpecialRule.None);
+            var echt = vm.JokerEinloesen;
+            var fertig = false;
+
+            vm.JokerEinloesen = async einloesungen =>
+            {
+                var neu = await echt(einloesungen);
+                await vm.ClosedForTestAsync();
+                fertig = true;
+                return neu;
+            };
+
+            await JokerAsync(0, joker[0].Id);
+            Assert.IsTrue(await WarteAsync(() => fertig), "Die Runde schloss nicht.");
+            Assert.IsTrue(await WarteAsync(() => !vm.VorphaseLaeuft || TestEnvironment.SwallowedExceptions.Count > 0), "Das Ende der Runde lief nicht durch.");
+            await Task.Delay(200);
+
+            TestEnvironment.ThrowIfAnythingWasSwallowed();
+            Assert.IsFalse((await AusDerDatenbankAsync(joker[0])).IsRedeemed, "Der beim Schließen eingelöste Joker bleibt eingelöst.");
+        }
+
         /// <summary>Der Joker-Teil eines Zustands - <c>null</c>, wenn er nicht aus der Joker-Runde stammt.</summary>
         private static JsonElement? JokerInfo(ClientLayoutStateDto dto)
             => dto.LayoutInfo is JsonElement { ValueKind: JsonValueKind.Object } info
