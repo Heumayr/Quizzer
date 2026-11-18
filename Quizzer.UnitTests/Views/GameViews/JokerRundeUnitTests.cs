@@ -55,6 +55,13 @@ namespace Quizzer.UnitTests.Views.GameViews
             return (await ctrl.GetAsync(j.Id))!;
         }
 
+        private async Task<bool> AnnaRichtigAsync()
+        {
+            using var ctrl = new QuestionResultsController();
+            var zeilen = await ctrl.GetAllResultsForCoordinate(world!.Coordinate.Id) ?? [];
+            return zeilen.Single(r => r.PlayerId == world.Players[0].Id).CorrectAnswered;
+        }
+
         private string Name(int spieler) => world!.Players[spieler].CalculatedDisplayName;
 
         private int Feld => world!.Coordinate.CurrentPoints;
@@ -231,12 +238,14 @@ namespace Quizzer.UnitTests.Views.GameViews
         /// <summary>
         /// R5-1: über den echten Weg - das Schließen des Ergebnisfensters bucht (<see cref="TestableCurrentQuestionViewModel.SchliessenBucht"/>),
         /// „gespeichert" ist „Speichern und schließen" vor „Nächster wählt aus". Gebucht heißt: der Joker hat gewirkt und bleibt eingelöst.
+        /// „nur Häkchen" (P11-4): das Schließen schreibt es (P10-1), aber es ist keine Buchung - der Joker geht wieder auf.
         /// </summary>
         [TestMethod]
         [DataRow("ohne Wertung", false)]
         [DataRow("bewertet", true)]
         [DataRow("gespeichert", true)]
         [DataRow("abgeschlossen", true)]
+        [DataRow("nur Häkchen", false)]
         public async Task LeavingWithoutRatingReopensTheJoker(string wie, bool bleibtEingeloest)
         {
             Vergib((0, JokerKind.Double));
@@ -255,9 +264,15 @@ namespace Quizzer.UnitTests.Views.GameViews
             if (wie == "abgeschlossen")
                 vm.IsDone = true;
 
+            if (wie == "nur Häkchen")
+                Karte(vm, 0).CorrectAnswered = true;
+
             await vm.ClosedForTestAsync();
             TestEnvironment.ThrowIfAnythingWasSwallowed();
             Assert.AreEqual(wie is "bewertet" or "gespeichert", vm.PlayersResultViewModel!.HatGebucht, "Gebucht ist nicht, was der Fall verlangt.");
+
+            if (wie == "nur Häkchen")
+                Assert.IsTrue(await AnnaRichtigAsync(), "Das Häkchen kam beim Schließen nicht in der Datenbank an - dann misst der Fall nichts.");
 
             Assert.AreEqual(bleibtEingeloest, (await AusDerDatenbankAsync(joker[0])).IsRedeemed, $"Frage {wie} verlassen.");
         }
