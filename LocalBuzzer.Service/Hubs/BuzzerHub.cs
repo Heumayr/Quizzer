@@ -171,14 +171,15 @@ namespace LocalBuzzer.Service.Hubs
             result.Player = player;
 
             // Verworfen (Finale: zweite Abgabe, M37 E4) erreicht nichts den Spielleiter - gekuerzt ist der Wert hier schon.
-            if (!inputState.SetInput(result))
+            if (!inputState.SetInput(result, out var geschlossen))
                 return;
 
             _bus.OnPlayerSubmittedInput(result);
 
             await SendStateToEachAsync();
 
-            if (inputState.Locked)
+            // Nur wer geschlossen hat, löst auf - nach dem Senden war Locked auch für den vorletzten Tipp wahr (M37 P6, R2-4).
+            if (geschlossen)
             {
                 _stateManager.LockAll();
                 _bus.OnAllPlayersSubmittedInput(inputState.InputsForPlayer);
@@ -212,16 +213,16 @@ namespace LocalBuzzer.Service.Hubs
 
             results.PlayerId = player.Id;
             results.Player = player;
-            keySelector.SetSelectedKeys(results);
+            var geschlossen = keySelector.SetSelectedKeys(results);
 
             // Nur Gepruefte weitermelden - eine verworfene Abgabe (doppelte oder unbekannte
-            // Tasten) erreicht den Spielleiter nicht.
+            // Tasten, geschlossene Runde) erreicht den Spielleiter nicht.
             if (!results.CommittedResult)
                 return;
 
             _bus.OnPlayerSelectedKeys(results);
 
-            if (keySelector.Locked)
+            if (geschlossen)
             {
                 _stateManager.LockAll();
                 _bus.OnAllPlayersSelectedKeys(keySelector.KeyResultsForPlayer);

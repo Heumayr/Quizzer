@@ -91,8 +91,14 @@ namespace LocalBuzzer.Service.Base.States
         /// ersten, solange die Runde offen ist - ausser beim Finale (<see cref="EinmalAbgabe"/>). Gesperrt wird, sobald alle
         /// abgegeben haben. <c>false</c>: verworfen, nichts davon darf den Spielleiter erreichen.
         /// </summary>
-        public bool SetInput(InputResult result)
+        public bool SetInput(InputResult result) => SetInput(result, out _);
+
+        /// <param name="closedRound">Ob dieser Tipp die Runde geschlossen hat - das tut genau einer (M37 P6, R2-4). Zwei letzte
+        /// Tipps zugleich lasen danach beide <c>Locked</c>, und die Runde wurde zweimal aufgelöst.</param>
+        public bool SetInput(InputResult result, out bool closedRound)
         {
+            closedRound = false;
+
             if (result.Player == null || Locked || !_answerLock.Allows(result.Player.Id))
                 return false;
 
@@ -114,11 +120,11 @@ namespace LocalBuzzer.Service.Base.States
 
                 if (playersCount <= 0)
                 {
-                    Locked = true;
+                    Locked = closedRound = true;
                     return true;
                 }
 
-                Locked = InputsForPlayer.Count == playersCount
+                Locked = closedRound = InputsForPlayer.Count == playersCount
                       && InputsForPlayer.All(v => v.Value.CommittedResult);
 
                 return true;

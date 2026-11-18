@@ -76,13 +76,28 @@ namespace LocalBuzzer.Service.Base.States
             TrueFalse = Infos.TrueFalse
         };
 
-        public void SetSelectedKeys(SelectionResult results)
+        /// <summary>
+        /// Nimmt die Wahl eines Spielers an, solange die Runde offen ist; verworfen trägt sie <c>CommittedResult = false</c>.
+        /// </summary>
+        /// <returns>Ob diese Wahl die Runde geschlossen hat - das tut genau eine (M37 P6, R2-4). <c>Locked</c> danach zu lesen
+        /// reicht nicht: Umstimmen und letzte Wahl zugleich lasen beide <c>true</c>, und die Runde wurde zweimal aufgelöst.</returns>
+        public bool SetSelectedKeys(SelectionResult results)
         {
-            if (results.Player == null || Locked || !_answerLock.Allows(results.Player.Id))
-                return;
+            if (results.Player == null || !_answerLock.Allows(results.Player.Id))
+            {
+                results.CommittedResult = false;
+                return false;
+            }
 
             lock (this)
             {
+                // Innen: zwischen einer Prüfung draußen und hier kann die letzte Wahl die Runde geschlossen haben.
+                if (Locked)
+                {
+                    results.CommittedResult = false;
+                    return false;
+                }
+
                 if (results.SelectedKeys.Count > Infos.MaxAllowedSelections || !IsCompleteOrder(results.SelectedKeys))
                 {
                     results.SelectedKeys.Clear();
@@ -101,11 +116,13 @@ namespace LocalBuzzer.Service.Base.States
                 if (playersCount <= 0)
                 {
                     Locked = true;
-                    return;
+                    return true;
                 }
 
                 Locked = KeyResultsForPlayer.Count == playersCount
                       && KeyResultsForPlayer.All(v => v.Value.CommittedResult);
+
+                return Locked;
             }
         }
 
