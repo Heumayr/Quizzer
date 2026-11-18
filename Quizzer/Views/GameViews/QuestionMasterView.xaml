@@ -252,7 +252,7 @@
                         <TextBlock Text="{Binding Reaktion.Rekord.Text}" Visibility="{Binding Reaktion.RekordVisibility}"
                                    FontWeight="Bold" TextWrapping="Wrap" Margin="4,0,4,6" />
                         <Button Content="Runde starten" Command="{Binding StartMinigameRoundCommand}" FontWeight="Bold"
-                                ToolTip="Startet die nächste Runde auf allen Telefonen. Nach der letzten Runde geht nichts mehr – dann wiederholen oder abschließen." />
+                                ToolTip="{Binding StartMinigameRoundToolTip}" ToolTipService.ShowOnDisabled="True" />
                         <Button Content="Runde wiederholen" Command="{Binding RepeatMinigameRoundCommand}" Margin="4,6,4,0"
                                 ToolTip="{Binding RepeatMinigameRoundToolTip}" ToolTipService.ShowOnDisabled="True" />
                         <Button Content="Minispiel abbrechen" Command="{Binding AbortMinigameCommand}" Margin="4,6,4,0"

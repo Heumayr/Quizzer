@@ -41,7 +41,7 @@ namespace Quizzer.Views.GameViews
         private AsyncRelayCommand? abortMinigameCommand;
 
         public ICommand StartMinigameRoundCommand
-            => startMinigameRoundCommand ??= new AsyncRelayCommand(_ => StartMinispielRundeAsync());
+            => startMinigameRoundCommand ??= new AsyncRelayCommand(_ => StartMinispielRundeAsync(), _ => !RundeGebucht);
 
         public ICommand RepeatMinigameRoundCommand
             => repeatMinigameRoundCommand ??= new AsyncRelayCommand(_ => WiederholeMinispielRundeAsync(), _ => !RundeGebucht);
@@ -57,10 +57,17 @@ namespace Quizzer.Views.GameViews
               + "Frage schließen, „Letzte Wertung zurücknehmen“, Zelle neu öffnen."
             : "Spielt die laufende oder zuletzt gespielte Runde neu. Ihre bisherigen Zeiten zählen nicht mehr.";
 
+        /// <summary>P3-1: „Runde zurücksetzen“ stellt das Minispiel auf Anfang - ein neuer Start buchte dann wie R4-1 ein zweites Mal.</summary>
+        public string StartMinigameRoundToolTip => RundeGebucht
+            ? "Diese Runde ist schon gebucht – ein neuer Start buchte sie ein zweites Mal. Erst die Wertung zurücknehmen: "
+              + "Frage schließen, „Letzte Wertung zurücknehmen“, Zelle neu öffnen."
+            : "Startet die nächste Runde auf allen Telefonen. Nach der letzten Runde geht nichts mehr – dann wiederholen oder abschließen.";
+
         /// <summary>Aus dem Ergebnisfenster nach jeder Buchung: Knopf und Erklärung folgen dem gebuchten Stand.</summary>
         internal void NachBuchung()
         {
             OnPropertyChanged(nameof(RepeatMinigameRoundToolTip));
+            OnPropertyChanged(nameof(StartMinigameRoundToolTip));
             CommandManager.InvalidateRequerySuggested();
         }
 
@@ -105,7 +112,7 @@ namespace Quizzer.Views.GameViews
 
         internal async Task StartMinispielRundeAsync()
         {
-            if (!PaarBereit())
+            if (RundeGebucht || !PaarBereit())
                 return;
 
             if (BuzzerControlsViewModel == null || !await BuzzerControlsViewModel.StartMinigameRoundAsync())
