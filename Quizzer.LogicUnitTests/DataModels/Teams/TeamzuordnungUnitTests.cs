@@ -77,6 +77,30 @@ namespace Quizzer.LogicUnitTests.DataModels.Teams
             Assert.AreEqual(0, Teamzuordnung.Startwarnungen(spiel).Count);
         }
 
+        /// <summary>R1-7: was am Abgleich oder Bündel vorbei in die Datenbank kam (Altbestand), hält spätestens der Start an.</summary>
+        [TestMethod]
+        [DataRow(5, "Blau", DisplayName = "Farbe doppelt")]
+        [DataRow(4, " ROT", DisplayName = "Name doppelt")]
+        public void ALineupBreakingTheLimitsStopsTheStart(int farbe, string name)
+        {
+            Setze("Anna", rot);
+            Setze("Bert", blau);
+            blau.ColorIndex = farbe;
+            blau.Name = name;
+
+            StringAssert.Contains(Teamzuordnung.Startfehler(spiel).Single(), "Zwei Teams");
+        }
+
+        [TestMethod]
+        public void NineTeamsStopTheStart()
+        {
+            Setze("Anna", rot);
+            Setze("Bert", blau);
+            spiel.GameTeams.AddRange(Enumerable.Range(0, 7).Select(i => new GameTeam { Id = Guid.NewGuid(), GameId = spiel.Id, Name = "Team " + i, ColorIndex = i, SortOrder = 2 + i }));
+
+            Assert.IsTrue(Teamzuordnung.Startfehler(spiel).Any(f => f.Contains("Höchstens 8 Teams")), string.Join(" | ", Teamzuordnung.Startfehler(spiel)));
+        }
+
         /// <summary>Weniger als zwei Teams ist ein Fehler.</summary>
         [TestMethod]
         public void OneTeamIsNotEnough()

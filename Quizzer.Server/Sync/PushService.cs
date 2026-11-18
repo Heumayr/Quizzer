@@ -108,6 +108,7 @@ namespace Quizzer.Server.Sync
 
                 // Was an gelöschten Spielen hängt, und Teams erst danach - gezählt wird, was wirklich geht (R1-1, R1-4).
                 acceptedDeletes = await rules.SettleDeletesAsync(acceptedUpserts, acceptedDeletes, response, ct);
+                await rules.CheckLineupsAsync(acceptedUpserts, acceptedDeletes, response, ct);
 
                 try
                 {

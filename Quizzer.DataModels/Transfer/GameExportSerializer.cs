@@ -173,6 +173,12 @@ namespace Quizzer.DataModels.Transfer
                 if (TeamGrenzen.TeamProblem(team.Name, team.ColorIndex, speakerTurn: 0) is { } problem)
                     throw new InvalidDataException($"Team {i + 1}: {problem}");
             }
+
+            // R1-7: die Aufstellung als Ganzes, wie SaveLineupAsync - höchstens acht, keine Farbe und kein Name doppelt.
+            var aufstellung = dokument.Teams.Select(t => new Models.Base.GameTeam { Name = t.Name, ColorIndex = t.ColorIndex }).ToList();
+
+            if (TeamGrenzen.AufstellungProblem(aufstellung) is { } ganzes)
+                throw new InvalidDataException(ganzes);
         }
     }
 }

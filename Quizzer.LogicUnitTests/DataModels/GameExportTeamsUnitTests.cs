@@ -39,6 +39,21 @@ namespace Quizzer.LogicUnitTests.DataModels
             Assert.ThrowsExactly<InvalidDataException>(() => GameExportSerializer.Pruefe(dokument));
         }
 
+        /// <summary>R1-7: die Aufstellung als Ganzes - Rot (Farbe 5) steht schon im Bündel.</summary>
+        [TestMethod]
+        [DataRow("Grün", 5, 0, DisplayName = "Farbe doppelt")]
+        [DataRow(" rot ", 2, 0, DisplayName = "Name doppelt")]
+        [DataRow("Neun", 0, 7, DisplayName = "neuntes Team")]
+        public void ALineupBreakingTheLimitsIsRejected(string name, int farbe, int weitere)
+        {
+            var dokument = Dokument();
+            dokument.Teams.AddRange(Enumerable.Range(0, weitere).Select(i => new GameExportDocument.TeamData { Name = "Team " + i, ColorIndex = i < 5 ? i : i + 1 }));
+            GameExportSerializer.Pruefe(dokument);
+            dokument.Teams.Add(new GameExportDocument.TeamData { Name = name, ColorIndex = farbe });
+
+            Assert.ThrowsExactly<InvalidDataException>(() => GameExportSerializer.Pruefe(dokument));
+        }
+
         [TestMethod]
         [DataRow(2, 30, DisplayName = "unbekannte Wertung")]
         [DataRow(0, -1, DisplayName = "Beratung negativ")]

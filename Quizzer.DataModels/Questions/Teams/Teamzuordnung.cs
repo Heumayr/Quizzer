@@ -56,6 +56,10 @@ namespace Quizzer.DataModels.Questions.Teams
 
             var fehler = new List<string>();
 
+            // R1-7: was vor der Prüfung an Abgleich und Bündel vorbeikam, hält spätestens hier an.
+            if (TeamGrenzen.AufstellungProblem(spiel.GameTeams) is { } aufstellung)
+                fehler.Add($"{aufstellung} Im Spielaufbau unter „Teams bearbeiten …“ ändern.");
+
             if (spiel.GameTeams.Count < TeamGrenzen.MinTeams)
                 fehler.Add($"Ein Teamspiel braucht mindestens {TeamGrenzen.MinTeams} Teams, angelegt {(spiel.GameTeams.Count == 0 ? "ist keins" : "ist eins")}. "
                          + "Im Spielaufbau unter „Teams bearbeiten …“ anlegen oder auslosen.");
