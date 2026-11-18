@@ -20,9 +20,12 @@ namespace Quizzer.Server.Sync
                 : SyncModel.TryGet(row.Type, out var eintrag) && SyncModel.IsQuestion(eintrag) ? Punktegrenzen.FrageFelder
                 : null;
 
-            if (felder == null)
-                return null;
+            return felder == null ? null : NegativesFeld(row, felder);
+        }
 
+        /// <summary>Das erste negative der Felder, wie <see cref="Punktegrenzen.Problem"/> es nennt - auch für Raster und Phasen (P5-4).</summary>
+        internal static string? NegativesFeld(SyncRow row, IReadOnlyDictionary<string, string> felder)
+        {
             foreach (var (feld, beschriftung) in felder)
             {
                 // Fehlt ein Feld, bleibt der Stand der Zeile - geprüft wird, was kommt (wie TeamRowCheck).

@@ -160,6 +160,27 @@ namespace Quizzer.DataModels.Transfer
 
             PruefeTeams(dokument);
             PruefePunkte(dokument);
+            PruefeRaster(dokument.Spiel);
+        }
+
+        /// <summary>P5-4: Raster und Phasen nie negativ - nach <see cref="Rastergrenzen"/>, wie am Server und in der Maske.</summary>
+        private static void PruefeRaster(GameExportDocument.GameData spiel)
+        {
+            var werte = new Dictionary<string, double>
+            {
+                [nameof(spiel.Height)] = spiel.Height,
+                [nameof(spiel.Width)] = spiel.Width,
+                [nameof(spiel.CellHeight)] = spiel.CellHeight,
+                [nameof(spiel.CellWidth)] = spiel.CellWidth,
+                [nameof(spiel.SuggestedPhases)] = spiel.SuggestedPhases,
+            };
+
+            // Ein Feld, das hier fehlt, wirft (KeyNotFoundException) - nie still ungeprüft.
+            foreach (var (feld, beschriftung) in Rastergrenzen.SpielFelder)
+            {
+                if (Punktegrenzen.Problem(beschriftung, werte[feld]) is { } problem)
+                    throw new InvalidDataException($"Spiel: {problem}");
+            }
         }
 
         /// <summary>R3-3: Punkte-Parameter nie negativ - nach <see cref="Punktegrenzen"/>, wie am Server und in der Maske.</summary>
