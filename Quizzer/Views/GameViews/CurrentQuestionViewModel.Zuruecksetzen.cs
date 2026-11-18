@@ -4,20 +4,17 @@ using static Quizzer.Views.GameViews.Sub.PlayerResultContext;
 namespace Quizzer.Views.GameViews
 {
     /// <summary>
-    /// „Runde zurücksetzen" an einer Teamregel und im Finale (V22): der Hub verwirft die Abgaben (ResetLayouts, Reopen der
-    /// Team-Abstimmung) - hier gehen Antworten, Vergleich bzw. Abstimmung, Auflösung am Beamer und die Vorschläge der Karten mit.
-    /// Danach steht im Fragefenster wieder, was vor der ersten Abgabe stand; nichts Altes ist mehr sichtbar oder wertbar.
+    /// „Runde zurücksetzen" nach dem Ausspielen der Antworten (V22; seit P2-3 jede Eingabe- und Tastenfrage, nicht nur Teamregel
+    /// und Finale): der Hub verwirft die Abgaben (ResetLayouts, Reopen der Team-Abstimmung) - hier gehen Antworten, Tasten,
+    /// Schätzauswertung, Vergleich bzw. Abstimmung, Auflösung am Beamer und die Vorschläge der Karten mit. Danach steht im
+    /// Fragefenster wieder, was vor der ersten Abgabe stand; nichts Altes ist mehr sichtbar oder wertbar.
     /// </summary>
     public partial class CurrentQuestionViewModel
     {
-        /// <summary>
-        /// Nach dem Ausspielen der Antworten (Eingabe oder Tastenwahl) mit Teamregel oder Finale. Eine gespielte Zelle hat keine
-        /// - ihre Regel setzt erst die Vorphase, und die spielt sie nicht mehr.
-        /// </summary>
+        /// <summary>Nach dem Ausspielen der Antworten (Eingabe oder Tastenwahl), mit und ohne Teamregel (P2-3).</summary>
         private void MeldeAntwortRundeAn(BuzzerControlsLayout layout)
         {
-            if (BuzzerControlsViewModel == null || layout is not (BuzzerControlsLayout.Input or BuzzerControlsLayout.KeySelect)
-                || (Teamregel == null && Finale == null))
+            if (BuzzerControlsViewModel == null || layout is not (BuzzerControlsLayout.Input or BuzzerControlsLayout.KeySelect))
                 return;
 
             BuzzerControlsViewModel.AnswerRoundReset = OnAntwortRundeReset;
@@ -25,9 +22,6 @@ namespace Quizzer.Views.GameViews
 
         private void OnAntwortRundeReset()
         {
-            if (Teamregel == null && Finale == null)
-                return;
-
             // Erst die Regel, dann die Karten - jede Karte wertet beim Zurücksetzen die Zelle neu, und das soll ohne Altes geschehen.
             GleichGedachtRegel?.VerwirfAntworten();
             TeamAbstimmung?.VerwirfStimmen();
