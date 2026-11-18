@@ -88,5 +88,31 @@ namespace Quizzer.Server.Tests
 
             Assert.IsTrue(result.Rejected.Any(r => r.Id == set.Question.Id && r.Reason == SyncRejectReason.Invalid), $"{nameof(DefaultQuestion)}.{feld} = -1 ging durch.");
         }
+
+        /// <summary>
+        /// P5-5: die gespeicherten Punkte einer Zelle. Eine gespielte Zelle rechnet beim Öffnen nie neu - gemessen stand beim
+        /// Nachbessern „richtig −500, falsch +300" auf der Karte. Eine offene rechnet neu; abgewiesen wird trotzdem jede.
+        /// </summary>
+        [TestMethod]
+        [DataRow(nameof(GameGridCoordinate.CurrentPoints))]
+        [DataRow(nameof(GameGridCoordinate.CurrentMinusPoints))]
+        public async Task ANegativeStoredCellValueIsInvalidZeroIsNot(string feld)
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+            var (gina, _) = await ServerTestHost.NewMemberAsync(factory, "Gina");
+            var negativ = SyncTestData.NewGame("Zelle negativ " + feld);
+            var null_ = SyncTestData.NewGame("Zelle null " + feld);
+            negativ.Cell.IsDone = true;
+            null_.Cell.IsDone = true;
+            var push = negativ.AsNewPush();
+            push.Upserts.AddRange(null_.AsNewPush().Upserts);
+            Mit(push.Upserts.Single(u => u.Row.Id == negativ.Cell.Id), feld, -1);
+            Mit(push.Upserts.Single(u => u.Row.Id == null_.Cell.Id), feld, 0);
+
+            var result = await PushAsync(gina, push);
+
+            Assert.IsTrue(result.Rejected.Any(r => r.Id == negativ.Cell.Id && r.Reason == SyncRejectReason.Invalid), $"{nameof(GameGridCoordinate)}.{feld} = -1 ging durch.");
+            Assert.IsTrue(result.Accepted.Any(a => a.Id == null_.Cell.Id), $"{feld} = 0 wurde abgewiesen: " + string.Join("; ", result.Rejected.Select(r => r.Message)));
+        }
     }
 }

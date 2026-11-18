@@ -28,6 +28,16 @@ namespace Quizzer.DataModels.Questions
             [nameof(QuestionBase.MinusPoints)] = "Minuspunkte",
         };
 
+        /// <summary>
+        /// Die gespeicherten Punkte einer Zelle (P5-5) - nur der Abgleich trägt sie, das Bündel rechnet neu. Eine gespielte Zelle
+        /// rechnet nie neu: ein negativer Wert stünde beim Nachbessern als Vorschlag auf der Karte.
+        /// </summary>
+        public static IReadOnlyDictionary<string, string> ZellenFelder { get; } = new Dictionary<string, string>
+        {
+            [nameof(GameGridCoordinate.CurrentPoints)] = "Punkte der Zelle",
+            [nameof(GameGridCoordinate.CurrentMinusPoints)] = "Minuspunkte der Zelle",
+        };
+
         /// <summary>Die Beanstandung eines Werts, oder <c>null</c>.</summary>
         public static string? Problem(string beschriftung, double wert)
             => wert < 0 ? $"„{beschriftung}“ darf nicht negativ sein ({wert})." : null;

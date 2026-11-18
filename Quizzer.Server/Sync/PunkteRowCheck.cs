@@ -8,8 +8,8 @@ namespace Quizzer.Server.Sync
 {
     /// <summary>
     /// Punkte-Parameter im Abgleich (M37 P5, R3-3): Faktoren und Zuschläge am Spiel, Punkte und Minuspunkte an jeder Frage nie
-    /// negativ - nach <see cref="Punktegrenzen"/>, derselben Stelle wie das Bündel. Kostet nur die Zeile (<c>Invalid</c>), wie
-    /// <see cref="TeamRowCheck"/>.
+    /// negativ, ebenso die gespeicherten Punkte einer Zelle (P7, P5-5) - nach <see cref="Punktegrenzen"/>, derselben Stelle wie das
+    /// Bündel. Kostet nur die Zeile (<c>Invalid</c>), wie <see cref="TeamRowCheck"/>.
     /// </summary>
     internal static class PunkteRowCheck
     {
@@ -17,6 +17,7 @@ namespace Quizzer.Server.Sync
         public static string? Pruefe(SyncRow row)
         {
             var felder = row.Type == nameof(Game) ? Punktegrenzen.SpielFelder
+                : row.Type == nameof(GameGridCoordinate) ? Punktegrenzen.ZellenFelder
                 : SyncModel.TryGet(row.Type, out var eintrag) && SyncModel.IsQuestion(eintrag) ? Punktegrenzen.FrageFelder
                 : null;
 
