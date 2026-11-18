@@ -140,6 +140,17 @@ namespace Quizzer.Server.Tests
             Assert.AreEqual(HttpStatusCode.UpgradeRequired, antwort.StatusCode);
         }
 
+        /// <summary>M37 T10: ein WPF ohne „Stellvertreter-Duell" kennt die Art nicht, hielte ihr Layout für verbogen und schriebe die Tastenwahl zurück.</summary>
+        [TestMethod]
+        public async Task AProgramWithoutTheProxyDuelIsStopped()
+        {
+            await using var factory = ServerTestHost.CreateFactory();
+
+            var antwort = await LoginWithFormatAsync(factory.CreateClient(), Format(31));
+
+            Assert.AreEqual(HttpStatusCode.UpgradeRequired, antwort.StatusCode);
+        }
+
         [TestMethod]
         public async Task ANewerProgramIsStoppedWithItsOwnMessage()
         {

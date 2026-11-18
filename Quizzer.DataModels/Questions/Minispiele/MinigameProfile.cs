@@ -142,6 +142,12 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// <summary>Was im Teamspiel hinter dem Regeltext steht, wo eine Art je Person mehr sagt als „nur gegen Gegner“ (M37 T8).</summary>
         public string? TeamRulesText { get; init; }
 
+        /// <summary>
+        /// Die Spielweise, die nur bei genau zwei Teams gespielt wird (M37 T10, Schere-Stein-Papier im Stellvertreter-Duell); sonst
+        /// spielt die Vorgabe, und der Spielstart merkt es an. <c>null</c>: jede Spielweise geht mit jeder Zahl von Teams.
+        /// </summary>
+        public int? TwoTeamsOnlyVariant { get; init; }
+
         /// <summary>Die Spielweise zum gespeicherten Index; ein unbekannter faellt auf die Vorgabe.</summary>
         public MinigameVariant VariantFor(int variant)
             => variant >= 0 && variant < Variants.Count ? Variants[variant] : Variants[0];

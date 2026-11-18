@@ -71,8 +71,9 @@ namespace Quizzer.DataModels.Transfer.Sync
         /// 30: Team-Abstimmung (M37 T7) - neuer Wert CellSpecialRule.TeamVote; ein altes WPF spielte die Zelle ohne Teamregel
         ///    und schrieb je Mitglied seine eigene Wertung statt der Anteile an der Mehrheit.
         /// 31: Minispiel-Art Tauziehen (M37 T9) - derselbe Grund wie bei 4.
+        /// 32: Minispiel-Art Stellvertreter-Duell (M37 T10) - derselbe Grund wie bei 4.
         /// </summary>
-        public const int CurrentFormatVersion = 31;
+        public const int CurrentFormatVersion = 32;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
 

@@ -177,3 +177,61 @@
         transition: none;
     }
 }
+
+/* ===== Stellvertreter-Duell (M37 T10) - die Teams mit ihrem Stellvertreter, die Wahl als grosse Tasten =====
+   Die Farbe einer Zeile kommt nur ueber team-farbe-N (oben); Symbol, Name und Stellvertreter stehen immer als Text daneben.
+   Die Zuege von Schere-Stein-Papier tragen die Klassen des Duells (minispiele.css). */
+.stellvertreter-teams {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.stellvertreter-team {
+    padding: var(--space-xs) var(--space-sm);
+    border: 2px solid var(--text-soft);
+    border-radius: var(--radius-md);
+    background: var(--team-farbe, var(--panel));
+    color: var(--team-schrift, var(--text));
+    font-size: 18px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.stellvertreter-inhalt {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.stellvertreter-text {
+    margin: 0;
+    font-size: 20px;
+    overflow-wrap: break-word;
+}
+
+.stellvertreter-taste {
+    min-height: var(--input-height);
+    border-radius: var(--radius-lg);
+    font-size: 22px;
+    font-weight: 800;
+    background: var(--primary);
+    touch-action: manipulation;
+    overflow-wrap: anywhere;
+}
+
+/* Das Los hebt sich ab - mit Symbol und Text, nicht nur durch die Flaeche. */
+.stellvertreter-los {
+    background: var(--panel);
+    color: var(--text);
+    border: 2px dashed var(--text-soft);
+}
+
+/* Gewaehlt: der Rahmen sagt es zusaetzlich zum Text. */
+.stellvertreter-aktiv {
+    outline: 4px solid var(--text);
+    outline-offset: 2px;
+}

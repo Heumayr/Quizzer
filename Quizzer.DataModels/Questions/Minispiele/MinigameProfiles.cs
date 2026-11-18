@@ -77,7 +77,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         /// </summary>
         public static IReadOnlyList<MinigameProfile> All => alle ??=
             [Majority, Reaction, TapSprint, Stopwatch, Duel, RobberAndGuard, ShareOrTake, Crash, WheelOfFortune, MentalArithmetic, Memory,
-             LightningRound, WordScramble, ExplainIt, Bluff, HotPotato, TugOfWar];
+             LightningRound, WordScramble, ExplainIt, Bluff, HotPotato, TugOfWar, ProxyDuel];
 
         private static IReadOnlyList<MinigameProfile>? alle;
 

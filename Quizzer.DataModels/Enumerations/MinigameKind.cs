@@ -59,5 +59,8 @@ namespace Quizzer.DataModels.Enumerations
 
         /// <summary>Tauziehen: nur im Teamspiel - die Teams tippen gegeneinander, das Seil wandert am Beamer; die Serveruhr entscheidet (M37 T9).</summary>
         TugOfWar = 17,
+
+        /// <summary>Stellvertreter-Duell: nur im Teamspiel - jedes Team schickt einen, nur die Gewaehlten spielen (M37 T10).</summary>
+        ProxyDuel = 18,
     }
 }

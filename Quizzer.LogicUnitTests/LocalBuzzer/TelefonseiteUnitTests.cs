@@ -208,6 +208,10 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         [TestMethod]
         public void TheTugOfWarCountsOnThePhoneAndShowsTheRope() => LaufeMit("tauziehen.test.mjs");
 
+        /// <summary>M37 T10: Stellvertreter-Duell - eine Wahl genau einmal, das Los ohne Zahl, die Disziplin nur für den Stellvertreter, Namen nur als Text.</summary>
+        [TestMethod]
+        public void TheProxyDuelChoosesOnceAndOnlyTheProxyPlays() => LaufeMit("stellvertreter.test.mjs");
+
         /// <summary>M35 C4: Gluecksrad - nur der Dreher waehlt ein Ziel, genau einmal; die Aufloesung vom Server.</summary>
         [TestMethod]
         public void TheWheelLetsOnlyTheSpinnerChooseOnce() => LaufeMit("gluecksrad.test.mjs");

@@ -24,7 +24,8 @@ export const MinigameKinds = Object.freeze({
     ExplainIt: 14,
     Bluff: 15,
     HotPotato: 16,
-    TugOfWar: 17
+    TugOfWar: 17,
+    ProxyDuel: 18
 });
 
 export const MinigamePhases = Object.freeze({

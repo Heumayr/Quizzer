@@ -48,6 +48,7 @@ namespace Quizzer.TestShared
         public const int AlleOderKeiner = 5479;
         public const int TeamAbstimmung = 5481;
         public const int Tauziehen = 5483;
+        public const int Stellvertreter = 5485;
 
         // Quizzer.Server.Tests: keine festen Ports (In-Memory-Server, sonst Port 0).
     }

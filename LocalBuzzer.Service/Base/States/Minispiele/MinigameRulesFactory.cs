@@ -55,6 +55,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             MinigameKind.Bluff => new BluffRules(setup, kontext),
             MinigameKind.HotPotato => new HotPotatoRules(setup, kontext),
             MinigameKind.TugOfWar => new TugOfWarRules(setup, kontext),
+            MinigameKind.ProxyDuel => new ProxyDuelRules(setup, kontext),
             _ => null,
         };
     }

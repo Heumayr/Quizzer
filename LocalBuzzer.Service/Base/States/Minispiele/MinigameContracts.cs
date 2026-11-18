@@ -165,6 +165,9 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
 
         /// <summary>Was die Zuschauer am Telefon lesen; <c>null</c>: der Rahmen sagt es allgemein.</summary>
         string? WatcherText => null;
+
+        /// <summary>Was dieser Zuschauer liest - beim Stellvertreter-Duell, wen sein Team schickt (M37 T10); sonst für alle derselbe.</summary>
+        string? WatcherTextFor(Player? player) => WatcherText;
     }
 
     /// <summary>

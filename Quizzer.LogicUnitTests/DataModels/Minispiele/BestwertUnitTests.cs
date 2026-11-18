@@ -31,6 +31,9 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
 
             // M37 T9: gewonnen wird als Team; die Tipps je Person laufen an der Serveruhr samt Nachlauf - mit dem Tippsprint nicht vergleichbar.
             MinigameKind.TugOfWar,
+
+            // M37 T10: gewonnen wird als Team; Reaktion oder Schere-Stein-Papier nur der Stellvertreter - kein Wert je Person.
+            MinigameKind.ProxyDuel,
         ];
 
         [TestMethod]

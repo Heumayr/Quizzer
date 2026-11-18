@@ -65,6 +65,21 @@ namespace LocalBuzzer.Service.Base
         }
 
         /// <summary>
+        /// Der Spielleiter lost für jedes Team, das noch keinen Stellvertreter hat (M37 T10, E1) - danach beginnt die Disziplin.
+        /// <c>false</c> ohne Stellvertreter-Duell, außerhalb einer Runde oder wenn kein Team mehr wählt.
+        /// </summary>
+        public async Task<bool> DrawOpenProxiesAsync(CancellationToken ct = default)
+        {
+            CheckServerRunning();
+
+            if (!StateManager.MinigameState.OpenNextStage(r => (r as ProxyDuelRules)?.LoseOffene() == true))
+                return false;
+
+            await SendStateAsync(ct);
+            return true;
+        }
+
+        /// <summary>
         /// Die Joker-Runde ist eingeloest (V12): was der zweite Riegel abgelehnt hat, nimmt das Telefon zurueck, und erst
         /// jetzt sehen alle, wer welchen Joker setzt. <c>false</c> ohne Joker-Runde oder solange sie laeuft.
         /// </summary>

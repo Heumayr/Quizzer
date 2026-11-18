@@ -108,7 +108,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
                     Aborted = Aborted,
                     OwnSubmitted = player != null && rules?.HasSubmitted(player.Id) == true,
                     KindInfo = rules?.InfoFor(player, Phase),
-                    WatcherText = rules?.WatcherText,
+                    WatcherText = rules?.WatcherTextFor(player),
                 };
             }
         }
@@ -169,6 +169,24 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             ArgumentNullException.ThrowIfNull(zugriff);
 
             lock (gate) return zugriff(rules);
+        }
+
+        /// <summary>
+        /// Ein Eingriff des Spielleiters, der die nächste Stufe der laufenden Runde öffnet (M37 T10: offene Stellvertreter auslosen) -
+        /// wie eine Wahl am Telefon gilt danach ein neuer Durchgang. <c>false</c>, wenn keine Runde läuft oder der Eingriff nichts tat.
+        /// </summary>
+        public bool OpenNextStage(Func<IMinigameRules?, bool> eingriff)
+        {
+            ArgumentNullException.ThrowIfNull(eingriff);
+
+            lock (gate)
+            {
+                if (Phase != MinigamePhase.Running || !eingriff(rules))
+                    return false;
+
+                durchgang++;
+                return true;
+            }
         }
 
         /// <summary>Startet die naechste Runde; <c>false</c>, wenn keine mehr aussteht oder eine laeuft.</summary>

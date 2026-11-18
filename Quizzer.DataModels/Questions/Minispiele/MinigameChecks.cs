@@ -22,6 +22,7 @@ namespace Quizzer.DataModels.Questions.Minispiele
         public const string NotInTeamGame = "minigame-not-in-team-game";
         public const string NoOpponent = "minigame-no-opponent";
         public const string OnlyInTeamGame = "minigame-only-in-team-game";
+        public const string TwoTeamsOnly = "minigame-two-teams-only";
 
         /// <summary>Prueft den Inhalt: bekannte Art, bekannte Spielweise, genug Zeilen.</summary>
         public static IEnumerable<ValidationIssue> Content(MinigameQuestion frage)
@@ -98,9 +99,26 @@ namespace Quizzer.DataModels.Questions.Minispiele
                 return OhneTeamspiel(art);
 
             // Eine Teamart zählt nur besetzte Teams - wer ohne Team ist, spielt dort nicht mit (T9); sonst zählt er als eigenes Lager.
-            return ForTeams(art, art.TeamScoring == MinispielTeamwertung.NurImTeamspiel
-                ? Teams.Teamzuordnung.BesetzteTeams(spiel)
-                : Teams.Teamzuordnung.Lager(spiel));
+            var besetzt = Teams.Teamzuordnung.BesetzteTeams(spiel);
+            var befunde = ForTeams(art, art.TeamScoring == MinispielTeamwertung.NurImTeamspiel ? besetzt : Teams.Teamzuordnung.Lager(spiel));
+
+            return befunde.Concat(NurZweiTeams(art, frage.Variant, besetzt));
+        }
+
+        /// <summary>
+        /// Eine Spielweise nur für zwei Teams bei mehr als zwei (M37 T10): gespielt wird dann die Vorgabe - eine Anmerkung, kein
+        /// Fehler. Weniger als zwei meldet schon <see cref="NoOpponent"/>.
+        /// </summary>
+        public static IEnumerable<ValidationIssue> NurZweiTeams(MinigameProfile art, int variante, int besetzt)
+        {
+            ArgumentNullException.ThrowIfNull(art);
+
+            if (art.TwoTeamsOnlyVariant != variante || besetzt <= 2)
+                yield break;
+
+            yield return new(TwoTeamsOnly, ValidationSeverity.Warning,
+                $"Minispiel {art.DisplayName}: „{art.VariantFor(variante).Name}“ geht nur mit genau zwei Teams, besetzt sind "
+                + $"{besetzt} – gespielt wird „{art.Variants[0].Name}“.");
         }
 
         /// <summary>
