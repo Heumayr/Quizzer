@@ -136,36 +136,102 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base.States
         }
 
         /// <summary>
-        /// Hält die Abgabe innen an - am Spielzugriff, den der Zustand in der Sperre ruft -, schließt von einem zweiten
-        /// Faden und lässt die Abgabe erst weiterlaufen, wenn das Schließen durch ist oder an der Sperre wartet.
+        /// P8-1 (P10): „Runde zurücksetzen“, während Annas Stimme innen geprüft ist, aber noch nicht eingetragen - angehalten im
+        /// Tastenvergleich der Prüfung. Früher setzte <c>Reset</c> außerhalb der Sperre zurück, und die gegen die alte Runde
+        /// geprüfte Stimme stand danach in der neuen.
         /// </summary>
+        [TestMethod]
+        public void AResetWhileAVoteIsCheckedLeavesNoOldVoteInTheNewRound()
+        {
+            var (spiel, spieler) = Spiel();
+            var tasten = (BuzzerKeySelector)EingriffMittenInDerAbgabe(
+                halt => new BuzzerKeySelector(new GameAccessor { GetGame = () => spiel })
+                {
+                    Infos = new() { KeysAndDesignations = new(new AnhaltenderVergleich(halt)) { ["A"] = "Rom", ["B"] = "Paris" } }
+                },
+                zustand => ((BuzzerKeySelector)zustand).SetSelectedKeys(Stimme(spieler[0], "A")),
+                zustand => zustand.Reset());
+
+            Assert.IsFalse(tasten.KeyResultsForPlayer.ContainsKey(spieler[0].Id), "Annas Stimme aus der alten Runde steht in der neuen.");
+            Assert.IsFalse(tasten.Locked, "Die neue Runde ist nicht offen.");
+        }
+
+        /// <summary>P8-1: ein Layoutwechsel (<c>ClearAndLock</c>) mitten in der Auswertung einer Stimme lässt den Zustand zu und leer.</summary>
+        [TestMethod]
+        public void ClearingWhileAVoteIsEvaluatedLeavesTheStateLockedAndEmpty()
+        {
+            var (spiel, spieler) = Spiel();
+            var tasten = (BuzzerKeySelector)EingriffMittenInDerAbgabe(
+                halt => new BuzzerKeySelector(new GameAccessor { GetGame = () => { halt(); return spiel; } })
+                {
+                    Infos = new() { KeysAndDesignations = new() { ["A"] = "Rom", ["B"] = "Paris" } }
+                },
+                zustand => ((BuzzerKeySelector)zustand).SetSelectedKeys(Stimme(spieler[0], "A")),
+                zustand => zustand.ClearAndLock());
+
+            Assert.IsTrue(tasten.Locked, "Die Auswertung der Stimme hat den abgelösten Zustand wieder geöffnet.");
+            Assert.AreEqual(0, tasten.KeyResultsForPlayer.Count, "Im abgelösten Zustand steht noch eine Stimme.");
+        }
+
+        /// <summary>Wie <see cref="ClearingWhileAVoteIsEvaluatedLeavesTheStateLockedAndEmpty"/>, für den Tipp.</summary>
+        [TestMethod]
+        public void ClearingWhileAnInputIsEvaluatedLeavesTheStateLockedAndEmpty()
+        {
+            var (spiel, spieler) = Spiel();
+            var eingabe = (BuzzerInputState)EingriffMittenInDerAbgabe(
+                halt => new BuzzerInputState(new GameAccessor { GetGame = () => { halt(); return spiel; } }),
+                zustand => ((BuzzerInputState)zustand).SetInput(Tipp(spieler[0], "1")),
+                zustand => zustand.ClearAndLock());
+
+            Assert.IsTrue(eingabe.Locked, "Die Auswertung des Tipps hat den abgelösten Zustand wieder geöffnet.");
+            Assert.AreEqual(0, eingabe.InputsForPlayer.Count, "Im abgelösten Zustand steht noch ein Tipp.");
+        }
+
+        /// <summary>Ein Tastenvergleich, der beim ersten Aufruf nach dem Scharfstellen anhält - mitten in der Prüfung der Stimme.</summary>
+        private sealed class AnhaltenderVergleich(Action halt) : IEqualityComparer<string>
+        {
+            public bool Equals(string? x, string? y) => string.Equals(x, y, StringComparison.Ordinal);
+
+            public int GetHashCode(string obj)
+            {
+                halt();
+                return StringComparer.Ordinal.GetHashCode(obj);
+            }
+        }
+
         private static IBuzzerLayoutState SchliessenMittenInDerAbgabe(Game spiel, Func<GameAccessor, IBuzzerLayoutState> neu,
             Action<IBuzzerLayoutState> abgeben)
+            => EingriffMittenInDerAbgabe(halt => neu(new GameAccessor { GetGame = () => { halt(); return spiel; } }), abgeben, z => z.LockAll());
+
+        /// <summary>
+        /// Hält die Abgabe innen an - dort, wo <paramref name="neu"/> den Haken einbaut, in der Sperre -, greift von einem zweiten
+        /// Faden ein und lässt die Abgabe erst weiterlaufen, wenn der Eingriff durch ist oder an der Sperre wartet. Scharf ist der
+        /// Haken erst mit der Abgabe, damit der Aufbau ihn nicht auslöst.
+        /// </summary>
+        private static IBuzzerLayoutState EingriffMittenInDerAbgabe(Func<Action, IBuzzerLayoutState> neu,
+            Action<IBuzzerLayoutState> abgeben, Action<IBuzzerLayoutState> eingriff)
         {
             var frist = TimeSpan.FromSeconds(10);
             using var drinnen = new ManualResetEventSlim();
             using var weiter = new ManualResetEventSlim();
-            var anhalten = 1;
+            var anhalten = 0;
 
-            var zustand = neu(new GameAccessor
+            var zustand = neu(() =>
             {
-                GetGame = () =>
-                {
-                    if (Interlocked.Exchange(ref anhalten, 0) == 1) { drinnen.Set(); weiter.Wait(frist); }
-                    return spiel;
-                }
+                if (Interlocked.Exchange(ref anhalten, 0) == 1) { drinnen.Set(); weiter.Wait(frist); }
             });
 
+            Volatile.Write(ref anhalten, 1);
             var abgabe = Task.Run(() => abgeben(zustand));
             Assert.IsTrue(drinnen.Wait(frist), "Die Abgabe kam nie in der Sperre an.");
 
-            var schliessen = new Thread(zustand.LockAll) { IsBackground = true };
-            schliessen.Start();
-            Assert.IsTrue(SpinWait.SpinUntil(() => !schliessen.IsAlive || (schliessen.ThreadState & ThreadState.WaitSleepJoin) != 0, frist),
-                "Das Schließen lief weder durch noch wartete es an der Sperre.");
+            var zweiter = new Thread(() => eingriff(zustand)) { IsBackground = true };
+            zweiter.Start();
+            Assert.IsTrue(SpinWait.SpinUntil(() => !zweiter.IsAlive || (zweiter.ThreadState & ThreadState.WaitSleepJoin) != 0, frist),
+                "Der Eingriff lief weder durch noch wartete er an der Sperre.");
 
             weiter.Set();
-            Assert.IsTrue(abgabe.Wait(frist) && schliessen.Join(frist), "Abgabe oder Schließen hängen.");
+            Assert.IsTrue(abgabe.Wait(frist) && zweiter.Join(frist), "Abgabe oder Eingriff hängen.");
 
             return zustand;
         }

@@ -142,18 +142,26 @@ namespace LocalBuzzer.Service.Base.States
             return wert[..laenge];
         }
 
+        /// <summary>In der Sperre (M37 P10, P8-1): sonst landet eine gegen die alte Runde gepruefte Abgabe in der neuen.</summary>
         public void Reset()
         {
-            InputsForPlayer.Clear();
-            Locked = false;
+            lock (this)
+            {
+                InputsForPlayer.Clear();
+                Locked = false;
+            }
         }
 
+        /// <summary>In der Sperre (M37 P10, P8-1): sonst oeffnet eine gerade ausgewertete Abgabe den abgeloesten Zustand wieder.</summary>
         public void ClearAndLock()
         {
-            InputsForPlayer.Clear();
-            Infos = new BuzzerInputInfo();
-            EinmalAbgabe = false;
-            Locked = true;
+            lock (this)
+            {
+                InputsForPlayer.Clear();
+                Infos = new BuzzerInputInfo();
+                EinmalAbgabe = false;
+                Locked = true;
+            }
         }
 
         /// <summary>Die Spielleitung schließt die Runde - in der Sperre, sonst hebt eine gerade ausgewertete Abgabe das wieder auf (M37 P8, P6-1).</summary>

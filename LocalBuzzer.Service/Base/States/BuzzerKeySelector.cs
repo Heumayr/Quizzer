@@ -153,21 +153,29 @@ namespace LocalBuzzer.Service.Base.States
                 && keys.All(k => k != null && Infos.KeysAndDesignations.ContainsKey(k));
         }
 
+        /// <summary>In der Sperre (M37 P10, P8-1): sonst landet eine gegen die alte Runde gepruefte Abgabe in der neuen.</summary>
         public void Reset()
         {
-            KeyResultsForPlayer.Clear();
-            Locked = false;
+            lock (this)
+            {
+                KeyResultsForPlayer.Clear();
+                Locked = false;
+            }
         }
 
+        /// <summary>In der Sperre (M37 P10, P8-1): sonst oeffnet eine gerade ausgewertete Abgabe den abgeloesten Zustand wieder.</summary>
         public void ClearAndLock()
         {
-            Infos.KeysAndDesignations.Clear();
-            KeyResultsForPlayer.Clear();
-            Infos.ShowDesignations = true;
-            Infos.Ordered = false;
-            Infos.Prompts = new();
-            Infos.TrueFalse = false;
-            Locked = true;
+            lock (this)
+            {
+                Infos.KeysAndDesignations.Clear();
+                KeyResultsForPlayer.Clear();
+                Infos.ShowDesignations = true;
+                Infos.Ordered = false;
+                Infos.Prompts = new();
+                Infos.TrueFalse = false;
+                Locked = true;
+            }
         }
 
         /// <summary>Die Spielleitung schließt die Runde - in der Sperre, sonst hebt eine gerade ausgewertete Abgabe das wieder auf (M37 P8, P6-1).</summary>
