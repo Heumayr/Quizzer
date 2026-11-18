@@ -9,10 +9,9 @@
         xmlns:buzzerServer="clr-namespace:Quizzer.Views.BuzzerViews"
         xmlns:typed="clr-namespace:Quizzer.Views.GameViews.QuestionViews.Typed"
         mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=local:CurrentQuestionViewModel}"
         Title="{Binding WindowTitle}" Height="800" Width="1300">
-    <base:WindowBase.DataContext>
-        <local:CurrentQuestionViewModel></local:CurrentQuestionViewModel>
-    </base:WindowBase.DataContext>
+    <!-- P11-2: kein eigenes ViewModel als DataContext - das Spielfenster reicht seines herein; ein zweites raeumte beim Schliessen die Buzzer-Steuerung ab, bevor gebucht war. -->
 
     <base:WindowBase.InputBindings>
         <KeyBinding Key="Enter" Command="{Binding NextStepCommnad}" />

@@ -54,6 +54,7 @@ namespace Quizzer.TestShared
         public const int Staffel = 5487;
         public const int RundeZuruecksetzen = 5489;
         public const int RundeZuruecksetzenGewoehnlich = 5491;
+        public const int FragefensterSchliessen = 5497;
 
         // Quizzer.Server.Tests: keine festen Ports (In-Memory-Server, sonst Port 0).
     }

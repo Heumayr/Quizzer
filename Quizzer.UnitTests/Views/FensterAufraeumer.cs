@@ -1,3 +1,4 @@
+using Quizzer.Views.GameViews;
 using System.Windows;
 
 namespace Quizzer.UnitTests.Views
@@ -19,9 +20,28 @@ namespace Quizzer.UnitTests.Views
     /// </summary>
     internal sealed class FensterAufraeumer : IDisposable
     {
+        /// <summary>
+        /// Fenster, deren XAML kein ViewModel mehr mitbringt (P10-2, P11-2): der Öffner reicht es herein, hier ebenso - sonst
+        /// prüften die Fensterlisten ihre Bindungen gegen nichts, und eine tote bliebe grün.
+        /// </summary>
+        internal static readonly Dictionary<Type, Func<object>> Hereingereicht = new()
+        {
+            [typeof(PlayersResultView)] = () => new PlayersResultViewModel(),
+            [typeof(QuestionMasterView)] = () => new CurrentQuestionViewModel(),
+        };
+
         public FensterAufraeumer(Type fenstertyp)
         {
             Fenster = (Window)Activator.CreateInstance(fenstertyp)!;
+
+            if (!Hereingereicht.TryGetValue(fenstertyp, out var viewModel))
+                return;
+
+            Fenster.DataContext = viewModel();
+
+            // Nachträglich gesetzt hängen sich die Bindungen verzögert an. Ohne das legte die Messung eine Fläche aus, die erst
+            // danach einklappt, und ihre Kinder behielten die alte Breite (gemessen: die Minispiel-Steuerung im Fragefenster).
+            Fenster.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ContextIdle);
         }
 
         /// <summary>Das erzeugte Fenster.</summary>
