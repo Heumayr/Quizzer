@@ -76,6 +76,15 @@ done <<EOF
 $refs
 EOF
 
+# Der Arbeitsbaum steht nur fuer HEAD, wenn er sauber ist (R1-3): eine ungetrackte Datei oder eine
+# uncommittete Korrektur baute sonst gruen, was auf einem sauberen Klon nicht baut. Dann geht auch
+# HEAD in den Wegwerf-Arbeitsbaum - im Hauptbaum (Submodul-Zeiger, Ungetracktes) meist der Fall.
+if [ "$teste_kopf" -eq 1 ] && [ -n "$(git status --porcelain)" ]; then
+  echo "pre-push: Arbeitsbaum nicht sauber - HEAD wird im Wegwerf-Arbeitsbaum geprueft."
+  teste_kopf=0
+  case " $fremde " in *" $kopf "*) ;; *) fremde="$fremde $kopf" ;; esac
+fi
+
 # Bau mit genau einem zweiten Versuch: der erste Bau nach einer WPF-Aenderung scheitert gelegentlich
 # mit CS2001 im *_wpftmp.csproj (quizzer-testaufbau.md). Bewusst nur die Logiktests (etwa eine
 # Minute, samt Telefonseite in Node); WPF- und Servertests bleiben ein bewusster Aufruf (CLAUDE.md).
