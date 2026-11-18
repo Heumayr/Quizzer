@@ -203,8 +203,12 @@ namespace LocalBuzzer.Service.Hubs
                 return;
 
             // M37 T7: in der Team-Abstimmung geht jede Stimme an das ganze Team - je Telefon höchstens fünf in zehn Sekunden.
+            // Verworfen bekommt nur der Aufrufer seinen Stand, darin die Stimme, die zählt (M37 P6, R2-3).
             if (!_stateManager.TeamVote.TryTakeVote(player.Id))
+            {
+                await ClientStateSender.SendToAsync(Clients, Context.ConnectionId, _registry, _stateManager);
                 return;
+            }
 
             results.PlayerId = player.Id;
             results.Player = player;

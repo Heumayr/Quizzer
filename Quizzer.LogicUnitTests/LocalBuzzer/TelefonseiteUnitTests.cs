@@ -255,5 +255,9 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         /// <summary>M37 T7: Team-Abstimmung - vor dem Schluss die eigene Stimme und der Stand, danach die Antwort des eigenen Teams, nur als Text.</summary>
         [TestMethod]
         public void TheTeamVoteShowsOwnVoteThenTheTeamsAnswer() => LaufeMit("abstimmung.test.mjs");
+
+        /// <summary>M37 P6, R2-3: das Tasten-Layout zeigt in der laufenden Team-Abstimmung die Stimme, die zählt - eine verworfene nie als „Abgegeben ✓".</summary>
+        [TestMethod]
+        public void TheKeySelectLayoutShowsTheVoteThatCounts() => LaufeMit("keySelectAbstimmung.test.mjs");
     }
 }

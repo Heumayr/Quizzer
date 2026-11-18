@@ -24,6 +24,7 @@ const state = {
     excluded: false,
     excludedReason: null,
     winner: null,
+    teamVote: null,
     replaced: false,
     conn: null
 };
@@ -42,7 +43,8 @@ function buildContext() {
         allLocked: state.allLocked,
         excluded: state.excluded,
         excludedReason: state.excludedReason,
-        winner: state.winner
+        winner: state.winner,
+        teamVote: state.teamVote
     };
 }
 
@@ -92,6 +94,7 @@ function applyServerState(serverState) {
     state.excluded = serverState.excludedFromQuestion ?? false;
     state.excludedReason = serverState.excludedReason ?? null;
     state.winner = serverState.winner ?? null;
+    state.teamVote = serverState.team?.vote ?? null;
 
     if (state.zeitAbgelaufen && !warAbgelaufen) {
         toast("warning", "Zeit ist um – Eingaben gesperrt");

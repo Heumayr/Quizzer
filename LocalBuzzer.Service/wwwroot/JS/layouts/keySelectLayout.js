@@ -57,6 +57,23 @@
         }
 
         this.setLocked(context.currentLayoutLocked || context.allLocked);
+        this.zeigeServerstimme(context.teamVote);
+    }
+
+    // Team-Abstimmung (M37 P6, R2-3): solange sie laeuft, zeigt das Telefon die Stimme, die der Server zaehlt - nicht die
+    // zuletzt gedrueckte. Ohne gezaehlte Stimme bleibt alles, wie es ist.
+    zeigeServerstimme(vote) {
+        const own = Array.isArray(vote?.own) ? vote.own : [];
+
+        if (vote?.closed !== false || own.length === 0 || this.trueFalse || !this.root) return false;
+
+        this.selectedKeys = new Set(own);
+        this.root.querySelectorAll(".key-btn").forEach(btn => this.markSelected(btn, this.selectedKeys.has(btn.dataset.key)));
+        this.submitted = true;
+        this.commitBtn.textContent = "Abgegeben ✓";
+        this.updatePositions();
+        this.updateCommitState();
+        return true;
     }
 
     createSignature(context) {
@@ -185,6 +202,7 @@
         this.updatePositions();
         this.updateCommitState();
         this.setLocked(context.currentLayoutLocked || context.allLocked);
+        this.zeigeServerstimme(context.teamVote);
     }
 
     // Gewaehlt wird nicht allein ueber die Farbe angezeigt: der Haken kommt aus der CSS,
@@ -351,6 +369,8 @@
             return;
         }
 
+        if (this.stimmeVerworfen(keys)) return;
+
         // Erst jetzt melden. Bis 2026-09-05 stand "Auswahl gespeichert" schon da, bevor der
         // Server geantwortet hatte - auch dann, wenn er die Abgabe still verwarf.
         this.submitted = true;
@@ -364,6 +384,30 @@
                 ? "Zuordnung übermittelt"
                 : this.ordered ? "Reihenfolge übermittelt" : "Auswahl übermittelt");
         }
+    }
+
+    // Der Hub schickt seinen Stand, bevor der Aufruf zurueckkommt (M37 P6, R2-3): zaehlt in der laufenden Abstimmung eine
+    // andere Stimme als die gesendete, war sie verworfen - das Telefon zeigt die gezaehlte und sagt es.
+    stimmeVerworfen(keys) {
+        const vote = this.lastContext?.teamVote;
+
+        if (vote?.closed !== false || this.trueFalse) return false;
+
+        const own = Array.isArray(vote.own) ? vote.own : [];
+
+        if (JSON.stringify([...own].sort()) === JSON.stringify([...keys].sort())) return false;
+
+        if (!this.zeigeServerstimme(vote)) {
+            this.setLocked(this.lastContext.currentLayoutLocked || this.lastContext.allLocked);
+        }
+
+        if (typeof window.show_toast === "function") {
+            window.show_toast("warning", own.length > 0
+                ? `Stimme nicht angenommen – es zählt weiter: ${own.join(" + ")}`
+                : "Stimme nicht angenommen – bitte gleich noch einmal");
+        }
+
+        return true;
     }
 
     dispose() {

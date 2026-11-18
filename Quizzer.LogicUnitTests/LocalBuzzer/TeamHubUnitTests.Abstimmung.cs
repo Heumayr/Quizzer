@@ -153,6 +153,30 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             CollectionAssert.AreEqual(new[] { "A" }, Steuerung.StateManager.BuzzerKeySelector.KeyResultsForPlayer[anna.Id].SelectedKeys, "Eine Stimme über der Grenze zählt.");
         }
 
+        /// <summary>M37 P6, R2-3: eine an der Grenze verworfene Stimme bekommt ihren Stand zurück - nur das eigene Telefon.</summary>
+        [TestMethod]
+        public async Task ADroppedVoteSendsTheCallerTheVoteThatCounts()
+        {
+            var a = await VerbindeAsync(anna);
+            var b = await VerbindeAsync(bert);
+            await AbstimmungAsync();
+
+            foreach (var taste in new[] { "A", "B", "A", "B", "A" })
+                await StimmeAsync(a, taste);
+
+            Assert.IsTrue(await WarteAsync(() => Abstimmung(a)?.Own.SequenceEqual(["A"]) == true && Abstimmung(b)?.Voted == 1));
+            await Task.Delay(200);
+            var annaVorher = Zahl(a);
+            var bertVorher = Zahl(b);
+
+            await StimmeAsync(a, "C");
+
+            Assert.IsTrue(await WarteAsync(() => Zahl(a) > annaVorher), "Die verworfene Stimme bekam keinen Stand - das Telefon zeigt eine Stimme, die nicht zählt.");
+            CollectionAssert.AreEqual(new[] { "A" }, Abstimmung(a)!.Own, "Der Stand nach dem Verwerfen nennt nicht die Stimme, die zählt.");
+            await Task.Delay(200);
+            Assert.AreEqual(bertVorher, Zahl(b), "Die verworfene Stimme ging an das ganze Team.");
+        }
+
         /// <summary>„Runde zurücksetzen" stimmt neu ab: die alte Antwort steht nicht mehr da; ohne Abstimmung zeigt das Telefon keine.</summary>
         [TestMethod]
         public async Task AResetDropsTheOldAnswerAndWithoutAVoteThereIsNone()
