@@ -87,7 +87,19 @@ namespace LocalBuzzer.Service.Base
             States.Add(MinigameState);
         }
 
+        /// <summary>
+        /// Zurücksetzen, Abgabe und Schließen einer Runde laufen nacheinander (M37 P11, P10-3/P10-4) - die Rundenmarke ist
+        /// <see cref="ResetCount"/>. Reihenfolge immer erst diese Sperre, dann die des Zustands.
+        /// </summary>
+        private readonly object rundenSperre = new();
+
         public void ResetLayouts(int round, BuzzerControlsLayout layout = BuzzerControlsLayout.None)
+        {
+            lock (rundenSperre)
+                ResetLayoutsLocked(round, layout);
+        }
+
+        private void ResetLayoutsLocked(int round, BuzzerControlsLayout layout)
         {
             CurrentLayout = layout;
             Round = round;
@@ -111,6 +123,41 @@ namespace LocalBuzzer.Service.Base
         }
 
         public void LockAll()
+        {
+            lock (rundenSperre)
+                LockAllStates();
+        }
+
+        /// <summary>
+        /// Schließt die Runde nur, wenn sie noch die mit der Marke <paramref name="resetCount"/> ist (P10-3): zwischen der
+        /// Abgabe, die sie geschlossen hat, und hier kann „Runde zurücksetzen“ gekommen sein - dann bleibt die neue offen.
+        /// </summary>
+        public bool LockRound(int resetCount)
+        {
+            lock (rundenSperre)
+            {
+                if (resetCount != ResetCount)
+                    return false;
+
+                LockAllStates();
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Gibt eine Abgabe in die laufende Runde. <paramref name="resetCount"/> ist die Runde, in der <paramref name="submit"/>
+        /// lief - für <see cref="LockRound"/>; ein Zurücksetzen wartet, bis sie durch ist (P10-3).
+        /// </summary>
+        public bool TrySubmit(Func<bool> submit, out int resetCount)
+        {
+            lock (rundenSperre)
+            {
+                resetCount = ResetCount;
+                return submit();
+            }
+        }
+
+        private void LockAllStates()
         {
             CurrentState?.LockAll();
 

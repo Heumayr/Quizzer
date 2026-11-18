@@ -171,7 +171,8 @@ namespace LocalBuzzer.Service.Hubs
             result.Player = player;
 
             // Verworfen (Finale: zweite Abgabe, M37 E4) erreicht nichts den Spielleiter - gekuerzt ist der Wert hier schon.
-            if (!inputState.SetInput(result, out var geschlossen))
+            var geschlossen = false;
+            if (!_stateManager.TrySubmit(() => inputState.SetInput(result, out geschlossen), out var runde))
                 return;
 
             _bus.OnPlayerSubmittedInput(result);
@@ -179,9 +180,9 @@ namespace LocalBuzzer.Service.Hubs
             await SendStateToEachAsync();
 
             // Nur wer geschlossen hat, löst auf - nach dem Senden war Locked auch für den vorletzten Tipp wahr (M37 P6, R2-4).
-            if (geschlossen)
+            // Und nur dieselbe Runde: kam beim Senden „Runde zurücksetzen“, bleibt die neue offen (P10-3).
+            if (geschlossen && _stateManager.LockRound(runde))
             {
-                _stateManager.LockAll();
                 _bus.OnAllPlayersSubmittedInput(inputState.InputsForPlayer);
                 await SendStateToEachAsync();
             }
@@ -213,18 +214,23 @@ namespace LocalBuzzer.Service.Hubs
 
             results.PlayerId = player.Id;
             results.Player = player;
-            var geschlossen = keySelector.SetSelectedKeys(results);
+            var geschlossen = false;
+            var angenommen = _stateManager.TrySubmit(() =>
+            {
+                geschlossen = keySelector.SetSelectedKeys(results);
+                return results.CommittedResult;
+            }, out var runde);
 
             // Nur Gepruefte weitermelden - eine verworfene Abgabe (doppelte oder unbekannte
             // Tasten, geschlossene Runde) erreicht den Spielleiter nicht.
-            if (!results.CommittedResult)
+            if (!angenommen)
                 return;
 
             _bus.OnPlayerSelectedKeys(results);
 
-            if (geschlossen)
+            // Wie beim Tipp: nur dieselbe Runde schließen (P10-3).
+            if (geschlossen && _stateManager.LockRound(runde))
             {
-                _stateManager.LockAll();
                 _bus.OnAllPlayersSelectedKeys(keySelector.KeyResultsForPlayer);
                 await SendStateToEachAsync();
             }

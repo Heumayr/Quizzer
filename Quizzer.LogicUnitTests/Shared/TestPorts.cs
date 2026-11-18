@@ -29,6 +29,7 @@ namespace Quizzer.TestShared
         public const int TeamHub = 5451;
         public const int FinaleHub = 5471;
         public const int RundenschlussHub = 5493;
+        public const int RundenmarkeHub = 5495;
 
         // Quizzer.UnitTests
         public const int BuzzerHandshake = 5403;
