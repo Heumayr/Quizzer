@@ -254,8 +254,9 @@ namespace Quizzer.UnitTests.PlayThrough
         }
 
         /// <summary>
-        /// Der Spielstart fragt bei einem Duell ohne Gegner (MinigameChecks.ForTeams) - über den Weg, den der Start wirklich
-        /// nimmt; mit Spieler 3 in Blau fragt er nicht.
+        /// Ein Duell ohne Gegner beim Spielstart - über den Weg, den der Start wirklich nimmt; mit Spieler 3 in Blau fragt er
+        /// nicht. Sind alle in einem Team, weist der Start seit R3-H1 schon die Aufstellung ab (weniger als zwei besetzte Teams) -
+        /// die Frage nach dem Duell (MinigameChecks.ForTeams) kommt dort nicht mehr an.
         /// </summary>
         [TestMethod]
         public async Task ADuelWithoutAnOpponentIsAskedAtTheGameStart()
@@ -277,9 +278,8 @@ namespace Quizzer.UnitTests.PlayThrough
 
             world.Game.PlayerXGames.Single(x => x.PlayerId == world.Players[2].Id).GameTeamId = world.Game.GameTeams[0].Id;
 
-            Assert.IsTrue(await GameMasterViewModel.StartbarAsync(world.Game), "Der Start wurde abgewiesen statt gefragt (E1).");
-            StringAssert.Contains(prompt.Confirms[^1].Message, "nur gegen Gegner", "Das Duell ohne Gegner fällt beim Start nicht auf.");
-            StringAssert.Contains(prompt.Confirms[^1].Message, "nicht ordentlich spielen");
+            Assert.IsFalse(await GameMasterViewModel.StartbarAsync(world.Game), "Alle in einem Team, und das Spiel startet.");
+            StringAssert.Contains(prompt.Informs[^1].Message, "mindestens 2 Teams mit Mitgliedern", "Der Start nennt nicht, dass ein Gegnerteam fehlt.");
         }
     }
 }

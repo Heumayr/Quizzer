@@ -105,8 +105,9 @@ namespace Quizzer.UnitTests.Views.GameViews
         }
 
         /// <summary>
-        /// Ein leeres Team hält den Start nicht an, wird aber gefragt - über den Weg, den der Start wirklich nimmt
-        /// (mit der Frage aus der Datenbank). Sagt die Spielleitung nein, startet es nicht.
+        /// Ein leeres Team neben zwei besetzten hält den Start nicht an, wird aber gefragt - über den Weg, den der Start wirklich
+        /// nimmt (mit der Frage aus der Datenbank). Sagt die Spielleitung nein, startet es nicht. Ist nur ein Team besetzt, ist
+        /// das seit R3-H1 ein Fehler.
         /// </summary>
         [TestMethod]
         public async Task AnEmptyTeamIsAskedNotRefused()
@@ -114,13 +115,15 @@ namespace Quizzer.UnitTests.Views.GameViews
             await using var world = await TestGameBuilder.CreateAsync(normalStepCount: 1, playerCount: 2);
             var leiter = new Player { Id = Guid.NewGuid(), Designation = "Leo" };
             var rot = Team(world.Game, "Rot", 5);
+            var blau = Team(world.Game, "Blau", 4);
             var gelb = Team(world.Game, "Gelb", 3);
 
             world.Game.Moderator = leiter;
             world.Game.ModeratorPlayerId = leiter.Id;
             world.Game.IsTeamGame = true;
-            world.Game.GameTeams.AddRange([rot, gelb]);
-            world.Game.PlayerXGames.ForEach(x => x.GameTeamId = rot.Id);
+            world.Game.GameTeams.AddRange([rot, blau, gelb]);
+            world.Game.PlayerXGames[0].GameTeamId = rot.Id;
+            world.Game.PlayerXGames[1].GameTeamId = blau.Id;
 
             Assert.IsTrue(await GameMasterViewModel.StartbarAsync(world.Game));
             Assert.AreEqual(1, prompt.Confirms.Count, "Das leere Team wurde nicht gefragt.");
