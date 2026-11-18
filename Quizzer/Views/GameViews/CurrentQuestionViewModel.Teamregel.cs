@@ -90,12 +90,12 @@ namespace Quizzer.Views.GameViews
             teamregelVorbereitet = true;
 
             foreach (var karte in Karten.Where(k => k.Player.ConnectionState == PlayerConnection.Disconnected))
-                regel.LasseAus(karte.Player.Id);
+                regel.LasseGetrenntAus(karte.Player.Id);
 
             if (joker is { Zu: true } ablauf)
             {
                 foreach (var (gesperrt, satz) in ablauf.Sperrsaetze)
-                    regel.LasseAus(gesperrt, satz);
+                    regel.SperrePerJoker(gesperrt, satz);
             }
 
             await TeamregelAnwendenAsync(regel);

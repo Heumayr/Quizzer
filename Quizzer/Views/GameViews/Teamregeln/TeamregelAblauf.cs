@@ -23,8 +23,11 @@ namespace Quizzer.Views.GameViews.Teamregeln
     /// </summary>
     internal abstract class TeamregelAblauf : SonderregelAblauf
     {
-        /// <summary>Wer diese Frage nicht spricht - mit dem Satz für sein Telefon (Joker-Sperre) oder ohne (getrennt).</summary>
-        private readonly Dictionary<Guid, string?> ausgelassen = new();
+        /// <summary>Wer beim Vorbereiten getrennt war - zwei Gründe, getrennt geführt (R5-7): das Aufheben der Joker-Sperre holt ihn nicht zurück.</summary>
+        private readonly HashSet<Guid> getrennt = new();
+
+        /// <summary>Wer per Joker gesperrt ist, mit dem Satz für sein Telefon.</summary>
+        private readonly Dictionary<Guid, string> gesperrt = new();
 
         protected TeamregelAblauf(CellSpecialRule regel)
             : base(SpecialRuleProfiles.All.Single(p => p.Rule == regel))
@@ -35,7 +38,18 @@ namespace Quizzer.Views.GameViews.Teamregeln
         public IReadOnlyList<Teamaufstellung> Teams => Grundlage.Teams ?? [];
 
         /// <summary>Wer diese Frage nicht antworten kann (Joker-Sperre mit Satz, getrennt ohne) - für Regeln ohne Sprecher (M37 T6).</summary>
-        protected IReadOnlyDictionary<Guid, string?> Ausgelassen => ausgelassen;
+        protected IReadOnlyDictionary<Guid, string?> Ausgelassen
+        {
+            get
+            {
+                var alle = getrennt.ToDictionary(id => id, _ => (string?)null);
+
+                foreach (var (id, satz) in gesperrt)
+                    alle[id] = satz;
+
+                return alle;
+            }
+        }
 
         /// <summary>Der Platzhalter der Texteingabe am Telefon.</summary>
         public virtual string Eingabehinweis => CurrentQuestionViewModel.TeamregelEingabe;
@@ -49,14 +63,20 @@ namespace Quizzer.Views.GameViews.Teamregeln
         /// <summary>Je Team der Sprecher dieser Frage für die Telefone; <c>null</c>: sie zeigen den Sprecher des Stands.</summary>
         public virtual IReadOnlyDictionary<Guid, Guid>? SprecherAmTelefon => Sprecher;
 
-        /// <summary>Dieser Spieler spricht bei dieser Frage nicht; der Nächste der Folge übernimmt.</summary>
-        public void LasseAus(Guid spieler, string? satz = null) => ausgelassen[spieler] = satz;
+        /// <summary>Getrennt: dieser Spieler spricht bei dieser Frage nicht; der Nächste der Folge übernimmt.</summary>
+        public void LasseGetrenntAus(Guid spieler) => getrennt.Add(spieler);
 
-        /// <summary>Die Spielleitung hebt eine Joker-Sperre auf (E1): die Gesperrten sprechen wieder, wenn sie dran sind.</summary>
+        /// <summary>Per Joker gesperrt: wie getrennt, mit dem Satz für sein Telefon.</summary>
+        public void SperrePerJoker(Guid spieler, string satz) => gesperrt[spieler] = satz;
+
+        /// <summary>
+        /// Die Spielleitung hebt eine Joker-Sperre auf (E1): die Gesperrten sprechen wieder, wenn sie dran sind - nur die Joker-Gründe,
+        /// wer getrennt ist, bleibt draußen (R5-7).
+        /// </summary>
         public void NimmAuslassungZurueck(IEnumerable<Guid> spieler)
         {
             foreach (var id in spieler)
-                ausgelassen.Remove(id);
+                gesperrt.Remove(id);
         }
 
         /// <summary>Je Team der Sprecher dieser Frage; ein Team, in dem keiner sprechen kann, fehlt.</summary>
@@ -64,7 +84,7 @@ namespace Quizzer.Views.GameViews.Teamregeln
         {
             get
             {
-                var aus = ausgelassen.Keys.ToHashSet();
+                var aus = Ausgelassen.Keys.ToHashSet();
                 var sprecher = new Dictionary<Guid, Guid>();
 
                 foreach (var team in Teams)
@@ -86,6 +106,7 @@ namespace Quizzer.Views.GameViews.Teamregeln
             get
             {
                 var sprecher = Sprecher;
+                var ausgelassen = Ausgelassen;
                 var saetze = new Dictionary<Guid, string>();
 
                 foreach (var team in Teams)
