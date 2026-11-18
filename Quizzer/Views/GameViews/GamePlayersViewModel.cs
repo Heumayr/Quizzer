@@ -1,6 +1,7 @@
 using Quizzer.Base;
 using Quizzer.DataModels;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.DataModels.Questions.Teams;
 using Quizzer.Logic.Controller.TypedControllers;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
@@ -87,7 +88,8 @@ namespace Quizzer.Views.GameViews
             var all = await players.GetAllAsync();
 
             var seated = game.PlayerXGames.Select(x => x.PlayerId).ToHashSet();
-            var withResults = game.QuestionResults.Select(r => r.PlayerId).ToHashSet();
+            // Nur gebuchte Zeilen sind Punkte - eine leere entsteht schon beim Öffnen einer Zelle (M37 P8, P6-4).
+            var withResults = game.QuestionResults.Where(r => !Teamwertung.OhneBuchung(r)).Select(r => r.PlayerId).ToHashSet();
 
             GameMasterName = all.FirstOrDefault(p => p.Id == game.ModeratorPlayerId)?.CalculatedDisplayName ?? "(niemand)";
 

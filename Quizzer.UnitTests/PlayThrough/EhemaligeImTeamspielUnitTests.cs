@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quizzer.Base;
 using Quizzer.DataModels.Models.Base;
+using Quizzer.DataModels.Questions.Teams;
 using Quizzer.Logic.Controller.TypedControllers;
 using static Quizzer.Views.GameViews.Sub.PlayerResultContext;
 
@@ -126,6 +127,43 @@ namespace Quizzer.UnitTests.PlayThrough
             Assert.IsFalse(team.Contains("aus der Wertung"), "Im Teamspiel droht die Rückfrage mit einem Verlust, den es seit R4-4 nicht gibt: " + team);
 
             StringAssert.Contains(await RueckfrageBeimAbwaehlenAsync(teamspiel: false), "Ohne Haken fällt das aus der Wertung heraus.");
+        }
+
+        /// <summary>
+        /// M37 P8, P6-4: eine leere Ergebniszeile (Zelle geöffnet, nichts gebucht) sind keine Punkte - „Wer spielt mit?“ fragt
+        /// beim Abwählen nicht nach, in beiden Betriebsarten. Das Maß ist <see cref="Teamwertung.OhneBuchung"/>.
+        /// </summary>
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task AnUnbookedRowIsNoPointsForTheQuestionWhoPlays(bool teamspiel)
+        {
+            await OeffneAsync();
+
+            using (var ctrl = new QuestionResultsController())
+            {
+                var zeilen = await ctrl.GetAllResultsForCoordinate(world.Coordinate.Id) ?? [];
+                Assert.IsTrue(zeilen.Any(z => z.PlayerId == world.Players[0].Id && Teamwertung.OhneBuchung(z)),
+                    "Anna hat keine leere Zeile in der Datenbank - dann misst der Test nichts.");
+            }
+
+            await using (var context = new Quizzer.Logic.Context.DataContext())
+            {
+                context.Games.Single(g => g.Id == world.Game.Id).IsTeamGame = teamspiel;
+                await context.SaveChangesAsync();
+            }
+
+            var prompt = new RecordingUserPrompt(answer: false);
+            UserPrompt.Current = prompt;
+
+            var vm = new Quizzer.Views.GameViews.GamePlayersViewModel { GameId = world.Game.Id };
+            await vm.LoadForTestAsync();
+            vm.Choices.Single(c => c.Player.Id == world.Players[0].Id).IsChecked = false;
+            await ((AsyncRelayCommand)vm.ConfirmCommand).ExecuteAsync(null);
+
+            Assert.AreEqual(0, prompt.Confirms.Count, "„Wer spielt mit?“ nennt Punkte, die nie gebucht wurden: "
+                + string.Join(" | ", prompt.Confirms.Select(c => c.Message)));
+            Assert.IsTrue(vm.Confirmed, "Ohne Rückfrage ging es nicht weiter.");
         }
 
         /// <summary>„Wer spielt mit?“ ohne Anna; die Rückfrage wird verneint, es bleibt alles, wie es ist.</summary>
