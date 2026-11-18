@@ -45,6 +45,13 @@ namespace Quizzer.Views.GameViews.Teamregeln
             zusammengelegt = new Dictionary<Guid, string>();
         }
 
+        /// <summary>„Runde zurücksetzen" (V22): die Antworten sind wieder offen - verglichen wird erst nach den neuen.</summary>
+        public void VerwirfAntworten()
+        {
+            antworten = null;
+            zusammengelegt = new Dictionary<Guid, string>();
+        }
+
         /// <summary>Je Team die Gruppen, größte zuerst; leer, solange die Antworten offen sind.</summary>
         public IReadOnlyList<GleichGedachtTeam> Gruppen
             => antworten is { } offen

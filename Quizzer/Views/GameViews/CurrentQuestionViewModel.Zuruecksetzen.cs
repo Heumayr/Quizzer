@@ -1,0 +1,70 @@
+using Quizzer.DataModels.Enumerations;
+using static Quizzer.Views.GameViews.Sub.PlayerResultContext;
+
+namespace Quizzer.Views.GameViews
+{
+    /// <summary>
+    /// „Runde zurücksetzen" an einer Teamregel und im Finale (V22): der Hub verwirft die Abgaben (ResetLayouts, Reopen der
+    /// Team-Abstimmung) - hier gehen Antworten, Vergleich bzw. Abstimmung, Auflösung am Beamer und die Vorschläge der Karten mit.
+    /// Danach steht im Fragefenster wieder, was vor der ersten Abgabe stand; nichts Altes ist mehr sichtbar oder wertbar.
+    /// </summary>
+    public partial class CurrentQuestionViewModel
+    {
+        /// <summary>
+        /// Nach dem Ausspielen der Antworten (Eingabe oder Tastenwahl) mit Teamregel oder Finale. Eine gespielte Zelle hat keine
+        /// - ihre Regel setzt erst die Vorphase, und die spielt sie nicht mehr.
+        /// </summary>
+        private void MeldeAntwortRundeAn(BuzzerControlsLayout layout)
+        {
+            if (BuzzerControlsViewModel == null || layout is not (BuzzerControlsLayout.Input or BuzzerControlsLayout.KeySelect)
+                || (Teamregel == null && Finale == null))
+                return;
+
+            BuzzerControlsViewModel.AnswerRoundReset = OnAntwortRundeReset;
+        }
+
+        private void OnAntwortRundeReset()
+        {
+            if (Teamregel == null && Finale == null)
+                return;
+
+            // Erst die Regel, dann die Karten - jede Karte wertet beim Zurücksetzen die Zelle neu, und das soll ohne Altes geschehen.
+            GleichGedachtRegel?.VerwirfAntworten();
+            TeamAbstimmung?.VerwirfStimmen();
+            LeereFinale();
+            LeereGleichGedacht();
+            LeereTeamAbstimmung();
+            ClearAppreciateOutcome();
+            Sonderregel.ZeigeAufloesung([]);
+
+            LeereKarten();
+
+            if (Finale != null)
+                ZeigeFinale();
+            else if (Teamregel is { } regel)
+                ZeigeTeamregel(regel);
+
+            WerteSonderregel();
+        }
+
+        /// <summary>Antworten und Bewertungen der alten Runde - auch eine von Hand: sie galt einer Antwort, die es nicht mehr gibt.</summary>
+        private void LeereKarten()
+        {
+            if (PlayersResultViewModel is not { } ergebnis)
+                return;
+
+            ergebnis.SelectionResultsDic = null;
+
+            foreach (var karte in ergebnis.PlayerResultContextList)
+            {
+                karte.InputResult = null;
+                karte.AppreciateGuess = null;
+
+                if (karte.Suggestion != ScoreSuggestion.None || karte.CurrentScoreManipulation != 0)
+                    karte.Suggestion = ScoreSuggestion.None;
+
+                karte.SonderregelGeaendert();
+            }
+        }
+    }
+}

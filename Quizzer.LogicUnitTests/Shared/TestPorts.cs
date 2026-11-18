@@ -50,6 +50,7 @@ namespace Quizzer.TestShared
         public const int Tauziehen = 5483;
         public const int Stellvertreter = 5485;
         public const int Staffel = 5487;
+        public const int RundeZuruecksetzen = 5489;
 
         // Quizzer.Server.Tests: keine festen Ports (In-Memory-Server, sonst Port 0).
     }

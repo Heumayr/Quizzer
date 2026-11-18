@@ -73,6 +73,9 @@ namespace Quizzer.Views.GameViews
 
             var layout = AntwortLayout;
 
+            // R5-2: eine Teamregel ohne Vorphase steht erst jetzt - sonst schickte „Runde zuruecksetzen" weiter das Layout der Frage.
+            OnPropertyChanged(nameof(CurrentBuzzerLayout));
+
             // Der Spielleiter soll waehrend der Runde sehen, worauf er wartet und was richtig
             // waere - bis hierher stand beides erst im Ergebnisfenster, also erst danach.
             BuzzerControlsViewModel.SetRoundInfo(Question);
@@ -159,6 +162,9 @@ namespace Quizzer.Views.GameViews
             {
                 await BuzzerControlsViewModel.ResetRoundAsync(CurrentBuzzerLayout);
             }
+
+            // V22: erst nach dem Ausspielen - das setzt selbst zurueck.
+            MeldeAntwortRundeAn(layout);
         }
 
         private async Task OnAllPlayersSelectedKeys(ConcurrentDictionary<Guid, BuzzerKeySelector.SelectionResult> dictionary)
@@ -192,6 +198,7 @@ namespace Quizzer.Views.GameViews
                 //schaetzfrage
                 BuzzerControlsViewModel.PlayerSubmittedInput = null;
                 BuzzerControlsViewModel.AllPlayersSubmittedInput = null;
+                BuzzerControlsViewModel.AnswerRoundReset = null; // V22: vor dem Zuruecksetzen unten - das Schliessen leert keine Karten
                 ClearAppreciateOutcome();
                 ClearMinigame();
                 ClearSonderregel();

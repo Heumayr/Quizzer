@@ -49,6 +49,13 @@ namespace Quizzer.Views.GameViews.Teamregeln
             entscheide.Clear();
         }
 
+        /// <summary>„Runde zurücksetzen" (V22): es wird neu abgestimmt - alte Stimmen und Entscheide der Spielleitung gelten nicht mehr.</summary>
+        public void VerwirfStimmen()
+        {
+            stimmen = null;
+            entscheide.Clear();
+        }
+
         /// <summary>Je Team die Mehrheit; leer, solange die Abstimmung läuft.</summary>
         public IReadOnlyList<TeamAbstimmungTeam> Ergebnisse
             => stimmen is { } alle ? Teams.Select(t => ErgebnisDes(t, alle)).ToList() : [];

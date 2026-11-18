@@ -20,6 +20,12 @@ namespace Quizzer.Views.BuzzerViews
         public Func<ConcurrentDictionary<Guid, InputResult>, Task>? AllPlayersSubmittedInput;
 
         /// <summary>
+        /// „Runde zuruecksetzen" bei Eingabe oder Tastenwahl (V22): der Hub hat die Abgaben verworfen - wer sie im Fenster
+        /// weiterverarbeitet hat, raeumt sie hier weg. Gegenstueck zu <see cref="MinigameReset"/>.
+        /// </summary>
+        public Action? AnswerRoundReset;
+
+        /// <summary>
         /// Stellt das Eingabefeld der Spieler auf die Frage ein: Zahl oder Datum, und ein
         /// Platzhalter, der die Einheit nennt. Die Feldnamen liest <c>inputLayout.js</c> aus.
         /// </summary>

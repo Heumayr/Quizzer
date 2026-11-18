@@ -293,6 +293,7 @@ namespace Quizzer.Views.BuzzerViews
         {
             ClearRound();
             MinigameReset?.Invoke();
+            AnswerRoundReset?.Invoke();
         }
 
         public void Dispose()
