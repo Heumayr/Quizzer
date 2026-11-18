@@ -72,6 +72,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         private readonly Func<Guid, string?> nameVon;
         private Dictionary<Guid, TippsprintStand> laufend = new();
         private Dictionary<Guid, int> gezaehlt = new();
+        private bool laeuft;
 
         /// <param name="dauerSekunden">So lange wird getippt.</param>
         /// <param name="nameVon">Anzeigename zu einer Spieler-Id, fuer die Sieger am Ende.</param>
@@ -94,6 +95,7 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
             // Eine Wiederholung ersetzt die Runde - die alte zaehlt nicht mehr.
             laufend = new();
             gezaehlt = new();
+            laeuft = true;
         }
 
         public object? Accept(Player player, JsonElement payload)
@@ -113,14 +115,26 @@ namespace LocalBuzzer.Service.Base.States.Minispiele
         public bool HasSubmitted(Guid playerId) => laufend.TryGetValue(playerId, out var stand) && stand.Ende;
 
         public void CloseRound()
-            => gezaehlt = laufend.Where(e => e.Value.Ende).ToDictionary(e => e.Key, e => e.Value.Tipps);
+        {
+            gezaehlt = laufend.Where(e => e.Value.Ende).ToDictionary(e => e.Key, e => e.Value.Tipps);
+            laeuft = false;
+        }
 
-        public void DiscardRunning() => laufend = new();
+        /// <summary>Verwirft nur eine laufende Runde - danach bleibt der Stand eines Telefons ohne Endstand stehen (M37 P8, P6-7, wie P2-1).</summary>
+        public void DiscardRunning()
+        {
+            if (!laeuft)
+                return;
+
+            laufend = new();
+            laeuft = false;
+        }
 
         public void Clear()
         {
             laufend = new();
             gezaehlt = new();
+            laeuft = false;
         }
 
         public object? InfoFor(Player? player, MinigamePhase phase)

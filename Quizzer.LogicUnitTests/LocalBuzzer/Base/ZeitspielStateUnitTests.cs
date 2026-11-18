@@ -127,6 +127,40 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer.Base
             Assert.IsTrue(Stand(anna, 5, 500).Accepted, "Nach der Wiederholung zaehlt der alte Stand als Untergrenze.");
         }
 
+        /// <summary>
+        /// M37 P8, P6-7 (wie P2-1): ein Abbruch nach der Runde nimmt dem Telefon ohne Endstand seinen Stand nicht - Bert sah
+        /// „Du: 20 Tipps“, danach fiel es weg. Erreichbar war das über „Minispiel abbrechen“ nach dem Ende (seit P6-3 gesperrt).
+        /// </summary>
+        [TestMethod]
+        public void AnAbortAfterTheRoundKeepsTheOwnStandOfAPhoneWithoutAFinal()
+        {
+            Starte(MinigameKind.TapSprint);
+            Stand(anna, 30, 2000, ende: true);
+            Stand(bert, 20, 1500);
+            Assert.IsNotNull(spiel.CloseRound(), "Die Runde schliesst nicht.");
+            Assert.AreEqual(20, Info<TapSprintClientInfo>(bert).OwnTaps, "Vor dem Abbruch zeigt Bert keinen Stand - die Probe misst nichts.");
+
+            Assert.IsNotNull(spiel.Abort(), "Nach der Runde laesst sich nicht abbrechen.");
+
+            Assert.AreEqual(20, Info<TapSprintClientInfo>(bert).OwnTaps, "Der Abbruch nach der Runde nimmt Bert seinen Stand.");
+            Assert.AreEqual(30, Info<TapSprintClientInfo>(anna).OwnTaps);
+            CollectionAssert.AreEqual(new[] { "Anna" }, Info<TapSprintClientInfo>(bert).WinnerNames, "Der Abbruch aendert die Sieger.");
+        }
+
+        /// <summary>P6-7, Gegenrichtung: ein Abbruch mitten in der Runde verwirft sie - kein Stand bleibt stehen.</summary>
+        [TestMethod]
+        public void AnAbortMidRoundDropsTheStands()
+        {
+            Starte(MinigameKind.TapSprint);
+            Stand(anna, 30, 2000, ende: true);
+            Stand(bert, 20, 1500);
+
+            Assert.IsNotNull(spiel.Abort());
+
+            Assert.IsNull(Info<TapSprintClientInfo>(bert).OwnTaps, "Ein Abbruch mitten in der Runde laesst Berts Stand stehen.");
+            Assert.IsNull(Info<TapSprintClientInfo>(anna).OwnTaps, "Ein Abbruch mitten in der Runde laesst Annas Endstand stehen.");
+        }
+
         // --- Stoppuhr ---
 
         [TestMethod]
