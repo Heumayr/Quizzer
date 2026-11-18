@@ -163,9 +163,8 @@ namespace Quizzer.Views.GameViews
 
             GamePlayerViewModel?.SetView(null);
 
-            // Das Ergebnisfenster geht mit. Blieb es stehen, landeten spaeter gespeicherte
-            // Bewertungen auf der vorigen Zelle.
-            CloseResultWindow();
+            // Das Ergebnisfenster geht mit (sonst landeten spätere Bewertungen auf der vorigen Zelle) und bucht dabei.
+            await SchliesseErgebnisfensterAsync();
 
             await ClearBuzzerLayouts();
 

@@ -68,5 +68,17 @@ namespace Quizzer.Views.GameViews
 
             fenster?.Close();
         }
+
+        /// <summary>
+        /// Schließt das Ergebnisfenster und wartet, bis es gebucht hat (R5-3): Joker, Telefone und das Spielfenster sehen danach
+        /// den gebuchten Stand, nicht einen halben.
+        /// </summary>
+        private async Task SchliesseErgebnisfensterAsync()
+        {
+            CloseResultWindow();
+
+            if (PlayersResultViewModel is { } ergebnis)
+                await ergebnis.ClosedTask;
+        }
     }
 }

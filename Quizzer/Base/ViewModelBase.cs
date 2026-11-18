@@ -90,12 +90,21 @@ namespace Quizzer.Base
             return Task.CompletedTask;
         }
 
-        private async void Window_Closed(object? sender, EventArgs e)
+        /// <summary>
+        /// Läuft, bis <see cref="OnClosed"/> fertig ist - etwa die beim Schließen gebuchte Bewertung (R5-3). Das Ereignis kehrt
+        /// beim ersten <c>await</c> zurück und <c>ShowDialog</c> mit ihm; wer danach weiterrechnet, wartet hierauf.
+        /// </summary>
+        internal Task ClosedTask { get; private set; } = Task.CompletedTask;
+
+        private void Window_Closed(object? sender, EventArgs e) => NotifyClosed();
+
+        /// <summary>Was das Schließen des Fensters auslöst - ein Test ruft es ohne Fenster, mit demselben Wartegriff.</summary>
+        internal Task NotifyClosed() => ClosedTask = RunOnClosedAsync();
+
+        private async Task RunOnClosedAsync()
         {
             try
             {
-                //await VMSaveAsync();
-                //VMSaved?.Invoke(sender, e);
                 await OnClosed();
             }
             catch (Exception ex)

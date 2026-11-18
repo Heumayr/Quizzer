@@ -1,6 +1,7 @@
 using Quizzer.Base;
 using Quizzer.Logic.Spielablauf;
 using Quizzer.ViewModels;
+using System.Windows;
 using System.Windows.Input;
 
 namespace Quizzer.Views.GameViews
@@ -24,14 +25,12 @@ namespace Quizzer.Views.GameViews
                 GameMasterViewModel = this,
             };
 
-            var qMaster = new QuestionMasterView()
-            {
-                DataContext = context
-            };
+            var qMaster = FragefensterBauen(context);
 
             var merk = LetzteWertung.Merke(Game, cell.Coordinate);
 
             qMaster.ShowDialog();
+            await context.ClosedTask; // R5-3: ShowDialog kehrt vor dem Buchen beim Schließen zurück
 
             // Nur ein echter Zug ersetzt den gemerkten - ansehen und schliessen nimmt die
             // Rücknahme der vorigen Frage nicht weg.
@@ -56,5 +55,8 @@ namespace Quizzer.Views.GameViews
             // Hand umschaltete - sonst blieb das leere Raster stehen.
             GamePlayerViewModel?.RefreshFinishState();
         }
+
+        /// <summary>Baut das Fragefenster; ein Test setzt ein schlichtes Fenster ein und fährt damit den echten Schließweg (R5-3).</summary>
+        internal Func<CurrentQuestionViewModel, Window> FragefensterBauen { get; set; } = frage => new QuestionMasterView { DataContext = frage };
     }
 }
