@@ -78,7 +78,10 @@ namespace Quizzer.Server.Tests
 
         /// <summary>
         /// Fund 4: passt ein Stapel am Server nicht zusammen, geht der Rest trotzdem hinein, und
-        /// der Abgleich steckt nicht fest.
+        /// der Abgleich steckt nicht fest. Kaputt ist ein Platz, den ein anderes Geraet desselben Kontos
+        /// schon belegt hat: jede Zeile besteht die Pruefung, erst die Datenbank weist den Stapel ab (409),
+        /// und nur der Einzelzeilen-Rueckfall bringt den Rest hinein (M37 P9, P7-1 - vorher scheiterte die
+        /// Zelle schon an der Zeilenpruefung, und der Test blieb gruen, wenn der Rueckfall warf).
         /// </summary>
         [TestMethod]
         public async Task OneBrokenRowDoesNotBlockTheRest()
@@ -87,28 +90,36 @@ namespace Quizzer.Server.Tests
             var (client, me) = await SignedInAsync(factory, "Stapel");
             await using var _ = client;
 
-            var good = new Category { Id = Guid.NewGuid(), Designation = "Gut" };
             var game = new Game { Id = Guid.NewGuid(), Designation = "Spiel", ModeratorPlayerId = me };
             await using (var local = client.Local())
             {
-                local.Categories.Add(good);
                 local.Games.Add(game);
                 await local.SaveChangesAsync();
             }
 
-            // Eine Zelle, deren Frage es am Server nicht gibt: lokal mit abgeschalteter Pruefung angelegt.
+            Assert.AreEqual(0, (await client.Sync.PushAsync()).Rejected.Count);
+
+            // Das andere Geraet hat sich schon in das Spiel gesetzt - am PC noch nicht abgeholt.
+            var anderswo = await client.Api.PushAsync(new SyncPushRequest
+            {
+                Upserts = [SyncTestData.New(new PlayerXGame { Id = Guid.NewGuid(), GameId = game.Id, PlayerId = me })],
+            });
+            Assert.AreEqual(0, anderswo.Rejected.Count);
+
+            var good = new Category { Id = Guid.NewGuid(), Designation = "Gut" };
+            var second = new Game { Id = Guid.NewGuid(), Designation = "Zweites Spiel", ModeratorPlayerId = me };
+            var doppelt = new PlayerXGame { Id = Guid.NewGuid(), GameId = game.Id, PlayerId = me };
             await using (var local = client.Local())
             {
-                await local.Database.ExecuteSqlRawAsync("ALTER TABLE [base].[GameGridCoordinate] NOCHECK CONSTRAINT ALL");
-                local.GameGridCoordinates.Add(new GameGridCoordinate { Id = Guid.NewGuid(), GameId = game.Id, QuestionBaseId = Guid.NewGuid() });
+                local.AddRange(good, second, doppelt);
                 await local.SaveChangesAsync();
-                await local.Database.ExecuteSqlRawAsync("ALTER TABLE [base].[GameGridCoordinate] CHECK CONSTRAINT ALL");
             }
 
             var result = await client.Sync.PushAsync();
 
-            Assert.AreEqual(1, result.Rejected.Count, "Nur die kaputte Zelle bleibt draussen.");
-            Assert.AreEqual(2, result.Accepted, "Kategorie und Spiel sind angekommen.");
+            Assert.AreEqual(doppelt.Id, result.Rejected.Single().Id, "Nur der doppelte Platz bleibt draussen.");
+            Assert.AreEqual(SyncRejectReason.Invalid, result.Rejected.Single().Reason, "Der Platz kam nicht als gescheiterte Einzelzeile zurueck.");
+            Assert.AreEqual(2, result.Accepted, "Kategorie und zweites Spiel sind angekommen.");
             Assert.IsFalse((await client.Sync.PushAsync()).HadChanges, "Und beim naechsten Mal haengt nichts mehr.");
         }
     }
