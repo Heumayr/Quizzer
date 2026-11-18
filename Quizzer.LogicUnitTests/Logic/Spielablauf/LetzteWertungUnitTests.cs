@@ -153,6 +153,35 @@ namespace Quizzer.LogicUnitTests.Logic.Spielablauf
             Assert.IsTrue((await AusDerDatenbankAsync()).All(r => r.FinalScore == 0), "In der Datenbank steht noch ein Klau.");
         }
 
+        /// <summary>
+        /// R4-2/R1-2: die Rücknahme nimmt auch Klaus und Bestwert - sonst zählt ein zurückgenommener Raub im Abendrückblick weiter,
+        /// ein zurückgenommener Reaktionswert bleibt in der Bestenliste, und nach dem Neuspielen zählen die Klaus doppelt.
+        /// </summary>
+        [TestMethod]
+        public async Task UndoTakesStealsAndTheRecordValueBack()
+        {
+            var merk = LetzteWertung.Merke(spiel, zelle);
+            var um = DateTimeOffset.Now;
+
+            using (var ctrl = new QuestionResultsController())
+            {
+                var zeile = new QuestionResult { Id = Guid.NewGuid(), PlayerId = anna.Id, GameId = spiel.Id, GameGridCoordinateId = zelle.Id, QuestionBaseId = zelle.QuestionBaseId!.Value, Correction = 150, CorrectionsCount = 1, Steals = 1, RecordValue = 180, RecordedAt = um };
+                await ctrl.UpsertAsync(zeile);
+                await ctrl.SaveChangesAsync();
+                zelle.QuestionResults = [zeile.CloneWithoutReferences()];
+            }
+
+            await merk.NimmZurueckAsync(spiel);
+
+            var anna2 = (await AusDerDatenbankAsync()).Single();
+            Assert.AreEqual((0, (int?)null, (DateTimeOffset?)null), (anna2.Steals, anna2.RecordValue, anna2.RecordedAt), "Klau oder Bestwert überleben die Rücknahme.");
+
+            // Neu gespielt: der zweite Raub zählt einmal, nicht zweimal.
+            var neu = zelle.QuestionResults.Single();
+            neu.Steals += 1;
+            Assert.AreEqual(1, neu.Steals, "Nach Zurücknehmen und Neuspielen zählen die Klaus doppelt.");
+        }
+
         /// <summary>Eine nachträgliche Korrektur an einer schon gespielten Zelle geht auf deren vorigen Stand zurück, nicht auf null.</summary>
         [TestMethod]
         public async Task ACorrectionReturnsToThePreviousScoreNotToZero()

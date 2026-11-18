@@ -20,13 +20,14 @@ namespace Quizzer.Logic.Spielablauf
     /// </summary>
     public sealed class LetzteWertung
     {
-        /// <summary>Was an einer Ergebniszeile zur Wertung gehört.</summary>
-        private sealed record Stand(bool CorrectAnswered, int RightCount, int WrongCount, int CorrectionsCount, int Score, int MinusScore, int Correction)
+        /// <summary>Was an einer Ergebniszeile zur Wertung gehört - samt Klaus und Bestwert (R4-2), die das Speichern mitschreibt.</summary>
+        private sealed record Stand(bool CorrectAnswered, int RightCount, int WrongCount, int CorrectionsCount, int Score, int MinusScore, int Correction,
+            int Steals, int? RecordValue, DateTimeOffset? RecordedAt)
         {
-            public static readonly Stand Leer = new(false, 0, 0, 0, 0, 0, 0);
+            public static readonly Stand Leer = new(false, 0, 0, 0, 0, 0, 0, 0, null, null);
 
             public static Stand Von(QuestionResult r)
-                => new(r.CorrectAnswered, r.RightCount, r.WrongCount, r.CorrectionsCount, r.Score, r.MinusScore, r.Correction);
+                => new(r.CorrectAnswered, r.RightCount, r.WrongCount, r.CorrectionsCount, r.Score, r.MinusScore, r.Correction, r.Steals, r.RecordValue, r.RecordedAt);
 
             public int Punkte => Score + Correction - MinusScore;
 
@@ -39,6 +40,9 @@ namespace Quizzer.Logic.Spielablauf
                 r.Score = Score;
                 r.MinusScore = MinusScore;
                 r.Correction = Correction;
+                r.Steals = Steals;
+                r.RecordValue = RecordValue;
+                r.RecordedAt = RecordedAt;
             }
         }
 
