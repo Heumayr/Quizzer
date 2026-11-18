@@ -189,7 +189,8 @@ namespace Quizzer.LogicUnitTests.DataModels.Minispiele
             Assert.IsTrue(profil.ShowRounds && !profil.ShowDurationSeconds && !profil.ShowShare);
             Assert.IsNull(profil.Record);
             Assert.AreEqual("Reaktion", profil.Variants[StellvertreterEvaluator.ReaktionVariant].Name);
-            Assert.AreEqual(StellvertreterEvaluator.SchereSteinPapierVariant, profil.TwoTeamsOnlyVariant);
+            StringAssert.StartsWith(profil.Variants.ElementAtOrDefault(profil.TwoTeamsOnlyVariant ?? -1)?.Name, "Schere, Stein, Papier",
+                "Nur für zwei Teams steht nicht Schere, Stein, Papier.");
             Assert.AreEqual(0, MinigameChecks.Content(Frage()).Count(), "Ein Stellvertreter-Duell ohne Zeilen besteht die Prüfung nicht.");
             StringAssert.Contains(MinigameProfiles.RulesFor(Frage(StellvertreterEvaluator.SchereSteinPapierVariant)), "Best of 3");
         }
