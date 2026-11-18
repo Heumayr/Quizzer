@@ -137,7 +137,7 @@ namespace Quizzer.UnitTests.Views.GameViews
         {
             OnUiThread(() =>
             {
-                var fenster = new GameMasterView();
+                var fenster = new GameMasterView { DataContext = new GameMasterViewModel() }; // P11-2: wie die Spielliste
                 var inhalt = Layout(fenster);
 
                 var texte = VisibleTexts(inhalt);
@@ -183,7 +183,7 @@ namespace Quizzer.UnitTests.Views.GameViews
             {
                 using var wache = new BindingErrorWatch();
 
-                var fenster = new GameMasterView();
+                var fenster = new GameMasterView { DataContext = new GameMasterViewModel() }; // P11-2: wie die Spielliste
                 Layout(fenster);
 
                 Assert.AreEqual(0, wache.Errors.Count,

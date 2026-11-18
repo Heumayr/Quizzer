@@ -8,10 +8,9 @@
         xmlns:base="clr-namespace:Quizzer.Base"
         xmlns:helper="clr-namespace:Quizzer.Views.HelperViewModels"
         mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=local:GameMasterViewModel}"
         Title="{Binding WindowTitle}" Height="700" Width="1200">
-    <base:WindowBase.DataContext>
-        <local:GameMasterViewModel />
-    </base:WindowBase.DataContext>
+    <!-- P11-2: kein eigenes ViewModel als DataContext - die Spielliste reicht ihres herein; ein zweites hing an Closed mit und hielt den Buzzer-Server an. -->
     <base:WindowBase.Resources>
         <ItemsPanelTemplate x:Key="MatrixPanel">
             <Grid

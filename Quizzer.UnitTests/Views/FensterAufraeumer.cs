@@ -28,6 +28,9 @@ namespace Quizzer.UnitTests.Views
         {
             [typeof(PlayersResultView)] = () => new PlayersResultViewModel(),
             [typeof(QuestionMasterView)] = () => new CurrentQuestionViewModel(),
+            [typeof(GameMasterView)] = () => new GameMasterViewModel(),
+            [typeof(Quizzer.Views.HelperViewModels.QuestionSelectorView)] = () => new Quizzer.Views.HelperViewModels.QuestionSelectorViewModel(),
+            [typeof(Quizzer.MainWindow)] = () => new Quizzer.Views.MainViewModel(),
         };
 
         public FensterAufraeumer(Type fenstertyp)

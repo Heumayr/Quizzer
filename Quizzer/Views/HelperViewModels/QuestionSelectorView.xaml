@@ -6,10 +6,9 @@
         xmlns:local="clr-namespace:Quizzer.Views.HelperViewModels"
         xmlns:base="clr-namespace:Quizzer.Base"
         mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=local:QuestionSelectorViewModel}"
         Title="Frage auswählen" Height="500" Width="900">
-    <base:WindowBase.DataContext>
-        <local:QuestionSelectorViewModel />
-    </base:WindowBase.DataContext>
+    <!-- P11-2: kein eigenes ViewModel als DataContext - der Spieleditor reicht seines herein; ein zweites las beim Laden alle Fragen aus der Datenbank. -->
     <Grid Background="Black">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />
