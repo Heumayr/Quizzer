@@ -65,6 +65,21 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.IsTrue(world.Coordinate.QuestionResults.All(r => r.FinalScore == 0), "Nach der Ruecknahme steht noch ein Teil des Kopfgelds.");
         }
 
+        /// <summary>R4-5: „Ohne Wertung“ von Hand auf der Karte der Gesuchten - sie zahlt weiter, sonst bekaeme der Jaeger Punkte aus dem Nichts.</summary>
+        [TestMethod]
+        public async Task TheLeaderStillPaysAfterNoRatingByHand()
+        {
+            ZelleEinrichten = z => z.SpecialRuleShare = 50;
+            var vm = await OeffneAsync(CellSpecialRule.Bounty, spieler: 3, kontostaende: [70, 20, 20]);
+            var kopfgeld = Punkteanteil.Von(world!.Coordinate.CurrentPoints, 50);
+            var (anna, bert) = (Karte(vm, 0), Karte(vm, 1));
+
+            anna.NoneSuggestionCommand.Execute(null);
+            bert.Suggestion = ScoreSuggestion.Right;
+
+            Assert.AreEqual(-kopfgeld, anna.CurrentScoreManipulation, "Nach „Ohne Wertung“ von Hand zahlt die Gesuchte das Kopfgeld nicht.");
+        }
+
         /// <summary>M35 C9: ein gespeichertes Kopfgeld ist ein Klau des Jaegers - je Gesuchtem, bei dem er kassiert.</summary>
         [TestMethod]
         public async Task ASavedBountyIsAStealOfTheHunter()

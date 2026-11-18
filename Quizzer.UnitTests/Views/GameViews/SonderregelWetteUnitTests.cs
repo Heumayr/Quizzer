@@ -67,6 +67,10 @@ namespace Quizzer.UnitTests.Views.GameViews
             Assert.AreEqual(-einsatz, anna.CurrentScoreManipulation, "Annas Karte bleibt auf dem Gewinn stehen.");
             Assert.AreEqual(-world.Coordinate.CurrentMinusPoints - einsatz, bert.CurrentScoreManipulation);
             Assert.AreEqual(0, clara.CurrentScoreManipulation);
+
+            // --- R4-5: „Ohne Wertung“ von Hand auf Annas Karte - die Wette folgt Bert weiter (nur an Teamregeln bleibt es) ---
+            anna.NoneSuggestionCommand.Execute(null);
+            Assert.AreEqual(-einsatz, anna.CurrentScoreManipulation, "„Ohne Wertung“ von Hand nimmt Anna die verlorene Wette.");
         }
     }
 }

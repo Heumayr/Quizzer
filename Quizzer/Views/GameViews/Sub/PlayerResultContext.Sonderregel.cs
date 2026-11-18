@@ -28,6 +28,22 @@ namespace Quizzer.Views.GameViews.Sub
         /// <summary>Beim Buchen setzt die Karte zurueck, ohne die Zelle neu zu werten (die Kontostaende wandern dabei).</summary>
         private bool bucht;
 
+        /// <summary>
+        /// R4-5: „Ohne Wertung" von Hand (Knopf, Strg+0) an einer Teamregel ist eine Entscheidung der Spielleitung - der Anteil des
+        /// Teams kommt nicht wieder auf die Karte, bis sie die Karte selbst bewertet. Kopfgeld und Wette (M35 C3) bleiben, wie sie
+        /// sind: dort ist „unbewertet" der Normalfall, und ein Kopfgeld wanderte sonst nur zur einen Seite.
+        /// </summary>
+        private bool ohneWertungVonHand;
+
+        private void SetzeOhneWertungVonHand()
+        {
+            ohneWertungVonHand = true;
+            Suggestion = ScoreSuggestion.None;
+        }
+
+        /// <summary>Eine neue Runde („Runde zurücksetzen“): die Entscheidung galt den alten Antworten.</summary>
+        internal void VergissOhneWertungVonHand() => ohneWertungVonHand = false;
+
         /// <summary>Die eigene Bewertung, wie die Regel sie sieht; ein eigener Wert von Hand gilt als nicht bewertet.</summary>
         internal SonderregelEingang SonderregelEingang
             => new(regelBewertung, regelGrundwert, GetCurrentPoints(), new Kappung(Kontostand, UnterNullErlaubt));
@@ -50,6 +66,9 @@ namespace Quizzer.Views.GameViews.Sub
         private void WendeSonderregelAufBewertungAn(ScoreSuggestion bewertung)
         {
             regelKorrektur = false;
+
+            if (bewertung != ScoreSuggestion.None)
+                ohneWertungVonHand = false;
 
             if (bewertung == ScoreSuggestion.Right)
                 MerkeBewertung(RatingKind.Right, GetCurrentPoints());
@@ -78,6 +97,9 @@ namespace Quizzer.Views.GameViews.Sub
                 return;
 
             regelVorschlag = vorschlag;
+
+            if (ohneWertungVonHand && suggestion == ScoreSuggestion.None && CurrentQuestionViewModel?.TeamregelGespielt == true)
+                return;
 
             // Ein eigener Wert von Hand bleibt, wie der Spielleiter ihn eintraegt (E1).
             if (suggestion == ScoreSuggestion.Correction && !regelKorrektur && regelBewertung != RatingKind.Partial)

@@ -402,7 +402,7 @@ namespace Quizzer.Views.GameViews.Sub
 
         private void NoneSuggestion(object? commandParameter)
         {
-            Suggestion = ScoreSuggestion.None;
+            SetzeOhneWertungVonHand(); // R4-5
         }
 
         private RelayCommand? correctionSuggestionCommand;

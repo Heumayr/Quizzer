@@ -54,6 +54,7 @@ namespace Quizzer.Views.GameViews
             {
                 karte.InputResult = null;
                 karte.AppreciateGuess = null;
+                karte.VergissOhneWertungVonHand();
 
                 if (karte.Suggestion != ScoreSuggestion.None || karte.CurrentScoreManipulation != 0)
                     karte.Suggestion = ScoreSuggestion.None;
