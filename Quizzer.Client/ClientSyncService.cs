@@ -316,6 +316,8 @@ namespace Quizzer.Client
                 }
             }
 
+            // Ein später gelöschtes Spiel nimmt mit, was einzeln abgewiesen wurde - keine Zeile zugleich abgewiesen und gelöscht (P5-1, wie R1-4).
+            total.Rejected.RemoveAll(r => total.Deleted.Contains(new SyncKey(r.Type, r.Id)));
             return total;
         }
 
