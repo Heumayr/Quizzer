@@ -170,12 +170,16 @@ namespace LocalBuzzer.Service.Base.States
             Locked = true;
         }
 
+        /// <summary>Die Spielleitung schließt die Runde - in der Sperre, sonst hebt eine gerade ausgewertete Abgabe das wieder auf (M37 P8, P6-1).</summary>
         public void LockAll()
         {
-            foreach (var item in KeyResultsForPlayer)
-                item.Value.CommittedResult = true;
+            lock (this)
+            {
+                foreach (var item in KeyResultsForPlayer)
+                    item.Value.CommittedResult = true;
 
-            Locked = true;
+                Locked = true;
+            }
         }
     }
 }
