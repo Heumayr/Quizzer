@@ -49,6 +49,13 @@ namespace Quizzer.Views.GameViews
             });
         }
 
+        /// <summary>P2-2: „Runde zurücksetzen" hebt am Hub die Zeitsperre auf - die Beratungszeit läuft neu, sobald die Frage lesbar ist.</summary>
+        private void BeratungszeitNachZuruecksetzen()
+        {
+            if (teamregelVorbereitet)
+                BeratungszeitVormerken();
+        }
+
         /// <summary>Alle Sprecher haben abgegeben: die Beratung ist vorbei, die Uhr hält an (ohne Zeitsperre - die Runde ist zu).</summary>
         private void BeratungszeitAbgegeben()
         {

@@ -39,6 +39,7 @@ namespace Quizzer.Views.GameViews
                 ZeigeTeamregel(regel);
 
             WerteSonderregel();
+            BeratungszeitNachZuruecksetzen();
         }
 
         /// <summary>Antworten und Bewertungen der alten Runde - auch eine von Hand: sie galt einer Antwort, die es nicht mehr gibt.</summary>

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Quizzer.Base;
 using Quizzer.UnitTests.PlayThrough;
 using Quizzer.Views.GameViews;
 
@@ -61,6 +62,26 @@ namespace Quizzer.UnitTests.Views.GameViews
 
             Assert.IsTrue(await WarteAsync(() => !vm.Countdown.Laeuft), "Alle Sprecher haben abgegeben, die Beratungszeit läuft weiter.");
             Assert.IsFalse(Hub.ZeitAbgelaufen, "Das frühe Ende sperrt wegen der Zeit.");
+        }
+
+        /// <summary>
+        /// P2-2: nach „Runde zurücksetzen" läuft die Beratungszeit neu. Der Hub hebt dabei die Zeitsperre auf - ohne neue Uhr
+        /// wären die Telefone ohne Zeit offen.
+        /// </summary>
+        [TestMethod]
+        public async Task AfterResettingTheRoundTheCouncilTimeRunsAgain()
+        {
+            var vm = await OeffneMitBeratungszeitAsync(1);
+            await ZurFrageAsync(vm);
+            vm.Countdown!.Weiter(DateTime.UtcNow.AddSeconds(1.5));
+            Assert.IsTrue(await WarteAsync(() => Hub.ZeitAbgelaufen), "Die Beratungszeit sperrt nicht - dann misst der Test nichts.");
+
+            await ((AsyncRelayCommand)vm.BuzzerControlsViewModel!.ResetRoundCommand).ExecuteAsync(vm.CurrentBuzzerLayout);
+            Assert.IsFalse(Hub.ZeitAbgelaufen, "Das Zurücksetzen hebt die Zeitsperre nicht auf - dann misst der Test nichts.");
+
+            Assert.IsTrue(vm.Countdown.Laeuft, "Nach dem Zurücksetzen sind die Telefone ohne Uhr offen.");
+            vm.Countdown.Weiter(DateTime.UtcNow.AddSeconds(1.5));
+            Assert.IsTrue(await WarteAsync(() => Hub.ZeitAbgelaufen), "Die neue Beratungszeit sperrt die Telefone nicht.");
         }
     }
 }
