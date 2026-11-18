@@ -9,7 +9,8 @@ using Quizzer.Logic.Vorrat;
 //   dotnet run --project Quizzer.EF -- demo-entfernen
 //
 // Ohne Argument passiert nichts ausser dieser Hilfe. Die Verbindungszeichenfolge kommt aus
-// derselben appsettings.json wie in der Anwendung, zeigt also auf die *echte* Spieldatenbank.
+// derselben appsettings.json wie in der Anwendung, zeigt also auf die *echte* Spieldatenbank -
+// ohne Datei auf die Vorgabe "Quizzer". Dort laeuft ein demo-* nur mit --echte-datenbank (V29).
 
 // Die Ausgaben tragen Umlaute. Ohne das schreibt .NET in der Codepage der Konsole (850: "Ü" = 0x9A),
 // und wer die Ausgabe als UTF-8 liest, sieht "?" (V13).
@@ -26,6 +27,8 @@ if (args.Length == 0)
     Console.WriteLine("  demo-vorrat      legt den Vorrat geteilter Minispiele an - echter Bestand, ohne Marke");
     Console.WriteLine("  demo-design      legt ein zweites Design mit eigenen Texturen an");
     Console.WriteLine("  demo-entfernen   entfernt alles mit der Marke " + DemoDataSeeder.Marke);
+    Console.WriteLine();
+    Console.WriteLine($"  {EchteDatenbankRiegel.Schalter}  nötig, wenn die Datenbank „Quizzer“ heißt – die echte Spieldatenbank");
     return 0;
 }
 
@@ -33,6 +36,12 @@ Settings.LoadSettings();
 
 Console.WriteLine($"Datenbank: {Settings.ConnectionString}");
 Console.WriteLine();
+
+if (EchteDatenbankRiegel.Pruefe(args, Settings.ConnectionString) is { } riegel)
+{
+    Console.Error.WriteLine(riegel);
+    return 2;
+}
 
 switch (args[0])
 {
