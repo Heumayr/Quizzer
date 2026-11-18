@@ -59,6 +59,15 @@ layout.update(zustand(1));
 pruefe(knopf().disabled === true,
     "Ohne Zuruecksetzen wurde wieder entsperrt - dann kann derselbe Spieler zweimal abgeben.");
 
+// --- M37 P8, P6-5: nach "Abgegeben ✓" folgen die Tasten dem Knopf - ein Klick aendert die sichtbare Auswahl nicht mehr ---
+pruefe(tasten().every(t => t.disabled === true),
+    "Nach der Abgabe sind die Antworttasten mit dem Stand der offenen Runde wieder frei.");
+
+tasten()[0].click(); // die abgegebene Taste - frei hiesse das: abgewaehlt
+
+pruefe(tasten()[0].classList.contains("selected"),
+    "Nach der Abgabe aendert ein Klick die sichtbare Auswahl, abgegeben bleibt die alte.");
+
 // --- Zuruecksetzen ---
 layout.update(zustand(2));
 
@@ -221,6 +230,32 @@ pruefe(knopf().disabled === false,
 
     pruefe(gesendet && gesendet.selectedKeys.join("") === "BC",
         "Gesendet werden nicht die als wahr beurteilten B und C: " + JSON.stringify(gesendet?.selectedKeys));
+}
+
+// --- M37 P8, P6-5: kommt der Stand der offenen Runde, bevor der Aufruf zurueckkehrt, steht die Auswahl nach der Abgabe trotzdem fest ---
+for (const trueFalse of [false, true]) {
+    const wurzel5 = baueDom().wurzel;
+    const offen = () => {
+        const z = zustand(1);
+        return { ...z, layoutInfo: { ...z.layoutInfo, trueFalse, maxAllowedSelections: trueFalse ? 2 : 1 } };
+    };
+    const frueh = new KeySelectLayout({ submitSelection: async () => frueh.update(offen()) });
+    frueh.render(wurzel5, offen());
+
+    const t = () => wurzel5.querySelectorAll(".key-btn");
+    const art = trueFalse ? "Wahr oder falsch" : "Auswahl";
+
+    // Auswahl: A. Wahr oder falsch: A wahr, B falsch - die Knoepfe stehen je Aussage als wahr, falsch.
+    t()[0].click();
+    if (trueFalse) t()[3].click();
+
+    await frueh.handleCommitClick();
+    pruefe(frueh.submitted === true, `${art}: die Abgabe gilt nicht - der Fall misst nichts.`);
+
+    t()[trueFalse ? 1 : 0].click(); // frei hiesse das: A abgewaehlt bzw. A falsch
+
+    pruefe(t().every(x => x.disabled === true), `${art}: kam der Stand vor der Rueckkehr, sind die Tasten nach der Abgabe frei.`);
+    pruefe(t()[0].classList.contains("selected"), `${art}: nach der Abgabe aendert ein Klick die sichtbare Auswahl.`);
 }
 
 if (fehler > 0) {

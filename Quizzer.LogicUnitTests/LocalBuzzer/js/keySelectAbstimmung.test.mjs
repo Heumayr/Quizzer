@@ -59,6 +59,11 @@ function telefon(antwort, start = laeuft([])) {
 
     pruefe(t.gewaehlt() === "A" && t.knopf().textContent === "Abgegeben ✓" && t.knopf().disabled === true,
         "Beim Wiederkommen zeigt das Telefon die gezaehlte Stimme nicht: " + t.gewaehlt() + " / " + t.knopf().textContent);
+
+    // M37 P8, P6-5: die Tasten folgen dem Knopf.
+    t.taste("A").click();
+    pruefe(t.taste("A").disabled === true && t.gewaehlt() === "A",
+        "Beim Wiederkommen laesst sich die gezaehlte Stimme sichtbar umwaehlen: " + t.gewaehlt());
 }
 
 // --- Verworfen: es zaehlt weiter A (aus einer frueheren Seite), das Telefon zeigt A und sagt es ---
@@ -111,6 +116,11 @@ function telefon(antwort, start = laeuft([])) {
         "Die angenommene Stimme steht nicht als abgegeben da: " + t.gewaehlt() + " / " + t.knopf().textContent);
     pruefe(t.toasts.some(x => x.art === "info") && !t.toasts.some(x => x.art === "warning"),
         "Die angenommene Stimme meldet etwas anderes als 'uebermittelt': " + JSON.stringify(t.toasts));
+
+    // M37 P8, P6-5: T7 sah kein Umstimmen am Telefon vor - nach "Abgegeben ✓" sind die Tasten gesperrt.
+    t.taste("B").click();
+    pruefe(t.taste("B").disabled === true && t.gewaehlt() === "B",
+        "Nach 'Abgegeben ✓' laesst sich die Stimme sichtbar umwaehlen, gezaehlt bleibt B: " + t.gewaehlt());
 }
 
 // --- Ohne Abstimmung bleibt alles wie vorher ---

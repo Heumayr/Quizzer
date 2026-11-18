@@ -72,6 +72,7 @@
         this.submitted = true;
         this.commitBtn.textContent = "Abgegeben ✓";
         this.updatePositions();
+        this.updateKeysState();
         this.updateCommitState();
         return true;
     }
@@ -172,7 +173,7 @@
             }
 
             btn.addEventListener("click", () => {
-                if (this.locked) return;
+                if (this.locked || this.submitted) return;
 
                 if (this.selectedKeys.has(key)) {
                     this.selectedKeys.delete(key);
@@ -240,7 +241,7 @@
                 btn.setAttribute("aria-label", `${key} ${text}`);
 
                 btn.addEventListener("click", () => {
-                    if (this.locked) return;
+                    if (this.locked || this.submitted) return;
 
                     this.urteile.set(key, wert);
 
@@ -308,14 +309,17 @@
 
     setLocked(locked) {
         this.locked = !!locked;
+        this.updateKeysState();
+        this.updateCommitState();
+    }
 
+    // Die Tasten folgen dem Knopf (M37 P8, P6-5): nach "Abgegeben ✓" steht die Auswahl fest - T7 sah kein Umstimmen am Telefon vor.
+    updateKeysState() {
         if (!this.root) return;
 
         this.root.querySelectorAll(".key-btn").forEach(btn => {
-            btn.disabled = this.locked;
+            btn.disabled = this.locked || this.submitted;
         });
-
-        this.updateCommitState();
     }
 
     updateCommitState() {
@@ -375,6 +379,7 @@
         // Server geantwortet hatte - auch dann, wenn er die Abgabe still verwarf.
         this.submitted = true;
         this.commitBtn.textContent = "Abgegeben ✓";
+        this.updateKeysState();
         this.updateCommitState();
 
         if (typeof window.show_toast === "function") {
