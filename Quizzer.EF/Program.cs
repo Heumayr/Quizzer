@@ -22,6 +22,7 @@ if (args.Length == 0)
     Console.WriteLine("  demo-anlegen     legt den Demo-Quizabend, 'Alle Fragetypen' und den Minispielabend an");
     Console.WriteLine("  demo-typen       legt nur das Spiel 'Alle Fragetypen' an (je Typ eine Spalte)");
     Console.WriteLine("  demo-minispiele  legt nur den Minispielabend an (jede Minispiel-Art und Sonderregel)");
+    Console.WriteLine("  demo-teams       legt den Teamabend an (sechs Mitspieler in drei Teams, jede Teamregel und Teamart)");
     Console.WriteLine("  demo-vorrat      legt den Vorrat geteilter Minispiele an - echter Bestand, ohne Marke");
     Console.WriteLine("  demo-design      legt ein zweites Design mit eigenen Texturen an");
     Console.WriteLine("  demo-entfernen   entfernt alles mit der Marke " + DemoDataSeeder.Marke);
@@ -59,6 +60,20 @@ switch (args[0])
 
     case "demo-minispiele":
         return await MinispielabendAsync();
+
+    case "demo-teams":
+        {
+            var t = await DemoDataSeeder.CreateTeamabendAsync();
+
+            Console.WriteLine($"Angelegt: \"{t.Spiel.Designation}\" (Teamspiel)");
+            Console.WriteLine($"  Fragen:      {t.Fragen}");
+
+            foreach (var team in t.Teams.Teams.OrderBy(x => x.SortOrder))
+                Console.WriteLine($"  Team {team.Name}: {t.Teams.Plaetze.Count(p => p.GameTeamId == team.Id)} Mitspieler");
+
+            Console.WriteLine($"  Joker:       {t.Joker.Count} offen (Grund \"{DemoDataSeeder.DemoJokerGrund}\")");
+            return 0;
+        }
 
     case "demo-vorrat":
         {

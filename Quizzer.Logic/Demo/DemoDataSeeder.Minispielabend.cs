@@ -30,7 +30,7 @@ namespace Quizzer.Logic.Demo
         /// </summary>
         public static async Task<MinispielabendErgebnis> CreateMinispielabendAsync()
         {
-            var kategorie = await MinispielabendKategorieAsync();
+            var kategorie = await AbendKategorieAsync(MinispielabendName);
             var spieler = await DemoSpielerAsync();
             var spalten = BaueMinispielabend(kategorie.Id).ToList();
 
@@ -40,17 +40,18 @@ namespace Quizzer.Logic.Demo
                 await SaveQuestionAsync(zelle.Frage);
             }
 
-            var spiel = await MinispielabendSpielAsync(spalten, spieler);
+            var spiel = await AbendSpielAsync(MinispielabendName, spalten, spieler);
             var joker = await DemoJokerAsync(spiel.Id, spieler[..^1]);
 
             return new MinispielabendErgebnis(spiel, spalten.Sum(s => s.Zellen.Count), joker);
         }
 
-        private static async Task<Category> MinispielabendKategorieAsync()
+        /// <summary>Die Kategorie eines Abends (Minispielabend, Teamabend M37 T12) - je Lauf eine neue, mit der Marke.</summary>
+        private static async Task<Category> AbendKategorieAsync(string name)
         {
             using var ctrl = new CategoriesController();
 
-            var kategorie = new Category { Id = Guid.NewGuid(), Designation = $"{Marke} {MinispielabendName}" };
+            var kategorie = new Category { Id = Guid.NewGuid(), Designation = $"{Marke} {name}" };
 
             await ctrl.InsertAsync(kategorie);
             await ctrl.SaveChangesAsync();
@@ -58,20 +59,24 @@ namespace Quizzer.Logic.Demo
             return kategorie;
         }
 
-        /// <summary>Das Raster: je Thema eine Spalte, je Zeile 100 Punkte mehr; die Sonderregel steht an der Zelle.</summary>
-        private static async Task<Game> MinispielabendSpielAsync(List<AbendSpalte> spalten, List<Player> spieler)
+        /// <summary>
+        /// Das Raster eines Abends: je Thema eine Spalte, je Zeile 100 Punkte mehr; die Sonderregel steht an der Zelle. Alle außer
+        /// dem Letzten sitzen am Spiel, der Letzte leitet. Mit <paramref name="teamspiel"/> ein Teamspiel (M37 T12) - die Teams
+        /// teilt der Aufrufer danach zu.
+        /// </summary>
+        private static async Task<Game> AbendSpielAsync(string name, List<AbendSpalte> spalten, List<Player> spieler, bool teamspiel = false)
         {
             var zeilen = spalten.Max(s => s.Zellen.Count);
 
             using var spieleCtrl = new GamesController();
 
             var nummer = (await spieleCtrl.GetAllAsync())
-                .Count(g => g.Designation.StartsWith($"{Marke} {MinispielabendName}", StringComparison.Ordinal)) + 1;
+                .Count(g => g.Designation.StartsWith($"{Marke} {name}", StringComparison.Ordinal)) + 1;
 
             var spiel = new Game
             {
                 Id = Guid.NewGuid(),
-                Designation = $"{Marke} {MinispielabendName} {nummer}",
+                Designation = $"{Marke} {name} {nummer}",
                 Width = spalten.Count,
                 Height = zeilen,
                 CellWidth = 200,
@@ -81,6 +86,7 @@ namespace Quizzer.Logic.Demo
                 SuggestedPhases = 1,
                 State = GameState.Building,
                 ModeratorPlayerId = spieler[^1].Id,
+                IsTeamGame = teamspiel,
             };
 
             await spieleCtrl.UpsertAsync(spiel);
