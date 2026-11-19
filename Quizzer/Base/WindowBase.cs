@@ -14,7 +14,7 @@ namespace Quizzer.Base
         public Guid Id { get; } = Guid.NewGuid();
         public WindowTyp WindowTyp { get; set; } = WindowTyp.Menu;
 
-        private static readonly WindowPlacementStore PlacementStore = new("Quizzer");
+        private static WindowPlacementStore PlacementStore => WindowPlacementStore.Shared;
 
         public virtual bool UsePlacementPersistence => true;
 

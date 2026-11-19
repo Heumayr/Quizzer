@@ -7,12 +7,28 @@ namespace Quizzer.Base
 {
     public sealed class WindowPlacementStore
     {
+        private static WindowPlacementStore? shared;
+        private static string? testOrdner;
+
+        /// <summary>Die Ablage aller Fenster - erst beim ersten Zugriff angelegt, damit ein Testlauf sie vorher umlenken kann.</summary>
+        internal static WindowPlacementStore Shared => shared ??= new WindowPlacementStore();
+
+        /// <summary>
+        /// Nur für Tests (M37 P13, P12-3): Fensterplätze in <paramref name="ordner"/> statt unter %LOCALAPPDATA%. Ohne das schrieb ein
+        /// gezeigtes und geschlossenes Testfenster in die windowPlacements.json des Nutzers, und jedes geöffnete las dessen Plätze.
+        /// </summary>
+        internal static void UseFolderForTests(string? ordner)
+        {
+            testOrdner = ordner;
+            shared = null;
+        }
+
         private readonly string _filePath;
         private Dictionary<string, WindowPlacement> _data = new();
 
         public WindowPlacementStore(string appName = "Quizzer")
         {
-            var dir = Path.Combine(
+            var dir = testOrdner ?? Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 appName);
 
@@ -20,6 +36,9 @@ namespace Quizzer.Base
             _filePath = Path.Combine(dir, "windowPlacements.json");
             Load();
         }
+
+        /// <summary>Die Datei, in die diese Ablage schreibt.</summary>
+        internal string FilePath => _filePath;
 
         public bool TryGet(string key, out WindowPlacement? placement)
             => _data.TryGetValue(key, out placement);

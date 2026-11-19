@@ -21,6 +21,9 @@ namespace Quizzer.UnitTests
         public const string ConnectionString =
             @"Data Source=(localdb)\MSSQLLocalDB;Database=Quizzer_App_Tests;Integrated Security=True";
 
+        /// <summary>Wohin die Testfenster ihre Plätze schreiben (P12-3): neben die Testausgabe, zu Beginn jedes Laufs geleert.</summary>
+        public static string FensterplatzOrdner { get; } = System.IO.Path.Combine(AppContext.BaseDirectory, "Fensterplaetze");
+
         /// <summary>Ausnahmen, die der ExceptionManager waehrend eines Tests aufgefangen hat.</summary>
         public static List<Exception> SwallowedExceptions { get; } = new();
 
@@ -40,6 +43,14 @@ namespace Quizzer.UnitTests
             System.IO.Directory.CreateDirectory(Settings.FilePathQuizzer);
 
             ViewCommonBase.UiInvokerOverride = () => new InlineUiInvoker();
+
+            // Fensterplätze in einen Wegwerf-Ordner (M37 P13, P12-3) - sonst schrieb jedes gezeigte Testfenster in die
+            // windowPlacements.json des Nutzers und las jedes geöffnete dessen Plätze. Jeder Lauf beginnt ohne gemerkte Plätze;
+            // die Umlenkung bleibt bis zum Prozessende, auch über AssemblyCleanup hinaus - ein Fenster kann danach noch schließen.
+            if (System.IO.Directory.Exists(FensterplatzOrdner))
+                System.IO.Directory.Delete(FensterplatzOrdner, recursive: true);
+
+            WindowPlacementStore.UseFolderForTests(FensterplatzOrdner);
 
             // Kein Buzzer-Ton und kein Gong aus dem Testlauf - und keine Abhaengigkeit von der
             // settings.json des Rechners, auf dem er laeuft.
