@@ -121,7 +121,6 @@
         this.maxSelections = maxSelections;
         this.prompts = Array.isArray(info.prompts) ? info.prompts : [];
         this.trueFalse = info.trueFalse === true;
-        this.urteile = new Map();
 
         // Dieselbe Frage in derselben Runde neu gebaut (etwa andere Beschriftung): die angefangene Wahl bleibt. Nach "Runde
         // zurücksetzen" gehört sie zur alten Runde und ist nicht abgegeben - vorgewählt sähe sie danach aus (M37 P12, P11-5).
@@ -135,6 +134,12 @@
         const previouslySelected = canReselect
             ? new Set(this.selectedKeys)
             : new Set();
+
+        // Und abgegeben bleibt abgegeben, samt sichtbarer Wahl: der Server hat die Antwort, ein freier Knopf böte ein
+        // Umstimmen an, das P6-5 nicht vorsieht (M37 P13, P12-2).
+        const warAbgegeben = canReselect && this.submitted;
+        const vorigeUrteile = canReselect ? this.urteile : new Map();
+        this.urteile = new Map();
 
         const entries = Object.entries(dic)
             .sort(([aKey], [bKey]) => aKey.localeCompare(bKey, undefined, { numeric: true, sensitivity: "base" }));
@@ -150,12 +155,12 @@
         this.selectedKeys = new Set();
 
         // Neue Runde: die Abgabe der letzten gilt nicht mehr.
-        this.submitted = false;
-        this.commitBtn.textContent = this.commitLabel();
+        this.submitted = warAbgegeben;
+        this.commitBtn.textContent = warAbgegeben ? "Abgegeben ✓" : this.commitLabel();
 
         if (this.trueFalse) {
             this.keysWrap.style.setProperty("--grid-size", 1);
-            this.buildTrueFalse(entries, showDesignations);
+            this.buildTrueFalse(entries, showDesignations, vorigeUrteile);
             this.updateCommitState();
             this.setLocked(context.currentLayoutLocked || context.allLocked);
             return;
@@ -222,7 +227,7 @@
     // Wahr oder falsch (M12): je Aussage eine Zeile mit zwei Knoepfen. Abgegeben werden die
     // Tasten der als wahr beurteilten Aussagen - erst wenn jede beurteilt ist, damit eine leere
     // Abgabe "alles falsch" heisst und nicht "nichts getippt".
-    buildTrueFalse(entries, showDesignations) {
+    buildTrueFalse(entries, showDesignations, vorige = new Map()) {
         this.tfCount = entries.length;
 
         for (const [key, designation] of entries) {
@@ -236,6 +241,8 @@
 
             const buttons = [];
 
+            if (vorige.has(key)) this.urteile.set(key, vorige.get(key));
+
             for (const [wert, text] of [[true, "wahr"], [false, "falsch"]]) {
                 const btn = document.createElement("button");
                 btn.type = "button";
@@ -245,6 +252,7 @@
                 btn.textContent = text;
                 btn.setAttribute("aria-pressed", "false");
                 btn.setAttribute("aria-label", `${key} ${text}`);
+                if (vorige.get(key) === wert) this.markSelected(btn, true);
 
                 btn.addEventListener("click", () => {
                     if (this.locked || this.submitted) return;

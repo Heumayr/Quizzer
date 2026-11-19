@@ -302,6 +302,48 @@ for (const trueFalse of [false, true]) {
         "Nach einer neuen Runde während des Sendens sind die Tasten gesperrt.");
 }
 
+// --- M37 P13, P12-2: neu gebaut in derselben Runde nach der Abgabe - der Server hat die Antwort, „Abgegeben ✓" bleibt (P6-5) ---
+{
+    const { LayoutManager } = await import("../../../LocalBuzzer.Service/wwwroot/JS/layoutManager.js");
+
+    // Zwei Auslöser: eine andere Beschriftung (neue Kennung) und der Layoutwechsel über „ausgeschlossen" und zurück (render).
+    const ausloeser = {
+        beschriftung: (layout, z) => layout.update({ ...z, layoutInfo: { ...z.layoutInfo, showDesignations: false } }),
+        ausschluss: (layout, z, manager, host) => {
+            manager.update({ ...z, host, currentLayout: 2, excluded: true });
+            manager.update({ ...z, host, currentLayout: 2, excluded: false });
+        },
+    };
+
+    for (const trueFalse of [false, true]) {
+        for (const [name, neuBauen] of Object.entries(ausloeser)) {
+            const host = baueDom().wurzel;
+            const z = { ...zustand(4), layoutInfo: { ...zustand(4).layoutInfo, trueFalse, maxAllowedSelections: trueFalse ? 2 : 1 } };
+            const layout = new KeySelectLayout({ submitSelection: async () => {} });
+            const manager = new LayoutManager({ allLocked: false, currentLayoutLocked: false });
+            manager.register(2, layout);
+            manager.switchTo(2, { ...z, host });
+
+            const t = () => host.querySelectorAll(".key-btn");
+            const art = `${trueFalse ? "Wahr oder falsch" : "Auswahl"}, ${name}`;
+
+            t()[0].click(); // Auswahl: A. Wahr oder falsch: A wahr, B falsch.
+            if (trueFalse) t()[3].click();
+            await layout.handleCommitClick();
+            pruefe(layout.submitted === true, `${art}: die Abgabe gilt nicht - der Fall misst nichts.`);
+
+            neuBauen(layout, z, manager, host);
+
+            const knopf = host.querySelector(".commit-btn");
+            pruefe(layout.submitted === true && knopf?.textContent === "Abgegeben ✓" && knopf.disabled === true,
+                `${art}: nach dem Neuaufbau in derselben Runde ist der Knopf frei (${knopf?.textContent}) - der Server hat die Antwort schon.`);
+            pruefe(t().length > 0 && t().every(x => x.disabled === true), `${art}: nach dem Neuaufbau sind die Tasten wieder frei.`);
+            pruefe(t()[0].classList.contains("selected") && (!trueFalse || t()[3].classList.contains("selected")),
+                `${art}: nach dem Neuaufbau ist die abgegebene Wahl nicht mehr zu sehen.`);
+        }
+    }
+}
+
 if (fehler > 0) {
     console.error(`${fehler} Zusicherung(en) rot.`);
     process.exit(1);
