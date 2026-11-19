@@ -53,7 +53,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             var c = await VerbindeAsync(carl);
             var eingegangen = new List<BuzzerInputState.InputResult>();
             var alle = 0;
-            Steuerung.EventBus.PlayerSubmittedInput += r => { lock (eingegangen) eingegangen.Add(r); };
+            Steuerung.EventBus.PlayerSubmittedInput += (r, _) => { lock (eingegangen) eingegangen.Add(r); };
             Steuerung.EventBus.AllPlayersSubmittedInput += (_, _) => Interlocked.Increment(ref alle);
 
             await BeratungAsync();

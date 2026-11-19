@@ -110,7 +110,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             var (bertTelefon, _) = await VerbindeAsync(bert);
             var gemeldet = new List<Guid>();
             var alleAbgegeben = 0;
-            Steuerung.EventBus.PlayerSelectedKeys += r => { lock (gemeldet) gemeldet.Add(r.PlayerId); };
+            Steuerung.EventBus.PlayerSelectedKeys += (r, _) => { lock (gemeldet) gemeldet.Add(r.PlayerId); };
             Steuerung.EventBus.AllPlayersSelectedKeys += (_, _) => Interlocked.Increment(ref alleAbgegeben);
 
             Steuerung.StateManager.BuzzerKeySelector.Infos.KeysAndDesignations = new() { ["A"] = "Eins", ["B"] = "Zwei" };
@@ -134,7 +134,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             var (bertTelefon, _) = await VerbindeAsync(bert);
             var gemeldet = new List<Guid>();
             var alleAbgegeben = 0;
-            Steuerung.EventBus.PlayerSubmittedInput += r => { lock (gemeldet) gemeldet.Add(r.PlayerId); };
+            Steuerung.EventBus.PlayerSubmittedInput += (r, _) => { lock (gemeldet) gemeldet.Add(r.PlayerId); };
             Steuerung.EventBus.AllPlayersSubmittedInput += (_, _) => Interlocked.Increment(ref alleAbgegeben);
 
             await Steuerung.SetAnswerersAsync([anna.Id]);

@@ -53,7 +53,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
 
             server = new BuzzerServer { GetGame = () => game };
             await HubTest.StartAsync(server, TestPort);
-            Steuerung.EventBus.PlayerSubmittedInput += r => { lock (eingegangen) eingegangen.Add(r); };
+            Steuerung.EventBus.PlayerSubmittedInput += (r, _) => { lock (eingegangen) eingegangen.Add(r); };
         }
 
         [TestCleanup]

@@ -176,7 +176,7 @@ namespace LocalBuzzer.Service.Hubs
             if (!_stateManager.TrySubmit(result.ResetCount, () => inputState.SetInput(result, out geschlossen), out var runde))
                 return;
 
-            _bus.OnPlayerSubmittedInput(result);
+            _bus.OnPlayerSubmittedInput(result, runde); // P12-1: die Runde, in der der Tipp zählt
 
             await SendStateToEachAsync();
 
@@ -227,7 +227,7 @@ namespace LocalBuzzer.Service.Hubs
             if (!angenommen)
                 return;
 
-            _bus.OnPlayerSelectedKeys(results);
+            _bus.OnPlayerSelectedKeys(results, runde); // P12-1
 
             // Wie beim Tipp: nur dieselbe Runde schließen (P10-3).
             if (geschlossen && _stateManager.LockRound(runde))

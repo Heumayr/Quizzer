@@ -87,7 +87,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             var zurueckgesetzt = 0;
 
             Steuerung.EventBus.AllPlayersSubmittedInput += (alle, _) => { lock (aufgeloest) aufgeloest.Add(alle.Count); };
-            Steuerung.EventBus.PlayerSubmittedInput += tipp =>
+            Steuerung.EventBus.PlayerSubmittedInput += (tipp, _) =>
             {
                 if (tipp.PlayerId == carl.Id && Interlocked.Exchange(ref zurueckgesetzt, 1) == 0)
                     SetzeZurueck(BuzzerControlsLayout.Input);
@@ -115,7 +115,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             var zurueckgesetzt = 0;
 
             Steuerung.EventBus.AllPlayersSelectedKeys += (alle, _) => { lock (aufgeloest) aufgeloest.Add(alle.Count); };
-            Steuerung.EventBus.PlayerSelectedKeys += stimme =>
+            Steuerung.EventBus.PlayerSelectedKeys += (stimme, _) =>
             {
                 if (stimme.PlayerId == carl.Id && Interlocked.Exchange(ref zurueckgesetzt, 1) == 0)
                     SetzeZurueck(BuzzerControlsLayout.KeySelect);
@@ -140,7 +140,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         {
             var a = await VerbindeAsync(anna);
             var angekommen = new List<string>();
-            Steuerung.EventBus.PlayerSubmittedInput += tipp => { lock (angekommen) angekommen.Add(tipp.Value); };
+            Steuerung.EventBus.PlayerSubmittedInput += (tipp, marke) => { lock (angekommen) angekommen.Add($"{tipp.Value}@{marke}"); };
 
             await Steuerung.ResetRoundAsync(1, BuzzerControlsLayout.Input);
             var gesehen = Steuerung.StateManager.ResetCount;
@@ -152,7 +152,8 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             await a.InvokeAsync("SubmitInput", new { value = "42", resetCount = Steuerung.StateManager.ResetCount });
             Assert.AreEqual("42", Steuerung.StateManager.BuzzerInputState.InputsForPlayer[anna.Id].Value, "Der Tipp für die laufende Runde kam nicht an.");
             lock (angekommen)
-                CollectionAssert.AreEqual(new[] { "42" }, angekommen, "Die Spielleitung hörte vom Tipp der alten Runde.");
+                CollectionAssert.AreEqual(new[] { $"42@{Steuerung.StateManager.ResetCount}" }, angekommen,
+                    "Die Spielleitung hörte vom Tipp der alten Runde - oder ohne die Marke der Runde, in der er zählt (P12-1).");
         }
 
         [TestMethod]
@@ -160,7 +161,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
         {
             var a = await VerbindeAsync(anna);
             var angekommen = new List<string>();
-            Steuerung.EventBus.PlayerSelectedKeys += stimme => { lock (angekommen) angekommen.Add(string.Join("", stimme.SelectedKeys)); };
+            Steuerung.EventBus.PlayerSelectedKeys += (stimme, marke) => { lock (angekommen) angekommen.Add($"{string.Join("", stimme.SelectedKeys)}@{marke}"); };
 
             await Steuerung.ResetRoundAsync(1, BuzzerControlsLayout.KeySelect);
             var gesehen = Steuerung.StateManager.ResetCount;
@@ -172,7 +173,8 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             await a.InvokeAsync("SelectionResults", new { selectedKeys = new[] { "B" }, resetCount = Steuerung.StateManager.ResetCount });
             CollectionAssert.AreEqual(new[] { "B" }, Steuerung.StateManager.BuzzerKeySelector.KeyResultsForPlayer[anna.Id].SelectedKeys, "Die Stimme für die laufende Runde kam nicht an.");
             lock (angekommen)
-                CollectionAssert.AreEqual(new[] { "B" }, angekommen, "Die Spielleitung hörte von der Stimme der alten Runde.");
+                CollectionAssert.AreEqual(new[] { $"B@{Steuerung.StateManager.ResetCount}" }, angekommen,
+                    "Die Spielleitung hörte von der Stimme der alten Runde - oder ohne die Marke der Runde, in der sie zählt (P12-1).");
         }
     }
 }

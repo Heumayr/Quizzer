@@ -133,7 +133,7 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
                 Player = anna,
                 Value = "3750",
                 CommittedResult = true,
-            });
+            }, runde: 0);
 
             var annaLine = vm.LivePlayers.First(p => p.PlayerId == anna.Id);
             var bertLine = vm.LivePlayers.First(p => p.PlayerId == bert.Id);
@@ -155,7 +155,7 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
                 Player = anna,
                 SelectedKeys = new List<string> { "B" },
                 CommittedResult = true,
-            });
+            }, runde: 0);
 
             Assert.AreEqual("B", vm.LivePlayers.First(p => p.PlayerId == anna.Id).AnswerText);
         }
@@ -184,7 +184,7 @@ namespace Quizzer.UnitTests.Views.BuzzerViews
                 Player = anna,
                 Value = "3750",
                 CommittedResult = true,
-            });
+            }, runde: 0);
 
             var annaLine = vm.LivePlayers.First(p => p.PlayerId == anna.Id);
 

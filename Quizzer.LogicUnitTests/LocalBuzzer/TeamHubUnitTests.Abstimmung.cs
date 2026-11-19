@@ -142,7 +142,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             var a = await VerbindeAsync(anna);
             await VerbindeAsync(bert);
             var gemeldet = 0;
-            Steuerung.EventBus.PlayerSelectedKeys += _ => Interlocked.Increment(ref gemeldet);
+            Steuerung.EventBus.PlayerSelectedKeys += (_, _) => Interlocked.Increment(ref gemeldet);
             await AbstimmungAsync();
 
             foreach (var taste in new[] { "A", "B", "A", "B", "A", "C", "C" })
@@ -193,7 +193,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
 
             await Steuerung.ResetRoundAsync(1, BuzzerControlsLayout.KeySelect);
             var gemeldet = 0;
-            Steuerung.EventBus.PlayerSelectedKeys += _ => Interlocked.Increment(ref gemeldet);
+            Steuerung.EventBus.PlayerSelectedKeys += (_, _) => Interlocked.Increment(ref gemeldet);
 
             await StimmeAsync(a, "C");
 

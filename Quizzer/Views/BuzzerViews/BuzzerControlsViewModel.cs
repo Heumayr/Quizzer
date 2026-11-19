@@ -204,14 +204,18 @@ namespace Quizzer.Views.BuzzerViews
             _ = RunOnUiAsync(RefreshConnections);
         }
 
-        public async void OnPlayerSelectedKeys(SelectionResult selectionResult)
+        public async void OnPlayerSelectedKeys(SelectionResult selectionResult, int runde)
         {
             try
             {
-                TrackSelection(selectionResult.PlayerId, selectionResult.SelectedKeys);
-
+                // P12-1: wie beim Tipp - eine Wahl aus der Runde vor „Runde zurücksetzen“ zeigt die neue nirgends.
                 await RunOnUiAsync(async () =>
                 {
+                    if (SeitherZurueckgesetzt(runde))
+                        return;
+
+                    TrackSelection(selectionResult.PlayerId, selectionResult.SelectedKeys);
+
                     if (PlayerSelectedKeys != null)
                         await PlayerSelectedKeys.Invoke(selectionResult);
                 });

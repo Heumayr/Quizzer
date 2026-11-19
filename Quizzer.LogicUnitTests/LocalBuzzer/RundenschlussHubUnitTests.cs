@@ -100,7 +100,7 @@ namespace Quizzer.LogicUnitTests.LocalBuzzer
             Steuerung.EventBus.AllPlayersSelectedKeys += (_, _) => Interlocked.Increment(ref aufgeloest);
 
             // Aufdecker: ein langsamer Abnehmer weitet das Fenster zwischen Abgabe und Auflösen, wie beim Tipp das Senden.
-            Steuerung.EventBus.PlayerSelectedKeys += _ => Thread.Sleep(5);
+            Steuerung.EventBus.PlayerSelectedKeys += (_, _) => Thread.Sleep(5);
             Steuerung.StateManager.BuzzerKeySelector.Infos = new BuzzerKeySelector.BuzzerKeySelectorInfo
             {
                 KeysAndDesignations = new() { ["A"] = "Rom", ["B"] = "Paris", ["C"] = "Wien" },

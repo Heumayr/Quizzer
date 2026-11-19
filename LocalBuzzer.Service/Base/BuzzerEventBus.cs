@@ -19,13 +19,14 @@ namespace LocalBuzzer.Service.Base
 
         public event Action<int>? RoundReset;
 
-        public event Action<SelectionResult>? PlayerSelectedKeys;
+        /// <summary>Eine Tastenwahl ist angenommen - mit der Marke der Runde, in der sie zaehlt (P12-1, wie P11-3).</summary>
+        public event Action<SelectionResult, int>? PlayerSelectedKeys;
 
         /// <summary>Die Tastenrunde ist zu - mit der Marke der Runde (<c>ResetCount</c>), die sie geschlossen hat (P11-3).</summary>
         public event Action<ConcurrentDictionary<Guid, SelectionResult>, int>? AllPlayersSelectedKeys;
 
-        /// <summary>Ein Spieler hat seinen Schaetzwert abgegeben.</summary>
-        public event Action<InputResult>? PlayerSubmittedInput;
+        /// <summary>Ein Spieler hat seinen Schaetzwert abgegeben - mit der Marke der Runde, in der er zaehlt (P12-1).</summary>
+        public event Action<InputResult, int>? PlayerSubmittedInput;
 
         /// <summary>
         /// Alle Mitspieler haben abgegeben - die Schaetzrunde ist zu. Die Marke nennt die Runde: das Woerterbuch lebt weiter, und
@@ -39,11 +40,11 @@ namespace LocalBuzzer.Service.Base
 
         public void OnReset(int round) => RoundReset?.Invoke(round);
 
-        public void OnPlayerSelectedKeys(SelectionResult results) => PlayerSelectedKeys?.Invoke(results);
+        public void OnPlayerSelectedKeys(SelectionResult results, int resetCount) => PlayerSelectedKeys?.Invoke(results, resetCount);
 
         public void OnAllPlayersSelectedKeys(ConcurrentDictionary<Guid, SelectionResult> dic, int resetCount) => AllPlayersSelectedKeys?.Invoke(dic, resetCount);
 
-        public void OnPlayerSubmittedInput(InputResult result) => PlayerSubmittedInput?.Invoke(result);
+        public void OnPlayerSubmittedInput(InputResult result, int resetCount) => PlayerSubmittedInput?.Invoke(result, resetCount);
 
         public void OnAllPlayersSubmittedInput(ConcurrentDictionary<Guid, InputResult> dic, int resetCount) => AllPlayersSubmittedInput?.Invoke(dic, resetCount);
 

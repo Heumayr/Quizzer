@@ -12,7 +12,8 @@ namespace Quizzer.UnitTests.Views.GameViews
     /// P11-3 (Durchsicht M37, P12), der WPF-Rest von P10-3: der Hub löst eine Runde auf und reicht die Abgaben an die Oberfläche;
     /// bevor die sie liest, setzt die Spielleitung die Runde zurück. Die Warteschlange des Oberflächen-Threads bildet
     /// <see cref="ZurueckgehaltenerUiInvoker"/> nach - Hub, Telefone und Zurücksetzen sind echt. Aus der alten Runde darf danach
-    /// nichts in der neuen aufgelöst werden: keine leere Auswertung, keine alte.
+    /// nichts in der neuen aufgelöst werden: keine leere Auswertung, keine alte. P12-1 (P13): auch die Einzelabgabe, die mit der
+    /// Auflösung wartet, steht danach weder auf einer Karte noch in der Liveübersicht.
     /// </summary>
     [TestClass]
     public class AufloesenNachZuruecksetzenUnitTests : SonderregelServerTestBasis
@@ -40,6 +41,15 @@ namespace Quizzer.UnitTests.Views.GameViews
             await ui.GibFreiAsync();
         }
 
+        /// <summary>P12-1: was nach dem Zurücksetzen von der alten Runde noch zu sehen ist - je Platz Karte/Liveübersicht, leer als „-".</summary>
+        private string AltesNachDemZuruecksetzen(TestableCurrentQuestionViewModel vm) => string.Join(", ", Enumerable.Range(0, 3).Select(i =>
+        {
+            var karte = Karte(vm, i);
+            var abgabe = karte.InputResult?.Value ?? (karte.SelectionResult is { } s ? string.Join("", s.SelectedKeys) : null);
+            var live = vm.BuzzerControlsViewModel!.LivePlayers.Single(p => p.PlayerId == world!.Players[i].Id).AnswerText;
+            return $"{abgabe ?? "-"}/{(live.Length > 0 ? live : "-")}";
+        }));
+
         [TestMethod]
         public async Task AnEstimateResolvedJustBeforeAResetIsNotEvaluatedInTheNewRound()
         {
@@ -57,6 +67,8 @@ namespace Quizzer.UnitTests.Views.GameViews
                 + $"Karten {string.Join(", ", Enumerable.Range(0, 3).Select(i => Karte(vm, i).InputResult?.Value ?? "-"))}");
 
             Assert.IsNull(vm.AppreciateOutcome, $"Die zurückgesetzte Runde wurde in der neuen ausgewertet ({tipps} Tipps).");
+            var altes = AltesNachDemZuruecksetzen(vm);
+            Assert.AreEqual("-/-, -/-, -/-", altes, $"Ein Tipp der alten Runde steht in der neuen (Karte/Liveübersicht je Platz): {altes}.");
         }
 
         [TestMethod]
@@ -79,6 +91,8 @@ namespace Quizzer.UnitTests.Views.GameViews
                 + $"Karten {string.Join(", ", Enumerable.Range(0, 3).Select(i => Karte(vm, i).SelectionResult is { } s ? string.Join("", s.SelectedKeys) : "-"))}");
 
             Assert.IsNull(aufgeloest, $"Die zurückgesetzte Runde wurde in der neuen aufgelöst ({aufgeloest?.Count} Einträge).");
+            var altes = AltesNachDemZuruecksetzen(vm);
+            Assert.AreEqual("-/-, -/-, -/-", altes, $"Eine Wahl der alten Runde steht in der neuen (Karte/Liveübersicht je Platz): {altes}.");
         }
     }
 }

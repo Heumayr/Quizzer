@@ -79,14 +79,19 @@ namespace Quizzer.Views.BuzzerViews
             ctrl.EventBus.AllPlayersSubmittedInput -= OnAllPlayersSubmittedInput;
         }
 
-        public async void OnPlayerSubmittedInput(InputResult result)
+        public async void OnPlayerSubmittedInput(InputResult result, int runde)
         {
             try
             {
-                TrackInput(result.PlayerId, result.Value);
-
+                // P12-1: der Tipp wartet wie die Auflösung auf den Oberflächen-Thread - kam „Runde zurücksetzen“ davor, gehört er
+                // weder auf die Karte noch in die Liveübersicht der neuen Runde. Beide in einem Auftrag, mit einer Prüfung.
                 await RunOnUiAsync(async () =>
                 {
+                    if (SeitherZurueckgesetzt(runde))
+                        return;
+
+                    TrackInput(result.PlayerId, result.Value);
+
                     if (PlayerSubmittedInput != null)
                         await PlayerSubmittedInput.Invoke(result);
                 });
@@ -114,9 +119,9 @@ namespace Quizzer.Views.BuzzerViews
         }
 
         /// <summary>
-        /// P11-3: ob die Runde mit der Marke <paramref name="runde"/> zurückgesetzt wurde, seit der Hub sie aufgelöst hat. Die Auflösung
-        /// wartet auf den Oberflächen-Thread; kam „Runde zurücksetzen“ davor, ist ihr Wörterbuch geleert - und die neue Runde nicht
-        /// ihre. Dann gilt sie nicht, weder leer noch alt.
+        /// P11-3, P12-1: ob die Runde mit der Marke <paramref name="runde"/> zurückgesetzt wurde, seit der Hub sie aufgelöst oder eine
+        /// Abgabe darin angenommen hat. Beides wartet auf den Oberflächen-Thread; kam „Runde zurücksetzen“ davor, ist die neue Runde
+        /// nicht ihre. Dann gilt es nicht, weder leer noch alt.
         /// </summary>
         private bool SeitherZurueckgesetzt(int runde) => BuzzerController is { } steuerung && steuerung.StateManager.ResetCount != runde;
     }
